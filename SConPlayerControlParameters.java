@@ -31,6 +31,26 @@ class SConPlayerControlParameters implements Cloneable {
 	}
     }
 
+    public String toString() {
+	StringBuilder s = new StringBuilder();
+	
+	s.append("target speed: ");
+	s.append(targetSpeed);
+	
+	s.append("\nacceleration: ");
+	s.append(acceleration);
+	
+	s.append("\ntarget direction: ");
+	s.append(targetDirection);
+	
+	s.append("\nangular speed: ");
+	s.append(angularSpeed);
+
+	s.append("\n");
+
+	return s.toString();
+    }
+
     public void serialize(DataOutputStream o) {
 	try {
 
@@ -71,7 +91,9 @@ class SConPlayerControlParameters implements Cloneable {
 	Byte cmd;
 
 	try {
-	    assert(i.readByte() == '$');
+	    
+	    cmd = i.readByte();
+	    assert(cmd == '$');
 
 	    cmd = i.readByte();
 	    assert(cmd == 'v');
@@ -102,6 +124,7 @@ class SConPlayerControlParameters implements Cloneable {
 	    ctrl.boostsToTake = i.readInt();
 	    
 	} catch (IOException ioe) {
+	    //System.out.println("Warning: Failed to parse command from client.");
 	    assert(false);
 	    return null;
 	}

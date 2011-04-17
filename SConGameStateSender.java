@@ -13,19 +13,19 @@ import java.io.*;
 
 class SConGameStateSender implements Runnable {
 
+    private int playerNo;
     private DataOutputStream client;
     private SConSimulation game;
 
-    public synchronized void setClientStream(DataOutputStream o) {
-	this.client = o;
+    private int previousTime = -1;
+
+    public SConGameStateSender(int player, SConSimulation sim, DataOutputStream o) {
+	playerNo = player;
+	game = sim;
+	client = o;
     }
 
-
-    public synchronized void setGame(SConSimulation g) {
-	this.game = g;
-    }
-
-    public void run() {
+    public synchronized void run() {
 
 	int t;
 	SConPlayerState p1State;
@@ -53,21 +53,27 @@ class SConGameStateSender implements Runnable {
 		    p2State = game.player2State.clone();
 		}
 
-		try {
 
-		    // Simulation time
-		    client.writeBytes("t");
-		    client.writeInt(t);
+		if (previousTime != t) {
+
+
+		    try {
+
+			// Simulation time
+			client.writeBytes("t");
+			client.writeInt(t);
 	   
-		    // Player 1 status:
-		    p1State.serialize(client);
-
-		    // Player 2 status:
-		    p2State.serialize(client);
+			// Player 1 status:
+			p1State.serialize(client);
+			
+			// Player 2 status:
+			p2State.serialize(client);
 		
 
-		} catch (IOException ioe) {
-		    assert(false);
+		    } catch (IOException ioe) {
+			assert(false);
+		    }
+
 		}
 
 	    }

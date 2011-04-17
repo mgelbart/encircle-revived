@@ -16,15 +16,25 @@ class SConClient {
 	Socket stateSocket;
 
 	int p = Integer.parseInt(stdin.readLine());
+	boolean draw = Boolean.parseBoolean(stdin.readLine());
 
 	if (p > 2 || p < 1) return;
 
+	if (draw) {
+	    StdDraw.setXscale(-300, 300);
+	    StdDraw.setYscale(-300, 300);
+
+	    StdDraw.clear(StdDraw.BLACK);
+
+	    StdDraw.setPenColor(StdDraw.BLUE);
+	}
+
 	if (p == 1) {
-	    controlSocket = new Socket("localhost", 6701);
-	    stateSocket = new Socket("localhost", 6702);
+	    controlSocket = new Socket("localhost", 7601);
+	    stateSocket = new Socket("localhost", 7602);
 	} else {
-	    controlSocket = new Socket("localhost", 6703);
-	    stateSocket = new Socket("localhost", 6704);
+	    controlSocket = new Socket("localhost", 7603);
+	    stateSocket = new Socket("localhost", 7604);
 	}
 
 	try {
@@ -33,11 +43,15 @@ class SConClient {
 	    DataOutputStream controlStream = new DataOutputStream(controlSocket.getOutputStream());
 
 	    SConIntelligence intel = new HigherBeing(p);
-	    
+	    SConParsedGameState game;
+
 	    while (true) {
-		intel.processGameStateUpdate(parseGameState(stateStream));
+		game = parseGameState(stateStream);
+		intel.processGameStateUpdate(game);
 
 		sendControlParameters(controlStream, intel.getNewControlParameters());
+
+		if (draw) drawGameState(game);
 	    }
 
 	} catch (Exception e) {
@@ -70,6 +84,7 @@ class SConClient {
 
 	} catch (IOException ioe) {
 	    assert(false);
+	    System.out.println("Fail!");
 	}
 
 	game.states = states;
@@ -83,5 +98,12 @@ class SConClient {
 
 	params.serialize(o);
 
+    }
+
+    private static void drawGameState(SConParsedGameState g) {
+	StdDraw.clear(StdDraw.BLACK);
+	
+	StdDraw.square(g.states[0].x, g.states[0].y, 2);
+	StdDraw.square(g.states[1].x, g.states[1].y, 2);
     }
 }

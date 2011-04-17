@@ -27,6 +27,23 @@ class SConPlayerState implements Cloneable {
 	}
     }
 
+    public String toString() {
+	StringBuilder s = new StringBuilder();
+
+	s.append("x: ");
+	s.append(x);
+
+	s.append("\ny: ");
+	s.append(y);
+
+	s.append("\ndirection: ");
+	s.append(direction);
+
+	s.append("\n");
+
+	return s.toString();
+    }
+
     public void serialize(DataOutputStream o) {
 
 	try {

@@ -17,17 +17,10 @@ class SConPlayerListener implements Runnable {
     private DataInputStream client;
     private SConSimulation game;
 
-    public synchronized void setPlayerNo(int i) {
-	this.playerNo = i;
-    }
-
-    public synchronized void setClientStream(DataInputStream i) {
-	this.client = i;
-    }
-
-
-    public synchronized void setGame(SConSimulation g) {
-	this.game = g;
+    public SConPlayerListener(int player, SConSimulation sim, DataInputStream in) {
+	playerNo = player;
+	client = in;
+	game = sim;
     }
 
     public void run() {
@@ -38,6 +31,11 @@ class SConPlayerListener implements Runnable {
 	while (true) {
 
 	    ctrl = SConPlayerControlParameters.parse(client);
+	    if (ctrl == null) continue;
+
+	    System.out.print("Received from #");
+	    System.out.println(playerNo);
+	    System.out.println(ctrl.toString());
 
 	    // Give the updated target parameters to the simulator
 	    if(playerNo == 1)
