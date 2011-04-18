@@ -12,11 +12,19 @@ import java.io.*;
 
 class SConPlayerState implements Cloneable {
     /* Values transmitted to the clients. */
-    public int playerNo;
-    public int x;
-    public int y;
-    public int direction;
-    public int energy;
+    public final int playerNo;
+    public final int x;
+    public final int y;
+    public final int direction;
+    public final int energy;
+
+    public SConPlayerState(int playerNo, int x, int y, int direction, int energy) {
+	this.playerNo = playerNo;
+	this.x = x;
+	this.y = y;
+	this.direction = direction;
+	this.energy = energy;
+    }
 
     public SConPlayerState clone() {
 	try {
@@ -60,7 +68,11 @@ class SConPlayerState implements Cloneable {
 	    o.writeBytes("d");
 	    o.writeInt(direction);
 
+	    o.writeBytes("e");
+	    o.writeInt(energy);
+
 	} catch (IOException ioe) {
+	    System.out.println(ioe.toString());
 	    assert(false);
 	}
 
@@ -68,10 +80,8 @@ class SConPlayerState implements Cloneable {
 
     public static SConPlayerState parse(DataInputStream i) {
 
-	SConPlayerState state = new SConPlayerState();
-
 	Byte cmd;
-	int p;
+	int p, x, y, d, e;
 
 	try {
 
@@ -80,27 +90,31 @@ class SConPlayerState implements Cloneable {
 
 	    p = i.readInt();
 	    assert(p == 1 || p == 2);
-	    state.playerNo = cmd;
 
 	    cmd = i.readByte();
 	    assert(cmd == 'x');
-	    state.x = i.readInt();
+	    x = i.readInt();
 
 	    cmd = i.readByte();
 	    assert(cmd == 'y');
-	    state.y = i.readInt();
+	    y = i.readInt();
 
 	    cmd = i.readByte();
 	    assert(cmd == 'd');
-	    state.direction = i.readInt();
+	    d = i.readInt();
+
+	    cmd = i.readByte();
+	    assert(cmd == 'e');
+	    e = i.readInt();
 
 	    
 	} catch (IOException ioe) {
+	    System.out.println(ioe.toString());
 	    assert(false);
 	    return null;
 	}
 
-	return state;
+	return new SConPlayerState(p, x, y, d, e);
     }
 }
 

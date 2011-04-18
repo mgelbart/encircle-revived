@@ -97,14 +97,11 @@ class SConSimulation
 	player1CtrlParams = new SConPlayerControlParameters();
 	player2CtrlParams = new SConPlayerControlParameters();
 
-	player1State = new SConPlayerState();
-	player2State = new SConPlayerState();
+	player1State = new SConPlayerState(1, -50, 0, 0, 0);
+	player2State = new SConPlayerState(2,  50, 0, 0, 0);
 
 	player1StateInt = new SConPlayerStateInternal();
 	player2StateInt = new SConPlayerStateInternal();
-
-	player1State.x = -50;
-	player2State.x =  50;
 
 	simulationTime = 0;
     }
@@ -115,7 +112,7 @@ class SConSimulation
 	SConPlayerControlParameters p1Params;
 	SConPlayerControlParameters p2Params;
 
-	int dir, vx, vy;
+	int dir1, dir2, vx, vy, x1, x2, y1, y2;
 	double w, a;
 
 	while (true) {
@@ -137,24 +134,18 @@ class SConSimulation
 	    }
 
 
-	    // Don't need locking here because no other thread updates
-	    // the game state
-	    p1State = player1State.clone();
-	    p2State = player2State.clone();
-
-
 	    // Calculate the new positions.
 
 	    w = MAXW * (p1Params.angularSpeed / (double) INTMAX);
-	    dir = p1State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
+	    dir1 = player1State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
 
-	    if (Math.abs(dir - p1Params.targetDirection) < Math.abs(p1State.direction - p1Params.targetDirection))
+	    if (Math.abs(dir1 - p1Params.targetDirection) > Math.abs(player1State.direction - p1Params.targetDirection))
 		// only change the direction if it gets closer to the target.
-		p1State.direction = dir;
+		dir1 = player1State.direction;
 
 	    a = Math.max((double) 0.0, MAXACC * (p1Params.acceleration / (double) INTMAX));
-	    vx = player1StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (p1State.direction / (double) INTMAX)));
-	    vy = player1StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (p1State.direction / (double) INTMAX)));
+	    vx = player1StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (player1State.direction / (double) INTMAX)));
+	    vy = player1StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (player1State.direction / (double) INTMAX)));
 
 	    // This target speed thing is probably a bit stupid...
 	    //if (Math.abs(Math.sqrt(Math.pow(vx,2) + Math.pow(vy,2)) - p1Params.targetSpeed)
@@ -163,34 +154,36 @@ class SConSimulation
 		player1StateInt.vy = vy;
 	    //}
 
-	    p1State.x += player1StateInt.vx;
-	    p1State.y += player1StateInt.vy;
+	    x1 = player1State.x + player1StateInt.vx;
+	    y1 = player1State.y + player1StateInt.vy;
 
 
 	    // Repeat for player 2... (a bit ugly)
-
 	    w = MAXW * (p2Params.angularSpeed / (double) INTMAX);
-	    dir = p2State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
+	    dir2 = player2State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
 
-	    if (Math.abs(dir - p2Params.targetDirection) < Math.abs(p2State.direction - p2Params.targetDirection)) {
+	    if (Math.abs(dir2 - p2Params.targetDirection) > Math.abs(player2State.direction - p2Params.targetDirection))
 		// only change the direction if it gets closer to the target.
-		p2State.direction = dir;
-		//System.out.println("xx");
-	    }
+		dir2 = player2State.direction;
 
 	    a = Math.max((double) 0.0, MAXACC * (p2Params.acceleration / (double) INTMAX));
-	    vx = player2StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (p2State.direction / (double) INTMAX)));
-	    vy = player2StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (p2State.direction / (double) INTMAX)));
+	    vx = player2StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (player2State.direction / (double) INTMAX)));
+	    vy = player2StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (player2State.direction / (double) INTMAX)));
 
+	    // This target speed thing is probably a bit stupid...
 	    //if (Math.abs(Math.sqrt(Math.pow(vx,2) + Math.pow(vy,2)) - p2Params.targetSpeed)
-	    //	  < Math.abs(Math.sqrt(Math.pow(player2StateInt.vx,2) + Math.pow(player2StateInt.vy,2)) - p2Params.targetSpeed)) {
+	    //  < Math.abs(Math.sqrt(Math.pow(player2StateInt.vx,2) + Math.pow(player2StateInt.vy,2)) - p2Params.targetSpeed)) {
 		player2StateInt.vx = vx; 
 		player2StateInt.vy = vy;
-		//System.out.println("yy");
-		//}
+	    //}
 
-	    p2State.x += player2StateInt.vx;
-	    p2State.y += player2StateInt.vy;
+	    x2 = player2State.x + player2StateInt.vx;
+	    y2 = player2State.y + player2StateInt.vy;
+
+
+
+	    p1State = new SConPlayerState(1, x1, y1, dir1, 0);
+	    p2State = new SConPlayerState(1, x2, y2, dir2, 0);
 
 	    // Update the game state.
 	    //

@@ -15,10 +15,10 @@ clean:
 	rm -f *~ *.class
 
 run_serv:
-	java SConSimulation
+	java -ea SConSimulation
 
 run_client1:
-	echo -e "1\ntrue" | java SConClient
+	echo -e "1\ntrue" | java -ea SConClient
 
 run_client2:
-	echo -e "2\nfalse" | java SConClient
+	echo -e "2\nfalse" | java -ea SConClient

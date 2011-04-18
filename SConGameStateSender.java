@@ -71,6 +71,7 @@ class SConGameStateSender implements Runnable {
 		
 
 		    } catch (IOException ioe) {
+			System.out.println(ioe.toString());
 			assert(false);
 		    }
 
