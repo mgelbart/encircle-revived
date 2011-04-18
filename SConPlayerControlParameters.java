@@ -10,17 +10,28 @@
 import java.io.*;
 
 class SConPlayerControlParameters implements Cloneable {
-    public int targetSpeed;
-    public int acceleration;
-    public int targetDirection;
-    public int angularSpeed;
+    public final int targetSpeed;
+    public final int acceleration;
+    public final int targetDirection;
+    public final int angularSpeed;
 
     // Number of shots/boosts to take ASAP.
     // Decremented by the simulator when actually taken.
-    public int shotsToTake;
-    public int fakeShotsToTake;
-    public int boostsToTake;
+    public final int shotsToTake;
+    public final int fakeShotsToTake;
+    public final int boostsToTake;
 
+    public SConPlayerControlParameters(int targetSpeed, int acceleration, int targetDirection,
+				       int angularSpeed, int shotsToTake, int fakeShotsToTake,
+				       int boostsToTake) {
+	this.targetSpeed = targetSpeed;
+	this.acceleration = acceleration;
+	this.targetDirection = targetDirection;
+	this.angularSpeed = angularSpeed;
+	this.shotsToTake = shotsToTake;
+	this.fakeShotsToTake = fakeShotsToTake;
+	this.boostsToTake = boostsToTake;
+    }
 
     public SConPlayerControlParameters clone() {
 	try {
@@ -86,9 +97,8 @@ class SConPlayerControlParameters implements Cloneable {
 
     public static SConPlayerControlParameters parse(DataInputStream i) {
 
-	SConPlayerControlParameters ctrl = new SConPlayerControlParameters();
-
 	Byte cmd;
+	int v, a, d, w, s, f, b;
 
 	try {
 	    
@@ -97,39 +107,40 @@ class SConPlayerControlParameters implements Cloneable {
 
 	    cmd = i.readByte();
 	    assert(cmd == 'v');
-	    ctrl.targetSpeed = i.readInt();
+	    v = i.readInt();
 		
 	    cmd = i.readByte();
 	    assert(cmd == 'a');
-	    ctrl.acceleration = i.readInt();
+	    a = i.readInt();
 	    
 	    cmd = i.readByte();
 	    assert(cmd == 'd');
-	    ctrl.targetDirection = i.readInt();
+	    d = i.readInt();
 	    
 	    cmd = i.readByte();
 	    assert(cmd == 'w');
-	    ctrl.angularSpeed = i.readInt();
+	    w = i.readInt();
 	    
 	    cmd = i.readByte();
 	    assert(cmd == 's');
-	    ctrl.shotsToTake = i.readInt();
+	    s = i.readInt();
 
 	    cmd = i.readByte();
 	    assert(cmd == 'f');
-	    ctrl.fakeShotsToTake = i.readInt();
+	    f = i.readInt();
 	    
 	    cmd = i.readByte();
 	    assert(cmd == 'b');
-	    ctrl.boostsToTake = i.readInt();
+	    b = i.readInt();
 	    
 	} catch (IOException ioe) {
-	    //System.out.println("Warning: Failed to parse command from client.");
+	    System.out.println(ioe.toString());
 	    assert(false);
 	    return null;
 	}
 
-	return ctrl;
+
+	return new SConPlayerControlParameters(v, a, d, w, s, f, b);
 
     }
 }

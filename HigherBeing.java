@@ -20,14 +20,11 @@ class HigherBeing implements SConIntelligence {
     }
 
     public SConPlayerControlParameters getNewControlParameters() {
-	SConPlayerControlParameters p = new SConPlayerControlParameters();
-
-	p.targetSpeed = SConSimulation.INTMAX;
-	p.acceleration = SConSimulation.INTMAX/2;
-	p.targetDirection = games[0].states[playerNo-1].direction + SConSimulation.INTMAX/2;
-	p.angularSpeed = (int) (((double) SConSimulation.INTMAX) * (4.0/5.0));
-
-	return p;
+	return new SConPlayerControlParameters(SConSimulation.INTMAX,
+					       SConSimulation.INTMAX/2,
+					       games[0].states[playerNo-1].direction + SConSimulation.INTMAX/2,
+					       (int) (((double) SConSimulation.INTMAX) * (4.0/5.0)),
+					       0, 0, 0);
     }
 
 }

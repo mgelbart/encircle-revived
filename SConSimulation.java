@@ -94,8 +94,8 @@ class SConSimulation
     }
 
     private void initGameState() {
-	player1CtrlParams = new SConPlayerControlParameters();
-	player2CtrlParams = new SConPlayerControlParameters();
+	player1CtrlParams = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
+	player2CtrlParams = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
 
 	player1State = new SConPlayerState(1, -50, 0, 0, 0);
 	player2State = new SConPlayerState(2,  50, 0, 0, 0);
