@@ -6,10 +6,10 @@ simulation: common
 	javac -g SConGameStateSender.java SConPlayerListener.java SConSimulation.java
 
 client: common
-	javac -g SConParsedGameState.java SConIntelligence.java HigherBeing.java SConClient.java
+	javac -g SConIntelligence.java HigherBeing.java SConClient.java
 
-common: SConPlayerState.java SConPlayerControlParameters.java
-	javac -g SConPlayerState.java SConPlayerControlParameters.java
+common: SConPlayerState.java SConPlayerControlParameters.java SConGameState.java
+	javac -g SConPlayerState.java SConPlayerControlParameters.java SConGameState.java
 
 clean:
 	rm -f *~ *.class

@@ -1,4 +1,4 @@
 interface SConIntelligence {
-    public void processGameStateUpdate(SConParsedGameState game);
+    public void processGameStateUpdate(SConGameState game);
     public SConPlayerControlParameters getNewControlParameters();
 }

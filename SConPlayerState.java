@@ -38,7 +38,10 @@ class SConPlayerState implements Cloneable {
     public String toString() {
 	StringBuilder s = new StringBuilder();
 
-	s.append("x: ");
+	s.append("Player #");
+	s.append(playerNo);
+
+	s.append("\nx: ");
 	s.append(x);
 
 	s.append("\ny: ");

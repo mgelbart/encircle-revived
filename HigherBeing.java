@@ -7,14 +7,14 @@ class HigherBeing implements SConIntelligence {
 
     int playerNo;
 
-    SConParsedGameState[] games;
+    SConGameState[] games;
 
     public HigherBeing(int p) {
 	playerNo = p;
-	games = new SConParsedGameState[1];
+	games = new SConGameState[1];
     }
 
-    public void processGameStateUpdate(SConParsedGameState game) {
+    public void processGameStateUpdate(SConGameState game) {
 	games[0] = game;
 	System.out.println(game.toString());
     }

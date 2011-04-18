@@ -43,7 +43,7 @@ class SConClient {
 	    DataOutputStream controlStream = new DataOutputStream(controlSocket.getOutputStream());
 
 	    SConIntelligence intel = new HigherBeing(p);
-	    SConParsedGameState game;
+	    SConGameState game;
 
 	    while (true) {
 		game = parseGameState(stateStream);
@@ -65,31 +65,8 @@ class SConClient {
 	//stateSocket.close();
     }
 
-    private static SConParsedGameState parseGameState(DataInputStream i) {
-
-	Byte cmd;
-	
-	SConParsedGameState game = new SConParsedGameState();
-	SConPlayerState[] states = new SConPlayerState[2];
-
-	try {
-
-	    cmd = i.readByte();
-	    assert(cmd == 't');
-	    game.time = i.readInt();
-
-	    for (int j = 0; j<2; ++j) {
-		states[j] = SConPlayerState.parse(i);
-	    }
-
-	} catch (IOException ioe) {
-	    assert(false);
-	    System.out.println("Fail!");
-	}
-
-	game.states = states;
-
-	return game;
+    private static SConGameState parseGameState(DataInputStream i) {
+	return SConGameState.parse(i);
     }
 
     private static void sendControlParameters(DataOutputStream o, SConPlayerControlParameters params) {
@@ -100,7 +77,7 @@ class SConClient {
 
     }
 
-    private static void drawGameState(SConParsedGameState g) {
+    private static void drawGameState(SConGameState g) {
 	StdDraw.clear(StdDraw.BLACK);
 	
 	StdDraw.square(g.states[0].x, g.states[0].y, 2);
