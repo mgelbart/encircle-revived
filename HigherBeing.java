@@ -12,6 +12,9 @@ class HigherBeing implements SConIntelligence {
     public HigherBeing(int p) {
 	playerNo = p;
 	games = new SConGameState[1];
+
+	assert(playerNo < 2);
+	assert(playerNo >= 0);
     }
 
     public void processGameStateUpdate(SConGameState game) {
@@ -22,7 +25,7 @@ class HigherBeing implements SConIntelligence {
     public SConPlayerControlParameters getNewControlParameters() {
 	return new SConPlayerControlParameters(SConSimulation.INTMAX,
 					       SConSimulation.INTMAX/2,
-					       games[0].states[playerNo-1].direction + SConSimulation.INTMAX/2,
+					       games[0].states[playerNo].direction + SConSimulation.INTMAX/2,
 					       (int) (((double) SConSimulation.INTMAX) * (4.0/5.0)),
 					       0, 0, 0);
     }

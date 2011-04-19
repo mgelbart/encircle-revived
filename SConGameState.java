@@ -5,7 +5,7 @@
 
 import java.io.*;
 
-class SConGameState {
+class SConGameState implements Cloneable {
     public final int time;
     public final SConPlayerState[] states;
 
@@ -14,6 +14,15 @@ class SConGameState {
 
 	this.time = time;
 	this.states = states;
+    }
+
+    public SConGameState clone() {
+	SConPlayerState[] clonedStates = new SConPlayerState[2];
+
+	for (int j=0; j<2; ++j)
+	    clonedStates[j] = states[j].clone();
+
+	return new SConGameState(time, clonedStates);
     }
 
     public String toString() {

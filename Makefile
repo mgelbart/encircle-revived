@@ -17,8 +17,8 @@ clean:
 run_serv:
 	java -ea SConSimulation
 
-run_client1:
-	echo -e "1\ntrue" | java -ea SConClient
+run_client0:
+	echo -e "0\ntrue" | java -ea SConClient
 
-run_client2:
-	echo -e "2\nfalse" | java -ea SConClient
+run_client1:
+	echo -e "1\nfalse" | java -ea SConClient

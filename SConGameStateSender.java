@@ -15,22 +15,20 @@ class SConGameStateSender implements Runnable {
 
     private int playerNo;
     private DataOutputStream client;
-    private SConSimulation game;
+    private SConSimulation sim;
 
     private int previousTime = -1;
 
     public SConGameStateSender(int player, SConSimulation sim, DataOutputStream o) {
-	playerNo = player;
-	game = sim;
-	client = o;
+	this.playerNo = player;
+	this.sim = sim;
+	this.client = o;
+
+	assert(playerNo < 2);
+	assert(playerNo >= 0);
     }
 
     public synchronized void run() {
-
-	int t;
-	SConPlayerState p1State;
-	SConPlayerState p2State;
-
 
 	// Sleep until interruption (triggered by SConSimulation
 	// when game state is updated);
@@ -41,41 +39,9 @@ class SConGameStateSender implements Runnable {
 	    } catch (InterruptedException e) {
 
 		// Serialize & send game state
-		
-		// First copy all the data to minimize the time
-		// the game state data is locked.
-		//
-		// We (arbitrarily) choose player1State as the object
-		// to lock when reading the game state data.
-		synchronized (game.player1State) {
-		    t = game.simulationTime;
-		    p1State = game.player1State.clone();
-		    p2State = game.player2State.clone();
-		}
-
-
-		if (previousTime != t) {
-
-
-		    try {
-
-			// Simulation time
-			client.writeBytes("t");
-			client.writeInt(t);
-	   
-			// Player 1 status:
-			p1State.serialize(client);
-			
-			// Player 2 status:
-			p2State.serialize(client);
-		
-
-		    } catch (IOException ioe) {
-			System.out.println(ioe.toString());
-			assert(false);
-		    }
-
-		}
+		// Note: don't need locking since
+		//   SConGameState is immutable.
+		sim.game.serialize(client);
 
 	    }
 

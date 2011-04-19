@@ -24,6 +24,9 @@ class SConPlayerState implements Cloneable {
 	this.y = y;
 	this.direction = direction;
 	this.energy = energy;
+
+	assert(playerNo < 2);
+	assert(playerNo >= 0);
     }
 
     public SConPlayerState clone() {
@@ -92,7 +95,7 @@ class SConPlayerState implements Cloneable {
 	    assert(cmd == '#');
 
 	    p = i.readInt();
-	    assert(p == 1 || p == 2);
+	    assert(p == 0 || p == 1);
 
 	    cmd = i.readByte();
 	    assert(cmd == 'x');

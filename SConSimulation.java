@@ -9,7 +9,7 @@ class SConSimulation
 
     // Maximum angular speed for turning the ship (abs. value).
     // Angle is measured in unit of 2*pi / (|INTMAX| + |INTMIN|).
-    public static final int MAXW = 536870662;
+    public static final int OMEGA = 536870662;
 
     // Maximum acceleration.
     // Positions can range between INTMIN and INTMAX.
@@ -20,73 +20,79 @@ class SConSimulation
     public static final int SLEEPPERSTEP = 100;
 
     /****
-     Public fields used to communicate with PlayerActionListener
+     Public fields used to communicate with PlayerListener
      and GameStateSender threads.
      ****/
-    public SConPlayerControlParameters player1CtrlParams;
-    public SConPlayerControlParameters player2CtrlParams;
 
-    public int simulationTime;
-    public SConPlayerState player1State;
-    public SConPlayerState player2State;
+    // The parameters received from the clients that tell what
+    // the players want to do.
+    // Read by the SConSimulation thread.
+    // Written by SConPlayerListener threads.
+    public final SConPlayerControlParameters[] ctrlParams = new SConPlayerControlParameters[2];
 
-    private SConPlayerStateInternal player1StateInt;
-    private SConPlayerStateInternal player2StateInt;
-
-
-
-    private Thread player1SenderThread;
-    private Thread player2SenderThread;
-    private Thread player1ListenerThread;
-    private Thread player2ListenerThread;
+    // The public game state that gets transmitted to the players.
+    // Read/written by the SConSimulation thread.
+    // Read by SConGameStateSender threads.
+    public SConGameState game;
 
 
+    // Private information we want to store about the players
+    // but not communicate to the clients.
+    private final SConPlayerStateInternal[] playerStatesInt = new SConPlayerStateInternal[2];
 
-    public static void main(String argv[]) throws Exception
-    {
+    // References to sender/listener threads so we can interrupt them.
+    private final Thread[] senderThreads = new Thread[2];
+    private final Thread[] listenerThreads = new Thread[2];
 
-	ServerSocket player1ListenerServSocket = new ServerSocket(7601);
-	ServerSocket player2ListenerServSocket = new ServerSocket(7603);
 
-	ServerSocket player1SenderServSocket = new ServerSocket(7602);
-	ServerSocket player2SenderServSocket = new ServerSocket(7604);
+    public static void main(String argv[]) throws Exception {
+
+	ServerSocket[] listenerServSockets = new ServerSocket[2];
+	ServerSocket[] senderServSockets = new ServerSocket[2];
+
+	listenerServSockets[0] = new ServerSocket(7601);
+	listenerServSockets[1] = new ServerSocket(7603);
+	senderServSockets[0] =  new ServerSocket(7602);
+	senderServSockets[1] =  new ServerSocket(7604);
 
 	SConSimulation simulation = new SConSimulation();
 
 	while(true)
 	    {
+
+		Socket[] listenerSockets = new Socket[2];
+		Socket[] senderSockets = new Socket[2];
+
 		// Wait for clients to connect to all four ports.
-		Socket player1ListenerSocket = player1ListenerServSocket.accept();
-		Socket player2ListenerSocket = player2ListenerServSocket.accept();
-		Socket player1SenderSocket = player1SenderServSocket.accept();
-		Socket player2SenderSocket = player2SenderServSocket.accept();
+		// Would probably be better to have one thread per client here too...
+		for (int j=0; j<2; ++j) {
+		    listenerSockets[j] = listenerServSockets[j].accept();
+		    senderSockets[j] = senderServSockets[j].accept();
+		}
 
 
 		simulation.initGameState();
 
 
 		// Create the threads for communication with the clients
-		SConGameStateSender player1Sender = new SConGameStateSender(1, simulation, new DataOutputStream(player1SenderSocket.getOutputStream()));
+		SConGameStateSender[] senders = new SConGameStateSender[2];
+		SConPlayerListener[] listeners = new SConPlayerListener[2];
 
-		SConPlayerListener player1Listener = new SConPlayerListener(1, simulation, new DataInputStream(player1ListenerSocket.getInputStream()));
+		for (int j=0; j<2; ++j) {
+		    senders[j] = new SConGameStateSender(j, simulation, new DataOutputStream(senderSockets[j].getOutputStream()));
+		    listeners[j] = new SConPlayerListener(j, simulation, new DataInputStream(listenerSockets[j].getInputStream()));
 
-		SConGameStateSender player2Sender = new SConGameStateSender(2, simulation, new DataOutputStream(player2SenderSocket.getOutputStream()));
-
-		SConPlayerListener player2Listener = new SConPlayerListener(2, simulation, new DataInputStream(player2ListenerSocket.getInputStream()));
+		    // We need a reference to the sender threads to interrupt
+		    // them when the game sate is updated.
+		    simulation.senderThreads[j] = new Thread(senders[j]);
+		    simulation.listenerThreads[j] = new Thread(listeners[j]);
+		}
 
 		// Start the threads
-
-		// We need a reference to the sender threads to interrupt
-		// them when the game sate is updated.
-		simulation.player1SenderThread = new Thread(player1Sender);
-		simulation.player2SenderThread = new Thread(player2Sender);
-		simulation.player1SenderThread.start();
-		simulation.player2SenderThread.start();
-
-		simulation.player1ListenerThread = new Thread(player1Listener);
-		simulation.player2ListenerThread = new Thread(player2Listener);
-		simulation.player1ListenerThread.start();
-		simulation.player2ListenerThread.start();
+		for (int j=0; j<2; ++j) {
+		    simulation.senderThreads[j].start();
+		    simulation.listenerThreads[j].start();
+		}
 
 		// Start simulating the game!
 		simulation.startGame();
@@ -94,111 +100,75 @@ class SConSimulation
     }
 
     private void initGameState() {
-	player1CtrlParams = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
-	player2CtrlParams = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
+	SConPlayerState[] states = new SConPlayerState[2];
 
-	player1State = new SConPlayerState(1, -50, 0, 0, 0);
-	player2State = new SConPlayerState(2,  50, 0, 0, 0);
+	for (int j=0; j<2; ++j) {
+	    ctrlParams[j] = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
 
-	player1StateInt = new SConPlayerStateInternal();
-	player2StateInt = new SConPlayerStateInternal();
+	    playerStatesInt[j] = new SConPlayerStateInternal();
+	    states[j] = new SConPlayerState(j, -50 + j*100, 0, 0, 0); 
+	}
 
-	simulationTime = 0;
+	this.game = new SConGameState(0, states);
     }
 
     private void startGame() {
-	SConPlayerState p1State;
-	SConPlayerState p2State;
-	SConPlayerControlParameters p1Params;
-	SConPlayerControlParameters p2Params;
 
-	int dir1, dir2, vx, vy, x1, x2, y1, y2;
-	double w, a;
+	SConPlayerState[] states = new SConPlayerState[2];
+	SConPlayerControlParameters[] params = new SConPlayerControlParameters[2];
+
+	int dir, x, y;
+	boolean turnCcw;
+	double a;
 
 	while (true) {
 
-	    // Calculate the new positions of players.
+	    // Interrupt the sender threads to let them
+	    // know the state has changed.
+	    for (int j=0; j<2; ++j)
+		senderThreads[j].interrupt();
+
+
+	    // Sleep for some time between each simulated step.
 	    try {
 		Thread.sleep(SLEEPPERSTEP);
 	    } catch (InterruptedException e) {
 		return;
 	    }
 
+	    // Calculate the new positions of players.
 
-	    synchronized (player1CtrlParams) {
-		p1Params = player1CtrlParams.clone();
+	    // First copy the parameters to minimize locking time
+	    // Note: don't need to clone (deep copy) or lock because all
+	    //   fields of SConPlayerControlParameters are final.
+	    for (int j=0; j<2; ++j)
+		params[j] = this.ctrlParams[j];
+
+
+	    for (int j=0; j<2; ++j) {
+
+		// Calculate the new positions.
+
+		a = Math.max((double) 0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
+
+		playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (((double) a) * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
+		playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (((double) a) * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
+
+		x = game.states[j].x + playerStatesInt[j].vx;
+		y = game.states[j].y + playerStatesInt[j].vy;
+
+		// Figure out whether to turn clockwise or counterclockwise.
+		turnCcw =    Math.abs(game.states[j].direction + OMEGA - params[j].targetDirection)
+		           < Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
+		dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
+
+		states[j] = new SConPlayerState(j, x, y, dir, 0);
 	    }
 
-	    synchronized (player2CtrlParams) {
-		p2Params = player2CtrlParams.clone();
-	    }
-
-
-	    // Calculate the new positions.
-
-	    w = MAXW * (p1Params.angularSpeed / (double) INTMAX);
-	    dir1 = player1State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
-
-	    if (Math.abs(dir1 - p1Params.targetDirection) > Math.abs(player1State.direction - p1Params.targetDirection))
-		// only change the direction if it gets closer to the target.
-		dir1 = player1State.direction;
-
-	    a = Math.max((double) 0.0, MAXACC * (p1Params.acceleration / (double) INTMAX));
-	    vx = player1StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (player1State.direction / (double) INTMAX)));
-	    vy = player1StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (player1State.direction / (double) INTMAX)));
-
-	    // This target speed thing is probably a bit stupid...
-	    //if (Math.abs(Math.sqrt(Math.pow(vx,2) + Math.pow(vy,2)) - p1Params.targetSpeed)
-	    //  < Math.abs(Math.sqrt(Math.pow(player1StateInt.vx,2) + Math.pow(player1StateInt.vy,2)) - p1Params.targetSpeed)) {
-		player1StateInt.vx = vx; 
-		player1StateInt.vy = vy;
-	    //}
-
-	    x1 = player1State.x + player1StateInt.vx;
-	    y1 = player1State.y + player1StateInt.vy;
-
-
-	    // Repeat for player 2... (a bit ugly)
-	    w = MAXW * (p2Params.angularSpeed / (double) INTMAX);
-	    dir2 = player2State.direction + (int) w; // built-in mod (INTMAX-INTMIN)
-
-	    if (Math.abs(dir2 - p2Params.targetDirection) > Math.abs(player2State.direction - p2Params.targetDirection))
-		// only change the direction if it gets closer to the target.
-		dir2 = player2State.direction;
-
-	    a = Math.max((double) 0.0, MAXACC * (p2Params.acceleration / (double) INTMAX));
-	    vx = player2StateInt.vx + (int) (((double) a) * Math.cos(Math.PI * (player2State.direction / (double) INTMAX)));
-	    vy = player2StateInt.vy + (int) (((double) a) * Math.sin(Math.PI * (player2State.direction / (double) INTMAX)));
-
-	    // This target speed thing is probably a bit stupid...
-	    //if (Math.abs(Math.sqrt(Math.pow(vx,2) + Math.pow(vy,2)) - p2Params.targetSpeed)
-	    //  < Math.abs(Math.sqrt(Math.pow(player2StateInt.vx,2) + Math.pow(player2StateInt.vy,2)) - p2Params.targetSpeed)) {
-		player2StateInt.vx = vx; 
-		player2StateInt.vy = vy;
-	    //}
-
-	    x2 = player2State.x + player2StateInt.vx;
-	    y2 = player2State.y + player2StateInt.vy;
-
-
-
-	    p1State = new SConPlayerState(1, x1, y1, dir1, 0);
-	    p2State = new SConPlayerState(1, x2, y2, dir2, 0);
 
 	    // Update the game state.
-	    //
-	    // We (arbitrarily) choose player1State as the object
-	    // to lock when reading the game state data.
-	    synchronized (player1State) {
-		simulationTime++;
-		player1State = p1State;
-		player2State = p2State;
-	    }
-
-	    // Interrupt the sender threads to let them
-	    // know the state has changed.
-	    player1SenderThread.interrupt();
-	    player2SenderThread.interrupt();
+	    // Note: don't need locking since updating a reference is atomic.
+	    this.game = new SConGameState(game.time + 1, states);
 	}
     }
 }

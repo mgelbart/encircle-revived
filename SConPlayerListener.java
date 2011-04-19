@@ -15,12 +15,15 @@ class SConPlayerListener implements Runnable {
 
     private int playerNo;
     private DataInputStream client;
-    private SConSimulation game;
+    private SConSimulation sim;
 
     public SConPlayerListener(int player, SConSimulation sim, DataInputStream in) {
-	playerNo = player;
-	client = in;
-	game = sim;
+	this.playerNo = player;
+	this.client = in;
+	this.sim = sim;
+
+	assert(playerNo < 2);
+	assert(playerNo >= 0);
     }
 
     public void run() {
@@ -38,18 +41,8 @@ class SConPlayerListener implements Runnable {
 	    System.out.println(ctrl.toString());
 
 	    // Give the updated target parameters to the simulator
-	    if(playerNo == 1)
-		synchronized (game.player1CtrlParams) {
-		    game.player1CtrlParams = ctrl;
-		}
-	    else if(playerNo == 2)
-		synchronized (game.player2CtrlParams) {
-		    game.player2CtrlParams = ctrl;
-		}
-	    else {
-		assert(false);
-		System.out.println("Fail!");
-	    }
+	    // Note: don't need locking since updating a reference is atomic.
+	    sim.ctrlParams[playerNo] = ctrl;
 
 	}
 

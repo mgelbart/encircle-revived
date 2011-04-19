@@ -18,7 +18,10 @@ class SConClient {
 	int p = Integer.parseInt(stdin.readLine());
 	boolean draw = Boolean.parseBoolean(stdin.readLine());
 
-	if (p > 2 || p < 1) return;
+	if (p > 1 || p < 0) {
+	    System.out.println("Invalid player number.");
+	    return;
+	}
 
 	if (draw) {
 	    StdDraw.setXscale(-300, 300);
