@@ -1,8 +1,7 @@
 Todo list:
 
 Joonas:
-  -- get rid of target speed and angular velocity
-  -- change it to package
+  -- rename the classes (SCon -> AoI)
 
 Mike:
   -- get EGit to work

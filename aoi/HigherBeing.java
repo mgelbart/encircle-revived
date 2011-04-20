@@ -25,11 +25,9 @@ public class HigherBeing implements SConIntelligence {
     }
 
     public SConPlayerControlParameters getNewControlParameters() {
-	return new SConPlayerControlParameters(SConSimulation.INTMAX,
-					       SConSimulation.INTMAX/2,
+	return new SConPlayerControlParameters(SConSimulation.INTMAX/2,
 					       games[0].states[playerNo].direction + SConSimulation.INTMAX/2,
-					       (int) (((double) SConSimulation.INTMAX) * (4.0/5.0)),
-					       0, 0, 0);
+					       0, 0);
     }
 
 }

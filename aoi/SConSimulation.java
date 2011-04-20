@@ -111,7 +111,7 @@ public class SConSimulation
 	SConPlayerState[] states = new SConPlayerState[2];
 
 	for (int j=0; j<2; ++j) {
-	    ctrlParams[j] = new SConPlayerControlParameters(0, 0, 0, 0, 0, 0, 0);
+	    ctrlParams[j] = new SConPlayerControlParameters(0, 0, 0, 0);
 
 	    playerStatesInt[j] = new SConPlayerStateInternal();
 	    states[j] = new SConPlayerState(j, -50 + j*100, 0, 0, 0); 

@@ -12,26 +12,19 @@ package aoi;
 import java.io.*;
 
 public class SConPlayerControlParameters implements Cloneable {
-    public final int targetSpeed;
     public final int acceleration;
     public final int targetDirection;
-    public final int angularSpeed;
 
     // Number of shots/boosts to take ASAP.
     // Decremented by the simulator when actually taken.
     public final int shotsToTake;
-    public final int fakeShotsToTake;
     public final int boostsToTake;
 
-    public SConPlayerControlParameters(int targetSpeed, int acceleration, int targetDirection,
-				       int angularSpeed, int shotsToTake, int fakeShotsToTake,
-				       int boostsToTake) {
-	this.targetSpeed = targetSpeed;
+    public SConPlayerControlParameters(int acceleration, int targetDirection,
+				       int shotsToTake, int boostsToTake) {
 	this.acceleration = acceleration;
 	this.targetDirection = targetDirection;
-	this.angularSpeed = angularSpeed;
 	this.shotsToTake = shotsToTake;
-	this.fakeShotsToTake = fakeShotsToTake;
 	this.boostsToTake = boostsToTake;
     }
 
@@ -47,17 +40,11 @@ public class SConPlayerControlParameters implements Cloneable {
     public String toString() {
 	StringBuilder s = new StringBuilder();
 	
-	s.append("target speed: ");
-	s.append(targetSpeed);
-	
 	s.append("\nacceleration: ");
 	s.append(acceleration);
 	
 	s.append("\ntarget direction: ");
 	s.append(targetDirection);
-	
-	s.append("\nangular speed: ");
-	s.append(angularSpeed);
 
 	s.append("\n");
 
@@ -70,23 +57,14 @@ public class SConPlayerControlParameters implements Cloneable {
 	    // Signal start of a new command:
 	    o.writeBytes("$");
 
-	    o.writeBytes("v");
-	    o.writeInt(targetSpeed);
-
 	    o.writeBytes("a");
 	    o.writeInt(acceleration);
 
 	    o.writeBytes("d");
 	    o.writeInt(targetDirection);
 
-	    o.writeBytes("w");
-	    o.writeInt(angularSpeed);
-
 	    o.writeBytes("s");
 	    o.writeInt(shotsToTake);
-
-	    o.writeBytes("f");
-	    o.writeInt(fakeShotsToTake);
 
 	    o.writeBytes("b");
 	    o.writeInt(boostsToTake);
@@ -100,16 +78,12 @@ public class SConPlayerControlParameters implements Cloneable {
     public static SConPlayerControlParameters parse(DataInputStream i) {
 
 	Byte cmd;
-	int v, a, d, w, s, f, b;
+	int a, d, s, b;
 
 	try {
 	    
 	    cmd = i.readByte();
 	    assert(cmd == '$');
-
-	    cmd = i.readByte();
-	    assert(cmd == 'v');
-	    v = i.readInt();
 		
 	    cmd = i.readByte();
 	    assert(cmd == 'a');
@@ -120,16 +94,8 @@ public class SConPlayerControlParameters implements Cloneable {
 	    d = i.readInt();
 	    
 	    cmd = i.readByte();
-	    assert(cmd == 'w');
-	    w = i.readInt();
-	    
-	    cmd = i.readByte();
 	    assert(cmd == 's');
 	    s = i.readInt();
-
-	    cmd = i.readByte();
-	    assert(cmd == 'f');
-	    f = i.readInt();
 	    
 	    cmd = i.readByte();
 	    assert(cmd == 'b');
@@ -142,7 +108,7 @@ public class SConPlayerControlParameters implements Cloneable {
 	}
 
 
-	return new SConPlayerControlParameters(v, a, d, w, s, f, b);
+	return new SConPlayerControlParameters(a, d, s, b);
 
     }
 }
