@@ -1,7 +1,15 @@
+/*
+  The main class ran by the server that carries on the
+  step by step.
+ */
+
+package aoi;
+
 import java.io.*;
 import java.net.*;
 
-class SConSimulation
+
+public class SConSimulation
 {
 
     public static final int INTMAX = 2147483647;
@@ -171,4 +179,16 @@ class SConSimulation
 	    this.game = new SConGameState(game.time + 1, states);
 	}
     }
+
+
+    private class SConPlayerStateInternal {
+	/* Values used internally by the simulation. */
+	public int vx;
+	public int vy;
+    }
+
 }
+
+
+
+

@@ -1,3 +1,5 @@
+package aoi;
+
 /* Helper class used to tell the simulator what the
    player wants to do.
 
@@ -10,7 +12,7 @@
 
 import java.io.*;
 
-class SConPlayerState implements Cloneable {
+public class SConPlayerState implements Cloneable {
     /* Values transmitted to the clients. */
     public final int playerNo;
     public final int x;
@@ -122,12 +124,5 @@ class SConPlayerState implements Cloneable {
 
 	return new SConPlayerState(p, x, y, d, e);
     }
-}
-
-
-class SConPlayerStateInternal {
-    /* Values used internally by the simulation. */
-    public int vx;
-    public int vy;
 }
 

@@ -1,3 +1,5 @@
+package aoi;
+
 /*
   A class dedicated to listening and parsing commands from
   a remote player.
@@ -11,7 +13,7 @@
 import java.io.*;
 
 
-class SConPlayerListener implements Runnable {
+public class SConPlayerListener implements Runnable {
 
     private int playerNo;
     private DataInputStream client;

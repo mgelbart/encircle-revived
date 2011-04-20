@@ -1,3 +1,5 @@
+package aoi;
+
 /*
   A class used for communicating the game state
   from the server to the client.
@@ -5,7 +7,7 @@
 
 import java.io.*;
 
-class SConGameState implements Cloneable {
+public class SConGameState implements Cloneable {
     public final int time;
     public final SConPlayerState[] states;
 

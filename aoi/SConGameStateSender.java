@@ -1,3 +1,5 @@
+package aoi;
+
 /*
   A class dedicated to serializing and sending the game state
   to a remote player.
@@ -11,7 +13,7 @@
 import java.io.*;
 
 
-class SConGameStateSender implements Runnable {
+public class SConGameStateSender implements Runnable {
 
     private int playerNo;
     private DataOutputStream client;

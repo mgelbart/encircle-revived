@@ -1,3 +1,5 @@
+package aoi;
+
 /* Helper class used to tell the simulator what the
    player wants to do.
 
@@ -9,7 +11,7 @@
 
 import java.io.*;
 
-class SConPlayerControlParameters implements Cloneable {
+public class SConPlayerControlParameters implements Cloneable {
     public final int targetSpeed;
     public final int acceleration;
     public final int targetDirection;

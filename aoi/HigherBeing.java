@@ -1,9 +1,11 @@
+package aoi;
+
 /*
   The class that actually decides what to do
   based on (the history of) the game state.
 */
 
-class HigherBeing implements SConIntelligence {
+public class HigherBeing implements SConIntelligence {
 
     int playerNo;
 

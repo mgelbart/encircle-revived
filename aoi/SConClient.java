@@ -1,3 +1,5 @@
+package aoi;
+
 /*
   A class for connecting to the server and parsing the game state
   and sending the desired control parameters.
@@ -5,8 +7,9 @@
 // testing making a comment... (mike)
 import java.io.*;
 import java.net.*;
+import stdlib.*;
 
-class SConClient {
+public class SConClient {
 
     public static void main(String argv[]) throws Exception
     {
