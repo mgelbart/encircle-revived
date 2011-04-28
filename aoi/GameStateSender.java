@@ -6,22 +6,22 @@ package aoi;
 
   Meant to be run in a separate thread. The thread will sleep
   immediately after sending the state until next interruption
-  (by SConSimulation when game state changes).
+  (by Simulation when game state changes).
 
  */
 
 import java.io.*;
 
 
-public class SConGameStateSender implements Runnable {
+public class GameStateSender implements Runnable {
 
     private int playerNo;
     private DataOutputStream client;
-    private SConSimulation sim;
+    private Simulation sim;
 
     private int previousTime = -1;
 
-    public SConGameStateSender(int player, SConSimulation sim, DataOutputStream o) {
+    public GameStateSender(int player, Simulation sim, DataOutputStream o) {
 	this.playerNo = player;
 	this.sim = sim;
 	this.client = o;
@@ -32,7 +32,7 @@ public class SConGameStateSender implements Runnable {
 
     public synchronized void run() {
 
-	// Sleep until interruption (triggered by SConSimulation
+	// Sleep until interruption (triggered by Simulation
 	// when game state is updated);
 	while (true) {
 	    
@@ -42,7 +42,7 @@ public class SConGameStateSender implements Runnable {
 
 		// Serialize & send game state
 		// Note: don't need locking since
-		//   SConGameState is immutable.
+		//   GameState is immutable.
 		sim.game.serialize(client);
 
 	    }

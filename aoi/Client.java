@@ -9,7 +9,7 @@ import java.io.*;
 import java.net.*;
 import stdlib.*;
 
-public class SConClient {
+public class Client {
 
     public static void main(String argv[]) throws Exception
     {
@@ -48,8 +48,8 @@ public class SConClient {
 	    DataInputStream stateStream = new DataInputStream(stateSocket.getInputStream());
 	    DataOutputStream controlStream = new DataOutputStream(controlSocket.getOutputStream());
 
-	    SConIntelligence intel = new HigherBeing(p);
-	    SConGameState game;
+	    Intelligence intel = new HigherBeing(p);
+	    GameState game;
 
 	    while (true) {
 		game = parseGameState(stateStream);
@@ -71,11 +71,11 @@ public class SConClient {
 	//stateSocket.close();
     }
 
-    private static SConGameState parseGameState(DataInputStream i) {
-	return SConGameState.parse(i);
+    private static GameState parseGameState(DataInputStream i) {
+	return GameState.parse(i);
     }
 
-    private static void sendControlParameters(DataOutputStream o, SConPlayerControlParameters params) {
+    private static void sendControlParameters(DataOutputStream o, PlayerControlParameters params) {
 
 	if (params == null) return;
 
@@ -83,7 +83,7 @@ public class SConClient {
 
     }
 
-    private static void drawGameState(SConGameState g) {
+    private static void drawGameState(GameState g) {
 	StdDraw.clear(StdDraw.BLACK);
 	
 	StdDraw.square(g.states[0].x, g.states[0].y, 2);

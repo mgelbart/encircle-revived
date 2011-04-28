@@ -7,24 +7,24 @@ package aoi;
 
 import java.io.*;
 
-public class SConGameState implements Cloneable {
+public class GameState implements Cloneable {
     public final int time;
-    public final SConPlayerState[] states;
+    public final PlayerState[] states;
 
-    public SConGameState(int time, SConPlayerState[] states) {
+    public GameState(int time, PlayerState[] states) {
 	assert(states.length == 2);
 
 	this.time = time;
 	this.states = states;
     }
 
-    public SConGameState clone() {
-	SConPlayerState[] clonedStates = new SConPlayerState[2];
+    public GameState clone() {
+	PlayerState[] clonedStates = new PlayerState[2];
 
 	for (int j=0; j<2; ++j)
 	    clonedStates[j] = states[j].clone();
 
-	return new SConGameState(time, clonedStates);
+	return new GameState(time, clonedStates);
     }
 
     public String toString() {
@@ -57,11 +57,11 @@ public class SConGameState implements Cloneable {
 
     }
 
-    public static SConGameState parse(DataInputStream i) {
+    public static GameState parse(DataInputStream i) {
 
 	Byte cmd;
 	int t;
-	SConPlayerState states[] = new SConPlayerState[2];
+	PlayerState states[] = new PlayerState[2];
 
 	try {
 
@@ -70,7 +70,7 @@ public class SConGameState implements Cloneable {
 	    t = i.readInt();
 
 	    for (int j=0; j<2; ++j)
-		states[j] = SConPlayerState.parse(i);
+		states[j] = PlayerState.parse(i);
 	    
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
@@ -78,6 +78,6 @@ public class SConGameState implements Cloneable {
 	    return null;
 	}
 
-	return new SConGameState(t, states);
+	return new GameState(t, states);
     }
 }

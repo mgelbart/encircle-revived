@@ -5,28 +5,28 @@ package aoi;
   based on (the history of) the game state.
 */
 
-public class HigherBeing implements SConIntelligence {
+public class HigherBeing implements Intelligence {
 
     int playerNo;
 
-    SConGameState[] games;
+    GameState[] games;
 
     public HigherBeing(int p) {
 	playerNo = p;
-	games = new SConGameState[1];
+	games = new GameState[1];
 
 	assert(playerNo < 2);
 	assert(playerNo >= 0);
     }
 
-    public void processGameStateUpdate(SConGameState game) {
+    public void processGameStateUpdate(GameState game) {
 	games[0] = game;
 	System.out.println(game.toString());
     }
 
-    public SConPlayerControlParameters getNewControlParameters() {
-	return new SConPlayerControlParameters(SConSimulation.INTMAX/2,
-					       games[0].states[playerNo].direction + SConSimulation.INTMAX/2,
+    public PlayerControlParameters getNewControlParameters() {
+	return new PlayerControlParameters(Simulation.INTMAX/2,
+					       games[0].states[playerNo].direction + Simulation.INTMAX/2,
 					       0, 0);
     }
 

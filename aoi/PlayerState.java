@@ -12,7 +12,7 @@ package aoi;
 
 import java.io.*;
 
-public class SConPlayerState implements Cloneable {
+public class PlayerState implements Cloneable {
     /* Values transmitted to the clients. */
     public final int playerNo;
     public final int x;
@@ -20,7 +20,7 @@ public class SConPlayerState implements Cloneable {
     public final int direction;
     public final int energy;
 
-    public SConPlayerState(int playerNo, int x, int y, int direction, int energy) {
+    public PlayerState(int playerNo, int x, int y, int direction, int energy) {
 	this.playerNo = playerNo;
 	this.x = x;
 	this.y = y;
@@ -31,9 +31,9 @@ public class SConPlayerState implements Cloneable {
 	assert(playerNo >= 0);
     }
 
-    public SConPlayerState clone() {
+    public PlayerState clone() {
 	try {
-	    return (SConPlayerState) super.clone();
+	    return (PlayerState) super.clone();
 	}
 	catch (CloneNotSupportedException e) {
 	    return null;
@@ -86,7 +86,7 @@ public class SConPlayerState implements Cloneable {
 
     }
 
-    public static SConPlayerState parse(DataInputStream i) {
+    public static PlayerState parse(DataInputStream i) {
 
 	Byte cmd;
 	int p, x, y, d, e;
@@ -122,7 +122,7 @@ public class SConPlayerState implements Cloneable {
 	    return null;
 	}
 
-	return new SConPlayerState(p, x, y, d, e);
+	return new PlayerState(p, x, y, d, e);
     }
 }
 

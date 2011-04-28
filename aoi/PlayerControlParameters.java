@@ -11,7 +11,7 @@ package aoi;
 
 import java.io.*;
 
-public class SConPlayerControlParameters implements Cloneable {
+public class PlayerControlParameters implements Cloneable {
     public final int acceleration;
     public final int targetDirection;
 
@@ -20,7 +20,7 @@ public class SConPlayerControlParameters implements Cloneable {
     public final int shotsToTake;
     public final int boostsToTake;
 
-    public SConPlayerControlParameters(int acceleration, int targetDirection,
+    public PlayerControlParameters(int acceleration, int targetDirection,
 				       int shotsToTake, int boostsToTake) {
 	this.acceleration = acceleration;
 	this.targetDirection = targetDirection;
@@ -28,9 +28,9 @@ public class SConPlayerControlParameters implements Cloneable {
 	this.boostsToTake = boostsToTake;
     }
 
-    public SConPlayerControlParameters clone() {
+    public PlayerControlParameters clone() {
 	try {
-	    return (SConPlayerControlParameters) super.clone();
+	    return (PlayerControlParameters) super.clone();
 	}
 	catch (CloneNotSupportedException e) {
 	    return null;
@@ -75,7 +75,7 @@ public class SConPlayerControlParameters implements Cloneable {
 
     }
 
-    public static SConPlayerControlParameters parse(DataInputStream i) {
+    public static PlayerControlParameters parse(DataInputStream i) {
 
 	Byte cmd;
 	int a, d, s, b;
@@ -108,7 +108,7 @@ public class SConPlayerControlParameters implements Cloneable {
 	}
 
 
-	return new SConPlayerControlParameters(a, d, s, b);
+	return new PlayerControlParameters(a, d, s, b);
 
     }
 }

@@ -9,7 +9,7 @@ import java.io.*;
 import java.net.*;
 
 
-public class SConSimulation
+public class Simulation
 {
 
     public static final int INTMAX = 2147483647;
@@ -34,19 +34,19 @@ public class SConSimulation
 
     // The parameters received from the clients that tell what
     // the players want to do.
-    // Read by the SConSimulation thread.
-    // Written by SConPlayerListener threads.
-    public final SConPlayerControlParameters[] ctrlParams = new SConPlayerControlParameters[2];
+    // Read by the Simulation thread.
+    // Written by PlayerListener threads.
+    public final PlayerControlParameters[] ctrlParams = new PlayerControlParameters[2];
 
     // The public game state that gets transmitted to the players.
-    // Read/written by the SConSimulation thread.
-    // Read by SConGameStateSender threads.
-    public SConGameState game;
+    // Read/written by the Simulation thread.
+    // Read by GameStateSender threads.
+    public GameState game;
 
 
     // Private information we want to store about the players
     // but not communicate to the clients.
-    private final SConPlayerStateInternal[] playerStatesInt = new SConPlayerStateInternal[2];
+    private final PlayerStateInternal[] playerStatesInt = new PlayerStateInternal[2];
 
     // References to sender/listener threads so we can interrupt them.
     private final Thread[] senderThreads = new Thread[2];
@@ -63,7 +63,7 @@ public class SConSimulation
 	senderServSockets[0] =  new ServerSocket(7602);
 	senderServSockets[1] =  new ServerSocket(7604);
 
-	SConSimulation simulation = new SConSimulation();
+	Simulation simulation = new Simulation();
 
 	while(true)
 	    {
@@ -83,12 +83,12 @@ public class SConSimulation
 
 
 		// Create the threads for communication with the clients
-		SConGameStateSender[] senders = new SConGameStateSender[2];
-		SConPlayerListener[] listeners = new SConPlayerListener[2];
+		GameStateSender[] senders = new GameStateSender[2];
+		PlayerListener[] listeners = new PlayerListener[2];
 
 		for (int j=0; j<2; ++j) {
-		    senders[j] = new SConGameStateSender(j, simulation, new DataOutputStream(senderSockets[j].getOutputStream()));
-		    listeners[j] = new SConPlayerListener(j, simulation, new DataInputStream(listenerSockets[j].getInputStream()));
+		    senders[j] = new GameStateSender(j, simulation, new DataOutputStream(senderSockets[j].getOutputStream()));
+		    listeners[j] = new PlayerListener(j, simulation, new DataInputStream(listenerSockets[j].getInputStream()));
 
 		    // We need a reference to the sender threads to interrupt
 		    // them when the game sate is updated.
@@ -108,22 +108,22 @@ public class SConSimulation
     }
 
     private void initGameState() {
-	SConPlayerState[] states = new SConPlayerState[2];
+	PlayerState[] states = new PlayerState[2];
 
 	for (int j=0; j<2; ++j) {
-	    ctrlParams[j] = new SConPlayerControlParameters(0, 0, 0, 0);
+	    ctrlParams[j] = new PlayerControlParameters(0, 0, 0, 0);
 
-	    playerStatesInt[j] = new SConPlayerStateInternal();
-	    states[j] = new SConPlayerState(j, -50 + j*100, 0, 0, 0); 
+	    playerStatesInt[j] = new PlayerStateInternal();
+	    states[j] = new PlayerState(j, -50 + j*100, 0, 0, 0); 
 	}
 
-	this.game = new SConGameState(0, states);
+	this.game = new GameState(0, states);
     }
 
     private void startGame() {
 
-	SConPlayerState[] states = new SConPlayerState[2];
-	SConPlayerControlParameters[] params = new SConPlayerControlParameters[2];
+	PlayerState[] states = new PlayerState[2];
+	PlayerControlParameters[] params = new PlayerControlParameters[2];
 
 	int dir, x, y;
 	boolean turnCcw;
@@ -148,7 +148,7 @@ public class SConSimulation
 
 	    // First copy the parameters to minimize locking time
 	    // Note: don't need to clone (deep copy) or lock because all
-	    //   fields of SConPlayerControlParameters are final.
+	    //   fields of PlayerControlParameters are final.
 	    for (int j=0; j<2; ++j)
 		params[j] = this.ctrlParams[j];
 
@@ -170,18 +170,18 @@ public class SConSimulation
 		           < Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
 		dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
 
-		states[j] = new SConPlayerState(j, x, y, dir, 0);
+		states[j] = new PlayerState(j, x, y, dir, 0);
 	    }
 
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new SConGameState(game.time + 1, states);
+	    this.game = new GameState(game.time + 1, states);
 	}
     }
 
 
-    private class SConPlayerStateInternal {
+    private class PlayerStateInternal {
 	/* Values used internally by the simulation. */
 	public int vx;
 	public int vy;
