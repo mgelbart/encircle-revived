@@ -117,7 +117,7 @@ public class Simulation
 	    states[j] = new PlayerState(j, -50 + j*100, 0, 0, 0); 
 	}
 
-	this.game = new GameState(0, states);
+	this.game = new GameState(0, states, null);
     }
 
     private void startGame() {
@@ -176,7 +176,7 @@ public class Simulation
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new GameState(game.time + 1, states);
+	    this.game = new GameState(game.time + 1, states, null);
 	}
     }
 

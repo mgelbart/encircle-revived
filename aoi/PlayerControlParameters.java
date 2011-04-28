@@ -1,6 +1,6 @@
 package aoi;
 
-/* Helper class used to tell the simulator what the
+/* A "read-only" class used to tell the simulator what the
    player wants to do.
 
    Note that ints are used although floats might be

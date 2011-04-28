@@ -1,7 +1,7 @@
 package aoi;
 
-/* Helper class used to tell the simulator what the
-   player wants to do.
+/* A "read-only" class that describes a player's
+   position in phase space.
 
    Note that ints are used although floats might be
    more natural. This is because ints don't need
