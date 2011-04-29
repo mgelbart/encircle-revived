@@ -15,17 +15,30 @@ import java.io.*;
 public class Bullet implements Cloneable {
 
     /* The bullet speed is a universal constant. */
-    public static final int SPEED = Simulation.INTMAX / 4;
+    public static final int SPEED = 1000;
+ 
+    /* Minimum time between firing two bullets. */
+    public static final int RELOADTIME = 10;
+ 
+    /* If the bullet comes closer than RADIUS to a player
+       if is considered to have hit the player. */
+    public static final int RADIUS = 100;
 
     /* Values transmitted to the clients. */
     public final int x;
     public final int y;
     public final int direction;
 
-    public Bullet(int x, int y, int direction) {
+    /* Player who shot the bullet. Used internally
+       by the simulator to make sure the bullet doesn't
+       kill the player as it gets fired! */
+    public final int playerNo;
+
+    public Bullet(int playerNo, int x, int y, int direction) {
 	this.x = x;
 	this.y = y;
 	this.direction = direction;
+	this.playerNo = playerNo;
     }
 
     public Bullet clone() {
@@ -101,7 +114,7 @@ public class Bullet implements Cloneable {
 	    return null;
 	}
 
-	return new Bullet(x, y, d);
+	return new Bullet(-1, x, y, d);
     }
 }
 

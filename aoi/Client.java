@@ -27,8 +27,8 @@ public class Client {
 	}
 
 	if (draw) {
-	    StdDraw.setXscale(-300, 300);
-	    StdDraw.setYscale(-300, 300);
+	    StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
+	    StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 
 	    StdDraw.clear(StdDraw.BLACK);
 
@@ -84,9 +84,17 @@ public class Client {
     }
 
     private static void drawGameState(GameState g) {
+
 	StdDraw.clear(StdDraw.BLACK);
 	
-	StdDraw.square(g.states[0].x, g.states[0].y, 2);
-	StdDraw.square(g.states[1].x, g.states[1].y, 2);
+	for (int j=0; j<2; ++j)
+	    StdDraw.line(g.states[j].x,
+			 g.states[j].y,
+			 g.states[j].x + 1000 * Math.cos(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)),
+			 g.states[j].y + 1000 * Math.sin(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)));
+
+	for (int k = (g.bullets==null) ? -1 : g.bullets.length-1; k >= 0; --k)
+	    StdDraw.square(g.bullets[k].x, g.bullets[k].y, 100);
+
     }
 }

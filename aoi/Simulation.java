@@ -17,15 +17,20 @@ public class Simulation
 
     // Maximum angular speed for turning the ship (abs. value).
     // Angle is measured in unit of 2*pi / (|INTMAX| + |INTMIN|).
-    public static final int OMEGA = 536870662;
+    public static final int OMEGA = 33554432;
+ 
+    public static final int MAPSIZE = 60000;
 
     // Maximum acceleration.
-    // Positions can range between INTMIN and INTMAX.
+    // Positions (distances) can range between INTMIN and INTMAX.
     public static final int MAXACC = 10;
+ 
+    // Drag coefficient.
+    public static final double DRAG = 0.05;
 
     // The amount of time the simulation thread sleeps between each
     // step in milliseconds.
-    public static final int SLEEPPERSTEP = 100;
+    public static final int SLEEPPERSTEP = 50;
 
     /****
      Public fields used to communicate with PlayerListener
@@ -114,7 +119,7 @@ public class Simulation
 	    ctrlParams[j] = new PlayerControlParameters(0, 0, 0, 0);
 
 	    playerStatesInt[j] = new PlayerStateInternal();
-	    states[j] = new PlayerState(j, -50 + j*100, 0, 0, 0); 
+	    states[j] = new PlayerState(j, -5000 + j*10000, 0, 0, 0); 
 	}
 
 	this.game = new GameState(0, states, null);
@@ -123,11 +128,24 @@ public class Simulation
     private void startGame() {
 
 	PlayerState[] states = new PlayerState[2];
+	Bullet[] bullets = null;
+	Bullet[] tempBullets = null;
+
 	PlayerControlParameters[] params = new PlayerControlParameters[2];
+	PlayerControlParameters[] prevParams = new PlayerControlParameters[2];
+
+	int shotsTaken[] = new int[2];
+	int reloadTimeLeft[] = new int[2];
 
 	int dir, x, y;
 	boolean turnCcw;
 	double a;
+
+	for (int j=0; j<2; ++j) {
+	    shotsTaken[j] = 0;
+	    prevParams[j] = null;
+	    reloadTimeLeft[j] = 0;
+	}
 
 	while (true) {
 
@@ -144,23 +162,44 @@ public class Simulation
 		return;
 	    }
 
-	    // Calculate the new positions of players.
-
 	    // First copy the parameters to minimize locking time
 	    // Note: don't need to clone (deep copy) or lock because all
 	    //   fields of PlayerControlParameters are final.
 	    for (int j=0; j<2; ++j)
 		params[j] = this.ctrlParams[j];
 
-
 	    for (int j=0; j<2; ++j) {
 
-		// Calculate the new positions.
+		// Take shots first:
+		if (prevParams[j] != params[j]) shotsTaken[j] = 0;
 
-		a = Math.max((double) 0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
+		if (reloadTimeLeft[j] > 0) {
 
-		playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (((double) a) * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
-		playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (((double) a) * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
+		    --reloadTimeLeft[j];
+
+		} else if (shotsTaken[j] < params[j].shotsToTake) {
+
+		    bullets = (bullets == null) ? new Bullet[1]
+			                        : java.util.Arrays.copyOf(bullets,
+						      bullets.length + 1);
+
+		    bullets[bullets.length-1] = new Bullet(j,
+							 game.states[j].x,
+							 game.states[j].y,
+							 game.states[j].direction);
+
+		    reloadTimeLeft[j] = Bullet.RELOADTIME;
+
+		}
+
+		// Calculate the new positions for players.
+		a = Math.max(0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
+
+		playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (a * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
+		playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (a * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
+
+		playerStatesInt[j].vx -= DRAG * playerStatesInt[j].vx;
+		playerStatesInt[j].vy -= DRAG * playerStatesInt[j].vy;
 
 		x = game.states[j].x + playerStatesInt[j].vx;
 		y = game.states[j].y + playerStatesInt[j].vy;
@@ -170,13 +209,59 @@ public class Simulation
 		           < Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
 		dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
 
+		// Don't go past the target direction.
+		if (Integer.signum(game.states[j].direction - params[j].targetDirection)
+		    != Integer.signum(dir - params[j].targetDirection))
+		    dir = params[j].targetDirection;
+		
+
 		states[j] = new PlayerState(j, x, y, dir, 0);
 	    }
 
+	    // Calculate the new positions for the bullets and figure out
+	    // if anyone died.
+	    for (int k = (bullets==null) ? -1 : bullets.length-1; k >= 0; --k) {
+
+		x = bullets[k].x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (bullets[k].direction / (double) INTMAX)));
+		y = bullets[k].y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (bullets[k].direction / (double) INTMAX)));
+
+		// TODO: This isn't an accurate way of doing this if
+		//   the bullets/players move fast.
+		for (int j=0; j<2; ++j) {
+		    if (bullets[k].playerNo != j
+			&& Math.pow(states[j].x - x, 2) + Math.pow(states[j].y - y, 2)
+			   < Math.pow(Bullet.RADIUS, 2)) {
+			System.out.println("Player " + j + " was hit!");
+			assert(false);
+		    }
+		}
+
+		if (Math.abs(x) > MAPSIZE/2 || Math.abs(y) > MAPSIZE/2) {
+
+		    // Remove old bullets.
+		    tempBullets = new Bullet[bullets.length - 1];
+
+		    if (k>0)
+			System.arraycopy(bullets, k-1, tempBullets, 0, k);
+
+		    if (k<bullets.length-1)
+			System.arraycopy(bullets, k+1, tempBullets,
+					 k, bullets.length-1 - k);
+
+		    bullets = tempBullets;
+		    tempBullets = null;
+
+		} else {
+
+		    // Otherwise update the location.
+		    bullets[k] = new Bullet(bullets[k].playerNo, x, y, bullets[k].direction);
+
+		}
+	    }
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new GameState(game.time + 1, states, null);
+	    this.game = new GameState(game.time + 1, states, bullets);
 	}
     }
 

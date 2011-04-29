@@ -25,9 +25,12 @@ public class HigherBeing implements Intelligence {
     }
 
     public PlayerControlParameters getNewControlParameters() {
-	return new PlayerControlParameters(Simulation.INTMAX/2,
-					       games[0].states[playerNo].direction + Simulation.INTMAX/2,
-					       0, 0);
+	if (games[0].time % 50 == 0)
+	    return new PlayerControlParameters(Simulation.INTMAX,
+					       games[0].states[playerNo].direction + Simulation.INTMAX/3,
+					       2, 0);
+	else
+	    return null;
     }
 
 }
