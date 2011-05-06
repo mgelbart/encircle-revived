@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Vector;
 import java.awt.Polygon;
+import java.awt.Rectangle;
 
 public class Simulation
 {
@@ -155,6 +156,7 @@ public class Simulation
 	double a;
 	Bullet b;
 	Polygon p;
+	Rectangle map = new Rectangle(-MAPSIZE/2, -MAPSIZE/2, MAPSIZE, MAPSIZE);
 
 	for (int j=0; j<2; ++j) {
 	    shotsTaken[j] = 0;
@@ -253,6 +255,13 @@ public class Simulation
 		    bullets.remove(k);
 
 	    }
+
+	    // Finally check if anyone went out of bounds:
+	    for (int j=0; j<2; ++j) {
+		if (!map.contains(states[j].x, states[j].y))
+		    states[j] = initPlayerState(j);
+	    }
+
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
