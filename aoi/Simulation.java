@@ -7,7 +7,8 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
-
+import java.util.Vector;
+import java.awt.Polygon;
 
 public class Simulation
 {
@@ -119,17 +120,28 @@ public class Simulation
 	    ctrlParams[j] = new PlayerControlParameters(0, 0, 0, 0);
 
 	    playerStatesInt[j] = new PlayerStateInternal();
-	    states[j] = new PlayerState(j, -5000 + j*10000, 0, 0, 0); 
+
+	    states[j] = initPlayerState(j);
 	}
 
 	this.game = new GameState(0, states, null);
     }
 
+    // (Re)generate a player state at a random location.
+    private static PlayerState initPlayerState(int playerNo) {
+	assert(playerNo >= 0);
+	assert(playerNo < 2);
+
+	return new PlayerState(playerNo,
+			       (int) (MAPSIZE * (0.5 - Math.random())),
+			       (int) (MAPSIZE * (0.5 - Math.random())),
+			       0, 0); 
+    }
+
     private void startGame() {
 
 	PlayerState[] states = new PlayerState[2];
-	Bullet[] bullets = null;
-	Bullet[] tempBullets = null;
+	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	PlayerControlParameters[] params = new PlayerControlParameters[2];
 	PlayerControlParameters[] prevParams = new PlayerControlParameters[2];
@@ -137,9 +149,12 @@ public class Simulation
 	int shotsTaken[] = new int[2];
 	int reloadTimeLeft[] = new int[2];
 
+	// Some temp variables used during calculation
 	int dir, x, y;
 	boolean turnCcw;
 	double a;
+	Bullet b;
+	Polygon p;
 
 	for (int j=0; j<2; ++j) {
 	    shotsTaken[j] = 0;
@@ -179,14 +194,10 @@ public class Simulation
 
 		} else if (shotsTaken[j] < params[j].shotsToTake) {
 
-		    bullets = (bullets == null) ? new Bullet[1]
-			                        : java.util.Arrays.copyOf(bullets,
-						      bullets.length + 1);
-
-		    bullets[bullets.length-1] = new Bullet(j,
-							 game.states[j].x,
-							 game.states[j].y,
-							 game.states[j].direction);
+		    bullets.add(new Bullet(j,
+					   game.states[j].x,
+					   game.states[j].y,
+					   game.states[j].direction));
 
 		    reloadTimeLeft[j] = Bullet.RELOADTIME;
 
@@ -220,49 +231,60 @@ public class Simulation
 
 	    // Calculate the new positions for the bullets and figure out
 	    // if anyone died.
-	    for (int k = (bullets==null) ? -1 : bullets.length-1; k >= 0; --k) {
+	    for (int k = bullets.size() - 1; k >= 0; --k) {
+		b = bullets.get(k);
 
-		x = bullets[k].x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (bullets[k].direction / (double) INTMAX)));
-		y = bullets[k].y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (bullets[k].direction / (double) INTMAX)));
+		x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
+		y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
 
 		// TODO: This isn't an accurate way of doing this if
 		//   the bullets/players move fast.
 		for (int j=0; j<2; ++j) {
-		    if (bullets[k].playerNo != j
-			&& Math.pow(states[j].x - x, 2) + Math.pow(states[j].y - y, 2)
-			   < Math.pow(Bullet.RADIUS, 2)) {
-			System.out.println("Player " + j + " was hit!");
-			assert(false);
-		    }
+		    p = playerShape(j);
+
+		    if (b.playerNo != j && p.contains(b.x, b.y))
+			states[j] = initPlayerState(j);
 		}
 
-		if (Math.abs(x) > MAPSIZE/2 || Math.abs(y) > MAPSIZE/2) {
+		// Update the bullet position unless it's out of bounds.
+		if (Math.abs(x) < MAPSIZE/2 && Math.abs(y) < MAPSIZE/2)
+		    bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
+		else
+		    bullets.remove(k);
 
-		    // Remove old bullets.
-		    tempBullets = new Bullet[bullets.length - 1];
-
-		    if (k>0)
-			System.arraycopy(bullets, k-1, tempBullets, 0, k);
-
-		    if (k<bullets.length-1)
-			System.arraycopy(bullets, k+1, tempBullets,
-					 k, bullets.length-1 - k);
-
-		    bullets = tempBullets;
-		    tempBullets = null;
-
-		} else {
-
-		    // Otherwise update the location.
-		    bullets[k] = new Bullet(bullets[k].playerNo, x, y, bullets[k].direction);
-
-		}
 	    }
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new GameState(game.time + 1, states, bullets);
+	    this.game = new GameState(game.time + 1, states, (Bullet[]) bullets.toArray(new Bullet[1]));
 	}
+    }
+
+    private Polygon playerShape(int playerNo) {
+	assert(playerNo >= 0);
+	assert(playerNo < 2);
+
+	double cos = Math.cos(Math.PI * (game.states[playerNo].direction / (double) INTMAX));
+	double sin = Math.sin(Math.PI * (game.states[playerNo].direction / (double) INTMAX));
+
+	int x, y;
+
+	Polygon p = new Polygon();
+
+	for (int j=0; j<4; ++j) {
+
+	    // Generate one of the four corners relative to origin.
+	    x = ((j==0 || j==1)?  1:-1) * PlayerState.SHIPLENGTH / 2;
+	    y = ((j==0 || j==3)? -1: 1) * PlayerState.SHIPLENGTH / 2;
+
+	    // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
+	    // and translate to player location.
+	    p.addPoint(game.states[playerNo].x + (int) (cos*x - sin*y),
+		       game.states[playerNo].y + (int) (sin*x + cos*y));
+
+	}
+
+	return p;
     }
 
 

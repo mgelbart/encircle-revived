@@ -20,9 +20,8 @@ public class Bullet implements Cloneable {
     /* Minimum time between firing two bullets. */
     public static final int RELOADTIME = 10;
  
-    /* If the bullet comes closer than RADIUS to a player
-       if is considered to have hit the player. */
-    public static final int RADIUS = 100;
+    /* The cross-sectional radius. */
+    public static final int RADIUS = 1;
 
     /* Values transmitted to the clients. */
     public final int x;

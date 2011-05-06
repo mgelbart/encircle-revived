@@ -13,6 +13,10 @@ package aoi;
 import java.io.*;
 
 public class PlayerState implements Cloneable {
+
+    public static final int SHIPLENGTH = 3000;
+    public static final int SHIPWIDTH = 1000;
+
     /* Values transmitted to the clients. */
     public final int playerNo;
     public final int x;
