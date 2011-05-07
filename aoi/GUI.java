@@ -55,12 +55,24 @@ public class GUI implements Runnable {
     private static void drawGameState(GameState g) {
 
 	StdDraw.clear(StdDraw.BLACK);
+
+	int xy[][];
+	double xydbl[][] = new double[2][4];
 	
-	for (int j=0; j<2; ++j)
-	    StdDraw.line(g.states[j].x,
-			 g.states[j].y,
-			 g.states[j].x + 1000 * Math.cos(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)),
-			 g.states[j].y + 1000 * Math.sin(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)));
+	for (int j=0; j<2; ++j) {
+
+	    xy = g.states[j].shape();
+
+	    // Have to cast these things by hand because you can't cast
+	    // a whole array at once (I think).
+	    for (int k=0; k<2; ++k) {
+		for (int l=0; l<4; ++l)
+		    xydbl[k][l] = xy[k][l];
+	    }
+
+	    StdDraw.polygon(xydbl[0], xydbl[1]);
+
+	}
 
 	for (Bullet b : g.bullets)
 	    StdDraw.square(b.x, b.y, 100);

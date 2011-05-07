@@ -155,8 +155,12 @@ public class Simulation
 	int dir, x, y;
 	boolean turnCcw;
 	double a;
+
 	Bullet b;
+
+	int[][] xy;
 	Polygon p;
+
 	Rectangle map = new Rectangle(-MAPSIZE/2, -MAPSIZE/2, MAPSIZE, MAPSIZE);
 
 	for (int j=0; j<2; ++j) {
@@ -253,7 +257,8 @@ public class Simulation
 		// TODO: This isn't an accurate way of doing this if
 		//   the bullets/players move fast.
 		for (int j=0; j<2; ++j) {
-		    p = playerShape(j);
+		    xy = states[j].shape();
+		    p = new Polygon(xy[0], xy[1], 4);
 
 		    if (b.playerNo != j && p.contains(b.x, b.y))
 			states[j] = initPlayerState(j);
@@ -278,33 +283,6 @@ public class Simulation
 	    // Note: don't need locking since updating a reference is atomic.
 	    this.game = new GameState(game.time + 1, states, bullets);
 	}
-    }
-
-    private Polygon playerShape(int playerNo) {
-	assert(playerNo >= 0);
-	assert(playerNo < 2);
-
-	double cos = Math.cos(Math.PI * (game.states[playerNo].direction / (double) INTMAX));
-	double sin = Math.sin(Math.PI * (game.states[playerNo].direction / (double) INTMAX));
-
-	int x, y;
-
-	Polygon p = new Polygon();
-
-	for (int j=0; j<4; ++j) {
-
-	    // Generate one of the four corners relative to origin.
-	    x = ((j==0 || j==1)?  1:-1) * PlayerState.SHIPLENGTH / 2;
-	    y = ((j==0 || j==3)? -1: 1) * PlayerState.SHIPLENGTH / 2;
-
-	    // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
-	    // and translate to player location.
-	    p.addPoint(game.states[playerNo].x + (int) (cos*x - sin*y),
-		       game.states[playerNo].y + (int) (sin*x + cos*y));
-
-	}
-
-	return p;
     }
 
 

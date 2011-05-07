@@ -128,5 +128,35 @@ public class PlayerState implements Cloneable {
 
 	return new PlayerState(p, x, y, d, e);
     }
+
+
+    public int[][] shape() {
+	assert(playerNo >= 0);
+	assert(playerNo < 2);
+
+	double cos = Math.cos(Math.PI * (direction / (double) Simulation.INTMAX));
+	double sin = Math.sin(Math.PI * (direction / (double) Simulation.INTMAX));
+
+	int x, y;
+
+	int px[] = new int[4];
+	int py[] = new int[4];
+
+	for (int j=0; j<4; ++j) {
+
+	    // Generate one of the four corners relative to origin.
+	    x = ((j==0 || j==1)?  1:-1) * SHIPLENGTH / 2;
+	    y = ((j==0 || j==3)? -1: 1) * SHIPWIDTH  / 2;
+
+	    // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
+	    // and translate to player location.
+	    px[j] = this.x + (int) (cos*x - sin*y);
+	    py[j] = this.y + (int) (sin*x + cos*y);
+
+	}
+
+	return new int[][]{px, py};
+    }
+
 }
 
