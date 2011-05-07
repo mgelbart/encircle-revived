@@ -32,7 +32,10 @@ public class GameStateSender implements Runnable {
 
     public synchronized void run() {
 
+	GameState g;
+
 	// Sleep until interruption (triggered by Simulation
+
 	// when game state is updated);
 	while (true) {
 	    
@@ -43,7 +46,12 @@ public class GameStateSender implements Runnable {
 		// Serialize & send game state
 		// Note: don't need locking since
 		//   GameState is immutable.
-		sim.game.serialize(client);
+		g = sim.game;
+
+		if (previousTime != g.time) {
+		    g.serialize(client);
+		    previousTime = g.time;
+		}
 
 	    }
 

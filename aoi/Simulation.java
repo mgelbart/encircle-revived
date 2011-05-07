@@ -10,6 +10,8 @@ import java.net.*;
 import java.util.Vector;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Simulation
 {
@@ -18,20 +20,26 @@ public class Simulation
     public static final int INTMIN = -2147483648;
 
     // Maximum angular speed for turning the ship (abs. value).
-    // Angle is measured in unit of 2*pi / (|INTMAX| + |INTMIN|).
+    // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
     public static final int OMEGA = INTMAX / 50;
  
-    public static final int MAPSIZE = 60000;
+    // All distances are defined in terms of MAPSIZE.
+    // Hence increasing this only increases the resolution.
+    public static final int MAPSIZE = 100000;
 
     // Maximum acceleration.
     public static final int MAXACC = MAPSIZE * 15 / 100000;
+
+    // Advance the simulation every TIMESTEP milliseconds.
+    // This will not be respected if the computation takes longer
+    // than TIMESTEP.
+    //
+    // All other times are defined in terms of TIMESTEP. Hence
+    // decreasing this only increases resolution.
+    public static final int TIMESTEP = 40;
  
     // Drag coefficient.
-    public static final double DRAG = 0.01;
-
-    // The amount of time the simulation thread sleeps between each
-    // step in milliseconds.
-    public static final int SLEEPPERSTEP = 40;
+    public static final double DRAG = TIMESTEP/4000.;
 
     /****
      Public fields used to communicate with PlayerListener
@@ -169,119 +177,128 @@ public class Simulation
 	    reloadTimeLeft[j] = 0;
 	}
 
+	// Set up a timer that wakes up the simulation thread every TIMESTEP
+	// milliseconds. Note that, if the computation take even slightly longer
+	// than TIMESTEP, the time step will be doubled.
+	Thread[] threads = new Thread[3];
+	threads[0] = Thread.currentThread();
+	for (int j=0; j<2; ++j)
+	    threads[1+j] = senderThreads[j];
+
+
+	TimerTask interruptTask = new InterruptThreadsTask(threads);
+	Timer timer = new Timer();
+	timer.scheduleAtFixedRate(interruptTask, 0, TIMESTEP);
+
+
 	System.out.println("Game starting.");
 
 	while (true) {
 
-	    if (game.time % 100 == 0)
-		System.out.println("Current local time: " + game.time);
-
-	    // Need to clone the bullet vector because the other threads may
-	    // still need the old bullet vector (part of the old game state).
-	    
-	    bullets = (Vector<Bullet>) bullets.clone();
-
-	    // Interrupt the sender threads to let them
-	    // know the state has changed.
-	    for (int j=0; j<2; ++j)
-		senderThreads[j].interrupt();
-
-
-	    // Sleep for some time between each simulated step.
+	    // Sleep until next time step.
 	    try {
-		Thread.sleep(SLEEPPERSTEP);
+		Thread.sleep(10000);
 	    } catch (InterruptedException e) {
-		return;
-	    }
 
-	    // First copy the parameters to minimize locking time
-	    // Note: don't need to clone (deep copy) or lock because all
-	    //   fields of PlayerControlParameters are final.
-	    for (int j=0; j<2; ++j)
-		params[j] = this.ctrlParams[j];
+		if (game.time % 100 == 0)
+		    System.out.println("Current local time: " + game.time);
 
-	    for (int j=0; j<2; ++j) {
 
-		// Take shots first:
-		if (prevParams[j] != params[j]) shotsTaken[j] = 0;
+		// Need to clone the bullet vector because the other threads may
+		// still need the old bullet vector (part of the old game state).	    
+		bullets = (Vector<Bullet>) bullets.clone();
 
-		if (reloadTimeLeft[j] > 0) {
 
-		    --reloadTimeLeft[j];
+		// First copy the parameters to minimize locking time
+		// Note: don't need to clone (deep copy) or lock because all
+		//   fields of PlayerControlParameters are final.
+		for (int j=0; j<2; ++j)
+		    params[j] = this.ctrlParams[j];
 
-		} else if (shotsTaken[j] < params[j].shotsToTake) {
+		for (int j=0; j<2; ++j) {
 
-		    bullets.add(new Bullet(j,
-					   game.states[j].x,
-					   game.states[j].y,
-					   game.states[j].direction));
+		    // Take shots first:
+		    if (prevParams[j] != params[j]) shotsTaken[j] = 0;
 
-		    reloadTimeLeft[j] = Bullet.RELOADTIME;
+		    if (reloadTimeLeft[j] > 0) {
+
+			--reloadTimeLeft[j];
+
+		    } else if (shotsTaken[j] < params[j].shotsToTake) {
+
+			bullets.add(new Bullet(j,
+					       game.states[j].x,
+					       game.states[j].y,
+					       game.states[j].direction));
+
+			reloadTimeLeft[j] = Bullet.RELOADTIME;
+
+		    }
+
+		    // Calculate the new positions for players.
+		    a = Math.max(0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
+
+		    playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (a * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
+		    playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (a * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
+
+		    playerStatesInt[j].vx -= DRAG * playerStatesInt[j].vx;
+		    playerStatesInt[j].vy -= DRAG * playerStatesInt[j].vy;
+
+		    x = game.states[j].x + playerStatesInt[j].vx;
+		    y = game.states[j].y + playerStatesInt[j].vy;
+
+		    // Figure out whether to turn clockwise or counterclockwise.
+		    turnCcw =    Math.abs(game.states[j].direction + OMEGA - params[j].targetDirection)
+			< Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
+		    dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
+
+		    // Don't go past the target direction.
+		    if (Integer.signum(game.states[j].direction - params[j].targetDirection)
+			!= Integer.signum(dir - params[j].targetDirection))
+			dir = params[j].targetDirection;
+		
+
+		    states[j] = new PlayerState(j, x, y, dir, 0);
+		}
+
+		// Calculate the new positions for the bullets and figure out
+		// if anyone died.
+		for (int k = bullets.size() - 1; k >= 0; --k) {
+		    b = bullets.get(k);
+
+		    x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
+		    y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+
+		    // TODO: This isn't an accurate way of doing this if
+		    //   the bullets/players move fast.
+		    for (int j=0; j<2; ++j) {
+			xy = states[j].shape();
+			p = new Polygon(xy[0], xy[1], 4);
+
+			if (b.playerNo != j && p.contains(b.x, b.y))
+			    states[j] = initPlayerState(j);
+		    }
+
+		    // Update the bullet position unless it's out of bounds.
+		    if (Math.abs(x) < MAPSIZE/2 && Math.abs(y) < MAPSIZE/2)
+			bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
+		    else
+			bullets.remove(k);
 
 		}
 
-		// Calculate the new positions for players.
-		a = Math.max(0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
-
-		playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (a * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
-		playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (a * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
-
-		playerStatesInt[j].vx -= DRAG * playerStatesInt[j].vx;
-		playerStatesInt[j].vy -= DRAG * playerStatesInt[j].vy;
-
-		x = game.states[j].x + playerStatesInt[j].vx;
-		y = game.states[j].y + playerStatesInt[j].vy;
-
-		// Figure out whether to turn clockwise or counterclockwise.
-		turnCcw =    Math.abs(game.states[j].direction + OMEGA - params[j].targetDirection)
-		           < Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
-		dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
-
-		// Don't go past the target direction.
-		if (Integer.signum(game.states[j].direction - params[j].targetDirection)
-		    != Integer.signum(dir - params[j].targetDirection))
-		    dir = params[j].targetDirection;
-		
-
-		states[j] = new PlayerState(j, x, y, dir, 0);
-	    }
-
-	    // Calculate the new positions for the bullets and figure out
-	    // if anyone died.
-	    for (int k = bullets.size() - 1; k >= 0; --k) {
-		b = bullets.get(k);
-
-		x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
-		y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
-
-		// TODO: This isn't an accurate way of doing this if
-		//   the bullets/players move fast.
+		// Finally check if anyone went out of bounds:
 		for (int j=0; j<2; ++j) {
-		    xy = states[j].shape();
-		    p = new Polygon(xy[0], xy[1], 4);
-
-		    if (b.playerNo != j && p.contains(b.x, b.y))
+		    if (!map.contains(states[j].x, states[j].y))
 			states[j] = initPlayerState(j);
 		}
 
-		// Update the bullet position unless it's out of bounds.
-		if (Math.abs(x) < MAPSIZE/2 && Math.abs(y) < MAPSIZE/2)
-		    bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
-		else
-		    bullets.remove(k);
+
+		// Update the game state.
+		// Note: don't need locking since updating a reference is atomic.
+		this.game = new GameState(game.time + 1, states, bullets);
 
 	    }
-
-	    // Finally check if anyone went out of bounds:
-	    for (int j=0; j<2; ++j) {
-		if (!map.contains(states[j].x, states[j].y))
-		    states[j] = initPlayerState(j);
-	    }
-
-
-	    // Update the game state.
-	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new GameState(game.time + 1, states, bullets);
 	}
     }
 
@@ -290,6 +307,21 @@ public class Simulation
 	/* Values used internally by the simulation. */
 	public int vx;
 	public int vy;
+    }
+
+
+    private class InterruptThreadsTask extends TimerTask {
+
+	Thread[] threads;
+	
+	public InterruptThreadsTask(Thread[] threads) {
+	    this.threads = threads;
+	}
+
+        public void run() {
+            for (Thread t : threads)
+		t.interrupt();
+        }
     }
 
 }

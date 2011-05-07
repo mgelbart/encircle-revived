@@ -59,9 +59,9 @@ public class GUI implements Runnable {
 	int xy[][];
 	double xydbl[][] = new double[2][4];
 	
-	for (int j=0; j<2; ++j) {
+	for (PlayerState p : g.states) {
 
-	    xy = g.states[j].shape();
+	    xy = p.shape();
 
 	    // Have to cast these things by hand because you can't cast
 	    // a whole array at once (I think).
@@ -75,7 +75,7 @@ public class GUI implements Runnable {
 	}
 
 	for (Bullet b : g.bullets)
-	    StdDraw.square(b.x, b.y, 100);
+	    StdDraw.square(b.x, b.y, Simulation.MAPSIZE / 500);
 
 	StdDraw.show(0);
 
