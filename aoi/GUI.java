@@ -26,9 +26,11 @@ public class GUI implements Runnable {
 	StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 	StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 
+	StdDraw.setPenColor(StdDraw.BLUE);
+
 	StdDraw.clear(StdDraw.BLACK);
 
-	StdDraw.setPenColor(StdDraw.BLUE);
+	StdDraw.show(0);
     }
 
     public void run() {
@@ -62,6 +64,8 @@ public class GUI implements Runnable {
 
 	for (Bullet b : g.bullets)
 	    StdDraw.square(b.x, b.y, 100);
+
+	StdDraw.show(0);
 
     }
 
