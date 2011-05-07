@@ -15,14 +15,11 @@ import java.io.*;
 public class Bullet implements Cloneable {
 
     /* The bullet speed is a universal constant. */
-    public static final int SPEED = 1000;
+    public static final int SPEED = Simulation.MAPSIZE * 3/200;
  
     /* Minimum time between firing two bullets. */
     public static final int RELOADTIME = 10;
  
-    /* The cross-sectional radius. */
-    public static final int RADIUS = 1;
-
     /* Values transmitted to the clients. */
     public final int x;
     public final int y;

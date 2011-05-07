@@ -19,20 +19,19 @@ public class Simulation
 
     // Maximum angular speed for turning the ship (abs. value).
     // Angle is measured in unit of 2*pi / (|INTMAX| + |INTMIN|).
-    public static final int OMEGA = 33554432;
+    public static final int OMEGA = INTMAX / 50;
  
     public static final int MAPSIZE = 60000;
 
     // Maximum acceleration.
-    // Positions (distances) can range between INTMIN and INTMAX.
-    public static final int MAXACC = 10;
+    public static final int MAXACC = MAPSIZE * 15 / 100000;
  
     // Drag coefficient.
-    public static final double DRAG = 0.05;
+    public static final double DRAG = 0.01;
 
     // The amount of time the simulation thread sleeps between each
     // step in milliseconds.
-    public static final int SLEEPPERSTEP = 50;
+    public static final int SLEEPPERSTEP = 40;
 
     /****
      Public fields used to communicate with PlayerListener
@@ -125,7 +124,7 @@ public class Simulation
 	    states[j] = initPlayerState(j);
 	}
 
-	this.game = new GameState(0, states, null);
+	this.game = new GameState(0, states, new Vector<Bullet>());
     }
 
     // (Re)generate a player state at a random location.
@@ -134,11 +133,13 @@ public class Simulation
 	assert(playerNo < 2);
 
 	return new PlayerState(playerNo,
-			       (int) (MAPSIZE * (0.5 - Math.random())),
-			       (int) (MAPSIZE * (0.5 - Math.random())),
-			       0, 0); 
+			       (int) (MAPSIZE * (0.5 -   Math.random())),
+			       (int) (MAPSIZE * (0.5 -   Math.random())),
+			       (int) (INTMAX  * (1   - 2*Math.random())),
+			       0); 
     }
 
+    @SuppressWarnings("unchecked")
     private void startGame() {
 
 	PlayerState[] states = new PlayerState[2];
@@ -164,7 +165,17 @@ public class Simulation
 	    reloadTimeLeft[j] = 0;
 	}
 
+	System.out.println("Game starting.");
+
 	while (true) {
+
+	    if (game.time % 100 == 0)
+		System.out.println("Current local time: " + game.time);
+
+	    // Need to clone the bullet vector because the other threads may
+	    // still need the old bullet vector (part of the old game state).
+	    
+	    bullets = (Vector<Bullet>) bullets.clone();
 
 	    // Interrupt the sender threads to let them
 	    // know the state has changed.
@@ -265,7 +276,7 @@ public class Simulation
 
 	    // Update the game state.
 	    // Note: don't need locking since updating a reference is atomic.
-	    this.game = new GameState(game.time + 1, states, (Bullet[]) bullets.toArray(new Bullet[1]));
+	    this.game = new GameState(game.time + 1, states, bullets);
 	}
     }
 

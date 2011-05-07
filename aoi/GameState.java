@@ -6,36 +6,30 @@ package aoi;
  */
 
 import java.io.*;
+import java.util.Vector;
 
 public class GameState implements Cloneable {
     public final int time;
     public final PlayerState[] states;
-    public final Bullet[] bullets;
+    public final Vector<Bullet> bullets;
 
-    // This is redundant but it's more convenient than always writing:
-    //   (bullets != null) ? bullets.length : 0
-    public final int bulletCount;
-
-    public GameState(int time, PlayerState[] states, Bullet[] bullets) {
+    public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
 	assert(states.length == 2);
 
 	this.time = time;
 	this.states = states;
 	this.bullets = bullets;
-
-	this.bulletCount = (bullets != null) ? bullets.length : 0;
     }
 
     public GameState clone() {
 	PlayerState[] clonedStates = new PlayerState[2];
-	Bullet[] clonedBullets = (bullets != null)
-	                           ? new Bullet[bulletCount] : null;
+	Vector<Bullet> clonedBullets = new Vector<Bullet>();
 
 	for (int j=0; j<2; ++j)
 	    clonedStates[j] = states[j].clone();
 
-	for (int j=0; j<bulletCount; ++j)
-	    clonedBullets[j] = bullets[j].clone();
+	for (int j=0; j<bullets.size(); ++j)
+	    clonedBullets.add(bullets.get(j).clone());
 
 	return new GameState(time, clonedStates, clonedBullets);
     }
@@ -50,8 +44,8 @@ public class GameState implements Cloneable {
 	for (int j=0; j<2; ++j)
 	    s.append(states[j].toString());
 
-	for (int j=0; j<bulletCount; ++j)
-	    s.append(bullets[j].toString());
+	for (int j=0; j<bullets.size(); ++j)
+	    s.append(bullets.get(j).toString());
 
 	return s.toString();
     }
@@ -67,10 +61,10 @@ public class GameState implements Cloneable {
 		states[j].serialize(o);
 
 	    o.writeBytes("b");
-	    o.writeInt(bulletCount);
+	    o.writeInt(bullets.size());
 
-	    for (int j=0; j<bulletCount; ++j)
-		bullets[j].serialize(o);
+	    for (int j=0; j<bullets.size(); ++j)
+		bullets.get(j).serialize(o);
 
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
@@ -84,7 +78,7 @@ public class GameState implements Cloneable {
 	Byte cmd;
 	int t, bCount;
 	PlayerState states[] = new PlayerState[2];
-	Bullet bullets[];
+	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	try {
 
@@ -100,9 +94,8 @@ public class GameState implements Cloneable {
 	    bCount = i.readInt();
 	    assert(bCount >= 0);
 	    
-	    bullets = (bCount > 0) ? new Bullet[bCount] : null;
 	    for (int j=0; j<bCount; ++j)
-		bullets[j] = Bullet.parse(i);
+		bullets.add(Bullet.parse(i));
 	    
 
 	} catch (IOException ioe) {

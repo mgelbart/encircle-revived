@@ -6,7 +6,7 @@ simulation: common
 	javac -g aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java
 
 client: common
-	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/Client.java
+	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java
 
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
 	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java

@@ -7,32 +7,24 @@ package aoi;
 // testing making a comment... (mike)
 import java.io.*;
 import java.net.*;
-import stdlib.*;
 
 public class Client {
 
-    public static void main(String argv[]) throws Exception
-    {
+    /* Temporary hack to tell HigherBeing whether to start the GUI. */
+    public static boolean draw;
+
+    public static void main(String argv[]) throws Exception {
 	BufferedReader stdin = new BufferedReader( new InputStreamReader(System.in));
 
 	Socket controlSocket;
 	Socket stateSocket;
 
 	int p = Integer.parseInt(stdin.readLine());
-	boolean draw = Boolean.parseBoolean(stdin.readLine());
+	draw = Boolean.parseBoolean(stdin.readLine());
 
 	if (p > 1 || p < 0) {
 	    System.out.println("Invalid player number.");
 	    return;
-	}
-
-	if (draw) {
-	    StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
-	    StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
-
-	    StdDraw.clear(StdDraw.BLACK);
-
-	    StdDraw.setPenColor(StdDraw.BLUE);
 	}
 
 	if (p == 1) {
@@ -48,16 +40,22 @@ public class Client {
 	    DataInputStream stateStream = new DataInputStream(stateSocket.getInputStream());
 	    DataOutputStream controlStream = new DataOutputStream(controlSocket.getOutputStream());
 
+	    /* Run the intelligence in a separate thread so that parsing/serializing
+	       doesn't block thinking. */
 	    Intelligence intel = new HigherBeing(p);
+	    Thread intelThread = new Thread(intel);
+	    intelThread.start();
+
 	    GameState game;
+
+	    System.out.println("Ready...");
 
 	    while (true) {
 		game = parseGameState(stateStream);
 		intel.processGameStateUpdate(game);
+		intelThread.interrupt(); // in case she was sleeping!
 
 		sendControlParameters(controlStream, intel.getNewControlParameters());
-
-		if (draw) drawGameState(game);
 	    }
 
 	} catch (Exception e) {
@@ -80,21 +78,6 @@ public class Client {
 	if (params == null) return;
 
 	params.serialize(o);
-
-    }
-
-    private static void drawGameState(GameState g) {
-
-	StdDraw.clear(StdDraw.BLACK);
-	
-	for (int j=0; j<2; ++j)
-	    StdDraw.line(g.states[j].x,
-			 g.states[j].y,
-			 g.states[j].x + 1000 * Math.cos(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)),
-			 g.states[j].y + 1000 * Math.sin(Math.PI * (g.states[j].direction / (double) Simulation.INTMAX)));
-
-	for (int k = (g.bullets==null) ? -1 : g.bullets.length-1; k >= 0; --k)
-	    StdDraw.square(g.bullets[k].x, g.bullets[k].y, 100);
 
     }
 }
