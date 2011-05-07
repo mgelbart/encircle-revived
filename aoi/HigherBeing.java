@@ -69,7 +69,7 @@ public class HigherBeing implements Intelligence {
 		Thread.sleep(1000); // Sleep when there's nothing better to do.
 	    } catch (InterruptedException e) {
 
-		if (Math.abs(games[0].time - lastAction) > 50) {
+		if (Math.abs(games[0].time - lastAction) > 1500/Simulation.TIMESTEP) {
 		    ctrl = new PlayerControlParameters(Simulation.INTMAX,
 						       games[0].states[playerNo].direction + Simulation.INTMAX/3,
 						       2, 0);

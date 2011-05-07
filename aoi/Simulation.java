@@ -19,17 +19,6 @@ public class Simulation
     public static final int INTMAX = 2147483647;
     public static final int INTMIN = -2147483648;
 
-    // Maximum angular speed for turning the ship (abs. value).
-    // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-    public static final int OMEGA = INTMAX / 50;
- 
-    // All distances are defined in terms of MAPSIZE.
-    // Hence increasing this only increases the resolution.
-    public static final int MAPSIZE = 100000;
-
-    // Maximum acceleration.
-    public static final int MAXACC = MAPSIZE * 15 / 100000;
-
     // Advance the simulation every TIMESTEP milliseconds.
     // This will not be respected if the computation takes longer
     // than TIMESTEP.
@@ -38,8 +27,20 @@ public class Simulation
     // decreasing this only increases resolution.
     public static final int TIMESTEP = 40;
  
+    // All distances are defined in terms of MAPSIZE.
+    // Hence increasing this only increases the resolution.
+    public static final int MAPSIZE = 100000;
+
+
+    // Maximum angular turning rate (i.e. domega/dt).
+    // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
+    public static final int OMEGA = (INTMAX/2000) * TIMESTEP;
+
+    // Maximum thrust, i.e. max dx/dt^2.
+    public static final int MAXACC = (int) ((MAPSIZE / 1e7) * TIMESTEP * TIMESTEP);
+ 
     // Drag coefficient.
-    public static final double DRAG = TIMESTEP/4000.;
+    public static final double DRAG = 0.00025 * TIMESTEP;
 
     /****
      Public fields used to communicate with PlayerListener
@@ -136,9 +137,11 @@ public class Simulation
     }
 
     // (Re)generate a player state at a random location.
-    private static PlayerState initPlayerState(int playerNo) {
+    private PlayerState initPlayerState(int playerNo) {
 	assert(playerNo >= 0);
 	assert(playerNo < 2);
+
+	playerStatesInt[playerNo] = new PlayerStateInternal();
 
 	return new PlayerState(playerNo,
 			       (int) (MAPSIZE * (0.5 -   Math.random())),
