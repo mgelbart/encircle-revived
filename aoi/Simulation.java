@@ -42,6 +42,18 @@ public class Simulation
     // Drag coefficient.
     public static final double DRAG = 0.00025 * TIMESTEP;
 
+    // Maximum energy.
+    public static final int MAXENERGY = 10;
+
+    // Energy recharge period (i.e. how many turns to gain one point).
+    public static final int RECHARGEPERIOD = 2000 / TIMESTEP;
+
+    // Energy at the start of the game/after being shot.
+    public static final int INITIALENERGY = MAXENERGY;
+
+    // Energy cost per bullet.
+    public static final int BULLETCOST = 2;
+
     /****
      Public fields used to communicate with PlayerListener
      and GameStateSender threads.
@@ -147,7 +159,7 @@ public class Simulation
 			       (int) (MAPSIZE * (0.5 -   Math.random())),
 			       (int) (MAPSIZE * (0.5 -   Math.random())),
 			       (int) (INTMAX  * (1   - 2*Math.random())),
-			       0); 
+			       INITIALENERGY); 
     }
 
     @SuppressWarnings("unchecked")
@@ -163,7 +175,7 @@ public class Simulation
 	int reloadTimeLeft[] = new int[2];
 
 	// Some temp variables used during calculation
-	int dir, x, y;
+	int dir, x, y, energy;
 	boolean turnCcw;
 	double a;
 
@@ -220,6 +232,10 @@ public class Simulation
 
 		for (int j=0; j<2; ++j) {
 
+		    // Add one point of energy every RECHARGEPERIOD steps.
+		    energy = Math.min(MAXENERGY, game.states[j].energy
+				      + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
+
 		    // Take shots first:
 		    if (prevParams[j] != params[j]) shotsTaken[j] = 0;
 
@@ -227,7 +243,8 @@ public class Simulation
 
 			--reloadTimeLeft[j];
 
-		    } else if (shotsTaken[j] < params[j].shotsToTake) {
+		    } else if (shotsTaken[j] < params[j].shotsToTake
+			       && energy >= BULLETCOST) {
 
 			bullets.add(new Bullet(j,
 					       game.states[j].x,
@@ -235,6 +252,8 @@ public class Simulation
 					       game.states[j].direction));
 
 			reloadTimeLeft[j] = Bullet.RELOADTIME;
+			
+			energy -= BULLETCOST;
 
 		    }
 
@@ -261,7 +280,7 @@ public class Simulation
 			dir = params[j].targetDirection;
 		
 
-		    states[j] = new PlayerState(j, x, y, dir, 0);
+		    states[j] = new PlayerState(j, x, y, dir, energy);
 		}
 
 		// Calculate the new positions for the bullets and figure out
