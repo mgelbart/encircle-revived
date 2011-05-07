@@ -137,13 +137,8 @@ public class Simulation
     private void initGameState() {
 	PlayerState[] states = new PlayerState[2];
 
-	for (int j=0; j<2; ++j) {
-	    ctrlParams[j] = new PlayerControlParameters(0, 0, 0, 0);
-
-	    playerStatesInt[j] = new PlayerStateInternal();
-
+	for (int j=0; j<2; ++j)
 	    states[j] = initPlayerState(j);
-	}
 
 	this.game = new GameState(0, states, new Vector<Bullet>());
     }
@@ -153,6 +148,7 @@ public class Simulation
 	assert(playerNo >= 0);
 	assert(playerNo < 2);
 
+	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal();
 
 	return new PlayerState(playerNo,
