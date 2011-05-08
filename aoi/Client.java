@@ -27,7 +27,7 @@ public class Client {
 	    return;
 	}
 
-	if (p == 1) {
+	if (p == 0) {
 	    controlSocket = new Socket("localhost", 7601);
 	    stateSocket = new Socket("localhost", 7602);
 	} else {

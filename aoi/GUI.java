@@ -14,11 +14,24 @@ package aoi;
  */
 
 import stdlib.*;
+import java.awt.KeyboardFocusManager;
+import java.awt.KeyEventDispatcher;
+import java.awt.event.KeyEvent;
+import java.util.Set;
+import java.util.TreeSet;
+
 
 public class GUI implements Runnable {
 
-    /* Most recent game state. Updated by Client. */
+    /* Most recent game state. Updated by the Intelligence. */
     public GameState game;
+
+    /* Booleans that describe which of the control
+       keys is currently pressed down.
+       
+       These are read by the Intelligence.
+    */
+    public Set<Integer> keysPressed = new TreeSet<Integer>();
 
     public GUI() {
 	game = null;
@@ -31,6 +44,22 @@ public class GUI implements Runnable {
 	StdDraw.clear(StdDraw.BLACK);
 
 	StdDraw.show(0);
+
+	KeyboardFocusManager.getCurrentKeyboardFocusManager()
+	    .addKeyEventDispatcher(new KeyEventDispatcher() {
+		    @Override
+		    public boolean dispatchKeyEvent(KeyEvent e) {
+			int key = e.getKeyCode();
+
+			if (e.getID() == KeyEvent.KEY_PRESSED)
+			    keysPressed.add(key);
+			else if (e.getID() == KeyEvent.KEY_RELEASED)
+			    keysPressed.remove(key);
+
+			return false;
+		    }
+		});
+
     }
 
     public void run() {

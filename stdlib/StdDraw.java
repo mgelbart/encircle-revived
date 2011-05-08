@@ -563,7 +563,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         onscreen.drawImage(offscreenImage, 0, 0, null);
         frame.repaint();
         try { Thread.currentThread().sleep(t); }
-        catch (InterruptedException e) { System.out.println("Error sleeping"); }
+        catch (InterruptedException e) { /*System.out.println("Error sleeping");*/ }
     }
 
 

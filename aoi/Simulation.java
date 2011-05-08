@@ -148,13 +148,15 @@ public class Simulation
 	assert(playerNo >= 0);
 	assert(playerNo < 2);
 
+	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
+
 	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal();
 
 	return new PlayerState(playerNo,
 			       (int) (MAPSIZE * (0.5 -   Math.random())),
 			       (int) (MAPSIZE * (0.5 -   Math.random())),
-			       (int) (INTMAX  * (1   - 2*Math.random())),
+			       dir,
 			       INITIALENERGY); 
     }
 
@@ -216,11 +218,12 @@ public class Simulation
 
 
 		// Need to clone the bullet vector because the other threads may
-		// still need the old bullet vector (part of the old game state).	    
+		// still need the old bullet vector (part of the old game state).    
 		bullets = (Vector<Bullet>) bullets.clone();
 
 
-		// First copy the parameters to minimize locking time
+		// First copy the parameters to minimize the time difference
+		// different players have to update their parameters.
 		// Note: don't need to clone (deep copy) or lock because all
 		//   fields of PlayerControlParameters are final.
 		for (int j=0; j<2; ++j)
@@ -293,8 +296,10 @@ public class Simulation
 			xy = states[j].shape();
 			p = new Polygon(xy[0], xy[1], 4);
 
-			if (b.playerNo != j && p.contains(b.x, b.y))
+			if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    states[j] = initPlayerState(j);
+			    reloadTimeLeft[j] = 0;
+			}
 		    }
 
 		    // Update the bullet position unless it's out of bounds.
@@ -307,8 +312,10 @@ public class Simulation
 
 		// Finally check if anyone went out of bounds:
 		for (int j=0; j<2; ++j) {
-		    if (!map.contains(states[j].x, states[j].y))
+		    if (!map.contains(states[j].x, states[j].y)) {
 			states[j] = initPlayerState(j);
+			reloadTimeLeft[j] = 0;
+		    }
 		}
 
 
