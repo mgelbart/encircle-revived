@@ -90,8 +90,10 @@ public class HigherBeing implements Intelligence {
 		if (gui != null) {
 
 		    if (gui.keysPressed.contains(KeyEvent.VK_UP)) {
-			acc = Simulation.INTMAX;
-			update = true;
+			if (acc != Simulation.INTMAX) {
+			    acc = Simulation.INTMAX;
+			    update = true;
+			}
 		    } else if (acc > 0) {
 			acc = 0;
 			update = true;
@@ -116,13 +118,13 @@ public class HigherBeing implements Intelligence {
 
 		    if (gui.keysPressed.contains(KeyEvent.VK_LEFT)) {
 			dir = games[0].states[playerNo].direction
-			      + 2*Simulation.OMEGA;
+			    + Simulation.INTMAX/2;
 			update = true;
 		    } else if (gui.keysPressed.contains(KeyEvent.VK_RIGHT)) {
 			dir = games[0].states[playerNo].direction
-			      - 2*Simulation.OMEGA;
+			    - Simulation.INTMAX/2;
 			update = true;
-		    } else {
+		    } else if (dir != games[0].states[playerNo].direction) {
 			dir = games[0].states[playerNo].direction;
 			update = true;
 		    }		    
