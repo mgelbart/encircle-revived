@@ -19,12 +19,15 @@ import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
 import java.util.Set;
 import java.util.TreeSet;
-
+import java.io.*;
 
 public class GUI implements Runnable {
 
     /* Most recent game state. Updated by the Intelligence. */
     public GameState game;
+
+    /* The map containing the supervoxels. */
+    public Map map;
 
     /* Booleans that describe which of the control
        keys is currently pressed down.
@@ -35,6 +38,13 @@ public class GUI implements Runnable {
 
     public GUI() {
 	game = null;
+
+	try {
+	    map = Map.parse(new FileInputStream("map.xml"));
+	} catch (Exception e) {
+	    System.out.println(e.toString());
+	    assert(false);
+	}
 
 	StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 	StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
@@ -72,7 +82,7 @@ public class GUI implements Runnable {
 		Thread.sleep(1000);
 	    } catch (InterruptedException e) {
 
-		drawGameState(game);
+		drawGameState(map, game);
 
 	    }
 
@@ -81,12 +91,15 @@ public class GUI implements Runnable {
     }
 
 
-    private static void drawGameState(GameState g) {
+    private static void drawGameState(Map m, GameState g) {
 
 	StdDraw.clear(StdDraw.BLACK);
 
 	int xy[][];
 	double xydbl[][] = new double[2][4];
+
+	for (Voxel v : m.voxels)
+	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
 	
 	for (PlayerState p : g.states) {
 

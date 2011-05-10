@@ -9,7 +9,7 @@ client: common
 	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java
 
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
-	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java
+	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Voxel.java aoi/Map.java
 
 clean:
 	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class

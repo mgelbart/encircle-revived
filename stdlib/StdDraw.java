@@ -528,6 +528,30 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         show();
     }
 
+    /**
+     * Draw Image centered on (x, y). 
+     * Rescaled to w-by-h. Degenerates to pixel if small. Calls show().
+     * @param x the center x co-ord of the image
+     * @param y the center y co-ord of the image
+     * @param image the Image object to draw
+     * @param w the width of the image
+     * @param h the height of the image
+     */
+    public static void picture(double x, double y, Image image, double w, double h) {
+        double xs = scaleX(x);
+        double ys = scaleY(y);
+        double ws = factorX(w);
+        double hs = factorY(h);
+        if (ws <= 1 && hs <= 1) pixel(x, y);
+        else {
+            offscreen.drawImage(image, (int) Math.round(xs - ws/2.0),
+                                       (int) Math.round(ys - hs/2.0),
+                                       (int) Math.round(ws),
+                                       (int) Math.round(hs), null);
+        }
+        show();
+    }
+
 
    /*************************************************************************
     *  Drawing text.

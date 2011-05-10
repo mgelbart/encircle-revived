@@ -75,6 +75,13 @@ public class Simulation
     // but not communicate to the clients.
     private final PlayerStateInternal[] playerStatesInt = new PlayerStateInternal[2];
 
+    // Static information about the game state.
+    private Map map;
+
+    // This information is redundant because it's already in map but it's more
+    // convenient to check whether something hit a voxel with these rectangles...
+    private Rectangle[] voxels;
+
     // References to sender/listener threads so we can interrupt them.
     private final Thread[] senderThreads = new Thread[2];
     private final Thread[] listenerThreads = new Thread[2];
@@ -91,6 +98,21 @@ public class Simulation
 	senderServSockets[1] =  new ServerSocket(7604);
 
 	Simulation simulation = new Simulation();
+
+	try {
+	    simulation.map = Map.parse(new FileInputStream("map.xml"));
+	} catch (Exception e) {
+	    System.out.println(e.toString());
+	    assert(false);
+	}
+
+	simulation.voxels = new Rectangle[simulation.map.voxels.size()];
+	for (int j=0; j<simulation.map.voxels.size(); ++j) {
+	    Voxel v = simulation.map.voxels.get(j);
+	    simulation.voxels[j] = new Rectangle(v.x - v.width/2, v.y - v.height/2,
+				      v.width, v.height);
+	}
+
 
 	while(true)
 	    {
@@ -148,16 +170,30 @@ public class Simulation
 	assert(playerNo >= 0);
 	assert(playerNo < 2);
 
+	int x = 0;
+	int y = 0;
+	boolean freespace = false;
+
+	while (!freespace) {
+
+	    x = (int) (MAPSIZE * (0.5 - Math.random()));
+	    y = (int) (MAPSIZE * (0.5 - Math.random()));
+
+	    freespace = true;
+
+	    for (Rectangle r : voxels) {
+		if (r.contains(x, y))
+		    freespace = false;
+	    } 
+	    
+	}
+
 	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
 
 	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal();
 
-	return new PlayerState(playerNo,
-			       (int) (MAPSIZE * (0.5 -   Math.random())),
-			       (int) (MAPSIZE * (0.5 -   Math.random())),
-			       dir,
-			       INITIALENERGY); 
+	return new PlayerState(playerNo, x, y, dir, INITIALENERGY); 
     }
 
     @SuppressWarnings("unchecked")
@@ -178,11 +214,14 @@ public class Simulation
 	double a;
 
 	Bullet b;
+	boolean remove;
 
 	int[][] xy;
 	Polygon p;
+	boolean crashed;
 
-	Rectangle map = new Rectangle(-MAPSIZE/2, -MAPSIZE/2, MAPSIZE, MAPSIZE);
+	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
+					   MAPSIZE, MAPSIZE);
 
 	for (int j=0; j<2; ++j) {
 	    shotsTaken[j] = 0;
@@ -287,6 +326,9 @@ public class Simulation
 		for (int k = bullets.size() - 1; k >= 0; --k) {
 		    b = bullets.get(k);
 
+		    // Whether the bullet hit something.
+		    remove = false;
+
 		    x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
 		    y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
 
@@ -299,23 +341,44 @@ public class Simulation
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    states[j] = initPlayerState(j);
 			    reloadTimeLeft[j] = 0;
+			    remove = true;
 			}
 		    }
 
-		    // Update the bullet position unless it's out of bounds.
-		    if (Math.abs(x) < MAPSIZE/2 && Math.abs(y) < MAPSIZE/2)
+		    if (!mapedges.contains(x, y))
+			remove = true;
+
+		    for (Rectangle r : voxels) {
+			if (r.contains(x, y))
+			    remove = true;
+		    } 
+
+		    // Update the bullet position unless it hit something.
+		    if (!remove)
 			bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
 		    else
 			bullets.remove(k);
 
 		}
 
-		// Finally check if anyone went out of bounds:
+		// Finally check if anyone went out of bounds or hit a voxel:
 		for (int j=0; j<2; ++j) {
-		    if (!map.contains(states[j].x, states[j].y)) {
+
+		    crashed = false;
+
+		    if (!mapedges.contains(states[j].x, states[j].y))
+			crashed = true;
+
+		    for (Rectangle r : voxels) {
+			if (r.contains(states[j].x, states[j].y))
+			    crashed = true;
+		    } 
+
+		    if (crashed) {
 			states[j] = initPlayerState(j);
 			reloadTimeLeft[j] = 0;
 		    }
+
 		}
 
 

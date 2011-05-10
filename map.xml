@@ -1,0 +1,5 @@
+<map>
+  <voxel x="-40000" y="20000" width="6000" height="15400" img="images/fly/unlabeled/0001.jpg"/>
+  <voxel x="10000" y="30000" width="5500" height="10800" img="images/fly/unlabeled/0002.jpg"/>
+  <voxel x="-30000" y="-40000" width="5200" height="8500" img="images/fly/unlabeled/0003.jpg"/>
+</map>
