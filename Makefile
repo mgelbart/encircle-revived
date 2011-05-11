@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-default: simulation client
+default: simulation client doc
 
 simulation: common
 	javac -g aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java
@@ -10,6 +10,9 @@ client: common
 
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
 	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Voxel.java aoi/Map.java
+
+doc: common
+	javadoc -d doc aoi
 
 clean:
 	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class

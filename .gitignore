@@ -1,2 +1,4 @@
 aoi/*.class
 *.class
+doc/
+doc/*
