@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-default: simulation client doc
+default: simulation client
 
 simulation: common
 	javac -g aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java
