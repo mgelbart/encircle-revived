@@ -2,3 +2,5 @@ aoi/*.class
 *.class
 doc/
 doc/*
+out/
+out/*
