@@ -202,12 +202,6 @@ public class Simulation
 	PlayerState[] states = new PlayerState[2];
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
-	PlayerControlParameters[] params = new PlayerControlParameters[2];
-	PlayerControlParameters[] prevParams = new PlayerControlParameters[2];
-
-	int shotsTaken[] = new int[2];
-	int reloadTimeLeft[] = new int[2];
-
 	// Some temp variables used during calculation
 	int dir, x, y, energy;
 	boolean turnCcw;
@@ -223,11 +217,6 @@ public class Simulation
 	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
 					   MAPSIZE, MAPSIZE);
 
-	for (int j=0; j<2; ++j) {
-	    shotsTaken[j] = 0;
-	    prevParams[j] = null;
-	    reloadTimeLeft[j] = 0;
-	}
 
 	// Set up a timer that wakes up the simulation thread every TIMESTEP
 	// milliseconds. Note that, if the computation take even slightly longer
@@ -266,7 +255,7 @@ public class Simulation
 		// Note: don't need to clone (deep copy) or lock because all
 		//   fields of PlayerControlParameters are final.
 		for (int j=0; j<2; ++j)
-		    params[j] = this.ctrlParams[j];
+		    playerStatesInt[j].params = this.ctrlParams[j];
 
 		for (int j=0; j<2; ++j) {
 
@@ -275,13 +264,14 @@ public class Simulation
 				      + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
 
 		    // Take shots first:
-		    if (prevParams[j] != params[j]) shotsTaken[j] = 0;
+		    if (playerStatesInt[j].prevParams != playerStatesInt[j].params)
+			playerStatesInt[j].shotsTaken = 0;
 
-		    if (reloadTimeLeft[j] > 0) {
+		    if (playerStatesInt[j].reloadTimeLeft > 0) {
 
-			--reloadTimeLeft[j];
+			playerStatesInt[j].reloadTimeLeft--;
 
-		    } else if (shotsTaken[j] < params[j].shotsToTake
+		    } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake
 			       && energy >= BULLETCOST) {
 
 			bullets.add(new Bullet(j,
@@ -289,14 +279,14 @@ public class Simulation
 					       game.states[j].y,
 					       game.states[j].direction));
 
-			reloadTimeLeft[j] = Bullet.RELOADTIME;
+			playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
 			
 			energy -= BULLETCOST;
 
 		    }
 
 		    // Calculate the new positions for players.
-		    a = Math.max(0.0, MAXACC * (params[j].acceleration / (double) INTMAX));
+		    a = Math.max(0.0, MAXACC * (playerStatesInt[j].params.acceleration / (double) INTMAX));
 
 		    playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (a * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
 		    playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (a * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
@@ -308,14 +298,14 @@ public class Simulation
 		    y = game.states[j].y + playerStatesInt[j].vy;
 
 		    // Figure out whether to turn clockwise or counterclockwise.
-		    turnCcw =    Math.abs(game.states[j].direction + OMEGA - params[j].targetDirection)
-			< Math.abs(game.states[j].direction - OMEGA - params[j].targetDirection);
+		    turnCcw =    Math.abs(game.states[j].direction + OMEGA - playerStatesInt[j].params.targetDirection)
+			< Math.abs(game.states[j].direction - OMEGA - playerStatesInt[j].params.targetDirection);
 		    dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
 
 		    // Don't go past the target direction.
-		    if (Integer.signum(game.states[j].direction - params[j].targetDirection)
-			!= Integer.signum(dir - params[j].targetDirection))
-			dir = params[j].targetDirection;
+		    if (Integer.signum(game.states[j].direction - playerStatesInt[j].params.targetDirection)
+			!= Integer.signum(dir - playerStatesInt[j].params.targetDirection))
+			dir = playerStatesInt[j].params.targetDirection;
 		
 
 		    states[j] = new PlayerState(j, x, y, dir, energy);
@@ -340,7 +330,6 @@ public class Simulation
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    states[j] = initPlayerState(j);
-			    reloadTimeLeft[j] = 0;
 			    remove = true;
 			}
 		    }
@@ -376,7 +365,6 @@ public class Simulation
 
 		    if (crashed) {
 			states[j] = initPlayerState(j);
-			reloadTimeLeft[j] = 0;
 		    }
 
 		}
@@ -393,8 +381,15 @@ public class Simulation
 
     private class PlayerStateInternal {
 	/* Values used internally by the simulation. */
-	public int vx;
-	public int vy;
+	public int vx = 0;
+	public int vy = 0;
+
+	public int shotsTaken = 0;
+	public int reloadTimeLeft = 0;
+
+	// The last two control parameters.
+	public PlayerControlParameters params = null;
+	public PlayerControlParameters prevParams = null;
     }
 
 
