@@ -1,0 +1,1 @@
+make run_serv > serv.out 2> serv.err & sleep 1; make run_client1 > client1.out 2> client1.err & make run_client0 | tee client0.out 2| tee client0.err
