@@ -11,7 +11,7 @@ client: common
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
 	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Voxel.java aoi/Map.java
 
-doc: common
+doc:
 	javadoc -d doc aoi
 
 clean:
