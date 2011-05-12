@@ -1,4 +1,4 @@
-aoi/*.class
+*.class
 doc/
 out/
 resources/
