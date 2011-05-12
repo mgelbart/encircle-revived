@@ -10,6 +10,8 @@ import java.net.*;
 import java.util.Vector;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.geom.Path2D;
+import java.awt.geom.Area;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -193,6 +195,9 @@ public class Simulation
 	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal();
 
+	playerStatesInt[playerNo].trajectory = new Path2D.Double();
+	playerStatesInt[playerNo].trajectory.moveTo(x, y);
+
 	return new PlayerState(playerNo, x, y, dir, INITIALENERGY); 
     }
 
@@ -213,6 +218,8 @@ public class Simulation
 	int[][] xy;
 	Polygon p;
 	boolean crashed;
+
+	Area loop;
 
 	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
 					   MAPSIZE, MAPSIZE);
@@ -350,7 +357,7 @@ public class Simulation
 
 		}
 
-		// Finally check if anyone went out of bounds or hit a voxel:
+		// Check if anyone went out of bounds or hit a voxel:
 		for (int j=0; j<2; ++j) {
 
 		    crashed = false;
@@ -369,6 +376,38 @@ public class Simulation
 
 		}
 
+		// Check if someone collected a whatever-it-is-we-want-to-call-the-stuff-you-collect
+		for (int j=0; j<2; ++j) {
+
+		    if (playerStatesInt[j].trajectory.getCurrentPoint().distance(states[j].x, states[j].y) > 0.9)
+			playerStatesInt[j].trajectory.lineTo(states[j].x, states[j].y);
+
+		    // All the magic happens here. If the path crosses
+		    // itself, the resulting Area will contain
+		    // more than one SEG_MOVETO, which is then detected
+		    // by Area.isSingular().
+		    //
+		    // This seems to work but I don't think this behavior
+		    // is mandated by the Area.Area(Shape s) constructor
+		    // API.
+		    
+		    loop = new Area(playerStatesInt[j].trajectory);
+
+		    if (!loop.isSingular()) {
+
+			for (Voxel v : map.voxels) {
+			    if (loop.contains(v.x, v.y))
+				System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
+			}
+
+			playerStatesInt[j].trajectory = new Path2D.Double();
+			playerStatesInt[j].trajectory.moveTo(states[j].x, states[j].y);
+
+		    }
+
+		    loop = null;
+		    
+		}
 
 		// Update the game state.
 		// Note: don't need locking since updating a reference is atomic.
@@ -386,6 +425,9 @@ public class Simulation
 
 	public int shotsTaken = 0;
 	public int reloadTimeLeft = 0;
+
+	// The path traced by the ship since the last loop completion.
+	public Path2D trajectory = null;
 
 	// The last two control parameters.
 	public PlayerControlParameters params = null;
