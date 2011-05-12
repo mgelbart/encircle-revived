@@ -46,6 +46,8 @@ public class GUI implements Runnable {
 	    assert(false);
 	}
 
+	StdDraw.setCanvasSize(700, 700);
+
 	StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 	StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
 
