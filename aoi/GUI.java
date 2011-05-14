@@ -29,7 +29,7 @@ public class GUI implements Runnable {
     /* Most recent game state. Updated by the Intelligence. */
     public GameState game;
 
-    /* The map containing the supervoxels. */
+    /* The map containing the clusters. */
     public Map map;
 
     /* Booleans that describe which of the control
@@ -116,7 +116,7 @@ public class GUI implements Runnable {
 
 	Point point;
 
-	for (Voxel v : m.voxels)
+	for (Cluster v : m.clusters)
 	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
 	
 	PlayerState p;

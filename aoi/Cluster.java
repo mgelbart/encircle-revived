@@ -1,13 +1,16 @@
 package aoi;
 
 /*
-  A supervoxel.
+  Clusters are image patches spread around the map. Each cluster
+  contains a particular number of segments which defines the
+  clusters numerical value. The players collect clusters in
+  an increasing order of numberical value.
  */
 
 import javax.swing.ImageIcon;
 import java.awt.Image;
 
-public class Voxel {
+public class Cluster {
     public final int x;
     public final int y;
     public final int width;
@@ -15,7 +18,7 @@ public class Voxel {
     public final String imgPath;
     public final Image img;
 
-    public Voxel(int x, int y, int width, int height, String imgPath) {
+    public Cluster(int x, int y, int width, int height, String imgPath) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
@@ -36,7 +39,7 @@ public class Voxel {
     }
 
     public String toString() {
-	return "<voxel x=\"" + x
+	return "<cluster x=\"" + x
 	    + "\" y=\"" + y
 	    + "\" width=\"" + width
 	    + "\" height=\"" + height

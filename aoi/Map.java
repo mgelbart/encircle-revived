@@ -2,7 +2,7 @@ package aoi;
 
 /*
   A class for the static map information,
-  namely about the supervoxels.
+  namely about the clusters.
  */
 
 import java.io.*;
@@ -13,10 +13,10 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
 
 public class Map {
-    public final Vector<Voxel> voxels;
+    public final Vector<Cluster> clusters;
 
-    public Map(Vector<Voxel> voxels) {
-	this.voxels = voxels;
+    public Map(Vector<Cluster> clusters) {
+	this.clusters = clusters;
     }
 
     public String toString() {
@@ -24,8 +24,8 @@ public class Map {
 	
 	s.append("<map>\n");
 
-	for (int j=0; j<voxels.size(); ++j) {
-	    s.append(voxels.get(j).toString());
+	for (int j=0; j<clusters.size(); ++j) {
+	    s.append(clusters.get(j).toString());
 	    s.append("\n");
 	}
 
@@ -55,7 +55,7 @@ public class Map {
 	    MapParser map = new MapParser();
 	    sax.parse(i, map);
 
-	    return new Map(map.voxels);
+	    return new Map(map.clusters);
 
 	} catch (Exception e) {
 	    System.out.println(e.toString());
@@ -73,26 +73,26 @@ public class Map {
     }
 
 
-    // SAX parser for extracting the voxels out of the map XML file.
+    // SAX parser for extracting the clusters out of the map XML file.
     private static class MapParser extends DefaultHandler {
 
-	public Vector<Voxel> voxels;
+	public Vector<Cluster> clusters;
 
 	public MapParser() {
 	    super();
-	    voxels = new Vector<Voxel>();
+	    clusters = new Vector<Cluster>();
 	}
 
 	public void startElement(String uri, String localName, String qName, Attributes attr)  {
 
-	    if (qName == "voxel") {
+	    if (qName == "cluster") {
 		int x = Integer.parseInt(attr.getValue("x"));
 		int y = Integer.parseInt(attr.getValue("y"));
 		int width = Integer.parseInt(attr.getValue("width"));
 		int height = Integer.parseInt(attr.getValue("height"));
 		String img = attr.getValue("img");
 
-		voxels.add(new Voxel(x, y, width, height, img));
+		clusters.add(new Cluster(x, y, width, height, img));
 	    }
 
 	}

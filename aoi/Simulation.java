@@ -88,8 +88,8 @@ public class Simulation
     private Map map;
 
     // This information is redundant because it's already in map but it's more
-    // convenient to check whether something hit a voxel with these rectangles...
-    private Rectangle[] voxels;
+    // convenient to check whether something hit a cluster with these rectangles...
+    private Rectangle[] clusters;
 
     // References to sender/listener threads so we can interrupt them.
     private final Thread[] senderThreads = new Thread[2];
@@ -115,10 +115,10 @@ public class Simulation
 	    assert(false);
 	}
 
-	simulation.voxels = new Rectangle[simulation.map.voxels.size()];
-	for (int j=0; j<simulation.map.voxels.size(); ++j) {
-	    Voxel v = simulation.map.voxels.get(j);
-	    simulation.voxels[j] = new Rectangle(v.x - v.width/2, v.y - v.height/2,
+	simulation.clusters = new Rectangle[simulation.map.clusters.size()];
+	for (int j=0; j<simulation.map.clusters.size(); ++j) {
+	    Cluster v = simulation.map.clusters.get(j);
+	    simulation.clusters[j] = new Rectangle(v.x - v.width/2, v.y - v.height/2,
 				      v.width, v.height);
 	}
 
@@ -190,7 +190,7 @@ public class Simulation
 
 	    freespace = true;
 
-	    for (Rectangle r : voxels) {
+	    for (Rectangle r : clusters) {
 		if (r.contains(x, y))
 		    freespace = false;
 	    } 
@@ -365,7 +365,7 @@ public class Simulation
 				loop.lineTo(point.getX(), point.getY());
 			    }
 
-			    for (Voxel v : map.voxels) {
+			    for (Cluster v : map.clusters) {
 				if (loop.contains(v.x, v.y)) {
 				    System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
 				    score += 1;
@@ -414,7 +414,7 @@ public class Simulation
 		    if (!mapedges.contains(x, y))
 			remove = true;
 
-		    for (Rectangle r : voxels) {
+		    for (Rectangle r : clusters) {
 			if (r.contains(x, y))
 			    remove = true;
 		    } 
@@ -427,7 +427,7 @@ public class Simulation
 
 		}
 
-		// Check if anyone went out of bounds or hit a voxel:
+		// Check if anyone went out of bounds or hit a cluster:
 		for (int j=0; j<2; ++j) {
 
 		    crashed = false;
@@ -435,7 +435,7 @@ public class Simulation
 		    if (!mapedges.contains(states[j].x, states[j].y))
 			crashed = true;
 
-		    for (Rectangle r : voxels) {
+		    for (Rectangle r : clusters) {
 			if (r.contains(states[j].x, states[j].y))
 			    crashed = true;
 		    } 
