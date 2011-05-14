@@ -6,7 +6,7 @@ simulation: common
 	javac -g aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java
 
 client: common
-	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java
+	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java aoi/ClientConfiguration.java
 
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
 	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Cluster.java aoi/Map.java
@@ -21,7 +21,7 @@ run_serv:
 	java -ea aoi/Simulation
 
 run_client0:
-	echo -e "0\ntrue" | java -ea aoi/Client
+	java -ea aoi/Client < client0local.conf
 
 run_client1:
-	echo -e "1\nfalse" | java -ea aoi/Client
+	java -ea aoi/Client < client1local.conf

@@ -9,7 +9,8 @@ import java.awt.event.KeyEvent;
 
 public class HigherBeing implements Intelligence {
 
-    int playerNo;
+    // The input options received from Client.
+    ClientConfiguration config;
 
     // A ring buffer of latest game states.
     GameState[] games;
@@ -27,18 +28,15 @@ public class HigherBeing implements Intelligence {
     int lastAction = -999999;
 
 
-    public HigherBeing(int playerNo) {
+    public HigherBeing(ClientConfiguration config) {
 
-	assert(playerNo < 2);
-	assert(playerNo >= 0);
+	this.config = config;
 
-	this.playerNo = playerNo;
-
-	System.out.println("HigherBeing for player " + playerNo + " created.");
+	System.out.println("HigherBeing for player " + config.playerNo + " created.");
 
 	games = new GameState[1];
 
-	if (Client.draw) {
+	if (!config.nonhuman) {
 	    gui = new GUI();
 	    guiThread = new Thread(gui);
 	    guiThread.start();
@@ -87,7 +85,7 @@ public class HigherBeing implements Intelligence {
 
 		update = false;
 
-		if (gui != null) {
+		if (!config.nonhuman) {
 
 		    if (gui.keysPressed.contains(KeyEvent.VK_UP)) {
 			if (acc != Simulation.INTMAX) {
@@ -117,15 +115,15 @@ public class HigherBeing implements Intelligence {
 		    }
 
 		    if (gui.keysPressed.contains(KeyEvent.VK_LEFT)) {
-			dir = games[0].states[playerNo].direction
+			dir = games[0].states[config.playerNo].direction
 			    + Simulation.INTMAX/2;
 			update = true;
 		    } else if (gui.keysPressed.contains(KeyEvent.VK_RIGHT)) {
-			dir = games[0].states[playerNo].direction
+			dir = games[0].states[config.playerNo].direction
 			    - Simulation.INTMAX/2;
 			update = true;
-		    } else if (dir != games[0].states[playerNo].direction) {
-			dir = games[0].states[playerNo].direction;
+		    } else if (dir != games[0].states[config.playerNo].direction) {
+			dir = games[0].states[config.playerNo].direction;
 			update = true;
 		    }		    
 
@@ -136,7 +134,7 @@ public class HigherBeing implements Intelligence {
 		    if (Math.abs(games[0].time - lastAction) > 1500/Simulation.TIMESTEP) {
 			update = true;
 			acc = Simulation.INTMAX;
-			dir = games[0].states[playerNo].direction
+			dir = games[0].states[config.playerNo].direction
 			      + Simulation.INTMAX/3;
 			shots = 1;
 			boosts = 0;

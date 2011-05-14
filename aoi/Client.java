@@ -10,30 +10,19 @@ import java.net.*;
 
 public class Client {
 
-    /* Temporary hack to tell HigherBeing whether to start the GUI. */
-    public static boolean draw;
-
     public static void main(String argv[]) throws Exception {
-	BufferedReader stdin = new BufferedReader( new InputStreamReader(System.in));
+
 
 	Socket controlSocket;
 	Socket stateSocket;
 
-	int p = Integer.parseInt(stdin.readLine());
-	draw = Boolean.parseBoolean(stdin.readLine());
+	ClientConfiguration config = ClientConfiguration.parse(System.in);
 
-	if (p > 1 || p < 0) {
-	    System.out.println("Invalid player number.");
-	    return;
-	}
-
-	if (p == 0) {
-	    controlSocket = new Socket("localhost", 7601);
-	    stateSocket = new Socket("localhost", 7602);
-	} else {
-	    controlSocket = new Socket("localhost", 7603);
-	    stateSocket = new Socket("localhost", 7604);
-	}
+	System.out.println(config);
+	
+	// Read input options from stdin.
+	controlSocket = new Socket(config.serverurl, config.controlPort);
+	stateSocket = new Socket(config.serverurl, config.gameStatePort);
 
 	try {
 
@@ -42,7 +31,7 @@ public class Client {
 
 	    /* Run the intelligence in a separate thread so that parsing/serializing
 	       doesn't block thinking. */
-	    Intelligence intel = new HigherBeing(p);
+	    Intelligence intel = new HigherBeing(config);
 	    Thread intelThread = new Thread(intel);
 	    intelThread.start();
 
