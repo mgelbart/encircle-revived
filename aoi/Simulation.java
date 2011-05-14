@@ -10,7 +10,10 @@ import java.net.*;
 import java.util.Vector;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Area;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +58,10 @@ public class Simulation
 
     // Energy cost per bullet.
     public static final int BULLETCOST = 2;
+
+    // Roughly the minimum distance between adjacent points in the trajectory for
+    // encircling clusters. See the algorithm to see why this is only 'roughly' so.
+    public static final int MINTRAJECTORYSEGMENT = MAPSIZE / 200;
 
     /****
      Public fields used to communicate with PlayerListener
@@ -193,10 +200,7 @@ public class Simulation
 	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
 
 	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
-	playerStatesInt[playerNo] = new PlayerStateInternal();
-
-	playerStatesInt[playerNo].trajectory = new Path2D.Double();
-	playerStatesInt[playerNo].trajectory.moveTo(x, y);
+	playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
 	return new PlayerState(playerNo, x, y, dir, INITIALENERGY,
 			       (game == null) ? 0 : game.time, 0); 
@@ -220,7 +224,10 @@ public class Simulation
 	Polygon p;
 	boolean crashed;
 
-	Area loop;
+	int N;
+	Point2D curPoint, prevPoint, prevPrevPoint, point;
+	Line2D lastSegment;
+	Path2D loop;
 
 	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
 					   MAPSIZE, MAPSIZE);
@@ -322,37 +329,61 @@ public class Simulation
 		    currentLoop = game.states[j].currentLoop;
 		    score = game.states[j].score;
 		    
-		    if (playerStatesInt[j].trajectory.getCurrentPoint().distance(x, y) > 0.9)
-			playerStatesInt[j].trajectory.lineTo(x, y);
+		    // Add the new position to the trajectory
+		    curPoint = new Point(x, y);
+		    prevPoint = playerStatesInt[j].trajectory.lastElement().getP2();
+		    prevPrevPoint = playerStatesInt[j].trajectory.lastElement().getP1();
 
-		    // All the magic happens here. If the path crosses
-		    // itself, the resulting Area will contain
-		    // more than one SEG_MOVETO, which is then detected
-		    // by Area.isSingular().
-		    //
-		    // This seems to work but I don't think this behavior
-		    // is mandated by the Area.Area(Shape s) constructor
-		    // API.		    
-		    loop = new Area(playerStatesInt[j].trajectory);
+		    if (prevPoint.distance(curPoint) > 0.9) {
 
-		    if (!loop.isSingular()) {
+			// Always add the latest position to the trajectory
+			// but combine it with the previous segment if both are short.
+			if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
+			    playerStatesInt[j].trajectory.remove(playerStatesInt[j].trajectory.size()-1);
+			    playerStatesInt[j].trajectory.add(new Line2D.Double(prevPrevPoint, curPoint));
+			} else {
+			    playerStatesInt[j].trajectory.add(new Line2D.Double(prevPoint, curPoint));
+			}
+			    
+		    }
+		    
+		    // Check if the path crosses itself, O(N).
+		    N = playerStatesInt[j].trajectory.size();
+		    lastSegment = playerStatesInt[j].trajectory.get(N-1);
+		    for (int k=0; k < N-2; ++k) {
 
-			for (Voxel v : map.voxels) {
-			    if (loop.contains(v.x, v.y)) {
-				System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
-				score += 1;
+			if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
+
+			    // Construct a Path2D for the loop only.
+			    loop = new Path2D.Double();
+
+			    point = playerStatesInt[j].trajectory.get(k).getP2();
+			    loop.moveTo(point.getX(), point.getY());
+
+			    for (int l=k+1; l < N; ++l) {
+				point = playerStatesInt[j].trajectory.get(l).getP2();
+				loop.lineTo(point.getX(), point.getY());
 			    }
+
+			    for (Voxel v : map.voxels) {
+				if (loop.contains(v.x, v.y)) {
+				    System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
+				    score += 1;
+				}
+			    }
+
+			    loop = null;
+
+			    playerStatesInt[j].trajectory.clear();
+			    playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint, curPoint));
+
+			    currentLoop = game.time;
+
+			    break;
+
 			}
 
-			playerStatesInt[j].trajectory = new Path2D.Double();
-			playerStatesInt[j].trajectory.moveTo(x, y);
-
-			currentLoop = game.time;
-
-		    }
-
-		    loop = null;
-
+		    }			
 		
 		    states[j] = new PlayerState(j, x, y, dir, energy, currentLoop, score);
 		}
@@ -434,11 +465,17 @@ public class Simulation
 	public int reloadTimeLeft = 0;
 
 	// The path traced by the ship since the last loop completion.
-	public Path2D trajectory = null;
+	public Vector<Line2D> trajectory;
 
 	// The last two control parameters.
 	public PlayerControlParameters params = null;
 	public PlayerControlParameters prevParams = null;
+
+
+	public PlayerStateInternal(int xInitial, int yInitial) {
+	    trajectory = new Vector<Line2D>();
+	    trajectory.add(new Line2D.Double(xInitial, yInitial, xInitial, yInitial)); // Zero length line
+	}
     }
 
 
