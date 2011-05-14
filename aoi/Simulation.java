@@ -198,7 +198,8 @@ public class Simulation
 	playerStatesInt[playerNo].trajectory = new Path2D.Double();
 	playerStatesInt[playerNo].trajectory.moveTo(x, y);
 
-	return new PlayerState(playerNo, x, y, dir, INITIALENERGY); 
+	return new PlayerState(playerNo, x, y, dir, INITIALENERGY,
+			       (game == null) ? 0 : game.time, 0); 
     }
 
     @SuppressWarnings("unchecked")
@@ -208,7 +209,7 @@ public class Simulation
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	// Some temp variables used during calculation
-	int dir, x, y, energy;
+	int dir, x, y, energy, currentLoop, score;
 	boolean turnCcw;
 	double a;
 
@@ -313,9 +314,47 @@ public class Simulation
 		    if (Integer.signum(game.states[j].direction - playerStatesInt[j].params.targetDirection)
 			!= Integer.signum(dir - playerStatesInt[j].params.targetDirection))
 			dir = playerStatesInt[j].params.targetDirection;
-		
 
-		    states[j] = new PlayerState(j, x, y, dir, energy);
+
+
+		    // Check if someone collected a whatever-it-is-we-want-to-call-the-stuff-you-collect
+
+		    currentLoop = game.states[j].currentLoop;
+		    score = game.states[j].score;
+		    
+		    if (playerStatesInt[j].trajectory.getCurrentPoint().distance(x, y) > 0.9)
+			playerStatesInt[j].trajectory.lineTo(x, y);
+
+		    // All the magic happens here. If the path crosses
+		    // itself, the resulting Area will contain
+		    // more than one SEG_MOVETO, which is then detected
+		    // by Area.isSingular().
+		    //
+		    // This seems to work but I don't think this behavior
+		    // is mandated by the Area.Area(Shape s) constructor
+		    // API.		    
+		    loop = new Area(playerStatesInt[j].trajectory);
+
+		    if (!loop.isSingular()) {
+
+			for (Voxel v : map.voxels) {
+			    if (loop.contains(v.x, v.y)) {
+				System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
+				score += 1;
+			    }
+			}
+
+			playerStatesInt[j].trajectory = new Path2D.Double();
+			playerStatesInt[j].trajectory.moveTo(x, y);
+
+			currentLoop = game.time;
+
+		    }
+
+		    loop = null;
+
+		
+		    states[j] = new PlayerState(j, x, y, dir, energy, currentLoop, score);
 		}
 
 		// Calculate the new positions for the bullets and figure out
@@ -376,38 +415,6 @@ public class Simulation
 
 		}
 
-		// Check if someone collected a whatever-it-is-we-want-to-call-the-stuff-you-collect
-		for (int j=0; j<2; ++j) {
-
-		    if (playerStatesInt[j].trajectory.getCurrentPoint().distance(states[j].x, states[j].y) > 0.9)
-			playerStatesInt[j].trajectory.lineTo(states[j].x, states[j].y);
-
-		    // All the magic happens here. If the path crosses
-		    // itself, the resulting Area will contain
-		    // more than one SEG_MOVETO, which is then detected
-		    // by Area.isSingular().
-		    //
-		    // This seems to work but I don't think this behavior
-		    // is mandated by the Area.Area(Shape s) constructor
-		    // API.
-		    
-		    loop = new Area(playerStatesInt[j].trajectory);
-
-		    if (!loop.isSingular()) {
-
-			for (Voxel v : map.voxels) {
-			    if (loop.contains(v.x, v.y))
-				System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
-			}
-
-			playerStatesInt[j].trajectory = new Path2D.Double();
-			playerStatesInt[j].trajectory.moveTo(states[j].x, states[j].y);
-
-		    }
-
-		    loop = null;
-		    
-		}
 
 		// Update the game state.
 		// Note: don't need locking since updating a reference is atomic.

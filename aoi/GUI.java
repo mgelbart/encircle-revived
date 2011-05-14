@@ -17,8 +17,11 @@ import stdlib.*;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.awt.Point;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.io.*;
 
 public class GUI implements Runnable {
@@ -36,8 +39,19 @@ public class GUI implements Runnable {
     */
     public Set<Integer> keysPressed = new TreeSet<Integer>();
 
+
+    private int[] currentLoopStarted;
+    private Vector<Point2D>[] loop;
+
     public GUI() {
 	game = null;
+
+	currentLoopStarted = new int[2];
+	loop = new Vector[2];
+	for (int j=0; j<2; ++j) {
+	    currentLoopStarted[j] = -999;
+	    loop[j] = new Vector<Point2D>();
+	}
 
 	try {
 	    map = Map.parse(new FileInputStream("map.xml"));
@@ -93,17 +107,23 @@ public class GUI implements Runnable {
     }
 
 
-    private static void drawGameState(Map m, GameState g) {
+    private void drawGameState(Map m, GameState g) {
 
 	StdDraw.clear(StdDraw.BLACK);
 
 	int xy[][];
 	double xydbl[][] = new double[2][4];
 
+	Point point;
+
 	for (Voxel v : m.voxels)
 	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
 	
-	for (PlayerState p : g.states) {
+	PlayerState p;
+	for (int j=0; j<2; ++j) {
+	    p = g.states[j];
+
+	    // Draw the ship
 
 	    xy = p.shape();
 
@@ -115,6 +135,30 @@ public class GUI implements Runnable {
 	    }
 
 	    StdDraw.polygon(xydbl[0], xydbl[1]);
+
+	    //  Draw the loop
+
+	    if (currentLoopStarted[j] == p.currentLoop) {
+
+		point = new Point(p.x, p.y);
+		if (loop[j].size() == 0 || !loop[j].lastElement().equals(point))
+		    loop[j].add(point);
+
+	    } else {
+
+		currentLoopStarted[j] = p.currentLoop;
+		loop[j].clear();
+
+	    }
+
+	    for (int k=0; k < loop[j].size()-1; ++k)
+		StdDraw.line(loop[j].get(k  ).getX(), loop[j].get(k  ).getY(),
+			     loop[j].get(k+1).getX(), loop[j].get(k+1).getY());
+
+	    // Draw the score:
+	    StdDraw.text((2*j - 1)*Simulation.MAPSIZE*2/5,
+			 Simulation.MAPSIZE*19/40,
+			 "P" + j + ": " + p.score);
 
 	}
 

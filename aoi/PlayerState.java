@@ -24,12 +24,21 @@ public class PlayerState implements Cloneable {
     public final int direction;
     public final int energy;
 
-    public PlayerState(int playerNo, int x, int y, int direction, int energy) {
+    // The time at which the last loop was completed/current one started.
+    public final int currentLoop;
+
+    // How many clusters the player has collected already
+    public final int score;
+
+
+    public PlayerState(int playerNo, int x, int y, int direction, int energy, int currentLoop, int score) {
 	this.playerNo = playerNo;
 	this.x = x;
 	this.y = y;
 	this.direction = direction;
 	this.energy = energy;
+	this.currentLoop = currentLoop;
+	this.score = score;
 
 	assert(playerNo < 2);
 	assert(playerNo >= 0);
@@ -83,6 +92,12 @@ public class PlayerState implements Cloneable {
 	    o.writeBytes("e");
 	    o.writeInt(energy);
 
+	    o.writeBytes("l");
+	    o.writeInt(currentLoop);
+
+	    o.writeBytes("s");
+	    o.writeInt(score);
+
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
 	    assert(false);
@@ -93,7 +108,7 @@ public class PlayerState implements Cloneable {
     public static PlayerState parse(DataInputStream i) {
 
 	Byte cmd;
-	int p, x, y, d, e;
+	int p, x, y, d, e, l, s;
 
 	try {
 
@@ -119,6 +134,14 @@ public class PlayerState implements Cloneable {
 	    assert(cmd == 'e');
 	    e = i.readInt();
 
+	    cmd = i.readByte();
+	    assert(cmd == 'l');
+	    l = i.readInt();
+
+	    cmd = i.readByte();
+	    assert(cmd == 's');
+	    s = i.readInt();
+
 	    
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
@@ -126,7 +149,7 @@ public class PlayerState implements Cloneable {
 	    return null;
 	}
 
-	return new PlayerState(p, x, y, d, e);
+	return new PlayerState(p, x, y, d, e, l, s);
     }
 
 
