@@ -63,6 +63,9 @@ public class Simulation
     // encircling clusters. See the algorithm to see why this is only 'roughly' so.
     public static final int MINTRAJECTORYSEGMENT = MAPSIZE / 200;
 
+    // The number of players in the game. Currently not adjustable.
+    public static final int NUMPLAYERS = 2;
+
     /****
      Public fields used to communicate with PlayerListener
      and GameStateSender threads.
@@ -92,28 +95,33 @@ public class Simulation
     private Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
     // References to sender/listener threads so we can interrupt them.
-    private final Thread[] senderThreads = new Thread[2];
-    private final Thread[] listenerThreads = new Thread[2];
+    private final Thread[] senderThreads = new Thread[NUMPLAYERS];
+    private final Thread[] listenerThreads = new Thread[NUMPLAYERS];
 
 
     public static void main(String argv[]) throws Exception {
 
-	ServerSocket[] listenerServSockets = new ServerSocket[2];
-	ServerSocket[] senderServSockets = new ServerSocket[2];
+	ServerSocket[] listenerServSockets = new ServerSocket[NUMPLAYERS];
+	ServerSocket[] senderServSockets = new ServerSocket[NUMPLAYERS];
 
-	listenerServSockets[0] = new ServerSocket(7601);
-	listenerServSockets[1] = new ServerSocket(7603);
-	senderServSockets[0] =  new ServerSocket(7602);
-	senderServSockets[1] =  new ServerSocket(7604);
+	// I guess these Sockets will not be hardcoded in the future...?
+	int[] listenerServSocketNumbers = {7601, 7603};
+	int[] senderServSocketNumbers = {7602, 7604};
+	
+	for (int j = 0; j < NUMPLAYERS; ++j) {
+	    listenerServSockets[j] = new ServerSocket(listenerServSocketNumbers[j]);
+	    senderServSockets[j] =  new ServerSocket(senderServSocketNumbers[j]);
+	}
 
 	Simulation simulation = new Simulation();
 
+	// For now, two of each nSegments from 1 to 7
 	simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
 
 	simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
 
 	try {
-	    FileWriter writer = new FileWriter("arena.xml");
+	    FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
 	    BufferedWriter buf = new BufferedWriter(writer);
 	    buf.write(simulation.arena.toString());
 	    buf.close();
@@ -146,10 +154,10 @@ public class Simulation
 
 
 		// Create the threads for communication with the clients
-		GameStateSender[] senders = new GameStateSender[2];
-		PlayerListener[] listeners = new PlayerListener[2];
+		GameStateSender[] senders = new GameStateSender[NUMPLAYERS];
+		PlayerListener[] listeners = new PlayerListener[NUMPLAYERS];
 
-		for (int j=0; j<2; ++j) {
+		for (int j=0; j<NUMPLAYERS; ++j) {
 		    senders[j] = new GameStateSender(j, simulation, new DataOutputStream(senderSockets[j].getOutputStream()));
 		    listeners[j] = new PlayerListener(j, simulation, new DataInputStream(listenerSockets[j].getInputStream()));
 
@@ -160,7 +168,7 @@ public class Simulation
 		}
 
 		// Start the threads
-		for (int j=0; j<2; ++j) {
+		for (int j=0; j<NUMPLAYERS; ++j) {
 		    simulation.senderThreads[j].start();
 		    simulation.listenerThreads[j].start();
 		}
@@ -171,9 +179,9 @@ public class Simulation
     }
 
     private void initGameState() {
-	PlayerState[] states = new PlayerState[2];
+	PlayerState[] states = new PlayerState[NUMPLAYERS];
 
-	for (int j=0; j<2; ++j)
+	for (int j=0; j<NUMPLAYERS; ++j)
 	    states[j] = initPlayerState(j);
 
 	this.game = new GameState(0, states, new Vector<Bullet>());
@@ -187,7 +195,7 @@ public class Simulation
     // (Re)generate a player state at a random location.
     private PlayerState initPlayerState(int playerNo, int score) {
 	assert(playerNo >= 0);
-	assert(playerNo < 2);
+	assert(playerNo < NUMPLAYERS);
 	if (score < 0) score = 0;
 
 	int x = 0;
@@ -220,7 +228,7 @@ public class Simulation
     @SuppressWarnings("unchecked")
     private void startGame() {
 
-	PlayerState[] states = new PlayerState[2];
+	PlayerState[] states = new PlayerState[NUMPLAYERS];
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	// Some temp variables used during calculation
@@ -246,9 +254,9 @@ public class Simulation
 	// Set up a timer that wakes up the simulation thread every TIMESTEP
 	// milliseconds. Note that, if the computation takes even slightly longer
 	// than TIMESTEP, the time step will be doubled.
-	Thread[] threads = new Thread[3];
+	Thread[] threads = new Thread[1+NUMPLAYERS];
 	threads[0] = Thread.currentThread();
-	for (int j=0; j<2; ++j)
+	for (int j=0; j<NUMPLAYERS; ++j)
 	    threads[1+j] = senderThreads[j];
 
 
@@ -279,10 +287,10 @@ public class Simulation
 		// different players have to update their parameters.
 		// Note: don't need to clone (deep copy) or lock because all
 		//   fields of PlayerControlParameters are final.
-		for (int j=0; j<2; ++j)
+		for (int j=0; j<NUMPLAYERS; ++j)
 		    playerStatesInt[j].params = this.ctrlParams[j];
 
-		for (int j=0; j<2; ++j) {
+		for (int j=0; j<NUMPLAYERS; ++j) {
 
 		    // Add one point of energy every RECHARGEPERIOD steps.
 		    energy = Math.min(MAXENERGY, game.states[j].energy
@@ -349,6 +357,7 @@ public class Simulation
 		    lastSegment = playerStatesInt[j].trajectory.get(N-1);
 		    for (int k=0; k < N-2; ++k) {
 
+			// If there was an intersection, remove the path and check for scoring.
 			if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
 
 			    // Construct a Path2D for the loop only.
@@ -423,7 +432,7 @@ public class Simulation
 
 		    // TODO: This isn't an accurate way of doing this if
 		    //   the bullets/players move fast.
-		    for (int j=0; j<2; ++j) {
+		    for (int j=0; j<NUMPLAYERS; ++j) {
 			xy = states[j].shape();
 			p = new Polygon(xy[0], xy[1], 4);
 
@@ -450,7 +459,7 @@ public class Simulation
 		}
 
 		// Check if anyone went out of bounds or hit a cluster:
-		for (int j=0; j<2; ++j) {
+		for (int j=0; j<NUMPLAYERS; ++j) {
 
 		    crashed = false;
 
@@ -475,6 +484,13 @@ public class Simulation
 
 	    }
 	}
+    }
+
+
+    // Check if the path of player i intersects with the path of player j
+    // and if so, handle it appropriately (remove path, check for scoring).
+    private void checkForIntersection(int i, int j) {
+
     }
 
 
