@@ -233,7 +233,7 @@ public class Simulation
 
 	// Some temp variables used during calculation
 	int[] nextPos;
-	int dir, x, y, vx, vy, energy, currentLoop, score;
+	int dir, x, y, vx, vy, energy, score, currentLoop;
 
 	Bullet b;
 	boolean remove;
@@ -242,9 +242,7 @@ public class Simulation
 	Polygon p;
 	boolean crashed;
 
-	int N;
-	Point2D curPoint, prevPoint, prevPrevPoint, point;
-	Line2D lastSegment;
+	Point2D curPoint, prevPoint, prevPrevPoint;
 	Path2D loop;
 
 	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
@@ -329,12 +327,7 @@ public class Simulation
 		    dir = nextPos[4];
 
 
-		    // Check if someone collected a whatever-it-is-we-want-to-call-the-stuff-you-collect
-
-		    currentLoop = game.states[j].currentLoop;
-		    score = game.states[j].score;
-		    
-		    // Add the new position to the trajectory
+		    // Add the new position to the player's trajectory
 		    curPoint = new Point(x, y);
 		    prevPoint = playerStatesInt[j].trajectory.lastElement().getP2();
 		    prevPrevPoint = playerStatesInt[j].trajectory.lastElement().getP1();
@@ -351,72 +344,38 @@ public class Simulation
 			}
 			    
 		    }
-		    
-		    // Check if the path crosses itself, O(N).
-		    N = playerStatesInt[j].trajectory.size();
-		    lastSegment = playerStatesInt[j].trajectory.get(N-1);
-		    for (int k=0; k < N-2; ++k) {
-
-			// If there was an intersection, remove the path and check for scoring.
-			if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
-
-			    // Construct a Path2D for the loop only.
-			    loop = new Path2D.Double();
-
-			    point = playerStatesInt[j].trajectory.get(k).getP2();
-			    loop.moveTo(point.getX(), point.getY());
-
-			    for (int l=k+1; l < N; ++l) {
-				point = playerStatesInt[j].trajectory.get(l).getP2();
-				loop.lineTo(point.getX(), point.getY());
-			    }
-
-//			    Vector<ClusterServerSide> toRemove = new Vector<ClusterServerSide>();
-			    for (ClusterServerSide c : clusters) {
-				if (c.nSegments.contains(score+1)
-				    && loop.contains(c.x, c.y)) {
-				    System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
-				    // This is an important point - what to do
-				    // if someone encircles a cluster. For now
-				    // write the data in the Database. 
-				    // Also, remove the cluster.
-				    
-				    // Note that determining what nSegments values
-				    // are acceptable is determined in ProtoCluster.acceptableNS()
-//				    toRemove.add(c);
-				    
-				    
-				    score += 1;
-				    break; // collect only one cluster per loop
-				}
-			    }
-/*			    // Remove the clusters that were captured
-			    for (ClusterServerSide c : toRemove) {
-				System.out.println(c);
-				clusters.remove(c);
-				arena.clusters.remove(c);
-			    }
-			    // Oh, I see, this doesn't work at all because
-			    // The clients receive the Arena once at the beginning.
-			    // I mean, it works in the sense that the other guy can't
-			    // capture it, but it doesn't disappear on the client-side
-			    // visualization, etc.
-*/			
-			    loop = null;
-
-			    playerStatesInt[j].trajectory.clear();
-			    playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint, curPoint));
-
-			    currentLoop = game.time;
-
-			    break;
-
-			}
-
-		    }			
 		
-		    states[j] = new PlayerState(j, x, y, vx, vy, dir,
-						energy, currentLoop, score);
+	    
+	    	    // Check if the paths cross eachother, O(N).
+	            // Remove all paths that are crossed.
+	            // Also checks if players scored.
+		    score = game.states[j].score;
+		    currentLoop = game.states[j].currentLoop;
+		    System.out.println("***********");
+		    
+		    // Check if any player (including j) is crossing j's j's path
+	    	    for (int i=0; i<NUMPLAYERS; ++i) {
+	    	        if (i != j) continue; 
+		        loop = checkForIntersection(i, j);
+		        
+		        System.out.println("$%$#%$#%$#" + loop);
+		        
+		        if (loop != null) {
+		            if (checkForScoring(j, loop)) score++;
+		        
+		            System.out.println("!!!!");
+		        
+		    	    playerStatesInt[j].trajectory.clear();
+			    playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint, curPoint));
+			    
+			    currentLoop = game.time;
+			    // Only let one player break j's loop (not sure if we need this).
+			    // break;
+		        }
+		    }
+		    
+		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, currentLoop, score);
+		
 		}
 
 		// Calculate the new positions for the bullets and figure out
@@ -487,12 +446,64 @@ public class Simulation
     }
 
 
-    // Check if the path of player i intersects with the path of player j
-    // and if so, handle it appropriately (remove path, check for scoring).
-    private void checkForIntersection(int i, int j) {
+    // Check if the last step of player i intersects with the path of player j
+    // and if so, return the loop of player j that is now broken.
+    // Note this is not symmetric in i and j.
+    private Path2D checkForIntersection(int i, int j) {
 
+	int N;
+	Line2D lastSegment;
+	Path2D loop;
+	Point2D point;
+	
+
+    	N = playerStatesInt[j].trajectory.size();
+	lastSegment = playerStatesInt[j].trajectory.get(N-1);
+	for (int k=0; k < N-2; ++k) {
+
+	    // If there was an intersection, remove the path and check for scoring.
+	    if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
+
+		// Construct a Path2D for the loop only.
+		loop = new Path2D.Double();
+
+		point = playerStatesInt[j].trajectory.get(k).getP2();
+		loop.moveTo(point.getX(), point.getY());
+
+		for (int l=k+1; l < N; ++l) {
+		    point = playerStatesInt[j].trajectory.get(l).getP2();
+		    loop.lineTo(point.getX(), point.getY());
+		}
+		    
+		return loop;
+	    }
+	}
+	return null;
     }
+    
+    // Check if the particular loop merits a score up for player j. 
+    // If so, return true; else, false.
+    private boolean checkForScoring(int j, Path2D loop) {
 
+	for (ClusterServerSide c : clusters) {
+	    if (c.nSegments.contains(game.states[j].score+1) && loop.contains(c.x, c.y)) {
+		System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
+		// This is an important point - what to do
+		// if someone encircles a cluster. For now
+		// write the data in the Database. 
+		
+		// It maybe be cool to also remove the cluster but right
+		// now the Arena is only transmitted to the client at the beginning.
+			    
+		// Note that determining what nSegments values
+		// are acceptable is determined in ProtoCluster.acceptableN()
+
+		return true; // collect only one cluster per loop
+	    }
+	}
+	return false;
+    }
+    
 
     private class PlayerStateInternal {
 	/* Values used internally by the simulation. */
