@@ -13,6 +13,7 @@ import java.util.Vector;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.swing.ImageIcon;
+import java.io.FileNotFoundException;
 
 public class ClusterServerSide extends Cluster {
 
@@ -44,14 +45,14 @@ public class ClusterServerSide extends Cluster {
     */
     @SuppressWarnings("unchecked")
     public static ClusterServerSide getRandom(int x, int y,
-					      int nSegments, boolean exact) {
+					      int nSegments, boolean exact, ClusterDatabase db) {
 
+	// Get a random ProtoCluster from the database
+	ProtoCluster pc = db.getRandom(nSegments);
 
-	//String path = paths[nSegments-1].get((int)
-	//				    (Math.random() * paths[nSegments-1].size()));
-	
-String path = null;
-	ImageIcon img = new ImageIcon(path);
+	System.out.println(pc);
+
+	ImageIcon img = new ImageIcon(pc.filepath);
 
 	Set<Integer> segNos = new TreeSet<Integer>();
 	segNos.add(nSegments);
@@ -59,7 +60,7 @@ String path = null;
 	return new ClusterServerSide(x, y,
 				     img.getIconWidth() * (Simulation.MAPSIZE/800),
 				     img.getIconHeight() * (Simulation.MAPSIZE/800),
-				     path, segNos);
+				     pc.filepath, segNos);
 
     }
 
@@ -70,7 +71,13 @@ String path = null;
       play as well as information gain about the cluster size so we probably want
       to think about how to do this more carefully.
      */
-    public static Vector<ClusterServerSide> generateArena(int[] clustersPerValue) {
+    public static Vector<ClusterServerSide> generateArena(int[] clustersPerValue) throws FileNotFoundException{
+
+	// Read in all the Cluster info into a ClusterDatabase.
+	// I might prefer this to be done in Simulation and maybe even stored,
+	// but this is ok for now.
+	final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
+	ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
 	Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
@@ -87,7 +94,7 @@ String path = null;
 
 		    x = (int) (Simulation.MAPSIZE * 0.85*(0.5 - Math.random()));
 		    y = (int) (Simulation.MAPSIZE * 0.85*(0.5 - Math.random()));
-		    clust = getRandom(x, y, 1+j, false);
+		    clust = getRandom(x, y, 1+j, false, clusterDbSayWithPET);
 
 		    //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
 

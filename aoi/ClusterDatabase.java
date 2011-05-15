@@ -28,13 +28,12 @@ public class ClusterDatabase {
     // The file extension used for our metadata files
     public static final String INFO_SUFFIX = ".info";
 
-
-    // image filenames
-    public final Vector<ProtoCluster> allProtoClusters;
+    // All the ProtoClusters in the database
+    public final ProtoCluster[] allProtoClusters;
 
 
     public ClusterDatabase(String datasetName) throws FileNotFoundException {
-	allProtoClusters = new Vector<ProtoCluster>();
+	Vector<ProtoCluster> vProtoClusters = new Vector<ProtoCluster>();
 
         Scanner infoScanner = new Scanner(new File(IMAGE_PATH + datasetName + INFO_SUFFIX));
         while (infoScanner.hasNext()) { 
@@ -57,43 +56,27 @@ public class ClusterDatabase {
             // currently unused.
             String votes = infoScanner.nextLine();
 
-            allProtoClusters.add(new ProtoCluster(filename, nsLikelihoods, votes));
+            vProtoClusters.add(new ProtoCluster(IMAGE_PATH + datasetName + "/" + filename, 
+						nsLikelihoods, votes));
         }
 
-
-}
-
-
-
-
-
-    private class ProtoCluster {
-    /*
-      The information about a single cluster as stored in the 
-      .info files. These are not yet game-play clusters as they
-      have not been assigned locations on the map. This seems
-      more memory-efficient that instantiating a large number
-      of clusters at this database-reading stage and just setting
-      the locations to NaN.
-
-      Furthermore, here we have more information that is actually
-      needed by the Simulation. The Simulation needs to
-     */ 
-        
-    	// The filename associated with this cluster.
-   	public final String filename;
-    
-   	// The likelihoods of different nSegments values.
-   	public final Map<Integer, Double> nsLikelihoods;
-
-   	// Currently unused; String type is just temporary
-   	public final String votes;  
-
-    	public ProtoCluster(String filename, Map<Integer, Double> nsLikelihoods, String votes) {
-	    this.filename = filename;
-	    this.nsLikelihoods = nsLikelihoods;
-	    this.votes = votes;	    
-    	}
-
+	// Initialize allProtoClusters and copy vProtoClusters into allProtoClusters.
+	allProtoClusters = new ProtoCluster[vProtoClusters.size()];
+	vProtoClusters.toArray(allProtoClusters);
     }
+
+    // Returns a random ProtoCluster than has at least minLikelihood likelihood
+    // of having nSegments segments. If none exist, return null.
+    public ProtoCluster getRandom(int nSegments) {
+	// Shuffle allProtoClusters.
+	// This might be SLOW. There's surely a smarter way of doing this...
+	// Like sorting by number of segments, etc. Oh well, can change it later.
+	Collections.shuffle(Arrays.asList(allProtoClusters));
+	for (ProtoCluster pc : allProtoClusters)
+	    if (pc.acceptableNS().contains(nSegments))
+		return pc;
+	return null;
+    }
+
+
 }
