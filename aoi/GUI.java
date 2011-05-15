@@ -43,6 +43,7 @@ public class GUI implements Runnable {
     private int[] currentLoopStarted;
     private Vector<Point2D>[] loop;
 
+    @SuppressWarnings("unchecked")
     public GUI() {
 	game = null;
 
