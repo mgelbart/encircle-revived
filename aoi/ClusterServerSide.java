@@ -36,6 +36,7 @@ public class ClusterServerSide extends Cluster {
 
        The cluster is centered at (x,y)
     */
+    @SuppressWarnings("unchecked")
     public static ClusterServerSide getRandom(int x, int y,
 					      int noSegments, boolean exact) {
 
