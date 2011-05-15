@@ -4,7 +4,7 @@ package aoi;
   Clusters are image patches spread around the map. Each cluster
   contains a particular number of segments which defines the
   clusters numerical value. The players collect clusters in
-  an increasing order of numberical value.
+  increasing order of numberical value.
  */
 
 import javax.swing.ImageIcon;

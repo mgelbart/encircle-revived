@@ -85,9 +85,9 @@ public class Simulation
     private final PlayerStateInternal[] playerStatesInt = new PlayerStateInternal[2];
 
     // Static information about the game state.
-    private Map map;
+    private Arena arena;
 
-    // This information is redundant because it's already in map but it's more
+    // This information is redundant because it's already in arena but it's more
     // convenient to check whether something hit a cluster with these rectangles...
     private Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
@@ -108,21 +108,21 @@ public class Simulation
 
 	Simulation simulation = new Simulation();
 
-	simulation.clusters = ClusterServerSide.generateMap(new int[]{2, 2, 2, 2, 2, 2, 2});
+	simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
 
-	simulation.map = new Map(simulation.clusters.toArray(new ClusterServerSide[0]));
+	simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
 
 	try {
-	    FileWriter writer = new FileWriter("map.xml");
+	    FileWriter writer = new FileWriter("arena.xml");
 	    BufferedWriter buf = new BufferedWriter(writer);
-	    buf.write(simulation.map.toString());
+	    buf.write(simulation.arena.toString());
 	    buf.close();
 	} catch (Exception e) {
 	    System.out.println(e.toString());
 	    assert(false);
 	}
 
-	System.out.println("Map generated.");
+	System.out.println("Arena generated.");
 
 
 	while(true)
@@ -371,7 +371,7 @@ public class Simulation
 			    }
 
 			    for (ClusterServerSide c : clusters) {
-				if (c.noSegments.contains(score+1)
+				if (c.nSegments.contains(score+1)
 				    && loop.contains(c.x, c.y)) {
 				    System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
 				    score += 1;

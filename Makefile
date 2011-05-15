@@ -9,7 +9,7 @@ client: common
 	javac -g stdlib/StdDraw.java aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java aoi/ClientConfiguration.java
 
 common: aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java
-	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Cluster.java aoi/Map.java
+	javac -g aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Cluster.java aoi/Arena.java
 
 doc:
 	javadoc -d doc aoi

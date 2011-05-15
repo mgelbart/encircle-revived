@@ -1,0 +1,16 @@
+<arena>
+<cluster x="-39467" y="-38435" width="3875" height="5000" img="./images/fly/1e.jpg"/>
+<cluster x="-32368" y="-32032" width="3875" height="5000" img="./images/fly/1e.jpg"/>
+<cluster x="17677" y="1130" width="-125" height="-125" img="./images/fly/labeled/2e.jpg"/>
+<cluster x="-11509" y="-29054" width="-125" height="-125" img="./images/fly/labeled/2f.jpg"/>
+<cluster x="28409" y="10708" width="-125" height="-125" img="./images/fly/labeled/3d.jpg"/>
+<cluster x="-6168" y="35367" width="-125" height="-125" img="./images/fly/labeled/3c.jpg"/>
+<cluster x="-15002" y="31014" width="-125" height="-125" img="./images/fly/labeled/4a.jpg"/>
+<cluster x="-36957" y="37847" width="-125" height="-125" img="./images/fly/labeled/4h.jpg"/>
+<cluster x="1610" y="13835" width="-125" height="-125" img="./images/fly/labeled/5a.jpg"/>
+<cluster x="-25973" y="23315" width="-125" height="-125" img="./images/fly/labeled/5b.jpg"/>
+<cluster x="36818" y="-1554" width="-125" height="-125" img="./images/fly/labeled/6a.jpg"/>
+<cluster x="-8929" y="7693" width="-125" height="-125" img="./images/fly/labeled/6a.jpg"/>
+<cluster x="-24585" y="37716" width="-125" height="-125" img="./images/fly/labeled/7b.jpg"/>
+<cluster x="-11520" y="28617" width="-125" height="-125" img="./images/fly/labeled/7b.jpg"/>
+</arena>

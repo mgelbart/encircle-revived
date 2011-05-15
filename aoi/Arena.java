@@ -13,28 +13,31 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
 
-public class Map {
+public class Arena {
+
+    public static final String ARENA_METADATA_FILENAME = "arena.xml";
+
     public final Vector<Cluster> clusters;
 
-    public Map(Vector<Cluster> clusters) {
+    public Arena(Vector<Cluster> clusters) {
 	this.clusters = clusters;
     }
 
-    public Map(Cluster[] clusters) {
+    public Arena(Cluster[] clusters) {
 	this.clusters = new Vector<Cluster>(Arrays.asList(clusters));
     }
 
     public String toString() {
 	StringBuilder s = new StringBuilder();
 	
-	s.append("<map>\n");
+	s.append("<arena>\n");
 
 	for (int j=0; j<clusters.size(); ++j) {
 	    s.append(clusters.get(j).toString());
 	    s.append("\n");
 	}
 
-	s.append("</map>\n");
+	s.append("</arena>\n");
 
 	return s.toString();
     }
@@ -52,15 +55,15 @@ public class Map {
 
     }
 
-    public static Map parse(InputStream i) {
+    public static Arena parse(InputStream i) {
 
 	try {
 
 	    SAXParser sax = SAXParserFactory.newInstance().newSAXParser();
-	    MapParser map = new MapParser();
-	    sax.parse(i, map);
+	    ArenaParser arena = new ArenaParser();
+	    sax.parse(i, arena);
 
-	    return new Map(map.clusters);
+	    return new Arena(arena.clusters);
 
 	} catch (Exception e) {
 	    System.out.println(e.toString());
@@ -72,19 +75,19 @@ public class Map {
 
 
     public static void main(String argv[]) throws Exception {
-	FileInputStream file = new FileInputStream("map.xml");
-	Map map = Map.parse(file);
-	System.out.println("Parsed map:");
-	System.out.println(map.toString());
+	FileInputStream file = new FileInputStream(ARENA_METADATA_FILENAME);
+	Arena arena = Arena.parse(file);
+	System.out.println("Parsed arena:");
+	System.out.println(arena.toString());
     }
 
 
-    // SAX parser for extracting the clusters out of the map XML file.
-    private static class MapParser extends DefaultHandler {
+    // SAX parser for extracting the clusters out of the arena XML file.
+    private static class ArenaParser extends DefaultHandler {
 
 	public Vector<Cluster> clusters;
 
-	public MapParser() {
+	public ArenaParser() {
 	    super();
 	    clusters = new Vector<Cluster>();
 	}

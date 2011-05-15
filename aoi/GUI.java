@@ -29,8 +29,8 @@ public class GUI implements Runnable {
     /* Most recent game state. Updated by the Intelligence. */
     public GameState game;
 
-    /* The map containing the clusters. */
-    public Map map;
+    /* The arena containing the clusters. */
+    public Arena arena;
 
     /* Booleans that describe which of the control
        keys is currently pressed down.
@@ -55,7 +55,7 @@ public class GUI implements Runnable {
 	}
 
 	try {
-	    map = Map.parse(new FileInputStream("map.xml"));
+	    arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
 	} catch (Exception e) {
 	    System.out.println(e.toString());
 	    assert(false);
@@ -99,7 +99,7 @@ public class GUI implements Runnable {
 		Thread.sleep(1000);
 	    } catch (InterruptedException e) {
 
-		drawGameState(map, game);
+		drawGameState(arena, game);
 
 	    }
 
@@ -108,7 +108,7 @@ public class GUI implements Runnable {
     }
 
 
-    private void drawGameState(Map m, GameState g) {
+    private void drawGameState(Arena m, GameState g) {
 
 	StdDraw.clear(StdDraw.BLACK);
 

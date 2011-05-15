@@ -18,25 +18,23 @@ public class ClusterServerSide extends Cluster {
 
     // Number of segments in the cluster.
     // int[] rather than int because we may not know the exact number.
-    public final Set<Integer> noSegments;
-
-    // Associated likelihoods for these possible nSegments.
-    // This should be the same length as nSegments.
-    public final Set<Double> nsLikelihood 
-
+    // These are the values that will be ACCEPTED by the game.
+    public final Set<Integer> nSegments;
 
     public ClusterServerSide(int x, int y, int width, int height,
-			     String imgPath, Set<Integer> noSegments) {
+			     String imgPath, Set<Integer> nSegments) {
 	super(x, y, width, height, imgPath);
 
-	this.noSegments = noSegments;
+	this.nSegments = nSegments;
+
+	
     }
 
 
 
 
 
-    /* Returns a random cluster which has noSegments as a possible
+    /* Returns a random cluster which has nSegments as a possible
        number of segments reported by the preparser.
     
        If exact is set to true, a cluster with well known number
@@ -46,7 +44,7 @@ public class ClusterServerSide extends Cluster {
     */
     @SuppressWarnings("unchecked")
     public static ClusterServerSide getRandom(int x, int y,
-					      int noSegments, boolean exact) {
+					      int nSegments, boolean exact) {
 
 	final int MAXSEGMENTS = 7;
 
@@ -57,14 +55,14 @@ public class ClusterServerSide extends Cluster {
 
 	paths[0].add("./images/fly/labeled/1a.jpg");
 	paths[0].add("./images/fly/labeled/1b.jpg");
-	paths[0].add("./images/fly/labeled/1c.jpg");
-	paths[0].add("./images/fly/labeled/1d.jpg");
-	paths[0].add("./images/fly/labeled/1e.jpg");
+	paths[0].add("./images/fly/1c.jpg");
+	paths[0].add("./images/fly/1d.jpg");
+	paths[0].add("./images/fly/1e.jpg");
 
-	paths[1].add("./images/fly/labeled/2a.jpg");
-	paths[1].add("./images/fly/labeled/2b.jpg");
-	paths[1].add("./images/fly/labeled/2c.jpg");
-	paths[1].add("./images/fly/labeled/2d.jpg");
+	paths[1].add("./images/fly/2a.jpg");
+	paths[1].add("./images/fly/2b.jpg");
+	paths[1].add("./images/fly/2c.jpg");
+	paths[1].add("./images/fly//2d.jpg");
 	paths[1].add("./images/fly/labeled/2e.jpg");
 	paths[1].add("./images/fly/labeled/2f.jpg");
 
@@ -97,12 +95,12 @@ public class ClusterServerSide extends Cluster {
 	paths[6].add("./images/fly/labeled/7a.jpg");
 	paths[6].add("./images/fly/labeled/7b.jpg");
 
-	String path = paths[noSegments-1].get((int)
-					    (Math.random() * paths[noSegments-1].size()));
+	String path = paths[nSegments-1].get((int)
+					    (Math.random() * paths[nSegments-1].size()));
 	ImageIcon img = new ImageIcon(path);
 
 	Set<Integer> segNos = new TreeSet<Integer>();
-	segNos.add(noSegments);
+	segNos.add(nSegments);
 
 	return new ClusterServerSide(x, y,
 				     img.getIconWidth() * (Simulation.MAPSIZE/800),
@@ -114,11 +112,11 @@ public class ClusterServerSide extends Cluster {
     /*
       Generates a collection of clusters that can be used to initialize a Map.
 
-      In the end the placement of the clusters will be quite important for game
+      In the end the placement of the clusters will be quite important for game-
       play as well as information gain about the cluster size so we probably want
       to think about how to do this more carefully.
      */
-    public static Vector<ClusterServerSide> generateMap(int[] clustersPerValue) {
+    public static Vector<ClusterServerSide> generateArena(int[] clustersPerValue) {
 
 	Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
