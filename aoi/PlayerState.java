@@ -21,6 +21,8 @@ public class PlayerState implements Cloneable {
     public final int playerNo;
     public final int x;
     public final int y;
+    public final int vx;
+    public final int vy;
     public final int direction;
     public final int energy;
 
@@ -31,10 +33,12 @@ public class PlayerState implements Cloneable {
     public final int score;
 
 
-    public PlayerState(int playerNo, int x, int y, int direction, int energy, int currentLoop, int score) {
+    public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int currentLoop, int score) {
 	this.playerNo = playerNo;
 	this.x = x;
 	this.y = y;
+	this.vx = vx;
+	this.vy = vy;
 	this.direction = direction;
 	this.energy = energy;
 	this.currentLoop = currentLoop;
@@ -86,6 +90,12 @@ public class PlayerState implements Cloneable {
 	    o.writeBytes("y");
 	    o.writeInt(y);
 
+	    o.writeBytes("u");
+	    o.writeInt(vx);
+
+	    o.writeBytes("v");
+	    o.writeInt(vy);
+
 	    o.writeBytes("d");
 	    o.writeInt(direction);
 
@@ -108,7 +118,7 @@ public class PlayerState implements Cloneable {
     public static PlayerState parse(DataInputStream i) {
 
 	Byte cmd;
-	int p, x, y, d, e, l, s;
+	int p, x, y, vx, vy, d, e, l, s;
 
 	try {
 
@@ -125,6 +135,14 @@ public class PlayerState implements Cloneable {
 	    cmd = i.readByte();
 	    assert(cmd == 'y');
 	    y = i.readInt();
+
+	    cmd = i.readByte();
+	    assert(cmd == 'u');
+	    vx = i.readInt();
+
+	    cmd = i.readByte();
+	    assert(cmd == 'v');
+	    vy = i.readInt();
 
 	    cmd = i.readByte();
 	    assert(cmd == 'd');
@@ -149,7 +167,7 @@ public class PlayerState implements Cloneable {
 	    return null;
 	}
 
-	return new PlayerState(p, x, y, d, e, l, s);
+	return new PlayerState(p, x, y, vx, vy, d, e, l, s);
     }
 
 

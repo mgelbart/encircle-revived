@@ -207,7 +207,7 @@ public class Simulation
 	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
-	return new PlayerState(playerNo, x, y, dir, INITIALENERGY,
+	return new PlayerState(playerNo, x, y, 0, 0, dir, INITIALENERGY,
 			       (game == null) ? 0 : game.time, 0); 
     }
 
@@ -218,9 +218,8 @@ public class Simulation
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	// Some temp variables used during calculation
-	int dir, x, y, energy, currentLoop, score;
-	boolean turnCcw;
-	double a;
+	int[] nextPos;
+	int dir, x, y, vx, vy, energy, currentLoop, score;
 
 	Bullet b;
 	boolean remove;
@@ -305,28 +304,15 @@ public class Simulation
 
 		    }
 
-		    // Calculate the new positions for players.
-		    a = Math.max(0.0, MAXACC * (playerStatesInt[j].params.acceleration / (double) INTMAX));
 
-		    playerStatesInt[j].vx = playerStatesInt[j].vx + (int) (a * Math.cos(Math.PI * (game.states[j].direction / (double) INTMAX)));
-		    playerStatesInt[j].vy = playerStatesInt[j].vy + (int) (a * Math.sin(Math.PI * (game.states[j].direction / (double) INTMAX)));
+		    // Calculate where the player moved.
+		    nextPos = SimulationUtils.nextPosition(game.states[j], playerStatesInt[j].params);
 
-		    playerStatesInt[j].vx -= DRAG * playerStatesInt[j].vx;
-		    playerStatesInt[j].vy -= DRAG * playerStatesInt[j].vy;
-
-		    x = game.states[j].x + playerStatesInt[j].vx;
-		    y = game.states[j].y + playerStatesInt[j].vy;
-
-		    // Figure out whether to turn clockwise or counterclockwise.
-		    turnCcw =    Math.abs(game.states[j].direction + OMEGA - playerStatesInt[j].params.targetDirection)
-			< Math.abs(game.states[j].direction - OMEGA - playerStatesInt[j].params.targetDirection);
-		    dir = game.states[j].direction + ((turnCcw)? 1:-1)*OMEGA;
-
-		    // Don't go past the target direction.
-		    if (Integer.signum(game.states[j].direction - playerStatesInt[j].params.targetDirection)
-			!= Integer.signum(dir - playerStatesInt[j].params.targetDirection))
-			dir = playerStatesInt[j].params.targetDirection;
-
+		    x = nextPos[0];
+		    y = nextPos[1];
+		    vx = nextPos[2];
+		    vy = nextPos[3];
+		    dir = nextPos[4];
 
 
 		    // Check if someone collected a whatever-it-is-we-want-to-call-the-stuff-you-collect
@@ -392,7 +378,8 @@ public class Simulation
 
 		    }			
 		
-		    states[j] = new PlayerState(j, x, y, dir, energy, currentLoop, score);
+		    states[j] = new PlayerState(j, x, y, vx, vy, dir,
+						energy, currentLoop, score);
 		}
 
 		// Calculate the new positions for the bullets and figure out
@@ -465,9 +452,6 @@ public class Simulation
 
     private class PlayerStateInternal {
 	/* Values used internally by the simulation. */
-	public int vx = 0;
-	public int vy = 0;
-
 	public int shotsTaken = 0;
 	public int reloadTimeLeft = 0;
 

@@ -44,7 +44,9 @@ public class GUI implements Runnable {
     private Vector<Point2D>[] loop;
 
     @SuppressWarnings("unchecked")
-    public GUI() {
+    public GUI(Arena arena) {
+
+	this.arena = arena;
 	game = null;
 
 	currentLoopStarted = new int[2];
@@ -52,13 +54,6 @@ public class GUI implements Runnable {
 	for (int j=0; j<2; ++j) {
 	    currentLoopStarted[j] = -999;
 	    loop[j] = new Vector<Point2D>();
-	}
-
-	try {
-	    arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
-	} catch (Exception e) {
-	    System.out.println(e.toString());
-	    assert(false);
 	}
 
 	StdDraw.setCanvasSize(700, 700);

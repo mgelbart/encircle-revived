@@ -24,6 +24,16 @@ public class Client {
 	controlSocket = new Socket(config.serverurl, config.controlPort);
 	stateSocket = new Socket(config.serverurl, config.gameStatePort);
 
+	// Read the Arena from a local file for now...
+	Arena arena = null;
+	try {
+	    arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
+	} catch (Exception e) {
+	    System.out.println(e.toString());
+	    assert(false);
+	}
+
+
 	try {
 
 	    DataInputStream stateStream = new DataInputStream(stateSocket.getInputStream());
@@ -31,7 +41,12 @@ public class Client {
 
 	    /* Run the intelligence in a separate thread so that parsing/serializing
 	       doesn't block thinking. */
-	    Intelligence intel = new HigherBeing(config);
+	    Intelligence intel;
+	    if (config.nonhuman)
+		intel = new Nonhuman(config, arena);
+	    else
+		intel = new HigherBeing(config, arena);
+
 	    Thread intelThread = new Thread(intel);
 	    intelThread.start();
 

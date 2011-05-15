@@ -1,8 +1,13 @@
 package aoi;
 
 /*
-  The class that actually decides what to do
-  based on (the history of) the game state.
+  This class decides what to do based on (the
+  history of) the game state.
+
+  This implementation of Intelligence relies
+  on a combination of human input and machine
+  decision making, i.e. it implements an
+  "augmented intelligence".
 */
 
 import java.awt.event.KeyEvent;
@@ -12,7 +17,9 @@ public class HigherBeing implements Intelligence {
     // The input options received from Client.
     ClientConfiguration config;
 
-    // A ring buffer of latest game states.
+    Arena arena;
+
+    // A queue of latest game states.
     GameState[] games;
 
     // The control parameters to be sent to the server.
@@ -28,16 +35,17 @@ public class HigherBeing implements Intelligence {
     int lastAction = -999999;
 
 
-    public HigherBeing(ClientConfiguration config) {
+    public HigherBeing(ClientConfiguration config, Arena arena) {
 
 	this.config = config;
+	this.arena = arena;
 
 	System.out.println("HigherBeing for player " + config.playerNo + " created.");
 
 	games = new GameState[1];
 
 	if (!config.nonhuman) {
-	    gui = new GUI();
+	    gui = new GUI(arena);
 	    guiThread = new Thread(gui);
 	    guiThread.start();
 	}
@@ -48,9 +56,9 @@ public class HigherBeing implements Intelligence {
 	think();
     }
 
-    /* Store the latest game state in a ring buffer. */
+    /* Store the latest game state in a queue. */
     public void processGameStateUpdate(GameState game) {
-	games[0] = game; /* Our ring buffer consists of one element! */
+	games[0] = game; /* Our queue consists of one element! */
 	//System.out.println(game.toString());
 
 	if (guiThread != null) {
@@ -85,64 +93,46 @@ public class HigherBeing implements Intelligence {
 
 		update = false;
 
-		if (!config.nonhuman) {
-
-		    if (gui.keysPressed.contains(KeyEvent.VK_UP)) {
-			if (acc != Simulation.INTMAX) {
-			    acc = Simulation.INTMAX;
-			    update = true;
-			}
-		    } else if (acc > 0) {
-			acc = 0;
-			update = true;
-		    }
-
-		    if (gui.keysPressed.contains(KeyEvent.VK_DOWN)) {
-			boosts = 10;
-			update = true;
-		    } else if (boosts > 0) {
-			boosts = 0;
-			update = true;
-		    }
-
-
-		    if (gui.keysPressed.contains(KeyEvent.VK_SPACE)) {
-			shots = 10;
-			update = true;
-		    } else if (shots > 0) {
-			shots = 0;
-			update = true;
-		    }
-
-		    if (gui.keysPressed.contains(KeyEvent.VK_LEFT)) {
-			dir = games[0].states[config.playerNo].direction
-			    + Simulation.INTMAX/2;
-			update = true;
-		    } else if (gui.keysPressed.contains(KeyEvent.VK_RIGHT)) {
-			dir = games[0].states[config.playerNo].direction
-			    - Simulation.INTMAX/2;
-			update = true;
-		    } else if (dir != games[0].states[config.playerNo].direction) {
-			dir = games[0].states[config.playerNo].direction;
-			update = true;
-		    }		    
-
-		} else {
-
-		    // This is just some stupid automatic behavior for the
-		    // other player for now
-		    if (Math.abs(games[0].time - lastAction) > 1500/Simulation.TIMESTEP) {
-			update = true;
+		if (gui.keysPressed.contains(KeyEvent.VK_UP)) {
+		    if (acc != Simulation.INTMAX) {
 			acc = Simulation.INTMAX;
-			dir = games[0].states[config.playerNo].direction
-			      + Simulation.INTMAX/3;
-			shots = 1;
-			boosts = 0;
-
-			lastAction = games[0].time;
+			update = true;
 		    }
-
+		} else if (acc > 0) {
+		    acc = 0;
+		    update = true;
 		}
+
+		if (gui.keysPressed.contains(KeyEvent.VK_DOWN)) {
+		    boosts = 10;
+		    update = true;
+		} else if (boosts > 0) {
+		    boosts = 0;
+		    update = true;
+		}
+
+
+		if (gui.keysPressed.contains(KeyEvent.VK_SPACE)) {
+		    shots = 10;
+		    update = true;
+		} else if (shots > 0) {
+		    shots = 0;
+		    update = true;
+		}
+
+		if (gui.keysPressed.contains(KeyEvent.VK_LEFT)) {
+		    dir = games[0].states[config.playerNo].direction
+			+ Simulation.INTMAX/2;
+		    update = true;
+		} else if (gui.keysPressed.contains(KeyEvent.VK_RIGHT)) {
+		    dir = games[0].states[config.playerNo].direction
+			- Simulation.INTMAX/2;
+		    update = true;
+		} else if (dir != games[0].states[config.playerNo].direction) {
+		    dir = games[0].states[config.playerNo].direction;
+		    update = true;
+		}		    
+
 
 		if (update)
 		    ctrl = new PlayerControlParameters(acc, dir, shots, boosts);
