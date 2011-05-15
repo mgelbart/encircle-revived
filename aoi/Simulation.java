@@ -30,7 +30,7 @@ public class Simulation
     //
     // All other times are defined in terms of TIMESTEP. Hence
     // decreasing this only increases resolution.
-    public static final int TIMESTEP = 40;
+    public static final int TIMESTEP = 20;
  
     // All distances are defined in terms of MAPSIZE.
     // Hence increasing this only increases the resolution.
@@ -39,19 +39,19 @@ public class Simulation
 
     // Maximum angular turning rate (i.e. domega/dt).
     // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-    public static final int OMEGA = (INTMAX/2000) * TIMESTEP;
+    public static final int OMEGA = (INTMAX/1600) * TIMESTEP;
 
     // Maximum thrust, i.e. max dx/dt^2.
-    public static final int MAXACC = (int) ((MAPSIZE / 1e7) * TIMESTEP * TIMESTEP) * 2;
+    public static final int MAXACC = (int) ((MAPSIZE / 1e7 * 3) * TIMESTEP * TIMESTEP) ;
  
     // Drag coefficient.
-    public static final double DRAG = 0.00025 * TIMESTEP * 5.0;
+    public static final double DRAG = 0.0015 * TIMESTEP;
 
     // Maximum energy.
     public static final int MAXENERGY = 10;
 
     // Energy recharge period (i.e. how many turns to gain one point).
-    public static final int RECHARGEPERIOD = 2000 / TIMESTEP;
+    public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
 
     // Energy at the start of the game/after being shot.
     public static final int INITIALENERGY = MAXENERGY;

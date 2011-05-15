@@ -18,7 +18,7 @@ public class Bullet implements Cloneable {
     public static final int SPEED = Simulation.MAPSIZE * 5 * Simulation.TIMESTEP /8000;
  
     /* Minimum time between firing two bullets. */
-    public static final int RELOADTIME = 500 / Simulation.TIMESTEP;
+    public static final int RELOADTIME = 400 / Simulation.TIMESTEP;
  
     /* Values transmitted to the clients. */
     public final int x;
