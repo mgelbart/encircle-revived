@@ -9,6 +9,7 @@ package aoi;
 
 import javax.swing.ImageIcon;
 import java.awt.Image;
+import java.awt.Rectangle;
 
 public class Cluster {
     public final int x;
@@ -44,6 +45,10 @@ public class Cluster {
 	    + "\" width=\"" + width
 	    + "\" height=\"" + height
 	    + "\" img=\"" + imgPath + "\"/>";
+    }
+
+    public Rectangle boundingBox() {
+	return new Rectangle(x - width/2, y - height/2, width, height);
     }
 
 }

@@ -7,6 +7,7 @@ package aoi;
 
 import java.io.*;
 import java.util.Vector;
+import java.util.Arrays;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.helpers.DefaultHandler;
@@ -17,6 +18,10 @@ public class Map {
 
     public Map(Vector<Cluster> clusters) {
 	this.clusters = clusters;
+    }
+
+    public Map(Cluster[] clusters) {
+	this.clusters = new Vector<Cluster>(Arrays.asList(clusters));
     }
 
     public String toString() {
@@ -64,6 +69,7 @@ public class Map {
 	}
 
     }
+
 
     public static void main(String argv[]) throws Exception {
 	FileInputStream file = new FileInputStream("map.xml");

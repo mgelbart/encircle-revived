@@ -89,7 +89,7 @@ public class Simulation
 
     // This information is redundant because it's already in map but it's more
     // convenient to check whether something hit a cluster with these rectangles...
-    private Rectangle[] clusters;
+    private Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
     // References to sender/listener threads so we can interrupt them.
     private final Thread[] senderThreads = new Thread[2];
@@ -108,19 +108,21 @@ public class Simulation
 
 	Simulation simulation = new Simulation();
 
+	simulation.clusters = ClusterServerSide.generateMap(new int[]{2, 2, 2, 2, 2, 2, 2});
+
+	simulation.map = new Map(simulation.clusters.toArray(new ClusterServerSide[0]));
+
 	try {
-	    simulation.map = Map.parse(new FileInputStream("map.xml"));
+	    FileWriter writer = new FileWriter("map.xml");
+	    BufferedWriter buf = new BufferedWriter(writer);
+	    buf.write(simulation.map.toString());
+	    buf.close();
 	} catch (Exception e) {
 	    System.out.println(e.toString());
 	    assert(false);
 	}
 
-	simulation.clusters = new Rectangle[simulation.map.clusters.size()];
-	for (int j=0; j<simulation.map.clusters.size(); ++j) {
-	    Cluster v = simulation.map.clusters.get(j);
-	    simulation.clusters[j] = new Rectangle(v.x - v.width/2, v.y - v.height/2,
-				      v.width, v.height);
-	}
+	System.out.println("Map generated.");
 
 
 	while(true)
@@ -131,9 +133,12 @@ public class Simulation
 
 		// Wait for clients to connect to all four ports.
 		// Would probably be better to have one thread per client here too...
+
+		System.out.println("Waiting for clients to connect...");
 		for (int j=0; j<2; ++j) {
 		    listenerSockets[j] = listenerServSockets[j].accept();
 		    senderSockets[j] = senderServSockets[j].accept();
+		    System.out.println("Player " + j + " connected.");
 		}
 
 
@@ -190,8 +195,8 @@ public class Simulation
 
 	    freespace = true;
 
-	    for (Rectangle r : clusters) {
-		if (r.contains(x, y))
+	    for (Cluster c : clusters) {
+		if (c.boundingBox().contains(x, y))
 		    freespace = false;
 	    } 
 	    
@@ -234,7 +239,7 @@ public class Simulation
 
 
 	// Set up a timer that wakes up the simulation thread every TIMESTEP
-	// milliseconds. Note that, if the computation take even slightly longer
+	// milliseconds. Note that, if the computation takes even slightly longer
 	// than TIMESTEP, the time step will be doubled.
 	Thread[] threads = new Thread[3];
 	threads[0] = Thread.currentThread();
@@ -365,10 +370,12 @@ public class Simulation
 				loop.lineTo(point.getX(), point.getY());
 			    }
 
-			    for (Cluster v : map.clusters) {
-				if (loop.contains(v.x, v.y)) {
-				    System.out.println("Player " + j + " encircled (" + v.x + ", " + v.y + ").");
+			    for (ClusterServerSide c : clusters) {
+				if (c.noSegments.contains(score+1)
+				    && loop.contains(c.x, c.y)) {
+				    System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
 				    score += 1;
+				    break; // collect only one cluster per loop
 				}
 			    }
 
@@ -414,8 +421,8 @@ public class Simulation
 		    if (!mapedges.contains(x, y))
 			remove = true;
 
-		    for (Rectangle r : clusters) {
-			if (r.contains(x, y))
+		    for (Cluster c : clusters) {
+			if (c.boundingBox().contains(x, y))
 			    remove = true;
 		    } 
 
@@ -435,8 +442,8 @@ public class Simulation
 		    if (!mapedges.contains(states[j].x, states[j].y))
 			crashed = true;
 
-		    for (Rectangle r : clusters) {
-			if (r.contains(states[j].x, states[j].y))
+		    for (Cluster c : clusters) {
+			if (c.boundingBox().contains(states[j].x, states[j].y))
 			    crashed = true;
 		    } 
 
