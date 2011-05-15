@@ -179,10 +179,16 @@ public class Simulation
 	this.game = new GameState(0, states, new Vector<Bullet>());
     }
 
-    // (Re)generate a player state at a random location.
+    // initPlayerState with a score of zero
     private PlayerState initPlayerState(int playerNo) {
+	return initPlayerState(playerNo, 0);
+    }
+
+    // (Re)generate a player state at a random location.
+    private PlayerState initPlayerState(int playerNo, int score) {
 	assert(playerNo >= 0);
 	assert(playerNo < 2);
+	if (score < 0) score = 0;
 
 	int x = 0;
 	int y = 0;
@@ -208,7 +214,7 @@ public class Simulation
 	playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
 	return new PlayerState(playerNo, x, y, 0, 0, dir, INITIALENERGY,
-			       (game == null) ? 0 : game.time, 0); 
+			       (game == null) ? 0 : game.time, score); 
     }
 
     @SuppressWarnings("unchecked")
@@ -356,15 +362,37 @@ public class Simulation
 				loop.lineTo(point.getX(), point.getY());
 			    }
 
+//			    Vector<ClusterServerSide> toRemove = new Vector<ClusterServerSide>();
 			    for (ClusterServerSide c : clusters) {
 				if (c.nSegments.contains(score+1)
 				    && loop.contains(c.x, c.y)) {
 				    System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
+				    // This is an important point - what to do
+				    // if someone encircles a cluster. For now
+				    // write the data in the Database. 
+				    // Also, remove the cluster.
+				    
+				    // Note that determining what nSegments values
+				    // are acceptable is determined in ProtoCluster.acceptableNS()
+//				    toRemove.add(c);
+				    
+				    
 				    score += 1;
 				    break; // collect only one cluster per loop
 				}
 			    }
-
+/*			    // Remove the clusters that were captured
+			    for (ClusterServerSide c : toRemove) {
+				System.out.println(c);
+				clusters.remove(c);
+				arena.clusters.remove(c);
+			    }
+			    // Oh, I see, this doesn't work at all because
+			    // The clients receive the Arena once at the beginning.
+			    // I mean, it works in the sense that the other guy can't
+			    // capture it, but it doesn't disappear on the client-side
+			    // visualization, etc.
+*/			
 			    loop = null;
 
 			    playerStatesInt[j].trajectory.clear();
@@ -400,7 +428,7 @@ public class Simulation
 			p = new Polygon(xy[0], xy[1], 4);
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
-			    states[j] = initPlayerState(j);
+			    states[j] = initPlayerState(j, states[j].score - 1);
 			    remove = true;
 			}
 		    }
@@ -435,7 +463,7 @@ public class Simulation
 		    } 
 
 		    if (crashed) {
-			states[j] = initPlayerState(j);
+			states[j] = initPlayerState(j, states[j].score);
 		    }
 
 		}

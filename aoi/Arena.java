@@ -17,7 +17,7 @@ public class Arena {
 
     public static final String ARENA_METADATA_FILENAME = "arena.xml";
 
-    public final Vector<Cluster> clusters;
+    public Vector<Cluster> clusters;  // removed "final" because may want to remove clusters, in progress
 
     public Arena(Vector<Cluster> clusters) {
 	this.clusters = clusters;
