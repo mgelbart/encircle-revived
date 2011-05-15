@@ -351,14 +351,11 @@ public class Simulation
 	            // Also checks if players scored.
 		    score = game.states[j].score;
 		    currentLoop = game.states[j].currentLoop;
-		    System.out.println("***********");
 		    
 		    // Check if any player (including j) is crossing j's j's path
 	    	    for (int i=0; i<NUMPLAYERS; ++i) {
-	    	        if (i != j) continue; 
+	    	     //   if (i != j) continue;   // UNFINISHED ..!!!!
 		        loop = checkForIntersection(i, j);
-		        
-		        System.out.println("$%$#%$#%$#" + loop);
 		        
 		        if (loop != null) {
 		            if (checkForScoring(j, loop)) score++;
@@ -450,16 +447,15 @@ public class Simulation
     // and if so, return the loop of player j that is now broken.
     // Note this is not symmetric in i and j.
     private Path2D checkForIntersection(int i, int j) {
-
-	int N;
+	int Ni, Nj;
 	Line2D lastSegment;
 	Path2D loop;
 	Point2D point;
-	
 
-    	N = playerStatesInt[j].trajectory.size();
-	lastSegment = playerStatesInt[j].trajectory.get(N-1);
-	for (int k=0; k < N-2; ++k) {
+    	Ni = playerStatesInt[i].trajectory.size();
+    	Nj = playerStatesInt[j].trajectory.size();	
+	lastSegment = playerStatesInt[i].trajectory.get(Ni-1);
+	for (int k=0; k < Nj-2; ++k) {
 
 	    // If there was an intersection, remove the path and check for scoring.
 	    if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
@@ -470,11 +466,10 @@ public class Simulation
 		point = playerStatesInt[j].trajectory.get(k).getP2();
 		loop.moveTo(point.getX(), point.getY());
 
-		for (int l=k+1; l < N; ++l) {
+		for (int l=k+1; l < Nj; ++l) {
 		    point = playerStatesInt[j].trajectory.get(l).getP2();
 		    loop.lineTo(point.getX(), point.getY());
 		}
-		    
 		return loop;
 	    }
 	}
@@ -497,6 +492,9 @@ public class Simulation
 			    
 		// Note that determining what nSegments values
 		// are acceptable is determined in ProtoCluster.acceptableN()
+		
+		
+		
 
 		return true; // collect only one cluster per loop
 	    }
