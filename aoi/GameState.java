@@ -14,7 +14,7 @@ public class GameState implements Cloneable {
     public final Vector<Bullet> bullets;
 
     public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
-	assert(states.length == 2);
+	assert(states.length == Simulation.NUMPLAYERS);
 
 	this.time = time;
 	this.states = states;
@@ -22,10 +22,10 @@ public class GameState implements Cloneable {
     }
 
     public GameState clone() {
-	PlayerState[] clonedStates = new PlayerState[2];
+	PlayerState[] clonedStates = new PlayerState[Simulation.NUMPLAYERS];
 	Vector<Bullet> clonedBullets = new Vector<Bullet>();
 
-	for (int j=0; j<2; ++j)
+	for (int j=0; j<Simulation.NUMPLAYERS; ++j)
 	    clonedStates[j] = states[j].clone();
 
 	for (int j=0; j<bullets.size(); ++j)
@@ -41,7 +41,7 @@ public class GameState implements Cloneable {
 	s.append(time);
 	s.append("\n");
 
-	for (int j=0; j<2; ++j)
+	for (int j=0; j<Simulation.NUMPLAYERS; ++j)
 	    s.append(states[j].toString());
 
 	for (int j=0; j<bullets.size(); ++j)
@@ -57,7 +57,7 @@ public class GameState implements Cloneable {
 	    o.writeBytes("t");
 	    o.writeInt(time);
 
-	    for (int j=0; j<2; ++j)
+	    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
 		states[j].serialize(o);
 
 	    o.writeBytes("b");
@@ -77,7 +77,7 @@ public class GameState implements Cloneable {
 
 	Byte cmd;
 	int t, bCount;
-	PlayerState states[] = new PlayerState[2];
+	PlayerState states[] = new PlayerState[Simulation.NUMPLAYERS];
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	try {
@@ -86,7 +86,7 @@ public class GameState implements Cloneable {
 	    assert(cmd == 't');
 	    t = i.readInt();
 
-	    for (int j=0; j<2; ++j)
+	    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
 		states[j] = PlayerState.parse(i);
 	    
 	    cmd = i.readByte();

@@ -24,7 +24,7 @@ public class PlayerListener implements Runnable {
 	this.client = in;
 	this.sim = sim;
 
-	assert(playerNo < 2);
+	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
     }
 

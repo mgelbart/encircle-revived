@@ -44,7 +44,7 @@ public class PlayerState implements Cloneable {
 	this.currentLoop = currentLoop;
 	this.score = score;
 
-	assert(playerNo < 2);
+	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
     }
 
@@ -173,7 +173,7 @@ public class PlayerState implements Cloneable {
 
     public int[][] shape() {
 	assert(playerNo >= 0);
-	assert(playerNo < 2);
+	assert(playerNo < Simulation.NUMPLAYERS);
 
 	double cos = Math.cos(Math.PI * (direction / (double) Simulation.INTMAX));
 	double sin = Math.sin(Math.PI * (direction / (double) Simulation.INTMAX));

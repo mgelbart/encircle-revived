@@ -352,9 +352,9 @@ public class Simulation
 		    score = game.states[j].score;
 		    currentLoop = game.states[j].currentLoop;
 		    
-		    // Check if any player (including j) is crossing j's j's path
+		    // Check if any player (including j) is crossing j's path
 	    	    for (int i=0; i<NUMPLAYERS; ++i) {
-	    	     //   if (i != j) continue;   // UNFINISHED ..!!!!
+	    	     //   if (i != j) continue;   // uncomment this to disable path-killing
 		        loop = checkForIntersection(i, j);
 		        
 		        if (loop != null) {

@@ -49,9 +49,9 @@ public class GUI implements Runnable {
 	this.arena = arena;
 	game = null;
 
-	currentLoopStarted = new int[2];
-	loop = new Vector[2];
-	for (int j=0; j<2; ++j) {
+	currentLoopStarted = new int[Simulation.NUMPLAYERS];
+	loop = new Vector[Simulation.NUMPLAYERS];
+	for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
 	    currentLoopStarted[j] = -999;
 	    loop[j] = new Vector<Point2D>();
 	}
