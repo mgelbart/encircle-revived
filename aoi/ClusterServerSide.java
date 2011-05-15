@@ -20,12 +20,20 @@ public class ClusterServerSide extends Cluster {
     // int[] rather than int because we may not know the exact number.
     public final Set<Integer> noSegments;
 
+    // Associated likelihoods for these possible nSegments.
+    // This should be the same length as nSegments.
+    public final Set<Double> nsLikelihood 
+
+
     public ClusterServerSide(int x, int y, int width, int height,
 			     String imgPath, Set<Integer> noSegments) {
 	super(x, y, width, height, imgPath);
 
 	this.noSegments = noSegments;
     }
+
+
+
 
 
     /* Returns a random cluster which has noSegments as a possible
