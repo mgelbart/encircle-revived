@@ -46,57 +46,11 @@ public class ClusterServerSide extends Cluster {
     public static ClusterServerSide getRandom(int x, int y,
 					      int nSegments, boolean exact) {
 
-	final int MAXSEGMENTS = 7;
 
-	Vector<String>[] paths = new Vector[MAXSEGMENTS];
-
-	for (int j=0; j<MAXSEGMENTS; ++j)
-	    paths[j] = new Vector<String>();
-
-	paths[0].add("./images/fly/labeled/1a.jpg");
-	paths[0].add("./images/fly/labeled/1b.jpg");
-	paths[0].add("./images/fly/1c.jpg");
-	paths[0].add("./images/fly/1d.jpg");
-	paths[0].add("./images/fly/1e.jpg");
-
-	paths[1].add("./images/fly/2a.jpg");
-	paths[1].add("./images/fly/2b.jpg");
-	paths[1].add("./images/fly/2c.jpg");
-	paths[1].add("./images/fly//2d.jpg");
-	paths[1].add("./images/fly/labeled/2e.jpg");
-	paths[1].add("./images/fly/labeled/2f.jpg");
-
-	paths[2].add("./images/fly/labeled/3a.jpg");
-	paths[2].add("./images/fly/labeled/3b.jpg");
-	paths[2].add("./images/fly/labeled/3c.jpg");
-	paths[2].add("./images/fly/labeled/3d.jpg");
-	paths[2].add("./images/fly/labeled/3e.jpg");
-	paths[2].add("./images/fly/labeled/3f.jpg");
-	paths[2].add("./images/fly/labeled/3g.jpg");
-	paths[2].add("./images/fly/labeled/3h.jpg");
-
-	paths[3].add("./images/fly/labeled/4a.jpg");
-	paths[3].add("./images/fly/labeled/4b.jpg");
-	paths[3].add("./images/fly/labeled/4c.jpg");
-	paths[3].add("./images/fly/labeled/4d.jpg");
-	paths[3].add("./images/fly/labeled/4e.jpg");
-	paths[3].add("./images/fly/labeled/4f.jpg");
-	paths[3].add("./images/fly/labeled/4g.jpg");
-	paths[3].add("./images/fly/labeled/4h.jpg");
-
-	paths[4].add("./images/fly/labeled/5a.jpg");
-	paths[4].add("./images/fly/labeled/5b.jpg");
-	paths[4].add("./images/fly/labeled/5c.jpg");
-	paths[4].add("./images/fly/labeled/5d.jpg");
-
-	paths[5].add("./images/fly/labeled/6a.jpg");
-	paths[5].add("./images/fly/labeled/6b.jpg");
-
-	paths[6].add("./images/fly/labeled/7a.jpg");
-	paths[6].add("./images/fly/labeled/7b.jpg");
-
-	String path = paths[nSegments-1].get((int)
-					    (Math.random() * paths[nSegments-1].size()));
+	//String path = paths[nSegments-1].get((int)
+	//				    (Math.random() * paths[nSegments-1].size()));
+	
+String path = null;
 	ImageIcon img = new ImageIcon(path);
 
 	Set<Integer> segNos = new TreeSet<Integer>();

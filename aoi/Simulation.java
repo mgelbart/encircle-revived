@@ -108,6 +108,10 @@ public class Simulation
 
 	Simulation simulation = new Simulation();
 
+	// Read in all the Cluster info into a ClusterDatabase
+	final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
+	ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+
 	simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
 
 	simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
