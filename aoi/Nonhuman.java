@@ -64,8 +64,10 @@ public class Nonhuman implements Intelligence {
 	int acc, dir, shots, boosts;
 	int[] intPos;
 
-	double bestV, V;
+	double bestV, V, currentV;
 	PlayerControlParameters bestCtrl, testCtrl;
+
+	acc = Simulation.INTMAX / 2;
 
 	while (true) {
 	    
@@ -75,9 +77,11 @@ public class Nonhuman implements Intelligence {
 
 		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 
-		    acc = Simulation.INTMAX/2;
 		    shots = 1;
 		    boosts = 0;
+
+		    currentV = potentialFunction(games[0].states[config.playerNo].x,
+						 games[0].states[config.playerNo].y);
 
 		    bestV = 1e10;
 		    bestCtrl = null;
@@ -86,19 +90,17 @@ public class Nonhuman implements Intelligence {
 		    for (int j=-1; j<=1; ++j) {
 
 			dir = games[0].states[config.playerNo].direction
-			    + j*(Simulation.INTMAX/2);
+			    + j*(Simulation.INTMAX/3);
 
 			testCtrl = new PlayerControlParameters(acc, dir, shots, boosts);
 
 			intPos = SimulationUtils.interpolatePosition(games[0].states[config.playerNo],
-								     testCtrl, 1000/Simulation.TIMESTEP);
+								     testCtrl, 800/Simulation.TIMESTEP);
 
 			V = potentialFunction(intPos[0], intPos[1]);
 
 			// Prefer going straight
 			V += Math.abs(j) * 0.05;
-
-			System.out.println("j=" + j + " V=" + V);
 
 			if (V < bestV) {
 			    bestCtrl = testCtrl;
@@ -107,7 +109,17 @@ public class Nonhuman implements Intelligence {
 
 		    }
 
-		    System.out.println("best=" + bestV);
+
+		    if (bestV < currentV)
+			acc = Simulation.INTMAX;
+		    else {
+			acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
+				     * Simulation.INTMAX);
+
+			System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
+		    }
+
+		    System.out.println("acc: " + acc);
 
 		    lastAction = games[0].time;
 
@@ -128,22 +140,22 @@ public class Nonhuman implements Intelligence {
 
 	Point2D loc = new Point(x, y);
 
-	double range = 1000 / Simulation.TIMESTEP
+	double range = 500 / Simulation.TIMESTEP
 	    * Math.sqrt( Math.pow(games[0].states[config.playerNo].vx, 2)
 			 + Math.pow(games[0].states[config.playerNo].vy, 2));
 
-	range = Math.max(range, Simulation.MAPSIZE/100);
+	range = Math.max(range, Simulation.MAPSIZE/20);
 
-	V += truncatedExp(Simulation.MAPSIZE/2 - Math.abs(x), range);
-	V += truncatedExp(Simulation.MAPSIZE/2 - Math.abs(y), range);
+	V += -3*truncatedLog(Simulation.MAPSIZE/2 - Math.abs(x), 5*range);
+	V += -3*truncatedLog(Simulation.MAPSIZE/2 - Math.abs(y), 5*range);
 
 	double dist;
 	for (Cluster clust : arena.clusters) {
 
-	    V += truncatedExp(loc.distance(clust.x, clust.y + clust.height/2), range);
-	    V += truncatedExp(loc.distance(clust.x, clust.y - clust.height/2), range);
-	    V += truncatedExp(loc.distance(clust.x + clust.width/2, clust.y), range);
-	    V += truncatedExp(loc.distance(clust.x + clust.width/2, clust.y), range);
+	    V += -truncatedLog(loc.distance(clust.x, clust.y + clust.height/2), range);
+	    V += -truncatedLog(loc.distance(clust.x, clust.y - clust.height/2), range);
+	    V += -truncatedLog(loc.distance(clust.x + clust.width/2, clust.y), range);
+	    V += -truncatedLog(loc.distance(clust.x + clust.width/2, clust.y), range);
 
 	}
 
@@ -154,6 +166,12 @@ public class Nonhuman implements Intelligence {
 	if (Math.abs(x) > 3*range) return 0.0;
 
 	return Math.exp(-Math.abs(x/range));
+    }
+
+    private double truncatedLog(double x, double range) {
+	if (Math.abs(x) > range) return 0.0;
+
+	return Math.log(Math.abs(x/range));
     }
 
 }
