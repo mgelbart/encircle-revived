@@ -45,7 +45,7 @@ public class Simulation
     public static final int MAXACC = (int) ((MAPSIZE / 1e7 * 3) * TIMESTEP * TIMESTEP) ;
  
     // Drag coefficient.
-    public static final double DRAG = 0.0015 * TIMESTEP;
+    public static final double DRAG = 0.0013 * TIMESTEP;
 
     // Maximum energy.
     public static final int MAXENERGY = 10;
