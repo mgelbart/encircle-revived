@@ -447,14 +447,14 @@ public class Simulation
     // and if so, return the loop of player j that is now broken.
     // Note this is not symmetric in i and j.
     private Path2D checkForIntersection(int i, int j) {
-	int Ni, Nj;
-	Line2D lastSegment;
+
 	Path2D loop;
 	Point2D point;
 
-    	Ni = playerStatesInt[i].trajectory.size();
-    	Nj = playerStatesInt[j].trajectory.size();	
-	lastSegment = playerStatesInt[i].trajectory.get(Ni-1);
+    	final int Ni = playerStatesInt[i].trajectory.size();
+    	final int Nj = playerStatesInt[j].trajectory.size();	
+	final Line2D lastSegment = playerStatesInt[i].trajectory.get(Ni-1);
+
 	for (int k=0; k < Nj-2; ++k) {
 
 	    // If there was an intersection, remove the path and check for scoring.
