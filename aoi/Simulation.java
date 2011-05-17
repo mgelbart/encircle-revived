@@ -32,9 +32,9 @@ public class Simulation
     // decreasing this only increases resolution.
     public static final int TIMESTEP = 20;
  
-    // All distances are defined in terms of MAPSIZE.
+    // All distances are defined in terms of ARENASIZE.
     // Hence increasing this only increases the resolution.
-    public static final int MAPSIZE = 100000;
+    public static final int ARENASIZE = 100000;
 
 
     // Maximum angular turning rate (i.e. domega/dt).
@@ -42,7 +42,7 @@ public class Simulation
     public static final int OMEGA = (INTMAX/1600) * TIMESTEP;
 
     // Maximum thrust, i.e. max dx/dt^2.
-    public static final int MAXACC = (int) ((MAPSIZE / 1e7 * 3) * TIMESTEP * TIMESTEP) ;
+    public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 3) * TIMESTEP * TIMESTEP) ;
  
     // Drag coefficient.
     public static final double DRAG = 0.0013 * TIMESTEP;
@@ -61,7 +61,7 @@ public class Simulation
 
     // Roughly the minimum distance between adjacent points in the trajectory for
     // encircling clusters. See the algorithm to see why this is only 'roughly' so.
-    public static final int MINTRAJECTORYSEGMENT = MAPSIZE / 200;
+    public static final int MINTRAJECTORYSEGMENT = ARENASIZE / 200;
 
     // The number of players in the game. Currently not adjustable.
     public static final int NUMPLAYERS = 2;
@@ -204,8 +204,8 @@ public class Simulation
 
 	while (!freespace) {
 
-	    x = (int) (MAPSIZE * (0.5 - Math.random()));
-	    y = (int) (MAPSIZE * (0.5 - Math.random()));
+	    x = (int) (ARENASIZE * (0.5 - Math.random()));
+	    y = (int) (ARENASIZE * (0.5 - Math.random()));
 
 	    freespace = true;
 
@@ -245,8 +245,8 @@ public class Simulation
 	Point2D curPoint, prevPoint, prevPrevPoint;
 	Path2D loop;
 
-	Rectangle mapedges = new Rectangle(-MAPSIZE/2, -MAPSIZE/2,
-					   MAPSIZE, MAPSIZE);
+	Rectangle mapedges = new Rectangle(-ARENASIZE/2, -ARENASIZE/2,
+					   ARENASIZE, ARENASIZE);
 
 
 	// Set up a timer that wakes up the simulation thread every TIMESTEP

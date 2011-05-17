@@ -58,8 +58,8 @@ public class GUI implements Runnable {
 
 	StdDraw.setCanvasSize(700, 700);
 
-	StdDraw.setXscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
-	StdDraw.setYscale(-Simulation.MAPSIZE/2, Simulation.MAPSIZE/2);
+	StdDraw.setXscale(-Simulation.ARENASIZE/2, Simulation.ARENASIZE/2);
+	StdDraw.setYscale(-Simulation.ARENASIZE/2, Simulation.ARENASIZE/2);
 
 	StdDraw.setPenColor(StdDraw.BLUE);
 
@@ -152,14 +152,14 @@ public class GUI implements Runnable {
 			     loop[j].get(k+1).getX(), loop[j].get(k+1).getY());
 
 	    // Draw the score:
-	    StdDraw.text((2*j - 1)*Simulation.MAPSIZE*2/5,
-			 Simulation.MAPSIZE*19/40,
+	    StdDraw.text((2*j - 1)*Simulation.ARENASIZE*2/5,
+			 Simulation.ARENASIZE*19/40,
 			 "P" + j + ": " + p.score);
 
 	}
 
 	for (Bullet b : g.bullets)
-	    StdDraw.square(b.x, b.y, Simulation.MAPSIZE / 500);
+	    StdDraw.square(b.x, b.y, Simulation.ARENASIZE / 500);
 
 	StdDraw.show(0);
 

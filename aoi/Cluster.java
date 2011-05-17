@@ -28,15 +28,15 @@ public class Cluster {
 	
 	this.img = (new ImageIcon(imgPath)).getImage();
 
-	assert(x-width/2 <=  Simulation.MAPSIZE/2);
-	assert(x-width/2 >= -Simulation.MAPSIZE/2);
-	assert(x+width/2 <=  Simulation.MAPSIZE/2);
-	assert(x+width/2 >= -Simulation.MAPSIZE/2);
+	assert(x-width/2 <=  Simulation.ARENASIZE/2);
+	assert(x-width/2 >= -Simulation.ARENASIZE/2);
+	assert(x+width/2 <=  Simulation.ARENASIZE/2);
+	assert(x+width/2 >= -Simulation.ARENASIZE/2);
 
-	assert(y-height/2 <=  Simulation.MAPSIZE/2);
-	assert(y-height/2 >= -Simulation.MAPSIZE/2);
-	assert(y+height/2 <=  Simulation.MAPSIZE/2);
-	assert(y+height/2 >= -Simulation.MAPSIZE/2);
+	assert(y-height/2 <=  Simulation.ARENASIZE/2);
+	assert(y-height/2 >= -Simulation.ARENASIZE/2);
+	assert(y+height/2 <=  Simulation.ARENASIZE/2);
+	assert(y+height/2 >= -Simulation.ARENASIZE/2);
     }
 
     public String toString() {

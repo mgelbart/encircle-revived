@@ -58,8 +58,8 @@ public class ClusterServerSide extends Cluster {
 	segNos.add(nSegments);
 
 	return new ClusterServerSide(x, y,
-				     img.getIconWidth() * (Simulation.MAPSIZE/800),
-				     img.getIconHeight() * (Simulation.MAPSIZE/800),
+				     img.getIconWidth() * (Simulation.ARENASIZE/800),
+				     img.getIconHeight() * (Simulation.ARENASIZE/800),
 				     pc.filepath, segNos);
 
     }
@@ -92,8 +92,8 @@ public class ClusterServerSide extends Cluster {
 		overlaps = true;
 		while (overlaps) {
 
-		    x = (int) (Simulation.MAPSIZE * 0.85*(0.5 - Math.random()));
-		    y = (int) (Simulation.MAPSIZE * 0.85*(0.5 - Math.random()));
+		    x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+		    y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
 		    clust = getRandom(x, y, 1+j, false, clusterDbSayWithPET);
 
 		    //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);

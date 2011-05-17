@@ -14,8 +14,8 @@ import java.io.*;
 
 public class PlayerState implements Cloneable {
 
-    public static final int SHIPLENGTH = Simulation.MAPSIZE * 8/200;
-    public static final int SHIPWIDTH = Simulation.MAPSIZE * 3/200;
+    public static final int SHIPLENGTH = Simulation.ARENASIZE * 8/200;
+    public static final int SHIPWIDTH = Simulation.ARENASIZE * 3/200;
 
     /* Values transmitted to the clients. */
     public final int playerNo;
