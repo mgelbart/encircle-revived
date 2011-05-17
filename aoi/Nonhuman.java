@@ -94,10 +94,21 @@ public class Nonhuman implements Intelligence {
 
 			testCtrl = new PlayerControlParameters(acc, dir, shots, boosts);
 
-			intPos = SimulationUtils.interpolatePosition(games[0].states[config.playerNo],
-								     testCtrl, 800/Simulation.TIMESTEP);
+			intPos = SimulationUtils.nextPosition(games[0].states[config.playerNo],
+							      testCtrl);
 
-			V = potentialFunction(intPos[0], intPos[1]);
+			V = -1e10;
+
+			for (int k=1; k < 1000/Simulation.TIMESTEP; ++k) {
+
+			    intPos = SimulationUtils.nextPosition(
+				        new PlayerState(0, intPos[0], intPos[1],
+							intPos[2], intPos[3],
+							intPos[4], 0, 0, 0),
+					testCtrl);
+
+			    V = Math.max(V, potentialFunction(intPos[0], intPos[1]));
+			}
 
 			// Prefer going straight
 			V += Math.abs(j) * 0.05;
