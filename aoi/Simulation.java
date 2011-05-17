@@ -457,7 +457,8 @@ public class Simulation
 
 	for (int k=0; k < Nj-2; ++k) {
 
-	    // If there was an intersection, remove the path and check for scoring.
+	    // Check if i's last step crossed any line segment of player
+	    // j's path, O(N).
 	    if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
 
 		// Construct a Path2D for the loop only.
@@ -466,11 +467,26 @@ public class Simulation
 		point = playerStatesInt[j].trajectory.get(k).getP2();
 		loop.moveTo(point.getX(), point.getY());
 
-		for (int l=k+1; l < Nj; ++l) {
-		    point = playerStatesInt[j].trajectory.get(l).getP2();
-		    loop.lineTo(point.getX(), point.getY());
+		if (i == j) {
+
+		    for (int l=k+1; l < Nj; ++l) {
+			point = playerStatesInt[j].trajectory.get(l).getP2();
+			loop.lineTo(point.getX(), point.getY());
+		    }
+		    return loop;
+
+		} else {
+
+		    // A closed loop can only be formed by a player crossing
+		    // his own path
+		    //
+		    // Note that returning an empty loop instead of null
+		    // causes different behavior in the main simulation loop
+		    // compared to returning null.
+		    return loop;
+
 		}
-		return loop;
+		    
 	    }
 	}
 	return null;
