@@ -355,12 +355,10 @@ public class Simulation
 		    // Check if any player (including j) is crossing j's path
 	    	    for (int i=0; i<NUMPLAYERS; ++i) {
 	    	     //   if (i != j) continue;   // uncomment this to disable path-killing
-		        loop = checkForIntersection(i, j);
+		        loop = checkForIntersection(j, i);
 		        
 		        if (loop != null) {
 		            if (checkForScoring(j, loop)) score++;
-		        
-		            System.out.println("!!!!");
 		        
 		    	    playerStatesInt[j].trajectory.clear();
 			    playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint, curPoint));
