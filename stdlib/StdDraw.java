@@ -71,7 +71,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     private static int height = DEFAULT_SIZE;
 
     // default pen radius
-    private static final double DEFAULT_PEN_RADIUS = 0.002;
+    public static final double DEFAULT_PEN_RADIUS = 0.002;
 
     // current pen radius
     private static double penRadius;

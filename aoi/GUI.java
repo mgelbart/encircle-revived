@@ -44,7 +44,14 @@ public class GUI implements Runnable {
 
 
     private int[] currentLoopStarted;
+
     private Vector<Point2D>[] loop;
+
+    // Used to highlight a loop that scored a point:
+    private int[] lastScore;
+    private int[] lastScoringTime;
+    private Vector<Point2D>[] lastScoringLoop;
+
 
     @SuppressWarnings("unchecked")
 	public GUI(Arena arena, ClientConfiguration config) {
@@ -55,9 +62,17 @@ public class GUI implements Runnable {
 
 	currentLoopStarted = new int[Simulation.NUMPLAYERS];
 	loop = new Vector[Simulation.NUMPLAYERS];
+
+	lastScore = new int[Simulation.NUMPLAYERS];
+	lastScoringTime = new int[Simulation.NUMPLAYERS];
+	lastScoringLoop = new Vector[Simulation.NUMPLAYERS];
+
 	for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
 	    currentLoopStarted[j] = -999;
 	    loop[j] = new Vector<Point2D>();
+
+	    lastScore[j] = 0;
+	    lastScoringTime[j] = -999;
 	}
 
 	StdDraw.setCanvasSize(700, 700);
@@ -123,6 +138,16 @@ public class GUI implements Runnable {
 	for (int j=0; j<2; ++j) {
 	    p = g.states[j];
 
+	    // Store the previous loop if the score increased
+	    if (p.score > lastScore[j]) {
+		lastScore[j] = p.score;
+		lastScoringTime[j] = g.time;
+		lastScoringLoop[j] = (Vector<Point2D>) loop[j].clone();
+	    } else if (p.score < lastScore[j]) {
+		// Don't want to highlight the path if the score decreased!
+		lastScore[j] = p.score;
+	    }
+
 	    // Draw the ship
 
 	    xy = p.shape();
@@ -157,9 +182,23 @@ public class GUI implements Runnable {
 
 	    }
 
-	    for (int k=0; k < loop[j].size()-1; ++k)
-		StdDraw.line(loop[j].get(k  ).getX(), loop[j].get(k  ).getY(),
-			     loop[j].get(k+1).getX(), loop[j].get(k+1).getY());
+
+	    drawLoop(loop[j]);
+
+
+	    // Draw the scoring loop if recent:
+	    if (lastScoringLoop[j] != null
+		&& g.time - lastScoringTime[j] < 1500/Simulation.TIMESTEP) {
+
+		StdDraw.setPenRadius((g.time - lastScoringTime[j])
+				     * StdDraw.DEFAULT_PEN_RADIUS/4);
+
+		drawLoop(lastScoringLoop[j]);
+
+		StdDraw.setPenRadius(StdDraw.DEFAULT_PEN_RADIUS);
+
+	    }
+
 
 	    StdDraw.setPenColor(StdDraw.GREEN);
 
@@ -175,6 +214,13 @@ public class GUI implements Runnable {
 	    StdDraw.square(b.x, b.y, Simulation.ARENASIZE / 500);
 
 	StdDraw.show(0);
+
+    }
+
+    private static void drawLoop(Vector<Point2D> loop) {
+	for (int k=0; k < loop.size()-1; ++k)
+	    StdDraw.line(loop.get(k  ).getX(), loop.get(k  ).getY(),
+			 loop.get(k+1).getX(), loop.get(k+1).getY());
 
     }
 
