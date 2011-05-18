@@ -304,8 +304,7 @@ public class Simulation
 
 			playerStatesInt[j].reloadTimeLeft--;
 
-		    } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake
-			       && energy >= BULLETCOST) {
+		    } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
 			bullets.add(new Bullet(j,
 					       game.states[j].x,
@@ -314,8 +313,6 @@ public class Simulation
 
 			playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
 			
-			energy -= BULLETCOST;
-
 		    }
 
 
