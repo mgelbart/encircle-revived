@@ -245,8 +245,8 @@ public class Simulation
 	Point2D curPoint, prevPoint, prevPrevPoint;
 	Path2D loop;
 
-	Rectangle mapedges = new Rectangle(-ARENASIZE/2, -ARENASIZE/2,
-					   ARENASIZE, ARENASIZE);
+	Rectangle mapedges = new Rectangle(-2*ARENASIZE, -2*ARENASIZE,
+					   4*ARENASIZE, 4*ARENASIZE);
 
 
 	// Set up a timer that wakes up the simulation thread every TIMESTEP

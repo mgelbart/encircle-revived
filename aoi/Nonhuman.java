@@ -157,8 +157,8 @@ public class Nonhuman implements Intelligence {
 
 	range = Math.max(range, Simulation.ARENASIZE/20);
 
-	V += -3*truncatedLog(Simulation.ARENASIZE/2 - Math.abs(x), 5*range);
-	V += -3*truncatedLog(Simulation.ARENASIZE/2 - Math.abs(y), 5*range);
+	V += Math.exp((Math.abs(x) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
+	V += Math.exp((Math.abs(y) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
 
 	double dist;
 	for (Cluster clust : arena.clusters) {

@@ -126,10 +126,16 @@ public class GUI implements Runnable {
 
 	StdDraw.clear(StdDraw.BLACK);
 
+	// Set the zoom level
+	final double r = Math.max(Simulation.ARENASIZE/2,
+				  Math.max(Math.abs(g.states[config.playerNo].x * 1.05),
+					   Math.abs(g.states[config.playerNo].y * 1.05)));
+	StdDraw.setXscale(-r, r);
+	StdDraw.setYscale(-r, r);
+
+
 	int xy[][];
 	double xydbl[][] = new double[2][4];
-
-	Point point;
 
 	for (Cluster v : m.clusters)
 	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
@@ -171,7 +177,7 @@ public class GUI implements Runnable {
 
 	    if (currentLoopStarted[j] == p.currentLoop) {
 
-		point = new Point(p.x, p.y);
+		Point point = new Point(p.x, p.y);
 		if (loop[j].size() == 0 || !loop[j].lastElement().equals(point))
 		    loop[j].add(point);
 
@@ -203,8 +209,8 @@ public class GUI implements Runnable {
 	    StdDraw.setPenColor(StdDraw.GREEN);
 
 	    // Draw the score:
-	    StdDraw.text((2*j - 1)*Simulation.ARENASIZE*2/5,
-			 Simulation.ARENASIZE*19/40,
+	    StdDraw.text((2*j - 1)*r*4./5.,
+			 r*19./20.,
 			 "P" + j + ": " + p.score);
 
 	}
