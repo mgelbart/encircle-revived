@@ -45,7 +45,7 @@ public class HigherBeing implements Intelligence {
 	games = new GameState[1];
 
 	if (!config.nonhuman) {
-	    gui = new GUI(arena);
+	    gui = new GUI(arena, config);
 	    guiThread = new Thread(gui);
 	    guiThread.start();
 	}

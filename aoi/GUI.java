@@ -26,6 +26,9 @@ import java.io.*;
 
 public class GUI implements Runnable {
 
+    // The input options received from Client.
+    ClientConfiguration config;
+
     /* Most recent game state. Updated by the Intelligence. */
     public GameState game;
 
@@ -44,9 +47,10 @@ public class GUI implements Runnable {
     private Vector<Point2D>[] loop;
 
     @SuppressWarnings("unchecked")
-    public GUI(Arena arena) {
+	public GUI(Arena arena, ClientConfiguration config) {
 
 	this.arena = arena;
+	this.config = config;
 	game = null;
 
 	currentLoopStarted = new int[Simulation.NUMPLAYERS];
@@ -130,6 +134,12 @@ public class GUI implements Runnable {
 		    xydbl[k][l] = xy[k][l];
 	    }
 
+	    if (j == config.playerNo)
+		StdDraw.setPenColor(StdDraw.RED);
+	    else
+		StdDraw.setPenColor(StdDraw.BLUE);
+
+
 	    StdDraw.polygon(xydbl[0], xydbl[1]);
 
 	    //  Draw the loop
@@ -151,6 +161,8 @@ public class GUI implements Runnable {
 		StdDraw.line(loop[j].get(k  ).getX(), loop[j].get(k  ).getY(),
 			     loop[j].get(k+1).getX(), loop[j].get(k+1).getY());
 
+	    StdDraw.setPenColor(StdDraw.GREEN);
+
 	    // Draw the score:
 	    StdDraw.text((2*j - 1)*Simulation.ARENASIZE*2/5,
 			 Simulation.ARENASIZE*19/40,
@@ -158,6 +170,7 @@ public class GUI implements Runnable {
 
 	}
 
+	StdDraw.setPenColor(StdDraw.GREEN);
 	for (Bullet b : g.bullets)
 	    StdDraw.square(b.x, b.y, Simulation.ARENASIZE / 500);
 
