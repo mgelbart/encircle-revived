@@ -182,39 +182,25 @@ public class Simulation
 	PlayerState[] states = new PlayerState[NUMPLAYERS];
 
 	for (int j=0; j<NUMPLAYERS; ++j)
-	    states[j] = initPlayerState(j);
+	    states[j] = initPlayerState(j, 0, true);
 
 	this.game = new GameState(0, states, new Vector<Bullet>());
     }
 
-    // initPlayerState with a score of zero
-    private PlayerState initPlayerState(int playerNo) {
-	return initPlayerState(playerNo, 0);
-    }
-
-    // (Re)generate a player state at a random location.
-    private PlayerState initPlayerState(int playerNo, int score) {
+    // (Re)generate a player state at one of the corners.
+    // If homeCorner is true, the corner is deterministic.
+    // Otherwise it's random.
+    private PlayerState initPlayerState(int playerNo, int score,
+					boolean homeCorner) {
 	assert(playerNo >= 0);
 	assert(playerNo < NUMPLAYERS);
 	if (score < 0) score = 0;
 
-	int x = 0;
-	int y = 0;
-	boolean freespace = false;
+	// Always start from one of the corners of the map.
+	final int corner = (homeCorner) ? 2*playerNo : (int) (4 * Math.random());
 
-	while (!freespace) {
-
-	    x = (int) (ARENASIZE * (0.5 - Math.random()));
-	    y = (int) (ARENASIZE * (0.5 - Math.random()));
-
-	    freespace = true;
-
-	    for (Cluster c : clusters) {
-		if (c.boundingBox().contains(x, y))
-		    freespace = false;
-	    } 
-	    
-	}
+	final int x = ARENASIZE/2 * ((corner   <  2) ?  1 : -1);
+	final int y = ARENASIZE/2 * ((corner%2 == 0) ? -1 :  1);
 
 	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
 
@@ -391,7 +377,7 @@ public class Simulation
 			p = new Polygon(xy[0], xy[1], 4);
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
-			    states[j] = initPlayerState(j, states[j].score - 1);
+			    states[j] = initPlayerState(j, states[j].score - 1, false);
 			    remove = true;
 			}
 		    }
@@ -426,7 +412,7 @@ public class Simulation
 		    } 
 
 		    if (crashed) {
-			states[j] = initPlayerState(j, states[j].score);
+			states[j] = initPlayerState(j, states[j].score, false);
 		    }
 
 		}
