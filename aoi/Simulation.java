@@ -1,6 +1,12 @@
 /*
   The main class ran by the server that carries on the
-  step by step.
+  game step by step by calculating new positions for
+  players, checking for scoring, etc.
+
+  Currently this class also handles connections to
+  clients but it would be cleaner to have a separate
+  Server class for that (like Client and Intelligence are
+  separated on the client side).
  */
 
 package aoi;
