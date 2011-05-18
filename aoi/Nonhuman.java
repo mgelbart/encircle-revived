@@ -77,7 +77,7 @@ public class Nonhuman implements Intelligence {
 
 		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 
-		    shots = 1;
+		    shots = 0;
 		    boosts = 0;
 
 		    currentV = potentialFunction(games[0].states[config.playerNo].x,

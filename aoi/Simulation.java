@@ -233,6 +233,7 @@ public class Simulation
 
 	Point2D curPoint, prevPoint, prevPrevPoint;
 	Path2D loop;
+	boolean erasePath;
 
 	Rectangle mapedges = new Rectangle(-2*ARENASIZE, -2*ARENASIZE,
 					   4*ARENASIZE, 4*ARENASIZE);
@@ -292,9 +293,14 @@ public class Simulation
 			continue;
 		    }
 
+
 		    // Add one point of energy every RECHARGEPERIOD steps.
 		    energy = Math.min(MAXENERGY, game.states[j].energy
 				      + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
+
+
+		    erasePath = false;
+
 
 		    // Take shots first:
 		    if (playerStatesInt[j].prevParams != playerStatesInt[j].params)
@@ -312,6 +318,7 @@ public class Simulation
 					       game.states[j].direction));
 
 			playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
+			erasePath = true;
 			
 		    }
 
@@ -349,7 +356,6 @@ public class Simulation
 	            // Remove all paths that are crossed.
 	            // Also checks if players scored.
 		    score = game.states[j].score;
-		    currentLoop = game.states[j].currentLoop;
 		    
 		    // Check if any player (including j) is crossing j's path
 	    	    for (int i=0; i<NUMPLAYERS; ++i) {
@@ -358,14 +364,18 @@ public class Simulation
 		        
 		        if (loop != null) {
 		            if (checkForScoring(j, loop)) score++;
-		        
-		    	    playerStatesInt[j].trajectory.clear();
-			    playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint, curPoint));
-			    
-			    currentLoop = game.time;
-			    // Only let one player break j's loop (not sure if we need this).
-			    // break;
+
+			    erasePath = true;
 		        }
+		    }
+
+		    if (erasePath) {
+			playerStatesInt[j].trajectory.clear();
+			playerStatesInt[j].trajectory.add(
+				 new Line2D.Double(curPoint, curPoint));
+			currentLoop = game.time;
+		    } else {
+			currentLoop = game.states[j].currentLoop;
 		    }
 		    
 		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, currentLoop, score);
