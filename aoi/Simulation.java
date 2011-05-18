@@ -397,8 +397,22 @@ public class Simulation
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    
-			    playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
 			    remove = true;
+
+			    // This is a bit ugly but whatever...
+		    	    playerStatesInt[j].trajectory.clear();
+			    curPoint = new Point(states[j].x, states[j].y);
+			    playerStatesInt[j].trajectory.add(
+				   new Line2D.Double(curPoint, curPoint));
+			    
+			    states[j] = new PlayerState(j, states[j].x,
+							states[j].y,
+							states[j].vx,
+							states[j].vy,
+							states[j].direction,
+							states[j].energy,
+							game.time,
+							states[j].score);
 
 			}
 		    }
