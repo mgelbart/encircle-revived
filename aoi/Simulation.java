@@ -47,6 +47,9 @@ public class Simulation
     // Drag coefficient.
     public static final double DRAG = 0.0013 * TIMESTEP;
 
+    // Time to wait until respawning.
+    public static final int RESPAWNTIME = 1000 / TIMESTEP;
+
     // Maximum energy.
     public static final int MAXENERGY = 10;
 
@@ -199,8 +202,8 @@ public class Simulation
 	// Always start from one of the corners of the map.
 	final int corner = (homeCorner) ? 2*playerNo : (int) (4 * Math.random());
 
-	final int x = ARENASIZE/2 * ((corner   <  2) ?  1 : -1);
-	final int y = ARENASIZE/2 * ((corner%2 == 0) ? -1 :  1);
+	final int x = ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
+	final int y = ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
 
 	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
 
@@ -267,6 +270,13 @@ public class Simulation
 		bullets = (Vector<Bullet>) bullets.clone();
 
 
+		// Check for players waiting to be respawn:
+		for (int j=0; j<NUMPLAYERS; ++j) {
+		    if (playerStatesInt[j].respawnTimeLeft == 1)
+			states[j] = initPlayerState(j, states[j].score, false);
+		}
+
+
 		// First copy the parameters to minimize the time difference
 		// different players have to update their parameters.
 		// Note: don't need to clone (deep copy) or lock because all
@@ -275,6 +285,12 @@ public class Simulation
 		    playerStatesInt[j].params = this.ctrlParams[j];
 
 		for (int j=0; j<NUMPLAYERS; ++j) {
+
+		    // Freeze before respawning.
+		    if (playerStatesInt[j].respawnTimeLeft > 0) {
+			playerStatesInt[j].respawnTimeLeft--;
+			continue;
+		    }
 
 		    // Add one point of energy every RECHARGEPERIOD steps.
 		    energy = Math.min(MAXENERGY, game.states[j].energy
@@ -373,12 +389,17 @@ public class Simulation
 		    // TODO: This isn't an accurate way of doing this if
 		    //   the bullets/players move fast.
 		    for (int j=0; j<NUMPLAYERS; ++j) {
+
+			if (playerStatesInt[j].respawnTimeLeft > 0) continue;
+
 			xy = states[j].shape();
 			p = new Polygon(xy[0], xy[1], 4);
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
-			    states[j] = initPlayerState(j, states[j].score - 1, false);
+			    
+			    playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
 			    remove = true;
+
 			}
 		    }
 
@@ -401,6 +422,8 @@ public class Simulation
 		// Check if anyone went out of bounds or hit a cluster:
 		for (int j=0; j<NUMPLAYERS; ++j) {
 
+		    if (playerStatesInt[j].respawnTimeLeft > 0) continue;
+
 		    crashed = false;
 
 		    if (!mapedges.contains(states[j].x, states[j].y))
@@ -412,7 +435,9 @@ public class Simulation
 		    } 
 
 		    if (crashed) {
-			states[j] = initPlayerState(j, states[j].score, false);
+
+			playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
+
 		    }
 
 		}
@@ -507,6 +532,8 @@ public class Simulation
 	/* Values used internally by the simulation. */
 	public int shotsTaken = 0;
 	public int reloadTimeLeft = 0;
+
+	public int respawnTimeLeft = 0;
 
 	// The path traced by the ship since the last loop completion.
 	public Vector<Line2D> trajectory;
