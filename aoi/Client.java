@@ -24,6 +24,10 @@ public class Client {
 	controlSocket = new Socket(config.serverurl, config.controlPort);
 	stateSocket = new Socket(config.serverurl, config.gameStatePort);
 
+	// Don't buffer data before sending TCP packets.
+	controlSocket.setTcpNoDelay(true);
+	stateSocket.setTcpNoDelay(true);
+
 	// Read the Arena from a local file for now...
 	Arena arena = null;
 	try {
