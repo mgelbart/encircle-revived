@@ -76,9 +76,11 @@ public class ClientConfiguration {
 	    nonhuman = Boolean.parseBoolean(reader.readLine());
 
 	} catch (Exception e) {
+
 	    System.err.println(e.toString());
 	    assert(false);
 	    return null;
+
 	}
 
 	return new ClientConfiguration(serverurl, statePort, controlPort,

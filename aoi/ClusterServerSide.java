@@ -22,6 +22,11 @@ public class ClusterServerSide extends Cluster {
     // These are the values that will be ACCEPTED by the game.
     public final Set<Integer> nSegments;
 
+
+    private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
+    private static ClusterDatabase clusterDbSayWithPET;
+
+
     public ClusterServerSide(int x, int y, int width, int height,
 			     String imgPath, Set<Integer> nSegments) {
 	super(x, y, width, height, imgPath);
@@ -29,6 +34,23 @@ public class ClusterServerSide extends Cluster {
 	this.nSegments = nSegments;
 
 	
+    }
+    
+
+    // Construct a ClusterServerSide corresponding to a cluster
+    public ClusterServerSide(Cluster c) {
+	super(c.x, c.y, c.width, c.height, c.imgPath);
+
+	if (clusterDbSayWithPET == null) {
+	    try {
+		clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+	    } catch (Exception e) {
+		System.out.println(e.toString());
+		assert(false);
+	    }
+	}
+
+	this.nSegments = clusterDbSayWithPET.getByPath(c.imgPath).acceptableNS();
     }
 
 
@@ -76,8 +98,8 @@ public class ClusterServerSide extends Cluster {
 	// Read in all the Cluster info into a ClusterDatabase.
 	// I might prefer this to be done in Simulation and maybe even stored,
 	// but this is ok for now.
-	final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
-	ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+	if (clusterDbSayWithPET == null)
+	    clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
 	Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
