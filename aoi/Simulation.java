@@ -176,14 +176,13 @@ public class Simulation
 
 		System.out.println("Waiting for clients to connect...");
 		for (int j=0; j<2; ++j) {
+		    listenerSockets[j] = listenerServSockets[j].accept();
+		    senderSockets[j] = senderServSockets[j].accept();
+		    System.out.println("Player " + j + " connected.");
 
 		    // Don't buffer data before sending TCP packets.
 		    listenerSockets[j].setTcpNoDelay(true);
 		    senderSockets[j].setTcpNoDelay(true);
-
-		    listenerSockets[j] = listenerServSockets[j].accept();
-		    senderSockets[j] = senderServSockets[j].accept();
-		    System.out.println("Player " + j + " connected.");
 		}
 
 
