@@ -22,7 +22,12 @@ a = [a.Area];
 s = flipud(sortrows([a(:) (1:length(a))']));
 s(1:2,:) = [];
 
-%% allows the user to label the images
+save temp;
+
+%%
+load temp
+LABELING_RELIABILITY = 0.9;
+% allows the user to label the images
 % writes the images, labels, polygon contours to their respective files
 for i = 1:size(s, 1)
     % make a binary mask for region i
@@ -42,6 +47,7 @@ for i = 1:size(s, 1)
     % display the image and get the label
     h1 = figure(1);
     imshow(patch_crop);
+    title(sprintf('%u of %u', i, size(s, 1)));
     k = waitforbuttonpress;
     label = str2double(get(h1, 'CurrentCharacter'));
     
@@ -66,7 +72,7 @@ for i = 1:size(s, 1)
     % write an initial database entry to a file
     meta_file = fopen(sprintf('../segments_meta/fly/%04u.txt', i), 'w');
     fprintf(meta_file, '%04u.jpg\n', i);
-    fprintf(meta_file, '%u:%.2f\n,', label, 1);
+    fprintf(meta_file, '%u:%.2f,\n', label, LABELING_RELIABILITY);
     fprintf(meta_file, '\n');
     fclose(meta_file);
     
