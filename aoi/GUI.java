@@ -121,7 +121,7 @@ public class GUI implements Runnable {
 
     }
 
-
+    @SuppressWarnings("unchecked")
     private void drawGameState(Arena m, GameState g) {
 
 	StdDraw.clear(StdDraw.BLACK);
