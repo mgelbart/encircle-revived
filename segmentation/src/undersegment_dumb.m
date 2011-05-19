@@ -26,6 +26,10 @@ save temp;
 
 %%
 load temp
+
+
+meta_file = fopen('../meta/fly.txt', 'w');
+
 LABELING_RELIABILITY = 0.9;
 % allows the user to label the images
 % writes the images, labels, polygon contours to their respective files
@@ -48,13 +52,21 @@ for i = 1:size(s, 1)
     h1 = figure(1);
     imshow(patch_crop);
     title(sprintf('%u of %u', i, size(s, 1)));
-    k = waitforbuttonpress;
-    label = str2double(get(h1, 'CurrentCharacter'));
-    
-    % if you want to discard the image
-    if isnan(label)
-        continue;
+
+    label = [];
+    while isempty(label)
+        k = waitforbuttonpress;
+        label = get(h1, 'CurrentCharacter');
+        if label == ' ' % if you want to discard the image
+            break;
+        end
+        label = str2double(label);
+        if ((label < 0) || (label > 10)) || ~(label > 0 && label < 10)
+            label = [];
+        end
     end
+
+    fprintf(meta_file, '%04u\n', i);
     
     % write the image to a file
     imwrite(patch_crop, sprintf('../images/fly/%04u.jpg', i), 'jpg');
@@ -70,12 +82,13 @@ for i = 1:size(s, 1)
     fclose(polygon_file);
     
     % write an initial database entry to a file
-    meta_file = fopen(sprintf('../segments_meta/fly/%04u.txt', i), 'w');
-    fprintf(meta_file, '%04u.jpg\n', i);
-    fprintf(meta_file, '%u:%.2f,\n', label, LABELING_RELIABILITY);
-    fprintf(meta_file, '\n');
-    fclose(meta_file);
+    nsegments_file = fopen(sprintf('../segment_likelihoods/fly/%04u.txt', i), 'w');
+    %fprintf(nsegments_file, '%04u.jpg\n', i);
+    fprintf(nsegments_file, '%u:%.2f,\n', label, LABELING_RELIABILITY);
+    fprintf(nsegments_file, '\n');
+    fclose(nsegments_file);
     
 end
 close(1)
+close(meta_file);
    
