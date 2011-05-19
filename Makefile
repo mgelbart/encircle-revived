@@ -18,7 +18,7 @@ clean:
 	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class
 
 run_serv:
-	java -ea aoi/Simulation
+	java -ea aoi/Simulation < server.conf
 
 run_client0:
 	java -ea aoi/Client < client0local.conf

@@ -107,8 +107,14 @@ public class Simulation
     private final Thread[] senderThreads = new Thread[NUMPLAYERS];
     private final Thread[] listenerThreads = new Thread[NUMPLAYERS];
 
-
     public static void main(String argv[]) throws Exception {
+
+	// Parse input options:
+ 	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+	reader.readLine();
+	final boolean generateNewMap = Boolean.parseBoolean(reader.readLine());
+
 
 	ServerSocket[] listenerServSockets = new ServerSocket[NUMPLAYERS];
 	ServerSocket[] senderServSockets = new ServerSocket[NUMPLAYERS];
@@ -124,19 +130,36 @@ public class Simulation
 
 	Simulation simulation = new Simulation();
 
-	// For now, two of each nSegments from 1 to 7
-	simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
+	if (generateNewMap) {
 
-	simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
+	    // For now, two of each nSegments from 1 to 7
+	    simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
 
-	try {
-	    FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
-	    BufferedWriter buf = new BufferedWriter(writer);
-	    buf.write(simulation.arena.toString());
-	    buf.close();
-	} catch (Exception e) {
-	    System.out.println(e.toString());
-	    assert(false);
+	    simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
+
+	    try {
+		FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
+		BufferedWriter buf = new BufferedWriter(writer);
+		buf.write(simulation.arena.toString());
+		buf.close();
+	    } catch (Exception e) {
+		System.out.println(e.toString());
+		assert(false);
+	    }
+
+	} else {
+
+	    try {
+
+		simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
+		for (Cluster c : simulation.arena.clusters)
+		    simulation.clusters.add(new ClusterServerSide(c));
+
+	    } catch (Exception e) {
+		System.out.println(e.toString());
+		assert(false);
+	    }
+
 	}
 
 	System.out.println("Arena generated.");

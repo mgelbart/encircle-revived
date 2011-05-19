@@ -79,4 +79,16 @@ public class ClusterDatabase {
     }
 
 
+    // Return the metadata for one particular image stored in 'path'.
+    public ProtoCluster getByPath(String path) {
+
+	for (ProtoCluster p : allProtoClusters) {
+	    if (p.filepath.equals(path))
+		return p;
+	}
+
+	assert(false);
+	return null;
+    }
+
 }
