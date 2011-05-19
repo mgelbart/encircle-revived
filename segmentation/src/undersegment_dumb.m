@@ -9,9 +9,9 @@ x = double(imread('fly3.tif'))/256;
 y = get_membs_v3(x, 20, 70, .5);
  
 % show the undersegmentation as an overlay over the original
-out(:,:,1) = x;
-out(:,:,3) = y;
-figure, imshow(out);
+% out(:,:,1) = x;
+% out(:,:,3) = y;
+% figure, imshow(out);
 
 % label the regions and find the areas
 z  = bwlabel(~y, 4);
@@ -23,6 +23,8 @@ s = flipud(sortrows([a(:) (1:length(a))']));
 s(1:2,:) = [];
 
 %% write the images to a file
+
+
 
 for i = 1:1%size(s, 1)
     % make a binary mask for region i
@@ -37,18 +39,38 @@ for i = 1:1%size(s, 1)
     mask_crop = mask(min(yy):max(yy),min(xx):max(xx));
     
     % find the contour around the mask
-    C = countourc(mask, [0.5 0.5]);
+    C = contourc(mask_crop, [0.5 0.5]);
     
     % display the image and get the label
     h1 = figure(1);
     imshow(patch_crop);
     k = waitforbuttonpress;
-    get(h1, 'CurrentCharacter')
+    label = str2double(get(h1, 'CurrentCharacter'));
+    
+    % if you want to discard the image
+    if isnan(label)
+        continue;
+    end
     
     % write the image to a file
-    % imwrite(patch_crop, sprintf('fly/unlabeled/%04u.jpg', i), 'jpg');
+    imwrite(patch_crop, sprintf('../images/fly/%04u.jpg', i), 'jpg');
     
     % write the contour to a file
+    polygon_file = fopen('../polygons/fly/%04u.txt', i);
+    for j =  1:2
+        for k = 1:size(C, 2);
+            fprintf(polygon_file, '%.2f,', C(j, k));
+        end
+        fprintf(polygon_file, '\n');
+    end
+    fclose(polygon_file);
+    
+    % write an initial database entry to a file
+    meta_file = fopen('../segments_meta/fly/%04u.txt', i);
+    fprintf(meta_file, '%04u.jpg\n', i);
+    fprintf('%u:%.2f\n,', label, 1);
+    fprintf('\n');
+    fclose(meta_file);
     
 end
     
