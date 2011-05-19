@@ -22,11 +22,9 @@ a = [a.Area];
 s = flipud(sortrows([a(:) (1:length(a))']));
 s(1:2,:) = [];
 
-%% write the images to a file
-
-
-
-for i = 1:1%size(s, 1)
+%% allows the user to label the images
+% writes the images, labels, polygon contours to their respective files
+for i = 1:size(s, 1)
     % make a binary mask for region i
     mask = z==s(i,2);
     
@@ -73,31 +71,5 @@ for i = 1:1%size(s, 1)
     fclose(meta_file);
     
 end
-    
-    
-%%
-%figure, imshow(z)
-
-%figure, imshow(y(170:320, 420:670))
-
-
-% sz = 5;
-% blurred = filter2(ones(sz)/sz/sz, x);
-% 
-% figure, imshow(blurred)
-% 
-% bw = blurred > .17;
-% 
-% figure, imshow(bw)
-% 
-% %bw2 = bwmorph(bw, 'close', Inf);
-% % sz = 5;
-% % se = strel(ones(sz));
-% % bw = imerode(imdilate(bw, se), se);
-% % 
-% % figure, imshow(bw)
-% 
-% bw3 = bwmorph(bw, 'shrink', Inf);
-% bw3 = bwmorph(bw3, 'clean');
-% 
-% imshow(bw3)
+close(1)
+   
