@@ -39,9 +39,15 @@ for i = 1:1%size(s, 1)
     % find the contour around the mask
     C = countourc(mask, [0.5 0.5]);
     
+    % display the image and get the label
+    h1 = figure(1);
+    imshow(patch_crop);
+    k = waitforbuttonpress;
+    get(h1, 'CurrentCharacter')
+    
     % write the image to a file
     % imwrite(patch_crop, sprintf('fly/unlabeled/%04u.jpg', i), 'jpg');
-   
+    
     % write the contour to a file
     
 end
