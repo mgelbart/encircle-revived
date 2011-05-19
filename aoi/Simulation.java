@@ -392,9 +392,29 @@ public class Simulation
 		        loop = checkForIntersection(j, i);
 		        
 		        if (loop != null) {
+			    erasePath = true;
+
 		            if (checkForScoring(j, loop)) score++;
 
-			    erasePath = true;
+			    // Check if the other player got pwned.
+			    for (int k=0; k<NUMPLAYERS; ++k) {
+				if (k==j) continue;
+
+				if (loop.contains(states[k].x, states[k].x)) {
+
+				    // This is a bit ugly...
+				    states[k] = new PlayerState(k, states[k].x,
+								states[k].y,
+								states[k].vx,
+								states[k].vy,
+								states[k].direction,
+								states[k].energy,
+								states[k].currentLoop,
+								states[k].score - 1);
+
+				}
+			    }
+
 		        }
 		    }
 
