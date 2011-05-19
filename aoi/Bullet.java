@@ -15,7 +15,7 @@ import java.io.*;
 public class Bullet implements Cloneable {
 
     /* The bullet speed is a universal constant. */
-    public static final int SPEED = Simulation.ARENASIZE * 5 * Simulation.TIMESTEP /8000;
+    public static final int SPEED = Simulation.ARENASIZE * Simulation.TIMESTEP / 1000 * 1;
  
     /* Minimum time between firing two bullets. */
     public static final int RELOADTIME = 400 / Simulation.TIMESTEP;
