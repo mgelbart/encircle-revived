@@ -50,24 +50,29 @@ public class GameState implements Cloneable {
 	return s.toString();
     }
 
-    public void serialize(DataOutputStream o) {
+    public void serialize(OutputStream o) {
+
+	BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
+	DataOutputStream b = new DataOutputStream(bufferedStream);
 
 	try {
 
-	    o.writeBytes("t");
-	    o.writeInt(time);
+	    b.writeBytes("t");
+	    b.writeInt(time);
 
 	    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-		states[j].serialize(o);
+		states[j].serialize(b);
 
-	    o.writeBytes("b");
-	    o.writeInt(bullets.size());
+	    b.writeBytes("b");
+	    b.writeInt(bullets.size());
 
 	    for (int j=0; j<bullets.size(); ++j)
-		bullets.get(j).serialize(o);
+		bullets.get(j).serialize(b);
+
+	    bufferedStream.flush();
 
 	} catch (IOException ioe) {
-	    System.out.println(ioe.toString());
+	    System.err.println(ioe.toString());
 	    assert(false);
 	}
 

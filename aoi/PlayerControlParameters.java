@@ -51,25 +51,32 @@ public class PlayerControlParameters implements Cloneable {
 	return s.toString();
     }
 
-    public void serialize(DataOutputStream o) {
+    public void serialize(OutputStream o) {
+
+	BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
+	DataOutputStream b = new DataOutputStream(bufferedStream);
+
 	try {
 
 	    // Signal start of a new command:
-	    o.writeBytes("$");
+	    b.writeBytes("$");
 
-	    o.writeBytes("a");
-	    o.writeInt(acceleration);
+	    b.writeBytes("a");
+	    b.writeInt(acceleration);
 
-	    o.writeBytes("d");
-	    o.writeInt(targetDirection);
+	    b.writeBytes("d");
+	    b.writeInt(targetDirection);
 
-	    o.writeBytes("s");
-	    o.writeInt(shotsToTake);
+	    b.writeBytes("s");
+	    b.writeInt(shotsToTake);
 
-	    o.writeBytes("b");
-	    o.writeInt(boostsToTake);
+	    b.writeBytes("b");
+	    b.writeInt(boostsToTake);
+
+	    bufferedStream.flush();
 
 	} catch (IOException ioe) {
+	    System.err.println(ioe.toString());
 	    assert(false);
 	}
 
