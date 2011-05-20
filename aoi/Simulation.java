@@ -404,7 +404,7 @@ public class Simulation
 			    for (int k=0; k<NUMPLAYERS; ++k) {
 				if (k==j) continue;
 
-				if (loop.contains(states[k].x, states[k].x)) {
+				if (loop.contains(states[k].x, states[k].y)) {
 
 				    // This is a bit ugly...
 				    states[k] = new PlayerState(k, states[k].x,
