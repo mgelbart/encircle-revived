@@ -406,15 +406,8 @@ public class Simulation
 
 				if (loop.contains(states[k].x, states[k].y)) {
 
-				    // This is a bit ugly...
-				    states[k] = new PlayerState(k, states[k].x,
-								states[k].y,
-								states[k].vx,
-								states[k].vy,
-								states[k].direction,
-								states[k].energy,
-								states[k].currentLoop,
-								states[k].score - 1);
+				    // This is a bit beautiful..
+					states[k] = new PlayerState(states[k], "score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
 				}
 			    }
@@ -459,20 +452,13 @@ public class Simulation
 			    
 			    remove = true;
 
-			    // This is a bit ugly but whatever...
+			    // This is a bit beautiful but whatever...
 		    	    playerStatesInt[j].trajectory.clear();
 			    curPoint = new Point(states[j].x, states[j].y);
 			    playerStatesInt[j].trajectory.add(
 				   new Line2D.Double(curPoint, curPoint));
 			    
-			    states[j] = new PlayerState(j, states[j].x,
-							states[j].y,
-							states[j].vx,
-							states[j].vy,
-							states[j].direction,
-							states[j].energy,
-							game.time,
-							states[j].score);
+				states[j] = new PlayerState(states[j], "currentLoop", game.time);
 
 			}
 		    }

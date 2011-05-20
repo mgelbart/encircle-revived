@@ -27,10 +27,10 @@ public class PlayerState implements Cloneable {
     public final int energy;
 
     // The time at which the last loop was completed/current one started.
-    public final int currentLoop;
+    public int currentLoop;  // I MADE THEM NOT FINAL
 
     // How many clusters the player has collected already
-    public final int score;
+    public int score;  // I MADE THEM NOT FINAL
 
 
     public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int currentLoop, int score) {
@@ -47,6 +47,22 @@ public class PlayerState implements Cloneable {
 	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
     }
+
+	// make a copy
+    public PlayerState(PlayerState that) {
+		this(that.playerNo, that.x, that.y, that.vx, that.vy, that.direction, that.energy, that.currentLoop, that.score);
+	}
+	// make a copy but set some parameter
+	public PlayerState(PlayerState that, String key, int value) {
+		this(that);
+		if (key.equals("score"))
+			this.score = value;
+		else if (key.equals("currentLoop"))
+			this.currentLoop = value;
+		else 
+			assert(false);  // lol
+	}
+	
 
     public PlayerState clone() {
 	try {
