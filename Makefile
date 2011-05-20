@@ -23,5 +23,11 @@ run_serv:
 run_client0:
 	java -ea aoi/Client < client0local.conf
 
+run_client0r:
+	java -ea aoi/Client < client0remote.conf
+
 run_client1:
 	java -ea aoi/Client < client1local.conf
+
+run_client1r:
+	java -ea aoi/Client < client1remote.conf
