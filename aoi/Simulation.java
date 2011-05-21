@@ -255,7 +255,7 @@ public class Simulation
 
 	// Some temp variables used during calculation
 	int[] nextPos;
-	int dir, x, y, vx, vy, energy, score, currentLoop;
+	int dir, x, y, vx, vy, energy, score, loopStarted;
 
 	Bullet b;
 	boolean remove;
@@ -413,12 +413,12 @@ public class Simulation
 			playerStatesInt[j].trajectory.clear();
 			playerStatesInt[j].trajectory.add(
 				 new Line2D.Double(curPoint, curPoint));
-			currentLoop = game.time;
+			loopStarted = game.time;
 		    } else {
-			currentLoop = states[j].currentLoop;
+			loopStarted = states[j].loopStarted;
 		    }
 		    
-		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, currentLoop, score);
+		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, loopStarted, score);
 		
 		}
 
@@ -452,7 +452,7 @@ public class Simulation
 			    playerStatesInt[j].trajectory.add(
 				   new Line2D.Double(curPoint, curPoint));
 			    
-				states[j] = states[j].clone("currentLoop", game.time);
+				states[j] = states[j].clone("loopStarted", game.time);
 
 			}
 		    }

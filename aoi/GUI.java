@@ -52,6 +52,9 @@ public class GUI implements Runnable {
     private int[] lastScoringTime;
     private Vector<Point2D>[] lastScoringLoop;
 
+    // Set to true if the player lost rather than scored points.
+    private boolean[] pwned;
+
 
     @SuppressWarnings("unchecked")
 	public GUI(Arena arena, ClientConfiguration config) {
@@ -66,6 +69,7 @@ public class GUI implements Runnable {
 	lastScore = new int[Simulation.NUMPLAYERS];
 	lastScoringTime = new int[Simulation.NUMPLAYERS];
 	lastScoringLoop = new Vector[Simulation.NUMPLAYERS];
+	pwned = new boolean[Simulation.NUMPLAYERS];
 
 	for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
 	    currentLoopStarted[j] = -999;
@@ -73,6 +77,7 @@ public class GUI implements Runnable {
 
 	    lastScore[j] = 0;
 	    lastScoringTime[j] = -999;
+	    pwned[j] = false;
 	}
 
 	StdDraw.setCanvasSize(700, 700);
@@ -141,17 +146,21 @@ public class GUI implements Runnable {
 	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
 	
 	PlayerState p;
+
 	for (int j=0; j<2; ++j) {
 	    p = g.states[j];
 
-	    // Store the previous loop if the score increased
 	    if (p.score > lastScore[j]) {
+		// Store the previous loop if the score increased
 		lastScore[j] = p.score;
 		lastScoringTime[j] = g.time;
 		lastScoringLoop[j] = (Vector<Point2D>) loop[j].clone();
+		pwned[j] = false;
 	    } else if (p.score < lastScore[j]) {
-		// Don't want to highlight the path if the score decreased!
+		// pwned!
 		lastScore[j] = p.score;
+		lastScoringTime[j] = g.time;
+		pwned[j] = true;
 	    }
 
 	    // Draw the ship
@@ -165,17 +174,25 @@ public class GUI implements Runnable {
 		    xydbl[k][l] = xy[k][l];
 	    }
 
+	    if (pwned[j]
+		&& g.time - lastScoringTime[j] < 1500/Simulation.TIMESTEP) {
+		StdDraw.setPenColor(StdDraw.GREEN);
+	    } else {
+		if (j == config.playerNo)
+		    StdDraw.setPenColor(StdDraw.RED);
+		else
+		    StdDraw.setPenColor(StdDraw.BLUE);
+	    }
+
+	    StdDraw.polygon(xydbl[0], xydbl[1]);
+
+	    //  Draw the loop
 	    if (j == config.playerNo)
 		StdDraw.setPenColor(StdDraw.RED);
 	    else
 		StdDraw.setPenColor(StdDraw.BLUE);
 
-
-	    StdDraw.polygon(xydbl[0], xydbl[1]);
-
-	    //  Draw the loop
-
-	    if (currentLoopStarted[j] == p.currentLoop) {
+	    if (currentLoopStarted[j] == p.loopStarted) {
 
 		Point point = new Point(p.x, p.y);
 		if (loop[j].size() == 0 || !loop[j].lastElement().equals(point))
@@ -183,7 +200,7 @@ public class GUI implements Runnable {
 
 	    } else {
 
-		currentLoopStarted[j] = p.currentLoop;
+		currentLoopStarted[j] = p.loopStarted;
 		loop[j].clear();
 
 	    }
@@ -193,7 +210,7 @@ public class GUI implements Runnable {
 
 
 	    // Draw the scoring loop if recent:
-	    if (lastScoringLoop[j] != null
+	    if (!pwned[j] && lastScoringLoop[j] != null
 		&& g.time - lastScoringTime[j] < 1500/Simulation.TIMESTEP) {
 
 		StdDraw.setPenRadius((g.time - lastScoringTime[j])

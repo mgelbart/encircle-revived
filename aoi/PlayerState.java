@@ -27,13 +27,13 @@ public class PlayerState implements Cloneable {
     public final int energy;
 
     // The time at which the last loop was completed/current one started.
-    public final int currentLoop;
+    public final int loopStarted;
 
     // How many clusters the player has collected already
     public final int score;
 
 
-    public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int currentLoop, int score) {
+    public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score) {
 	this.playerNo = playerNo;
 	this.x = x;
 	this.y = y;
@@ -41,7 +41,7 @@ public class PlayerState implements Cloneable {
 	this.vy = vy;
 	this.direction = direction;
 	this.energy = energy;
-	this.currentLoop = currentLoop;
+	this.loopStarted = loopStarted;
 	this.score = score;
 
 	assert(playerNo < Simulation.NUMPLAYERS);
@@ -67,17 +67,17 @@ public class PlayerState implements Cloneable {
 	int vy = this.vy;
 	int direction = this.direction;
 	int energy = this.energy;
-	int currentLoop = this.currentLoop;
+	int loopStarted = this.loopStarted;
 	int score = this.score;
 
 	if (key.equals("score"))
 	    score = value;
-	else if (key.equals("currentLoop"))
-	    currentLoop = value;
+	else if (key.equals("loopStarted"))
+	    loopStarted = value;
 	else 
 	    assert(false);  // lol
 
-	return new PlayerState(playerNo, x, y, vx, vy, direction, energy, currentLoop, score);
+	return new PlayerState(playerNo, x, y, vx, vy, direction, energy, loopStarted, score);
     }
 
 
@@ -127,7 +127,7 @@ public class PlayerState implements Cloneable {
 	    o.writeInt(energy);
 
 	    o.writeBytes("l");
-	    o.writeInt(currentLoop);
+	    o.writeInt(loopStarted);
 
 	    o.writeBytes("s");
 	    o.writeInt(score);
