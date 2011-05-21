@@ -457,7 +457,7 @@ public class Simulation
 			if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
 			xy = states[j].shape();
-			p = new Polygon(xy[0], xy[1], 4);
+			p = new Polygon(xy[0], xy[1], xy[0].length);
 
 			if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    
