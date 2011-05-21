@@ -75,6 +75,9 @@ public class Simulation
     // The number of players in the game. Currently not adjustable.
     public static final int NUMPLAYERS = 2;
 
+    // The length of the sequence you need to collect.
+    public static final int POINTSPERROUND = 7;
+
     /****
      Public fields used to communicate with PlayerListener
      and GameStateSender threads.
@@ -297,6 +300,20 @@ public class Simulation
 
 		if (game.time % 100 == 0)
 		    System.out.println("Current local time: " + game.time);
+
+		// Check if one of the players won.
+		for (int j=0; j<NUMPLAYERS; ++j) {
+
+		    assert(states[j].score <= POINTSPERROUND);
+
+		    if (states[j].score == POINTSPERROUND) {
+			for (int k=0; k<NUMPLAYERS; ++k) {
+			    playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
+			    states[k] = states[k].clone("score", 0);
+			}
+		    }
+
+		}
 
 		// Check for players waiting to be respawn:
 		for (int j=0; j<NUMPLAYERS; ++j) {
