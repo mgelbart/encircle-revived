@@ -250,7 +250,7 @@ public class Simulation
     @SuppressWarnings("unchecked")
     private void startGame() {
 
-	PlayerState[] states = new PlayerState[NUMPLAYERS];
+	PlayerState[] states = (PlayerState[]) (game.states.clone());
 	Vector<Bullet> bullets = new Vector<Bullet>();
 
 	// Some temp variables used during calculation
@@ -298,12 +298,6 @@ public class Simulation
 		if (game.time % 100 == 0)
 		    System.out.println("Current local time: " + game.time);
 
-
-		// Need to clone the bullet vector because the other threads may
-		// still need the old bullet vector (part of the old game state).    
-		bullets = (Vector<Bullet>) bullets.clone();
-
-
 		// Check for players waiting to be respawn:
 		for (int j=0; j<NUMPLAYERS; ++j) {
 		    if (playerStatesInt[j].respawnTimeLeft == 1)
@@ -328,7 +322,7 @@ public class Simulation
 
 
 		    // Add one point of energy every RECHARGEPERIOD steps.
-		    energy = Math.min(MAXENERGY, game.states[j].energy
+		    energy = Math.min(MAXENERGY, states[j].energy
 				      + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
 
 
@@ -346,9 +340,9 @@ public class Simulation
 		    } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
 			bullets.add(new Bullet(j,
-					       game.states[j].x,
-					       game.states[j].y,
-					       game.states[j].direction));
+					       states[j].x,
+					       states[j].y,
+					       states[j].direction));
 
 			playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
 			erasePath = true;
@@ -357,7 +351,7 @@ public class Simulation
 
 
 		    // Calculate where the player moved.
-		    nextPos = SimulationUtils.nextPosition(game.states[j], playerStatesInt[j].params);
+		    nextPos = SimulationUtils.nextPosition(states[j], playerStatesInt[j].params);
 
 		    x = nextPos[0];
 		    y = nextPos[1];
@@ -388,7 +382,7 @@ public class Simulation
 	    	    // Check if the paths cross eachother, O(N).
 	            // Remove all paths that are crossed.
 	            // Also checks if players scored.
-		    score = game.states[j].score;
+		    score = states[j].score;
 		    
 		    // Check if any player (including j) is crossing j's path
 	    	    for (int i=0; i<NUMPLAYERS; ++i) {
@@ -421,7 +415,7 @@ public class Simulation
 				 new Line2D.Double(curPoint, curPoint));
 			currentLoop = game.time;
 		    } else {
-			currentLoop = game.states[j].currentLoop;
+			currentLoop = states[j].currentLoop;
 		    }
 		    
 		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, currentLoop, score);

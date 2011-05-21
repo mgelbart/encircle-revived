@@ -13,12 +13,13 @@ public class GameState implements Cloneable {
     public final PlayerState[] states;
     public final Vector<Bullet> bullets;
 
+    @SuppressWarnings("unchecked")
     public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
 	assert(states.length == Simulation.NUMPLAYERS);
 
 	this.time = time;
-	this.states = states;
-	this.bullets = bullets;
+	this.states = (PlayerState[]) states.clone();
+	this.bullets = (Vector<Bullet>) bullets.clone();
     }
 
     public GameState clone() {
