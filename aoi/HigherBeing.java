@@ -34,7 +34,6 @@ public class HigherBeing implements Intelligence {
     // Last time ctrl was changed.
     int lastAction = -999999;
 
-
     public HigherBeing(ClientConfiguration config, Arena arena) {
 
 	this.config = config;
@@ -128,7 +127,7 @@ public class HigherBeing implements Intelligence {
 		    dir = games[0].states[config.playerNo].direction
 			- Simulation.INTMAX/2;
 		    update = true;
-		} else if (dir != games[0].states[config.playerNo].direction) {
+		} else if (Math.abs(dir - games[0].states[config.playerNo].direction) > 10*Simulation.OMEGA) {
 		    dir = games[0].states[config.playerNo].direction;
 		    update = true;
 		}		    
