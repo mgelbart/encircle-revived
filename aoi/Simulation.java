@@ -407,7 +407,7 @@ public class Simulation
 				if (loop.contains(states[k].x, states[k].y)) {
 
 				    // This is a bit beautiful..
-					states[k] = new PlayerState(states[k], "score", 0);   // set score to 0 if you are enclosed by the other player!!!!
+				    states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
 				}
 			    }
@@ -458,7 +458,7 @@ public class Simulation
 			    playerStatesInt[j].trajectory.add(
 				   new Line2D.Double(curPoint, curPoint));
 			    
-				states[j] = new PlayerState(states[j], "currentLoop", game.time);
+				states[j] = states[j].clone("currentLoop", game.time);
 
 			}
 		    }
