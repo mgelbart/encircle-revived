@@ -140,7 +140,7 @@ public class GUI implements Runnable {
 
 
 	int xy[][];
-	double xydbl[][] = new double[2][4];
+	double xydbl[][];
 
 	for (Cluster v : m.clusters)
 	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
@@ -169,8 +169,9 @@ public class GUI implements Runnable {
 
 	    // Have to cast these things by hand because you can't cast
 	    // a whole array at once (I think).
+	    xydbl = new double[2][xy[0].length];
 	    for (int k=0; k<2; ++k) {
-		for (int l=0; l<4; ++l)
+		for (int l=0; l<xy[0].length; ++l)
 		    xydbl[k][l] = xy[k][l];
 	    }
 

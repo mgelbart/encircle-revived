@@ -204,14 +204,14 @@ public class PlayerState implements Cloneable {
 
 	int x, y;
 
-	int px[] = new int[4];
-	int py[] = new int[4];
+	int px[] = new int[3];
+	int py[] = new int[3];
 
-	for (int j=0; j<4; ++j) {
+	for (int j=0; j<3; ++j) {
 
-	    // Generate one of the four corners relative to origin.
-	    x = ((j==0 || j==1)?  1:-1) * SHIPLENGTH / 2;
-	    y = ((j==0 || j==3)? -1: 1) * SHIPWIDTH  / 2;
+	    // Generate one of the three corners relative to origin.
+	    x = ((j==1) ? -1:1) * SHIPLENGTH / 2;
+	    y = (j-1) * SHIPWIDTH / 2;
 
 	    // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
 	    // and translate to player location.
