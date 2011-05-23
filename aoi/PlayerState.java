@@ -210,7 +210,7 @@ public class PlayerState implements Cloneable {
 	for (int j=0; j<3; ++j) {
 
 	    // Generate one of the three corners relative to origin.
-	    x = ((j==1) ? -1:1) * SHIPLENGTH / 2;
+	    x = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
 	    y = (j-1) * SHIPWIDTH / 2;
 
 	    // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
