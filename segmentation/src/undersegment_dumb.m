@@ -81,16 +81,13 @@ while size(C,2) > MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS
         theta = theta*180/pi;
         if theta < MIN_ANGLE
             Ccopy(:,j) = [];
-            fprintf('removed angle %f\n', theta);
-        else
-            fprintf('kept angle %f\n', theta);
         end
         
     end
     C = Ccopy;
     
 end
-keyboard
+fprintf('extracted contour with %u points\n', size(C,2));
     
     % the above doesn't work so well, because it's hard to get rid of
     % useless points. for now, just get convex hull
@@ -115,7 +112,6 @@ keyboard
 %         
 %     end
     
-    keyboard
     
     % display the image and get the label
     h1 = figure(1);
