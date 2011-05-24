@@ -42,11 +42,80 @@ for i = 1:size(s, 1)
     
     % crop to a rectangular bounding box
     [yy xx] = find(patch);
+    PAD = 1; 
     patch_crop = patch(min(yy):max(yy),min(xx):max(xx));
     mask_crop = mask(min(yy):max(yy),min(xx):max(xx));
     
+    patch_crop_new = zeros(size(patch_crop)+2*PAD);
+    mask_crop_new  = zeros(size(mask_crop)+2*PAD);
+    
+    patch_crop_new(1+PAD:end-PAD,1+PAD:end-PAD) = patch_crop;
+    mask_crop_new(1+PAD:end-PAD,1+PAD:end-PAD) = mask_crop;
+    
+    patch_crop = patch_crop_new;
+    mask_crop = mask_crop_new;
+    
     % find the contour around the mask
     C = contourc(mask_crop, [0.5 0.5]);
+    C(:,1) = [];
+    % reduce the number of contour points by imposing a maximum angle  
+    % on three adjacent points
+  
+    
+MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS = 45;
+while size(C,2) > MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS
+    windowSize = 3;
+    Cfilter = filter(ones(1,windowSize)/windowSize, 1, C.').';
+    Cfilter = Cfilter(:,windowSize:end-(windowSize-2));
+    C = Cfilter;
+    
+    Ccopy = C;
+    MIN_ANGLE = 15;  % angles of less than this many degrees are removed
+    for j = size(C, 2)-1:-1:2
+        xy = C(:,j-1:j+1);
+        xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
+        theta1 = atan2(xy(2,1),xy(1,1));
+        theta3 = atan2(xy(2,3),xy(1,3));
+        theta = abs(theta1-theta3);
+        theta = abs(theta - pi);
+        theta = theta*180/pi;
+        if theta < MIN_ANGLE
+            Ccopy(:,j) = [];
+            fprintf('removed angle %f\n', theta);
+        else
+            fprintf('kept angle %f\n', theta);
+        end
+        
+    end
+    C = Ccopy;
+    
+end
+keyboard
+    
+    % the above doesn't work so well, because it's hard to get rid of
+    % useless points. for now, just get convex hull
+%     R = regionprops(mask_crop, 'ConvexHull');
+%     C = R.ConvexHull.';
+%     Ccopy = C;
+%     MIN_ANGLE = 20;
+%     for j = size(C, 2)-1:-1:2
+%         xy = C(:,j-1:j+1);
+%         xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
+%         theta1 = atan2(xy(2,1),xy(1,1));
+%         theta3 = atan2(xy(2,3),xy(1,3));
+%         theta = abs(theta1-theta3);
+%         theta = abs(theta - pi);
+%         theta = theta*180/pi;
+%         if theta < MIN_ANGLE
+%             Ccopy(:,j) = [];
+%             fprintf('removed angle %f\n', theta);
+%         else
+%             fprintf('kept angle %f\n', theta);
+%         end
+%         
+%     end
+    
+    keyboard
     
     % display the image and get the label
     h1 = figure(1);
