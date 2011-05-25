@@ -4,7 +4,7 @@ package aoi;
   A class for connecting to the server and parsing the game state
   and sending the desired control parameters.
  */
-// testing making a comment... (mike)
+
 import java.io.*;
 import java.net.*;
 
@@ -13,20 +13,15 @@ public class Client {
     public static void main(String argv[]) throws Exception {
 
 
-	Socket controlSocket;
-	Socket stateSocket;
+	Socket socket;
 
 	ClientConfiguration config = ClientConfiguration.parse(System.in);
-
-	System.out.println(config);
 	
 	// Read input options from stdin.
-	controlSocket = new Socket(config.serverurl, config.controlPort);
-	stateSocket = new Socket(config.serverurl, config.gameStatePort);
+	socket = new Socket(config.serverUrl, config.serverPort);
 
 	// Don't buffer data before sending TCP packets.
-	controlSocket.setTcpNoDelay(true);
-	stateSocket.setTcpNoDelay(true);
+	socket.setTcpNoDelay(true);
 
 	// Read the Arena from a local file for now...
 	Arena arena = null;
@@ -40,8 +35,18 @@ public class Client {
 
 	try {
 
-	    DataInputStream stateStream = new DataInputStream(stateSocket.getInputStream());
-	    DataOutputStream controlStream = new DataOutputStream(controlSocket.getOutputStream());
+	    DataInputStream stateStream = new DataInputStream(socket.getInputStream());
+	    DataOutputStream controlStream = new DataOutputStream(socket.getOutputStream());
+
+
+	    /* Process the handshake */
+	    Byte cmd = stateStream.readByte();
+	    assert(cmd == 'p');
+	    config.setPlayerNo(stateStream.readInt());
+
+	    
+	    System.out.println(config);
+
 
 	    /* Run the intelligence in a separate thread so that parsing/serializing
 	       doesn't block thinking. */
@@ -67,14 +72,12 @@ public class Client {
 	    }
 
 	} catch (Exception e) {
-	    controlSocket.close();
-	    stateSocket.close();
+	    socket.close();
 
 	    throw e;
 	}
 
-	//controlSocket.close();
-	//stateSocket.close();
+	//socket.close();
     }
 
     private static GameState parseGameState(DataInputStream i) {
