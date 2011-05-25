@@ -264,6 +264,7 @@ public class Simulation
 	boolean remove;
 
 	int[][] xy;
+	int[] bulletPos = new int[2];
 	Polygon p;
 	boolean crashed;
 
@@ -447,8 +448,9 @@ public class Simulation
 		    // Whether the bullet hit something.
 		    remove = false;
 
-		    x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
-		    y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+		    bulletPos = SimulationUtils.nextBulletPosition(b);
+		    x = bulletPos[0];
+		    y = bulletPos[1];
 
 		    // TODO: This isn't an accurate way of doing this if
 		    //   the bullets/players move fast.

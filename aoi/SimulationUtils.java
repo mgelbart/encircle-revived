@@ -16,9 +16,15 @@ public class SimulationUtils {
 
        Note that this in particular does not tell you
        if you hit something (a boundary, cluster, bullet).
+
+       If both parameters are null this return an empty
+       int[] of the correct size.
+
      */
     public static int[] nextPosition(PlayerState state,
 				     PlayerControlParameters params) {
+
+	if (state == null && params == null) return new int[5];
 
 	Double a = Math.max(0.0, Simulation.MAXACC * (params.acceleration / (double) Simulation.INTMAX));
 
@@ -71,5 +77,25 @@ public class SimulationUtils {
 
     }
 
+
+    /* Returns an array of {x, y} after a single time step
+       given an initial bullet state.
+
+       Note that this in particular does not tell you
+       if the bullet hit something (a boundary, cluster).
+
+       If b is null this return an empty
+       int[] of the correct size.
+
+     */
+    public static int[] nextBulletPosition(Bullet b) {
+
+	if (b == null) return new int[2];
+
+	int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
+	int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+
+	return new int[]{x, y};
+    }
 
 }
