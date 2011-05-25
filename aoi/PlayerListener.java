@@ -19,13 +19,17 @@ public class PlayerListener implements Runnable {
     private DataInputStream client;
     private Simulation sim;
 
-    public PlayerListener(int player, Simulation sim, DataInputStream in) {
+    public PlayerListener(int player, Simulation sim, InputStream in) {
 	this.playerNo = player;
-	this.client = in;
+	this.client = new DataInputStream(in);
 	this.sim = sim;
 
 	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
+    }
+
+    public synchronized void setInput(InputStream in) {
+	this.client = new DataInputStream(in);
     }
 
     public void run() {

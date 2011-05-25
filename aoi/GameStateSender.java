@@ -16,12 +16,12 @@ import java.io.*;
 public class GameStateSender implements Runnable {
 
     private int playerNo;
-    private DataOutputStream client;
+    private OutputStream client;
     private Simulation sim;
 
     private int previousTime = -1;
 
-    public GameStateSender(int player, Simulation sim, DataOutputStream o) {
+    public GameStateSender(int player, Simulation sim, OutputStream o) {
 	this.playerNo = player;
 	this.sim = sim;
 	this.client = o;
@@ -30,18 +30,34 @@ public class GameStateSender implements Runnable {
 	assert(playerNo >= 0);
     }
 
+    public synchronized void setOutput(OutputStream out) {
+	this.client = out;
+    }
+
     public synchronized void run() {
 
 	GameState g;
 
-	// Sleep until interruption (triggered by Simulation
+	// First shake hands:
+	try {
+	    DataOutputStream ds = new DataOutputStream(client);
+	    ds.writeBytes("p");
+	    ds.writeInt(playerNo);
+	} catch (IOException ioe) {
+	    System.err.println(ioe.toString());
+	    assert(false);
+	}
 
+
+	// Sleep until interruption (triggered by Simulation
 	// when game state is updated);
 	while (true) {
 	    
 	    try {
 		wait();
 	    } catch (InterruptedException e) {
+
+		assert(client != null);
 
 		// Serialize & send game state
 		// Note: don't need locking since

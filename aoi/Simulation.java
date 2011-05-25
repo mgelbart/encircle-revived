@@ -100,124 +100,18 @@ public class Simulation
     private final PlayerStateInternal[] playerStatesInt = new PlayerStateInternal[2];
 
     // Static information about the game state.
-    private Arena arena;
+    public Arena arena;
 
     // This information is redundant because it's already in arena but it's more
     // convenient to check whether something hit a cluster with these rectangles...
-    private Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
+    public Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
     // References to sender/listener threads so we can interrupt them.
-    private final Thread[] senderThreads = new Thread[NUMPLAYERS];
-    private final Thread[] listenerThreads = new Thread[NUMPLAYERS];
-
-    public static void main(String argv[]) throws Exception {
-
-	// Parse input options:
- 	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-	reader.readLine();
-	final boolean generateNewMap = Boolean.parseBoolean(reader.readLine());
+    public Thread[] senderThreads = new Thread[NUMPLAYERS];
+    public Thread[] listenerThreads = new Thread[NUMPLAYERS];
 
 
-	ServerSocket[] listenerServSockets = new ServerSocket[NUMPLAYERS];
-	ServerSocket[] senderServSockets = new ServerSocket[NUMPLAYERS];
-
-	// I guess these Sockets will not be hardcoded in the future...?
-	int[] listenerServSocketNumbers = {7601, 7603};
-	int[] senderServSocketNumbers = {7602, 7604};
-	
-	for (int j = 0; j < NUMPLAYERS; ++j) {
-	    listenerServSockets[j] = new ServerSocket(listenerServSocketNumbers[j]);
-	    senderServSockets[j] =  new ServerSocket(senderServSocketNumbers[j]);
-	}
-
-	Simulation simulation = new Simulation();
-
-	if (generateNewMap) {
-
-	    // For now, two of each nSegments from 1 to 7
-	    simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
-
-	    simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
-
-	    try {
-		FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
-		BufferedWriter buf = new BufferedWriter(writer);
-		buf.write(simulation.arena.toString());
-		buf.close();
-	    } catch (Exception e) {
-		System.out.println(e.toString());
-		assert(false);
-	    }
-
-	} else {
-
-	    try {
-
-		simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
-		for (Cluster c : simulation.arena.clusters)
-		    simulation.clusters.add(new ClusterServerSide(c));
-
-	    } catch (Exception e) {
-		System.out.println(e.toString());
-		assert(false);
-	    }
-
-	}
-
-	System.out.println("Arena generated.");
-
-
-	while(true)
-	    {
-
-		Socket[] listenerSockets = new Socket[2];
-		Socket[] senderSockets = new Socket[2];
-
-		// Wait for clients to connect to all four ports.
-		// Would probably be better to have one thread per client here too...
-
-		System.out.println("Waiting for clients to connect...");
-		for (int j=0; j<2; ++j) {
-		    listenerSockets[j] = listenerServSockets[j].accept();
-		    senderSockets[j] = senderServSockets[j].accept();
-		    System.out.println("Player " + j + " connected.");
-
-		    // Don't buffer data before sending TCP packets.
-		    listenerSockets[j].setTcpNoDelay(true);
-		    senderSockets[j].setTcpNoDelay(true);
-		}
-
-
-		simulation.initGameState();
-
-
-		// Create the threads for communication with the clients
-		GameStateSender[] senders = new GameStateSender[NUMPLAYERS];
-		PlayerListener[] listeners = new PlayerListener[NUMPLAYERS];
-
-		for (int j=0; j<NUMPLAYERS; ++j) {
-		    senders[j] = new GameStateSender(j, simulation, new DataOutputStream(senderSockets[j].getOutputStream()));
-		    listeners[j] = new PlayerListener(j, simulation, new DataInputStream(listenerSockets[j].getInputStream()));
-
-		    // We need a reference to the sender threads to interrupt
-		    // them when the game sate is updated.
-		    simulation.senderThreads[j] = new Thread(senders[j]);
-		    simulation.listenerThreads[j] = new Thread(listeners[j]);
-		}
-
-		// Start the threads
-		for (int j=0; j<NUMPLAYERS; ++j) {
-		    simulation.senderThreads[j].start();
-		    simulation.listenerThreads[j].start();
-		}
-
-		// Start simulating the game!
-		simulation.startGame();
-	    }
-    }
-
-    private void initGameState() {
+    public void initGameState() {
 	PlayerState[] states = new PlayerState[NUMPLAYERS];
 
 	for (int j=0; j<NUMPLAYERS; ++j)
@@ -251,7 +145,7 @@ public class Simulation
     }
 
     @SuppressWarnings("unchecked")
-    private void startGame() {
+    public void startGame() {
 
 	PlayerState[] states = (PlayerState[]) (game.states.clone());
 	Vector<Bullet> bullets = new Vector<Bullet>();

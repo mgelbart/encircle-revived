@@ -10,42 +10,39 @@ import java.io.*;
 public class ClientConfiguration {
 
     // The server address, without port information.
-    public final String serverurl;
+    public final String serverUrl;
 
-    // The server port for receiving the game state.
-    public final int gameStatePort;
-
-    // The server port for sending commands to control the player.
-    public final int controlPort;
+    // The server port for receiving the game state and sending
+    // the control parameters.
+    public final int serverPort;
 
     // Player number in the game.
-    public final int playerNo;
+    public int playerNo;
 
     // True if the player is controlled entirely by the computer.
     public final boolean nonhuman;
 
 
-    public ClientConfiguration(String serverurl, int gameStatePort,
-			       int controlPort, int playerNo, boolean nonhuman) {
-	this.serverurl = serverurl;
-	this.gameStatePort = gameStatePort;
-	this.controlPort = controlPort;
+    public ClientConfiguration(String serverUrl, int serverPort,
+			       int playerNo, boolean nonhuman) {
+	this.serverUrl = serverUrl;
+	this.serverPort = serverPort;
 	this.playerNo = playerNo;
 	this.nonhuman = nonhuman;
 
-	assert(playerNo >= 0);
-	assert(playerNo < 2);
-	assert(controlPort > 1023);
-	assert(controlPort < 65536);
-	assert(gameStatePort > 1023);
-	assert(gameStatePort < 65536);
+	assert(serverPort > 1023);
+	assert(serverPort < 65536);
+    }
+
+
+    public void setPlayerNo(int p) {
+	this.playerNo = p;
     }
 
 
     public String toString() {
-	return "server:\n" + serverurl
-	    + "\nstate port:\n" + gameStatePort
-	    + "\ncontrol port:\n" + controlPort
+	return "server:\n" + serverUrl
+	    + "\nport:\n" + serverPort
 	    + "\nplayer no:\n" + playerNo
 	    + "\nnon-human:\n" + nonhuman;
     }
@@ -54,23 +51,17 @@ public class ClientConfiguration {
     public static ClientConfiguration parse(InputStream in) {
 	BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-	String serverurl;
-	int statePort, controlPort, playerNo;
+	String serverUrl;
+	int serverPort, playerNo;
 	boolean nonhuman;
 
 	try {
 
 	    reader.readLine();
-	    serverurl = reader.readLine();
+	    serverUrl = reader.readLine();
 
 	    reader.readLine();
-	    statePort = Integer.parseInt(reader.readLine());
-
-	    reader.readLine();
-	    controlPort = Integer.parseInt(reader.readLine());
-
-	    reader.readLine();
-	    playerNo = Integer.parseInt(reader.readLine());
+	    serverPort = Integer.parseInt(reader.readLine());
 
 	    reader.readLine();
 	    nonhuman = Boolean.parseBoolean(reader.readLine());
@@ -83,8 +74,8 @@ public class ClientConfiguration {
 
 	}
 
-	return new ClientConfiguration(serverurl, statePort, controlPort,
-				       playerNo, nonhuman);
+	return new ClientConfiguration(serverUrl, serverPort,
+				       -1, nonhuman);
     }
 
 }
