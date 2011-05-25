@@ -92,8 +92,8 @@ public class SimulationUtils {
 
 	if (b == null) return new int[2];
 
-	int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
-	int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+	int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) Simulation.INTMAX)));
+	int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) Simulation.INTMAX)));
 
 	return new int[]{x, y};
     }
