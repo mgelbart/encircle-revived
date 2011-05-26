@@ -92,7 +92,7 @@ public class Nonhuman implements Intelligence {
 			dir = games[0].states[config.playerNo].direction
 			    + j*(Simulation.INTMAX/3);
 
-			testCtrl = new PlayerControlParameters(acc, dir, shots, boosts);
+			testCtrl = new PlayerControlParameters(games[0].time, acc, dir, shots, boosts);
 
 			intPos = SimulationUtils.nextPosition(games[0].states[config.playerNo],
 							      testCtrl);

@@ -11,20 +11,25 @@ package aoi;
  */
 
 import java.io.*;
-
+import java.util.Vector;
 
 public class PlayerListener implements Runnable {
+
+    public final static int CTRLBUFFERSIZE = 30;
 
     private int playerNo;
     private DataInputStream client;
     private Simulation sim;
 
-    private PlayerControlParameters ctrl = null;
+    private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
 
     public PlayerListener(int player, Simulation sim, InputStream in) {
 	this.playerNo = player;
 	this.client = new DataInputStream(in);
 	this.sim = sim;
+
+	// Never let the buffer be empty.
+	ctrls.add(new PlayerControlParameters(0, 0, 0, 0, 0));
 
 	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
@@ -36,19 +41,37 @@ public class PlayerListener implements Runnable {
 
     // Returns the control parameters for the simulation step time...time+1.
     public PlayerControlParameters getCtrlParams(int time) {
-	PlayerControlParameters c = ctrl; // needed for atomicity!
-	return ((c != null) ? c : new PlayerControlParameters(0, 0, 0, 0));
+
+	synchronized (ctrls) {
+	    // Find the active command and prune old ones:
+	    // (never empty ctrls entirely though)
+	    while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0) // TODO: check that this handles time wrapping
+		ctrls.remove(0);
+
+	    return ctrls.get(0);
+	}
+
     }
 
     public void run() {
 
 	Byte cmd = 0;
+	int j;
+	PlayerControlParameters ctrl;
 
 	while (true) {
 
-	    // Note: don't need locking since updating a reference is atomic.
 	    ctrl = PlayerControlParameters.parse(client);
-	    if (ctrl == null) continue;
+	    if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) continue;
+
+	    // Keep ctrls ordered by effectiveOn.
+	    j = 0;
+	    synchronized (ctrls) {
+		while (j < ctrls.size() && ctrl.effectiveOn - ctrls.get(j).effectiveOn > 0) // TODO: check that this handles time wrapping
+		    ++j;
+
+		ctrls.insertElementAt(ctrl, j);
+	    }
 
 	    System.out.print("Received from #");
 	    System.out.println(playerNo);

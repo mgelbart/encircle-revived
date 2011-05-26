@@ -12,6 +12,13 @@ package aoi;
 import java.io.*;
 
 public class PlayerControlParameters implements Cloneable {
+
+    // The specified parameters will first become active in
+    // the simulation step effectiveOn...effectiveOn+1
+    // and remain active until another command becomes
+    // active.
+    public final int effectiveOn;
+
     public final int acceleration;
     public final int targetDirection;
 
@@ -20,8 +27,9 @@ public class PlayerControlParameters implements Cloneable {
     public final int shotsToTake;
     public final int boostsToTake;
 
-    public PlayerControlParameters(int acceleration, int targetDirection,
+    public PlayerControlParameters(int effectiveOn, int acceleration, int targetDirection,
 				       int shotsToTake, int boostsToTake) {
+	this.effectiveOn = effectiveOn;
 	this.acceleration = acceleration;
 	this.targetDirection = targetDirection;
 	this.shotsToTake = shotsToTake;
@@ -39,6 +47,9 @@ public class PlayerControlParameters implements Cloneable {
 
     public String toString() {
 	StringBuilder s = new StringBuilder();
+
+	s.append("effective: ");
+	s.append(effectiveOn);
 	
 	s.append("\nacceleration: ");
 	s.append(acceleration);
@@ -60,6 +71,9 @@ public class PlayerControlParameters implements Cloneable {
 
 	    // Signal start of a new command:
 	    b.writeBytes("$");
+
+	    b.writeBytes("e");
+	    b.writeInt(effectiveOn);
 
 	    b.writeBytes("a");
 	    b.writeInt(acceleration);
@@ -85,12 +99,16 @@ public class PlayerControlParameters implements Cloneable {
     public static PlayerControlParameters parse(DataInputStream i) {
 
 	Byte cmd;
-	int a, d, s, b;
+	int e, a, d, s, b;
 
 	try {
 	    
 	    cmd = i.readByte();
 	    assert(cmd == '$');
+		
+	    cmd = i.readByte();
+	    assert(cmd == 'e');
+	    e = i.readInt();
 		
 	    cmd = i.readByte();
 	    assert(cmd == 'a');
@@ -115,7 +133,7 @@ public class PlayerControlParameters implements Cloneable {
 	}
 
 
-	return new PlayerControlParameters(a, d, s, b);
+	return new PlayerControlParameters(e, a, d, s, b);
 
     }
 }

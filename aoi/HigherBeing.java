@@ -134,7 +134,7 @@ public class HigherBeing implements Intelligence {
 
 
 		if (update)
-		    ctrl = new PlayerControlParameters(acc, dir, shots, boosts);
+		    ctrl = new PlayerControlParameters(games[0].time, acc, dir, shots, boosts);
 
 	    }
 
