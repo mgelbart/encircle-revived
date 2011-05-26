@@ -78,16 +78,14 @@ public class Simulation
     // The length of the sequence you need to collect.
     public static final int POINTSPERROUND = 7;
 
-    /****
-     Public fields used to communicate with PlayerListener
-     and GameStateSender threads.
-     ****/
+    /*
+     * TODO: Should write a proper constructor and/or accessor
+     *       method for Simulation that can be called from
+     *       Server instead of using all these public fields.
+     */
 
-    // The public game state that gets transmitted to the players.
-    // Read/written by the Simulation thread.
-    // Read by GameStateSender threads.
+    // The current game state.
     public GameState game;
-
 
     // Private information we want to store about the players
     // but not communicate to the clients.
@@ -105,6 +103,13 @@ public class Simulation
     public final Thread[] listenerThreads = new Thread[NUMPLAYERS];
     public final GameStateSender[] senders = new GameStateSender[NUMPLAYERS];
     public final PlayerListener[] listeners = new PlayerListener[NUMPLAYERS];
+
+
+    // Return the current state of the game.
+    // Called by GameStateSender.
+    public GameState gameState() {
+	return game; // Atomic so no locking necesary.
+    }
 
 
     public void initGameState() {

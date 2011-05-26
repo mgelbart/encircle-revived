@@ -62,7 +62,7 @@ public class GameStateSender implements Runnable {
 		// Serialize & send game state
 		// Note: don't need locking since
 		//   GameState is immutable.
-		g = sim.game;
+		g = sim.gameState();
 
 		if (previousTime != g.time) {
 		    g.serialize(client);
