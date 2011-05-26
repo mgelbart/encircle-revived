@@ -75,19 +75,14 @@ public class Server {
 
 	    Socket[] sockets = new Socket[2];
 
-	    // Create the threads for communication with the clients
-	    GameStateSender[] senders = new GameStateSender[Simulation.NUMPLAYERS];
-	    PlayerListener[] listeners = new PlayerListener[Simulation.NUMPLAYERS];
-
-
 	    for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
-		senders[j] = new GameStateSender(j, simulation, null);
-		listeners[j] = new PlayerListener(j, simulation, null);
+		simulation.senders[j] = new GameStateSender(j, simulation, null);
+		simulation.listeners[j] = new PlayerListener(j, simulation, null);
 
 		// We need a reference to the sender threads to interrupt
 		// them when the game sate is updated.
-		simulation.senderThreads[j] = new Thread(senders[j]);
-		simulation.listenerThreads[j] = new Thread(listeners[j]);
+		simulation.senderThreads[j] = new Thread(simulation.senders[j]);
+		simulation.listenerThreads[j] = new Thread(simulation.listeners[j]);
 	    }
 
 
@@ -101,8 +96,8 @@ public class Server {
 		// Don't buffer data before sending TCP packets.
 		sockets[j].setTcpNoDelay(true);
 
-		senders[j].setOutput(sockets[j].getOutputStream());
-		listeners[j].setInput(sockets[j].getInputStream());
+		simulation.senders[j].setOutput(sockets[j].getOutputStream());
+		simulation.listeners[j].setInput(sockets[j].getInputStream());
 
 		// Start sender & listener threads.
 		simulation.senderThreads[j].start();

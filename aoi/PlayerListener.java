@@ -19,6 +19,8 @@ public class PlayerListener implements Runnable {
     private DataInputStream client;
     private Simulation sim;
 
+    private PlayerControlParameters ctrl = null;
+
     public PlayerListener(int player, Simulation sim, InputStream in) {
 	this.playerNo = player;
 	this.client = new DataInputStream(in);
@@ -32,23 +34,25 @@ public class PlayerListener implements Runnable {
 	this.client = new DataInputStream(in);
     }
 
+    // Returns the control parameters for the simulation step time...time+1.
+    public PlayerControlParameters getCtrlParams(int time) {
+	PlayerControlParameters c = ctrl; // needed for atomicity!
+	return ((c != null) ? c : new PlayerControlParameters(0, 0, 0, 0));
+    }
+
     public void run() {
 
 	Byte cmd = 0;
-	PlayerControlParameters ctrl;
 
 	while (true) {
 
+	    // Note: don't need locking since updating a reference is atomic.
 	    ctrl = PlayerControlParameters.parse(client);
 	    if (ctrl == null) continue;
 
 	    System.out.print("Received from #");
 	    System.out.println(playerNo);
 	    System.out.println(ctrl.toString());
-
-	    // Give the updated target parameters to the simulator
-	    // Note: don't need locking since updating a reference is atomic.
-	    sim.ctrlParams[playerNo] = ctrl;
 
 	}
 

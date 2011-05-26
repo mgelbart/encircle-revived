@@ -83,12 +83,6 @@ public class Simulation
      and GameStateSender threads.
      ****/
 
-    // The parameters received from the clients that tell what
-    // the players want to do.
-    // Read by the Simulation thread.
-    // Written by PlayerListener threads.
-    public final PlayerControlParameters[] ctrlParams = new PlayerControlParameters[2];
-
     // The public game state that gets transmitted to the players.
     // Read/written by the Simulation thread.
     // Read by GameStateSender threads.
@@ -106,9 +100,11 @@ public class Simulation
     // convenient to check whether something hit a cluster with these rectangles...
     public Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
-    // References to sender/listener threads so we can interrupt them.
-    public Thread[] senderThreads = new Thread[NUMPLAYERS];
-    public Thread[] listenerThreads = new Thread[NUMPLAYERS];
+    // References to the senders/listeners threads so we can interrupt them.
+    public final Thread[] senderThreads = new Thread[NUMPLAYERS];
+    public final Thread[] listenerThreads = new Thread[NUMPLAYERS];
+    public final GameStateSender[] senders = new GameStateSender[NUMPLAYERS];
+    public final PlayerListener[] listeners = new PlayerListener[NUMPLAYERS];
 
 
     public void initGameState() {
@@ -137,7 +133,6 @@ public class Simulation
 
 	int dir = (int) (INTMAX  * (1   - 2*Math.random()));
 
-	ctrlParams[playerNo] = new PlayerControlParameters(0, 0, 0, 0);
 	playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
 	return new PlayerState(playerNo, x, y, 0, 0, dir, INITIALENERGY,
@@ -222,7 +217,7 @@ public class Simulation
 		// Note: don't need to clone (deep copy) or lock because all
 		//   fields of PlayerControlParameters are final.
 		for (int j=0; j<NUMPLAYERS; ++j)
-		    playerStatesInt[j].params = this.ctrlParams[j];
+		    playerStatesInt[j].params = listeners[j].getCtrlParams(game.time);
 
 		for (int j=0; j<NUMPLAYERS; ++j) {
 
