@@ -8,10 +8,11 @@ package aoi;
   input!
  */
 
+import java.util.Vector;
+
 public class MindReader {
 
-    // Player to follow.
-    private GameState playerNo;
+    private ClientConfiguration config;
 
     // Definitive game states that have been received from the server.
     private final Vector<GameState> states;
@@ -19,7 +20,7 @@ public class MindReader {
     // Number of game states to store in history.
     private final static int STATESSIZE = 5;
 
-    public MindReader(playerNo) {
+    public MindReader(ClientConfiguration config) {
 	this.config = config;
 	states = new Vector<GameState>(STATESSIZE + 1);
     }
@@ -46,19 +47,26 @@ public class MindReader {
      */
     public PlayerControlParameters paramsAt(int time) {
 
-	final int N = state.size();
+	final int N = states.size();
+	final int P = config.playerNo;
 
 	if (N == 0) return null;
 
-	if (N < 3) return new PlayerControlParameters(Simulation.INTMAX, states.get(N-1).states[playerNo].direction, 0, 0);
+	if (N < 3) return new PlayerControlParameters(time, Simulation.INTMAX, states.get(N-1).states[P].direction, 0, 0);
 
-	int dvx = states.get(N-1).states[playerNo].x - 2*states.get(N-2).states[playerNo].x + states.get(N-3).states[playerNo].x;
-	int dvy = states.get(N-1).states[playerNo].y - 2*states.get(N-2).states[playerNo].y + states.get(N-3).states[playerNo].y;
+	int dvx = states.get(N-1).states[P].vx - states.get(N-2).states[P].vx;
+	int dvy = states.get(N-1).states[P].vy - states.get(N-2).states[P].vy;
 
-	double a = Math.sqrt(Math.pow(dvx, 2), Math.pow(dvy, 2));
+	// What we'd expect with zero thrust:
+	double dragdvx = -Simulation.DRAG * states.get(N-1).states[P].vx;
+	double dragdvy = -Simulation.DRAG * states.get(N-1).states[P].vy;
 
-	return new PlayerControlParameters((int) (Math.min(Simulation.INTMAX, ((long) Simulation.INTMAX) * (a / Simulation.MAXACC))),
-					   states.get(N-1).states[playerNo].direction, 0, 0);
+	double a = Math.sqrt(Math.pow(dvx-dragdvx, 2) + Math.pow(dvy-dragdvy, 2));
+
+	return new PlayerControlParameters(time,
+					   (int) (Math.min(Simulation.INTMAX, ((long) Simulation.INTMAX) * (a / Simulation.MAXACC))),
+					   states.get(N-1).states[P].direction,
+					   0, 0);
     }
 
 }
