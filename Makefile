@@ -31,3 +31,6 @@ run_client1:
 
 run_client1r:
 	java -ea aoi/Client < client1remote.conf
+
+jar:
+	jar cfm aoi.jar Manifest.txt aoi/*.class stdlib/*.class arena.xml images/fly.info images/fly/*.jpg 

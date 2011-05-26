@@ -26,7 +26,11 @@ public class Client {
 	// Read the Arena from a local file for now...
 	Arena arena = null;
 	try {
-	    arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
+	    arena = Arena.parse(Client.class.getClassLoader().getResourceAsStream(Arena.ARENA_METADATA_FILENAME));
+
+	    System.out.println("Parsed the arena: ");
+	    System.out.println(arena);
+
 	} catch (Exception e) {
 	    System.out.println(e.toString());
 	    assert(false);

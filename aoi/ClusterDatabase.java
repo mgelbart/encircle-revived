@@ -23,7 +23,7 @@ import java.util.*;
 public class ClusterDatabase {
 
     // The path where all images and info files are stored
-    public static final String IMAGE_PATH = "./images/";
+    public static final String IMAGE_PATH = "images/";
     
     // The file extension used for our metadata files
     public static final String INFO_SUFFIX = ".info";
@@ -35,7 +35,7 @@ public class ClusterDatabase {
     public ClusterDatabase(String datasetName) throws FileNotFoundException {
 	Vector<ProtoCluster> vProtoClusters = new Vector<ProtoCluster>();
 
-        Scanner infoScanner = new Scanner(new File(IMAGE_PATH + datasetName + INFO_SUFFIX));
+        Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(IMAGE_PATH + datasetName + INFO_SUFFIX));
         while (infoScanner.hasNext()) { 
             // The image filename.
             String filename = infoScanner.nextLine();

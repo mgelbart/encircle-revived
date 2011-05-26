@@ -10,6 +10,7 @@ package aoi;
 import javax.swing.ImageIcon;
 import java.awt.Image;
 import java.awt.Rectangle;
+import java.net.URL;
 
 public class Cluster {
     public final int x;
@@ -25,8 +26,18 @@ public class Cluster {
 	this.width = width;
 	this.height = height;
 	this.imgPath = imgPath;
-	
-	this.img = (new ImageIcon(imgPath)).getImage();
+
+	// System.err.print(imgPath + " ");
+
+	// Prepending the "/" w/o checking if it's
+	// already included is a bit hax0r but eventually
+	// we won't be loading the data here from a file
+	// anyway...
+	URL p = getClass().getResource("/" + imgPath);
+	assert(p != null);
+	this.img = (new ImageIcon(p)).getImage();
+
+	// System.err.println("loaded.");
 
 	assert(x-width/2 <=  Simulation.ARENASIZE/2);
 	assert(x-width/2 >= -Simulation.ARENASIZE/2);
