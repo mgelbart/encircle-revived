@@ -127,10 +127,10 @@ public class Nonhuman implements Intelligence {
 			acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
 				     * Simulation.INTMAX);
 
-			System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
+			//System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
 		    }
 
-		    System.out.println("acc: " + acc);
+		    //System.out.println("acc: " + acc);
 
 		    lastAction = games[0].time;
 
