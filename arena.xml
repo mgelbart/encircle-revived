@@ -1,16 +1,16 @@
 <arena>
-<cluster x="-23449" y="23669" width="4375" height="3750" img="images/fly/1b.jpg"/>
-<cluster x="35609" y="35939" width="3875" height="5000" img="images/fly/1e.jpg"/>
-<cluster x="29126" y="27258" width="5125" height="4500" img="images/fly/2c.jpg"/>
-<cluster x="42403" y="31361" width="5125" height="5125" img="images/fly/2a.jpg"/>
-<cluster x="26440" y="14317" width="7000" height="6250" img="images/fly/3a.jpg"/>
-<cluster x="-21062" y="-20191" width="3250" height="6875" img="images/fly/3b.jpg"/>
-<cluster x="39147" y="13779" width="5125" height="8625" img="images/fly/4h.jpg"/>
-<cluster x="-29317" y="12068" width="8375" height="6625" img="images/fly/4a.jpg"/>
-<cluster x="35619" y="-26752" width="4375" height="11000" img="images/fly/5c.jpg"/>
-<cluster x="-38351" y="34748" width="4375" height="11000" img="images/fly/5c.jpg"/>
-<cluster x="-14941" y="1592" width="5875" height="8500" img="images/fly/6b.jpg"/>
-<cluster x="17368" y="18914" width="5875" height="8500" img="images/fly/6b.jpg"/>
-<cluster x="-34911" y="-11785" width="9625" height="11375" img="images/fly/7a.jpg"/>
-<cluster x="18439" y="-16438" width="8000" height="12500" img="images/fly/7b.jpg"/>
+<cluster x="-7097" y="36608" width="3875" height="5000" img="images/fly/1e.jpg"/>
+<cluster x="-31519" y="39286" width="4375" height="3750" img="images/fly/1b.jpg"/>
+<cluster x="10568" y="-23907" width="3750" height="4625" img="images/fly/2d.jpg"/>
+<cluster x="-26322" y="-16839" width="5125" height="5125" img="images/fly/2a.jpg"/>
+<cluster x="-31081" y="32273" width="3625" height="7125" img="images/fly/3e.jpg"/>
+<cluster x="30798" y="40886" width="4375" height="6250" img="images/fly/3f.jpg"/>
+<cluster x="27202" y="-12417" width="4500" height="8375" img="images/fly/4d.jpg"/>
+<cluster x="-35543" y="-20983" width="6250" height="5250" img="images/fly/4c.jpg"/>
+<cluster x="-8511" y="18649" width="4500" height="11250" img="images/fly/5d.jpg"/>
+<cluster x="20008" y="-1983" width="6250" height="9625" img="images/fly/5b.jpg"/>
+<cluster x="29698" y="-23816" width="9875" height="10375" img="images/fly/6a.jpg"/>
+<cluster x="-9990" y="-27258" width="9875" height="10375" img="images/fly/6a.jpg"/>
+<cluster x="1000" y="20178" width="9625" height="11375" img="images/fly/7a.jpg"/>
+<cluster x="2752" y="-41339" width="8000" height="12500" img="images/fly/7b.jpg"/>
 </arena>
