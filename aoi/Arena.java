@@ -101,7 +101,7 @@ public class Arena {
 		int height = Integer.parseInt(attr.getValue("height"));
 		String img = attr.getValue("img");
 
-		clusters.add(new Cluster(x, y, width, height, img));
+		clusters.add(new DrawableCluster(x, y, width, height, img));
 	    }
 
 	}

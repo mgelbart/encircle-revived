@@ -19,6 +19,9 @@ import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.Point;
+import java.awt.Shape;
+import java.awt.Image;
+import java.awt.Color;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -43,6 +46,9 @@ public class GUI implements Runnable {
     public Set<Integer> keysPressed = new TreeSet<Integer>();
 
 
+    // Items to draw on the screen.
+    private Vector<Drawable> drawables = new Vector<Drawable>();
+
     private int[] currentLoopStarted;
 
     private Vector<Point2D>[] loop;
@@ -51,9 +57,6 @@ public class GUI implements Runnable {
     private int[] lastScore;
     private int[] lastScoringTime;
     private Vector<Point2D>[] lastScoringLoop;
-
-    // Set to true if the player lost rather than scored points.
-    private boolean[] pwned;
 
 
     @SuppressWarnings("unchecked")
@@ -69,7 +72,6 @@ public class GUI implements Runnable {
 	lastScore = new int[Simulation.NUMPLAYERS];
 	lastScoringTime = new int[Simulation.NUMPLAYERS];
 	lastScoringLoop = new Vector[Simulation.NUMPLAYERS];
-	pwned = new boolean[Simulation.NUMPLAYERS];
 
 	for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
 	    currentLoopStarted[j] = -999;
@@ -77,8 +79,38 @@ public class GUI implements Runnable {
 
 	    lastScore[j] = 0;
 	    lastScoringTime[j] = -999;
-	    pwned[j] = false;
 	}
+
+
+	/* Default Drawable items:
+	 *
+	 *   Note that the adding order determines
+	 *   the rendering order
+	 */
+
+	for (Cluster c : arena.clusters) {
+	    drawables.add(new DrawableCluster(c));
+	}
+
+	Color[] colors = new Color[2];
+	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+	    colors[j] = (j == config.playerNo) ? StdDraw.RED : StdDraw.BLUE;
+	
+
+	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+	    drawables.add(new DrawableTail(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+
+	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+	    drawables.add(new DrawableShip(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+
+	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+	    drawables.add(new DrawableScoringEffect(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+
+
+	drawables.add(new DrawableScore(StdDraw.WHITE, colors));
+
+
+	/* Canvas parameters: */
 
 	StdDraw.setCanvasSize(700, 700);
 
@@ -126,6 +158,14 @@ public class GUI implements Runnable {
 
     }
 
+    // Add a Drawable object to the GUI.
+    public void addDrawable(Drawable d) {
+	// Note: prepending not thread safe with the
+	//       current mechanism of removing items
+	//       in drawGameState.
+	drawables.add(d);
+    }
+
     @SuppressWarnings("unchecked")
     private void drawGameState(Arena m, GameState g) {
 
@@ -138,113 +178,44 @@ public class GUI implements Runnable {
 	StdDraw.setXscale(-r, r);
 	StdDraw.setYscale(-r, r);
 
+	for (int j=0; j<drawables.size(); ++j) {
+	    Drawable d = drawables.get(j);
 
-	int xy[][];
-	double xydbl[][];
+	    if (!d.isRemoved()) {
 
-	for (Cluster v : m.clusters)
-	    StdDraw.picture(v.x, v.y, v.img, v.width, v.height);
-	
-	PlayerState p;
+		Shape[] s = d.shapes(g);
+		Image img = d.img(g);
 
-	for (int j=0; j<2; ++j) {
-	    p = g.states[j];
+		if (s != null) {
+		    Color[] colors = d.color();
+		    double[] widths = d.width();
+		    for (int k=0; k<s.length; ++k) {
+			StdDraw.setPenColor(colors[k]);
+			StdDraw.setPenRadius(widths[k]);
+			StdDraw.shape(s[k], d.ingameCoordinates());
+		    }
+		}
 
-	    if (p.score > lastScore[j]) {
-		// Store the previous loop if the score increased
-		lastScore[j] = p.score;
-		lastScoringTime[j] = g.time;
-		lastScoringLoop[j] = (Vector<Point2D>) loop[j].clone();
-		pwned[j] = false;
-	    } else if (p.score < lastScore[j]) {
-		// pwned!
-		lastScore[j] = p.score;
-		lastScoringTime[j] = g.time;
-		pwned[j] = true;
-	    }
-
-	    // Draw the ship
-
-	    xy = p.shape();
-
-	    // Have to cast these things by hand because you can't cast
-	    // a whole array at once (I think).
-	    xydbl = new double[2][xy[0].length];
-	    for (int k=0; k<2; ++k) {
-		for (int l=0; l<xy[0].length; ++l)
-		    xydbl[k][l] = xy[k][l];
-	    }
-
-	    if (pwned[j]
-		&& g.time - lastScoringTime[j] < 1500/Simulation.TIMESTEP) {
-		StdDraw.setPenColor(StdDraw.GREEN);
-	    } else {
-		if (j == config.playerNo)
-		    StdDraw.setPenColor(StdDraw.RED);
-		else
-		    StdDraw.setPenColor(StdDraw.BLUE);
-	    }
-
-	    StdDraw.polygon(xydbl[0], xydbl[1]);
-
-	    //  Draw the loop
-	    if (j == config.playerNo)
-		StdDraw.setPenColor(StdDraw.RED);
-	    else
-		StdDraw.setPenColor(StdDraw.BLUE);
-
-	    if (currentLoopStarted[j] == p.loopStarted) {
-
-		Point point = new Point(p.x, p.y);
-		if (loop[j].size() == 0 || !loop[j].lastElement().equals(point))
-		    loop[j].add(point);
+		if (img != null) {
+		    // TODO: implement ingameCoordinates == false case
+		    assert(d.ingameCoordinates() == true);
+		    int[] loc = d.imgLocation();
+		    StdDraw.picture(loc[0], loc[1], img, loc[2], loc[3]);
+		}
 
 	    } else {
-
-		currentLoopStarted[j] = p.loopStarted;
-		loop[j].clear();
-
+		drawables.removeElementAt(j);
+		--j;
 	    }
-
-
-	    drawLoop(loop[j]);
-
-
-	    // Draw the scoring loop if recent:
-	    if (!pwned[j] && lastScoringLoop[j] != null
-		&& g.time - lastScoringTime[j] < 1500/Simulation.TIMESTEP) {
-
-		StdDraw.setPenRadius((g.time - lastScoringTime[j])
-				     * StdDraw.DEFAULT_PEN_RADIUS/4);
-
-		drawLoop(lastScoringLoop[j]);
-
-		StdDraw.setPenRadius(StdDraw.DEFAULT_PEN_RADIUS);
-
-	    }
-
-
-	    StdDraw.setPenColor(StdDraw.GREEN);
-
-	    // Draw the score:
-	    StdDraw.text((2*j - 1)*r*4./5.,
-			 r*19./20.,
-			 "P" + j + ": " + p.score);
 
 	}
+
 
 	StdDraw.setPenColor(StdDraw.GREEN);
 	for (Bullet b : g.bullets)
 	    StdDraw.square(b.x, b.y, Simulation.ARENASIZE / 500);
 
 	StdDraw.show(0);
-
-    }
-
-    private static void drawLoop(Vector<Point2D> loop) {
-	for (int k=0; k < loop.size()-1; ++k)
-	    StdDraw.line(loop.get(k  ).getX(), loop.get(k  ).getY(),
-			 loop.get(k+1).getX(), loop.get(k+1).getY());
 
     }
 

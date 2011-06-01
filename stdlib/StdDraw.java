@@ -291,6 +291,30 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     *************************************************************************/
 
     /**
+     * Draw an arbitrary Shape.
+     * @param s the shape to be drawn.
+     * @param scale determines whether the coordinates are scaled by 1/(xmax-xmin), 1/(ymax-ymin)).
+     */
+    public static void shape(Shape s, boolean scale) {
+
+	AffineTransform a = new AffineTransform();
+	if (scale) {
+	    a.scale(width/(xmax-xmin), height/(ymax-ymin));
+	    a.translate(-xmin, -ymin);
+	} else {
+	    a.scale(width, height);
+	    a.translate(.5, .5);
+	}
+
+	a.scale(1, -1);
+
+	Shape ss = a.createTransformedShape(s);
+	//System.err.println("Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + ")");
+        offscreen.draw(ss);
+        show();
+    }
+
+    /**
      * Draw a line from (x0, y0) to (x1, y1)
      * @param x0 the x co-ord of the starting point
      * @param y0 the y co-ord of the starting point
@@ -542,6 +566,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         double ys = scaleY(y);
         double ws = factorX(w);
         double hs = factorY(h);
+	//System.err.println("Picture at (" + xs + ", " + ys + ")");
         if (ws <= 1 && hs <= 1) pixel(x, y);
         else {
             offscreen.drawImage(image, (int) Math.round(xs - ws/2.0),
