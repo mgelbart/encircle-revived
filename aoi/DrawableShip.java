@@ -43,7 +43,7 @@ public class DrawableShip extends DrawablePath {
 	int[][] xy = game.states[playerNo].shape();
 	Polygon pol = new Polygon(xy[0], xy[1], xy[0].length);
 
-	return new Shape[]{pol};
+	return new Shape[]{pol, pol};
     }
 
     // Return the pen color used to draw the shape.
@@ -52,14 +52,16 @@ public class DrawableShip extends DrawablePath {
 	assert(pwned >= 0);
 
 	if (pwned == 0)
-	    return new Color[]{color};
+	    return new Color[]{color.darker().darker().darker(), color};
 	else {
 	    pwned--;
-	    return new Color[]{PWNAGECOLOR};
+	    return new Color[]{PWNAGECOLOR, PWNAGECOLOR};
 	}
 
     }
 
-    public boolean[] fill() { return new boolean[]{true}; }
+    public boolean[] fill() { return new boolean[]{true, false}; }
+
+    public double[] width() { return new double[]{width, width}; }
 
 }
