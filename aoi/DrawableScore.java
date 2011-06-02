@@ -54,9 +54,9 @@ public class DrawableScore implements Drawable {
 	    widths[j] = 3*stdlib.StdDraw.DEFAULT_PEN_RADIUS;
 
 
-	// This is a hackz but we need to create an
+	// This is a bit hackz but we need to create an
 	// actual graphics object in order to get the FontMetrics.
-	Graphics2D graphics = (new BufferedImage(10000, 10000,
+	Graphics2D graphics = (new BufferedImage(1, 1,
 						 BufferedImage.TYPE_INT_ARGB))
 	                      .createGraphics();
 	Font f = new Font("Monospaced", Font.PLAIN, 10);
