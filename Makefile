@@ -18,19 +18,19 @@ clean:
 	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class
 
 run_serv:
-	java -ea aoi/Server < server.conf
+	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/serv.mem -ea aoi/Server < server.conf
 
 run_client0:
-	java -ea aoi/Client < client0local.conf
+	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/client0.mem -ea aoi/Client < client0local.conf
 
 run_client0r:
-	java -ea aoi/Client < client0remote.conf
+	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/client0.mem -ea aoi/Client < client0remote.conf
 
 run_client1:
-	java -ea aoi/Client < client1local.conf
+	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/client1.mem -ea aoi/Client < client1local.conf
 
 run_client1r:
-	java -ea aoi/Client < client1remote.conf
+	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/client1.mem -ea aoi/Client < client1remote.conf
 
 jar:
 	jar cfm aoi.jar Manifest.txt aoi/*.class stdlib/*.class arena.xml images/fly.info images/fly/*.jpg 
