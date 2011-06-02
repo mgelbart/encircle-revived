@@ -293,11 +293,12 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     /**
      * Draw an arbitrary Shape.
      * @param s the shape to be drawn.
-     * @param scale determines whether the coordinates are scaled by 1/(xmax-xmin), 1/(ymax-ymin)).
+     * @param scale determines whether the coordinates are translated by -(xmin,ymin) and scaled by 1/(xmax-xmin), 1/(ymax-ymin)).
      */
     public static void shape(Shape s, boolean scale) {
 
 	AffineTransform a = new AffineTransform();
+
 	if (scale) {
 	    a.scale(width/(xmax-xmin), height/(ymax-ymin));
 	    a.translate(-xmin, -ymin);
@@ -306,6 +307,8 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 	    a.translate(.5, .5);
 	}
 
+	// Java Graphics use a left handed coordinate
+	// system with x || East and y || South.
 	a.scale(1, -1);
 
 	Shape ss = a.createTransformedShape(s);

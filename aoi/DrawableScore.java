@@ -60,6 +60,7 @@ public class DrawableScore implements Drawable {
 	at = new AffineTransform();
 	at.translate(-0.15, 0.45);
 	at.scale(scaleFact, scaleFact);
+	at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
 
 	shapes = new Shape[1+Simulation.NUMPLAYERS];
 	shapes[0] = at.createTransformedShape(scoreboard.getOutline());
