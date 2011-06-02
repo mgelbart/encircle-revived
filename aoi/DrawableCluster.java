@@ -47,8 +47,9 @@ public class DrawableCluster extends Cluster implements Drawable {
 
 
     public Shape[] shapes(GameState state) { return null; }
+    public boolean[] fill() { return null; }
     public Color[] color() { return null; }
-    public double[] width() { return new double[]{0}; }
+    public double[] width() { return null; }
     public boolean ingameCoordinates() { return true; }
     public void remove() { removed = true; }
     public boolean isRemoved() { return removed; }

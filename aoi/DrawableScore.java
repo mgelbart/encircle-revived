@@ -25,6 +25,7 @@ public class DrawableScore implements Drawable {
     //  [1] The color of the 1st player's score
     //  [2] The color of the 2nd player's score
     private Color[] colors;
+    private boolean[] fill;
     private double[] widths;
     private Shape[] shapes;
     private GlyphVector scoreboard;
@@ -33,6 +34,13 @@ public class DrawableScore implements Drawable {
 
     public DrawableScore(Color neutralColor, Color[] playerColors) {
 	assert(playerColors.length == Simulation.NUMPLAYERS);
+
+
+	fill = new boolean[1+Simulation.NUMPLAYERS];
+	fill[0] = true;
+	for (int j=1; j<fill.length; ++j)
+	    fill[j] = false;
+
 
 	colors = new Color[1+Simulation.NUMPLAYERS];
 	colors[0] = neutralColor;
@@ -88,6 +96,9 @@ public class DrawableScore implements Drawable {
 	
         return shapes;
     }
+
+
+    public boolean[] fill() { return fill; }
 
 
     public Color[] color() { return colors; }

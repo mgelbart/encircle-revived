@@ -11,10 +11,6 @@ import java.awt.Color;
 
 interface Drawable {
 
-    // Returns the shapes to be drawn, if any.
-    // May depend on the current game state.
-    public Shape[] shapes(GameState state);
-
     // Returns the image to be drawn, if any.
     // May depend on the current game state.
     public Image img(GameState state);
@@ -22,6 +18,14 @@ interface Drawable {
     // Return {centerx, centery, width, height} of
     // the image, if any.
     public int[] imgLocation();
+
+    // Returns the shapes to be drawn, if any.
+    // May depend on the current game state.
+    public Shape[] shapes(GameState state);
+
+    // Determines whether the shapes are to be filled
+    // or only the outlines drawn.
+    public boolean[] fill();
 
     // Return the pen colors used to draw the shapes.
     public Color[] color();

@@ -61,6 +61,8 @@ public class DrawablePath implements Drawable {
 	return null;
     }
 
+    public boolean[] fill() { return new boolean[]{false}; }
+
     // Return the pen color used to draw the shape.
     public Color[] color() {
 	return new Color[]{color};

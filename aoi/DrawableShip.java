@@ -60,4 +60,6 @@ public class DrawableShip extends DrawablePath {
 
     }
 
+    public boolean[] fill() { return new boolean[]{true}; }
+
 }

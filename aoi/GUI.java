@@ -187,12 +187,13 @@ public class GUI implements Runnable {
 		Image img = d.img(g);
 
 		if (s != null) {
+		    boolean[] fill = d.fill();
 		    Color[] colors = d.color();
 		    double[] widths = d.width();
 		    for (int k=0; k<s.length; ++k) {
 			StdDraw.setPenColor(colors[k]);
 			StdDraw.setPenRadius(widths[k]);
-			StdDraw.shape(s[k], d.ingameCoordinates());
+			StdDraw.shape(s[k], d.ingameCoordinates(), fill[k]);
 		    }
 		}
 

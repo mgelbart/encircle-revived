@@ -294,8 +294,9 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
      * Draw an arbitrary Shape.
      * @param s the shape to be drawn.
      * @param scale determines whether the coordinates are translated by -(xmin,ymin) and scaled by 1/(xmax-xmin), 1/(ymax-ymin)).
+     * @param fill determines whether the shape is filled or only the outline drawn.
      */
-    public static void shape(Shape s, boolean scale) {
+    public static void shape(Shape s, boolean scale, boolean fill) {
 
 	AffineTransform a = new AffineTransform();
 
@@ -313,7 +314,10 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 
 	Shape ss = a.createTransformedShape(s);
 	//System.err.println("Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + ")");
-        offscreen.draw(ss);
+	if (fill)
+	    offscreen.fill(ss);
+	else
+	    offscreen.draw(ss);
         show();
     }
 
