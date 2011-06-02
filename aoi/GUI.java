@@ -107,7 +107,7 @@ public class GUI implements Runnable {
 	    drawables.add(new DrawableScoringEffect(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
 
 
-	drawables.add(new DrawableScore(StdDraw.WHITE, colors));
+	drawables.add(new DrawableScore(StdDraw.GRAY, colors));
 
 
 	/* Canvas parameters: */

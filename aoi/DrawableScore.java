@@ -41,8 +41,9 @@ public class DrawableScore implements Drawable {
 
 
 	widths = new double[1+Simulation.NUMPLAYERS];
-	for (int j=0; j<widths.length; ++j)
-	    widths[j] = stdlib.StdDraw.DEFAULT_PEN_RADIUS;
+	widths[0] = stdlib.StdDraw.DEFAULT_PEN_RADIUS;
+	for (int j=1; j<widths.length; ++j)
+	    widths[j] = 3*stdlib.StdDraw.DEFAULT_PEN_RADIUS;
 
 
 	// This is a hackz but we need to create an
@@ -53,13 +54,14 @@ public class DrawableScore implements Drawable {
 	Font f = new Font("Monospaced", Font.PLAIN, 10);
         scoreboard = f.createGlyphVector(graphics.getFontMetrics(f).getFontRenderContext(), "1 2 3 4 5 6 7 *");
 
-	double fontHeight = scoreboard.getOutline().getBounds2D().getHeight();
-	double scaleFact = 1. / fontHeight / 40.;
-	// System.err.println("font scale fact.: " + scaleFact);
+	double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
+	double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
+	double scaleFact = 1. / boardHeight / 40.;
 
 	at = new AffineTransform();
-	at.translate(-0.15, 0.45);
+	at.translate(0., 0.47); // Move to the top
 	at.scale(scaleFact, scaleFact);
+	at.translate(-boardWidth/2, 0.); // Center
 	at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
 
 	shapes = new Shape[1+Simulation.NUMPLAYERS];
@@ -74,9 +76,13 @@ public class DrawableScore implements Drawable {
 
 	for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
 	    Rectangle2D box = scoreboard.getGlyphOutline(2*game.states[j].score).getBounds2D();
+
+	    double margin = box.getWidth() * 0.35;
+	    box = new Rectangle2D.Double(box.getX()-margin,
+					 box.getY()-margin,
+					 box.getWidth()+2*margin,
+					 box.getHeight()+2*margin);
 	    
-	    // TODO: shift the boxes slightly for different players so that they
-	    //       don't overlap if the score is the same.
 	    shapes[1+j] = at.createTransformedShape(box);
 	}
 	
