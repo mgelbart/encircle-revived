@@ -103,9 +103,10 @@ public class GUI implements Runnable {
 	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
 	    drawables.add(new DrawableShip(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
 
+	drawables.add(new DrawableBullets());
+
 	for (int j=0; j < Simulation.NUMPLAYERS; ++j)
 	    drawables.add(new DrawableScoringEffect(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
-
 
 	drawables.add(new DrawableScore(StdDraw.GRAY, colors));
 
@@ -210,11 +211,6 @@ public class GUI implements Runnable {
 	    }
 
 	}
-
-
-	StdDraw.setPenColor(StdDraw.GREEN);
-	for (Bullet b : g.bullets)
-	    StdDraw.square(b.x, b.y, Simulation.ARENASIZE / 500);
 
 	StdDraw.show(0);
 
