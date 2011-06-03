@@ -100,6 +100,7 @@ public abstract class SimulationUtils {
 
 	// Returns the angle between three points (0-1-2). Angle in [0 pi)
 	public static double angle(double x0, double y0, double x1, double y1, double x2, double y2) {
+		// System.out.println("** " + x0 + " " + y0 + " " + x1 + " " + y1 + " " + x2 + " " + y2); 
 		// Set (x1, y1) to origin
 		x0 -= x1;
 		y0 -= y1;
@@ -113,6 +114,6 @@ public abstract class SimulationUtils {
 		x2 /= len2;
 		y2 /= len2;
 		// Return arc cosine of vector 0 dot vector 2
-		return Math.acos((x0*x2+y0*y2));
+		return Math.acos(x0*x2+y0*y2);
 	}
 }
