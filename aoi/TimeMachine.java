@@ -59,6 +59,7 @@ public class TimeMachine {
 
 
     // Get the GameState at the given time.
+    @SuppressWarnings("unchecked")
     public GameState getState(int time, MindReader reader) {
 	if (time - states.get(0).time < 0) return null; // TODO: Make sure this handles time wrapping...
 
