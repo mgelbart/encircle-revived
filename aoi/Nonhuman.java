@@ -63,7 +63,9 @@ public class Nonhuman implements Intelligence {
 
 	int acc, dir, shots, boosts;
 	int[] intPos;
+	int[] ComparedSayWithPET;
 
+	// define a potential function V for decision making
 	double bestV, V, currentV;
 	PlayerControlParameters bestCtrl, testCtrl;
 
@@ -76,14 +78,29 @@ public class Nonhuman implements Intelligence {
 	    } catch (InterruptedException e) {
 
 		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
-
-		    shots = 0;
+			
+			// Shoot if appropriate, i.e., if your path is not too long and another player is in range
+			shots = 0;
+			if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < 5000/Simulation.TIMESTEP) { 
+				if (prevCtrl != null) {
+				ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo],
+								      prevCtrl);
+				for (int playerNos = 0; playerNos < Simulation.NUMPLAYERS; playerNos++) {
+					if (playerNos == config.playerNo) continue; // Skip yourself
+						double theangle = SimulationUtils.angle(games[0].states[playerNos].x, games[0].states[playerNos].y, games[0].states[config.playerNo].x, games[0].states[config.playerNo].y, ComparedSayWithPET[0], ComparedSayWithPET[1]);
+						System.out.println(theangle);
+						if (theangle < 0.1) {
+							shots = 1;
+						}
+					}
+				}
+			}
 		    boosts = 0;
 
 		    currentV = potentialFunction(games[0].states[config.playerNo].x,
 						 games[0].states[config.playerNo].y);
 
-		    bestV = 1e10;
+		    bestV = Double.POSITIVE_INFINITY;
 		    bestCtrl = null;
 
 		    // Try different directions.
@@ -92,13 +109,16 @@ public class Nonhuman implements Intelligence {
 			dir = games[0].states[config.playerNo].direction
 			    + j*(Simulation.INTMAX/3);
 
+			// The candidate set of control parameters.
 			testCtrl = new PlayerControlParameters(games[0].time, acc, dir, shots, boosts);
 
 			intPos = SimulationUtils.nextPosition(games[0].states[config.playerNo],
 							      testCtrl);
 
-			V = -1e10;
+			V = Double.NEGATIVE_INFINITY;
 
+			// For this given direction candidate, look ahead 1000 time 
+			// steps and sum the potential function (?)
 			for (int k=1; k < 1000/Simulation.TIMESTEP; ++k) {
 
 			    intPos = SimulationUtils.nextPosition(
@@ -137,6 +157,7 @@ public class Nonhuman implements Intelligence {
 		    ctrl = bestCtrl;
 		}
 
+
 	    }
 
 	}
@@ -157,9 +178,11 @@ public class Nonhuman implements Intelligence {
 
 	range = Math.max(range, Simulation.ARENASIZE/20);
 
+	// Repuslive terms pushing you away from the arena boundaries
 	V += Math.exp((Math.abs(x) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
 	V += Math.exp((Math.abs(y) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
 
+	// Attractive terms for four points around the clusters
 	double dist;
 	for (Cluster clust : arena.clusters) {
 
