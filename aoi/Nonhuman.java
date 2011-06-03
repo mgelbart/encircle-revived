@@ -80,7 +80,7 @@ public class Nonhuman implements Intelligence {
 		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 			
 			// Shoot if appropriate, i.e., if your path is not too long and another player is in range
-			double MAX_LOOP_TO_SHOOT = 15000/Simulation.TIMESTEP;
+			double MAX_LOOP_TO_SHOOT = 20000/Simulation.TIMESTEP;
 			double MAX_ANGLE_TO_SHOOT = 0.1;
 			shots = 0;
 			if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < MAX_LOOP_TO_SHOOT) { 
@@ -148,7 +148,6 @@ public class Nonhuman implements Intelligence {
 		    else {
 			acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
 				     * Simulation.INTMAX);
-
 			//System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
 		    }
 
