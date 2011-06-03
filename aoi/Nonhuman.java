@@ -80,16 +80,18 @@ public class Nonhuman implements Intelligence {
 		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 			
 			// Shoot if appropriate, i.e., if your path is not too long and another player is in range
+			double MAX_LOOP_TO_SHOOT = 15000/Simulation.TIMESTEP;
+			double MAX_ANGLE_TO_SHOOT = 0.1;
 			shots = 0;
-			if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < 5000/Simulation.TIMESTEP) { 
+			if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < MAX_LOOP_TO_SHOOT) { 
 				if (prevCtrl != null) {
 				ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo],
 								      prevCtrl);
 				for (int playerNos = 0; playerNos < Simulation.NUMPLAYERS; playerNos++) {
 					if (playerNos == config.playerNo) continue; // Skip yourself
 						double theangle = SimulationUtils.angle(games[0].states[playerNos].x, games[0].states[playerNos].y, games[0].states[config.playerNo].x, games[0].states[config.playerNo].y, ComparedSayWithPET[0], ComparedSayWithPET[1]);
-						System.out.println(theangle);
-						if (theangle < 0.1) {
+						// System.out.println(theangle);
+						if (theangle < MAX_ANGLE_TO_SHOOT) {
 							shots = 1;
 						}
 					}
