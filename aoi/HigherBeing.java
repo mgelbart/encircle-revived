@@ -11,6 +11,7 @@ package aoi;
 */
 
 import java.awt.event.KeyEvent;
+import java.util.Set;
 
 public class HigherBeing implements Intelligence {
 
@@ -59,7 +60,7 @@ public class HigherBeing implements Intelligence {
 	//System.out.println(game.toString());
 
 	if (guiThread != null) {
-	    gui.game = game;
+	    gui.setGameState(game);
 	    guiThread.interrupt();
 	}
     }
@@ -82,6 +83,8 @@ public class HigherBeing implements Intelligence {
 	int shots = 0;
 	int boosts = 0;
 
+	Set<Integer> keysPressed;
+
 	while (true) {
 	    
 	    try {
@@ -90,7 +93,9 @@ public class HigherBeing implements Intelligence {
 
 		update = false;
 
-		if (gui.keysPressed.contains(KeyEvent.VK_UP)) {
+		keysPressed = gui.pressedKeys();
+
+		if (keysPressed.contains(KeyEvent.VK_UP)) {
 		    if (acc != Simulation.INTMAX) {
 			acc = Simulation.INTMAX;
 			update = true;
@@ -100,7 +105,7 @@ public class HigherBeing implements Intelligence {
 		    update = true;
 		}
 
-		if (gui.keysPressed.contains(KeyEvent.VK_DOWN)) {
+		if (keysPressed.contains(KeyEvent.VK_DOWN)) {
 		    boosts = 10;
 		    update = true;
 		} else if (boosts > 0) {
@@ -109,7 +114,7 @@ public class HigherBeing implements Intelligence {
 		}
 
 
-		if (gui.keysPressed.contains(KeyEvent.VK_SPACE)) {
+		if (keysPressed.contains(KeyEvent.VK_SPACE)) {
 		    shots = 10;
 		    update = true;
 		} else if (shots > 0) {
@@ -117,11 +122,11 @@ public class HigherBeing implements Intelligence {
 		    update = true;
 		}
 
-		if (gui.keysPressed.contains(KeyEvent.VK_LEFT)) {
+		if (keysPressed.contains(KeyEvent.VK_LEFT)) {
 		    dir = games[0].states[config.playerNo].direction
 			+ Simulation.INTMAX/2;
 		    update = true;
-		} else if (gui.keysPressed.contains(KeyEvent.VK_RIGHT)) {
+		} else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
 		    dir = games[0].states[config.playerNo].direction
 			- Simulation.INTMAX/2;
 		    update = true;
