@@ -33,17 +33,17 @@ public class GUI implements Runnable {
     ClientConfiguration config;
 
     /* Most recent game state. Updated by the Intelligence. */
-    public GameState game;
+    private GameState game;
 
     /* The arena containing the clusters. */
-    public Arena arena;
+    private Arena arena;
 
     /* Booleans that describe which of the control
        keys is currently pressed down.
        
        These are read by the Intelligence.
     */
-    public Set<Integer> keysPressed = new TreeSet<Integer>();
+    private TreeSet<Integer> keysPressed = new TreeSet<Integer>();
 
 
     // Items to draw on the screen.
@@ -60,7 +60,7 @@ public class GUI implements Runnable {
 
 
     @SuppressWarnings("unchecked")
-	public GUI(Arena arena, ClientConfiguration config) {
+    public GUI(Arena arena, ClientConfiguration config) {
 
 	this.arena = arena;
 	this.config = config;
@@ -157,6 +157,19 @@ public class GUI implements Runnable {
 
 	}
 
+    }
+
+    // Set the game state to be drawn next.
+    public void setGameState(GameState game) {
+	this.game = game;
+    }
+
+    // Get the set of currently pressed keys.
+    @SuppressWarnings("unchecked")
+    public Set<Integer> pressedKeys() {
+	// Note that the Integer objects themselves
+	// aren't cloned...
+	return (Set<Integer>) (keysPressed.clone());
     }
 
     // Add a Drawable object to the GUI.
