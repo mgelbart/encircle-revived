@@ -77,7 +77,7 @@ public class Nonhuman implements Intelligence {
 		Thread.sleep(1000); // Sleep when there's nothing better to do.
 	    } catch (InterruptedException e) {
 
-		if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
+		// if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 			
 			// Shoot if appropriate, i.e., if your path is not too long and another player is in range
 			double MAX_LOOP_TO_SHOOT = 20000/Simulation.TIMESTEP;
@@ -86,11 +86,11 @@ public class Nonhuman implements Intelligence {
 			if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < MAX_LOOP_TO_SHOOT) { 
 				if (prevCtrl != null) {
 				ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo],
-								      prevCtrl);
+								      new PlayerControlParameters(prevCtrl.effectiveOn, Simulation.INTMAX/10, prevCtrl.targetDirection, 0, 0));
 				for (int playerNos = 0; playerNos < Simulation.NUMPLAYERS; playerNos++) {
 					if (playerNos == config.playerNo) continue; // Skip yourself
 						double theangle = SimulationUtils.angle(games[0].states[playerNos].x, games[0].states[playerNos].y, games[0].states[config.playerNo].x, games[0].states[config.playerNo].y, ComparedSayWithPET[0], ComparedSayWithPET[1]);
-						// System.out.println(theangle);
+						// System.out.println(theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
 						if (theangle < MAX_ANGLE_TO_SHOOT) {
 							shots = 1;
 						}
@@ -150,7 +150,7 @@ public class Nonhuman implements Intelligence {
 				     * Simulation.INTMAX);
 			//System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
 		    }
-
+			// if (Math.random() < .9) acc=0;
 		    //System.out.println("acc: " + acc);
 
 		    lastAction = games[0].time;
@@ -159,7 +159,7 @@ public class Nonhuman implements Intelligence {
 		}
 
 
-	    }
+	    // }
 
 	}
 
