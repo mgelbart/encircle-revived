@@ -12,6 +12,9 @@ package aoi;
 
 import java.awt.event.KeyEvent;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 
 public class HigherBeing implements Intelligence {
 
@@ -20,20 +23,53 @@ public class HigherBeing implements Intelligence {
 
     Arena arena;
 
-    // A queue of latest game states.
-    GameState[] games;
+    // Stores a (limited) history of the the game states
+    // and predicts future states.
+    TimeMachine timemachine;
+
+    // Predicts what other people will do in the future.
+    // Used in combination with TimeMachine.
+    MindReader mindreader;
 
     // The control parameters to be sent to the server.
-    PlayerControlParameters ctrl = null;
-    PlayerControlParameters prevCtrl = null;
+    Vector<PlayerControlParameters> ctrl = new Vector<PlayerControlParameters>();
+
+    // Last time ctrl was changed.
+    int lastAction = -999999;
 
     // The GUI is ran in a separate thread so that drawing
     // doesn't block thinking.
     GUI gui = null;
     Thread guiThread = null;
 
-    // Last time ctrl was changed.
-    int lastAction = -999999;
+    // The last authorative game state that was used to
+    // predict the rendered state.
+    GameState renderedAuthorativeState = null;
+
+    // The last rendered game state.
+    GameState renderedState = null;
+	
+    // Life time of a rendered frame in ms.
+    //
+    // If no new state is received within this time
+    // client-side prediction will be used to render
+    // the next frame.
+    //
+    // Setting this to > Simulation.TIMESTEP will tend to push
+    // the simulated time (== renderedTime - renderedServerTime)
+    // towards MINSIMULATEDTIME.
+    public int frametime = MINFRAMETIME;
+
+    private static int MINFRAMETIME = Simulation.TIMESTEP + 1;
+	
+    // Minimum number of turns to predict into the future.
+    private static int MINSIMULATEDSTEPS = 200/Simulation.TIMESTEP;
+
+    // Maximum number of turns to predict into the future.
+    private static int MAXSIMULATEDSTEPS = 1000/Simulation.TIMESTEP;
+
+    // The timer in charge of updating the GUI.
+    private Timer renderTimer;
 
     public HigherBeing(ClientConfiguration config, Arena arena) {
 
@@ -42,11 +78,17 @@ public class HigherBeing implements Intelligence {
 
 	System.out.println("HigherBeing for player " + config.playerNo + " created.");
 
-	games = new GameState[1];
-
 	gui = new GUI(arena, config);
 	guiThread = new Thread(gui);
 	guiThread.start();
+
+	timemachine = new TimeMachine(config);
+
+	mindreader = new MindReader(config);
+
+	TimerTask renderTask = new RenderGameTask();
+	renderTimer = new Timer();
+	renderTimer.schedule(renderTask, 0, frametime);
 
     }
 
@@ -56,23 +98,34 @@ public class HigherBeing implements Intelligence {
 
     /* Store the latest game state in a queue. */
     public void processGameStateUpdate(GameState game) {
-	games[0] = game; /* Our queue consists of one element! */
-	//System.out.println(game.toString());
-
-	if (guiThread != null) {
-	    gui.setGameState(game);
-	    guiThread.interrupt();
-	}
+	timemachine.processStateUpdate(game);
+	mindreader.processStateUpdate(game);
     }
 
 
     public PlayerControlParameters getNewControlParameters() {
-	if (ctrl != prevCtrl) {
-	    prevCtrl = ctrl;
-	    return ctrl;
+	synchronized (ctrl) {
+	    if (ctrl.size() > 0) {
+		PlayerControlParameters p = ctrl.firstElement();
+		ctrl.removeElementAt(0);
+		return p;
+	    }
+
+	    assert(ctrl.size() < 20); // Something is wrong if they get piled up.
 	}
 
 	return null;
+
+    }
+
+    private void queueParams(PlayerControlParameters params) {
+
+	synchronized (ctrl) {
+	    ctrl.add(params);
+	}
+
+	timemachine.processParamsUpdate(params);
+
     }
 
     public void think() {
@@ -90,6 +143,9 @@ public class HigherBeing implements Intelligence {
 	    try {
 		Thread.sleep(1000); // Sleep when there's nothing better to do.
 	    } catch (InterruptedException e) {
+
+		// Don't do anything before the game starts.
+		if (renderedState == null) continue;
 
 		update = false;
 
@@ -123,26 +179,79 @@ public class HigherBeing implements Intelligence {
 		}
 
 		if (keysPressed.contains(KeyEvent.VK_LEFT)) {
-		    dir = games[0].states[config.playerNo].direction
+		    dir = renderedState.states[config.playerNo].direction
 			+ Simulation.INTMAX/2;
 		    update = true;
 		} else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
-		    dir = games[0].states[config.playerNo].direction
+		    dir = renderedState.states[config.playerNo].direction
 			- Simulation.INTMAX/2;
 		    update = true;
-		} else if (Math.abs(dir - games[0].states[config.playerNo].direction) > 10*Simulation.OMEGA) {
-		    dir = games[0].states[config.playerNo].direction;
+		} else if (Math.abs(dir - renderedState.states[config.playerNo].direction) > Simulation.INTMAX/5) {
+		    dir = renderedState.states[config.playerNo].direction;
 		    update = true;
 		}		    
 
 
 		if (update)
-		    ctrl = new PlayerControlParameters(games[0].time, acc, dir, shots, boosts);
+		    queueParams(new PlayerControlParameters(renderedState.time, acc, dir, shots, boosts));
 
 	    }
 
 	}
 
     }
+
+
+
+    private class RenderGameTask extends TimerTask {
+
+        public void run() {
+
+	    renderedAuthorativeState = timemachine.getAuthorativeState();
+
+	    // This can happen before the game actually starts.
+	    if (renderedAuthorativeState == null) return;
+
+	    // This simply skips frames if the rendered states is less than
+	    // MINSIMULATEDSTEPS ahead of the authorative state.
+	    // The opposite should never happen as long as
+	    // frametime > Simulation.TIMESTEP.
+	    int newRenderedTime = (renderedState != null) ? renderedState.time + 1 : 0;
+	    if (newRenderedTime - renderedAuthorativeState.time < MINSIMULATEDSTEPS) {
+
+		/*
+		System.err.println("Skipped "
+				   + (renderedAuthorativeState.time
+				      + MINSIMULATEDSTEPS
+				      - newRenderedTime)
+				   + " frames.");
+
+		System.err.println("Authorative time: " + renderedAuthorativeState.time);
+		if (renderedState != null) {
+		    System.err.println("Rendered time: " + renderedState.time);
+
+		    System.err.println("Rotation in simulated time: "
+				       + (renderedState.states[config.playerNo].direction
+					  - renderedAuthorativeState.states[config.playerNo].direction));
+		}
+		*/
+
+		newRenderedTime = renderedAuthorativeState.time
+		    + MINSIMULATEDSTEPS;
+
+		
+	    }
+
+	    renderedState = timemachine.getState(newRenderedTime, mindreader);
+	    
+	    assert(renderedState != null);
+
+	    gui.setGameState(renderedState);
+	    guiThread.interrupt();
+
+        }
+
+    }
+
 
 }

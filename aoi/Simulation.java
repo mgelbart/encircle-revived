@@ -36,7 +36,7 @@ public class Simulation
     //
     // All other times are defined in terms of TIMESTEP. Hence
     // decreasing this only increases resolution.
-    public static final int TIMESTEP = 20;
+    public static final int TIMESTEP = 40;
  
     // All distances are defined in terms of ARENASIZE.
     // Hence increasing this only increases the resolution.
@@ -181,7 +181,7 @@ public class Simulation
 
 	TimerTask interruptTask = new InterruptThreadsTask(threads);
 	Timer timer = new Timer();
-	timer.scheduleAtFixedRate(interruptTask, 0, TIMESTEP);
+	timer.schedule(interruptTask, 0, TIMESTEP);
 
 
 	System.out.println("Game starting.");

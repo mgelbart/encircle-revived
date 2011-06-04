@@ -18,7 +18,7 @@ public class MindReader {
     private final Vector<GameState> states;
 
     // Number of game states to store in history.
-    private final static int STATESSIZE = 5;
+    private final static int STATESSIZE = 3;
 
     public MindReader(ClientConfiguration config) {
 	this.config = config;
@@ -30,13 +30,23 @@ public class MindReader {
     // received from the server.
     public void processStateUpdate(GameState g) {
 
-	int i = 0;
-	while (states.size() > i
-	       && g.time - states.get(i).time < 0) i++; // TODO: Make sure this handles time wrapping...
-	states.insertElementAt(g, i+1);
+	synchronized (states) {
 
-	if (states.size() > STATESSIZE)
-	    states.removeElementAt(0);
+	    final int N = states.size();
+
+	    int i = 0;
+	    while (i < N && g.time - states.get(i).time > 0) i++;
+
+	    assert(i <= states.size());
+
+	    // Don't add duplicates.
+	    if (i < N && g.time == states.get(i).time) return;
+
+	    states.insertElementAt(g, i);
+
+	    if (N+1 > STATESSIZE)
+		states.removeElementAt(0);
+	}
 
     }
 
@@ -47,25 +57,37 @@ public class MindReader {
      */
     public PlayerControlParameters paramsAt(int time) {
 
-	final int N = states.size();
+	
 	final int P = config.playerNo;
 
-	if (N == 0) return null;
+	GameState s0, s1;
 
-	if (N < 3) return new PlayerControlParameters(time, Simulation.INTMAX, states.get(N-1).states[P].direction, 0, 0);
+	synchronized (states) {
 
-	int dvx = states.get(N-1).states[P].vx - states.get(N-2).states[P].vx;
-	int dvy = states.get(N-1).states[P].vy - states.get(N-2).states[P].vy;
+	    final int N = states.size();
+
+	    if (N == 0) return null;
+
+	    if (N < 3) return new PlayerControlParameters(time, Simulation.INTMAX, states.get(N-1).states[P].direction, 0, 0);
+
+	    s0 = states.get(N-2);
+	    s1 = states.get(N-1);
+
+	}
+
+	// Change in velocity PER TIME STEP.
+	double dvx = s1.states[P].vx - s0.states[P].vx / (double) (s1.time - s0.time);
+	double dvy = s1.states[P].vy - s0.states[P].vy / (double) (s1.time - s0.time);
 
 	// What we'd expect with zero thrust:
-	double dragdvx = -Simulation.DRAG * states.get(N-1).states[P].vx;
-	double dragdvy = -Simulation.DRAG * states.get(N-1).states[P].vy;
+	double dragdvx = -Simulation.DRAG * s1.states[P].vx;
+	double dragdvy = -Simulation.DRAG * s1.states[P].vy;
 
 	double a = Math.sqrt(Math.pow(dvx-dragdvx, 2) + Math.pow(dvy-dragdvy, 2));
 
 	return new PlayerControlParameters(time,
 					   (int) (Math.min(Simulation.INTMAX, ((long) Simulation.INTMAX) * (a / Simulation.MAXACC))),
-					   states.get(N-1).states[P].direction,
+					   s1.states[P].direction,
 					   0, 0);
     }
 

@@ -130,10 +130,15 @@ public class GUI implements Runnable {
 		    public boolean dispatchKeyEvent(KeyEvent e) {
 			int key = e.getKeyCode();
 
-			if (e.getID() == KeyEvent.KEY_PRESSED)
-			    keysPressed.add(key);
-			else if (e.getID() == KeyEvent.KEY_RELEASED)
-			    keysPressed.remove(key);
+			if (e.getID() == KeyEvent.KEY_PRESSED) {
+			    synchronized (keysPressed) {
+				keysPressed.add(key);
+			    }
+			} else if (e.getID() == KeyEvent.KEY_RELEASED) {
+			    synchronized (keysPressed) {
+				keysPressed.remove(key);
+			    }
+			}
 
 			return false;
 		    }
@@ -167,9 +172,16 @@ public class GUI implements Runnable {
     // Get the set of currently pressed keys.
     @SuppressWarnings("unchecked")
     public Set<Integer> pressedKeys() {
+
 	// Note that the Integer objects themselves
 	// aren't cloned...
-	return (Set<Integer>) (keysPressed.clone());
+	Set<Integer> k;
+	synchronized (keysPressed) {
+	    k = (Set<Integer>) (keysPressed.clone());
+	}
+
+	return k;
+
     }
 
     // Add a Drawable object to the GUI.

@@ -31,13 +31,26 @@ public class TimeMachine {
     // received from the server.
     public void processStateUpdate(GameState g) {
 
-	int i = 0;
-	while (states.size() > i
-	       && g.time - states.get(i).time < 0) i++; // TODO: Make sure this handles time wrapping...
-	states.insertElementAt(g, i+1);
+	synchronized (states) {
+	    
+	    final int N = states.size();
 
-	if (states.size() > STATESSIZE)
-	    states.removeElementAt(0);
+	    int i = 0;
+	    while (i < N && g.time - states.get(i).time > 0) i++;
+
+	    assert(i <= states.size());
+
+	    // Don't add duplicates.
+	    if (i < N && g.time == states.get(i).time) return;
+
+	    states.insertElementAt(g, i);
+
+	    //System.err.println("New state for t=" + g.time + " inserted at i=" + i);
+
+	    if (N+1 > STATESSIZE)
+		states.removeElementAt(0);
+
+	}
 
     }
 
@@ -46,110 +59,161 @@ public class TimeMachine {
     // parameters to the server.
     public void processParamsUpdate(PlayerControlParameters p) {
 
-	int i = 0;
-	while (ownParams.size() > i
-	       && p.effectiveOn - ownParams.get(i).effectiveOn < 0) i++; // TODO: Make sure this handles time wrapping...
-	ownParams.insertElementAt(p, i+1);
+	synchronized (ownParams) {
 
-	// Prune old control params.
-	while (ownParams.size() > 1 && ownParams.get(0).effectiveOn < states.get(states.size()-1).time)
-	    ownParams.removeElementAt(0);
+	    final int N = ownParams.size();
+
+	    int i = 0;
+	    while (N > i && p.effectiveOn - ownParams.get(i).effectiveOn > 0) i++;
+	    ownParams.insertElementAt(p, i);
+
+	    // Prune old control params.
+	    while (ownParams.size() > 2 && ownParams.get(1).effectiveOn < states.lastElement().time)
+		ownParams.removeElementAt(0);
+
+	}
+
+    }
+
+
+    // Return the latest game state received from the server.
+    public GameState getAuthorativeState() {
+
+	if (states.size() == 0) return null;
+
+	return states.get(0);
 
     }
 
 
     // Get the GameState at the given time.
     @SuppressWarnings("unchecked")
-    public GameState getState(int time, MindReader reader) {
-	if (time - states.get(0).time < 0) return null; // TODO: Make sure this handles time wrapping...
+    public GameState getState(int time, MindReader reader) {	
+
+	if (states.size() == 0) return null;
+
+	// Don't extrapolate into the history. Should just store
+	// more states if they are needed.
+	if (time - states.get(0).time < 0) return null;
 
 	int i = 0;
-	while (time - states.get(i).time < 0) i++; // TODO: Make sure this handles time wrapping...
+	GameState last;
 
-	assert(i <= states.size());
+	synchronized (states) {
 
-	if (i < states.size() || states.get(i).time == time) {
-	    // TODO: might want to interpolate in
-	    // case there are holes in the history.
-	    return states.get(i);
+	    final int N = states.size();
 
-	} else {
+	    while (i < N && time - states.get(i).time > 0) i++;
 
-	    // 1st dim: player no.
-	    // 2nd dim: position data returned by nextPos()
-	    int[][] pos = new int[Simulation.NUMPLAYERS][SimulationUtils.nextPosition(null, null).length];
-	    GameState last = states.get(states.size() - 1);
-	    PlayerState[] players = new PlayerState[Simulation.NUMPLAYERS];
+	    assert(i <= N);
 
-	    // Need to predict the future.
-	    // Note: this _only_ interpolates position. Doesn't check for crashing into stuff
-	    //       or scoring. If we want those, we should include them in SimulationUtils.
-	    for (int k=0; k < Simulation.NUMPLAYERS; ++k) {
-
-		pos[k] = SimulationUtils.nextPosition(last.states[k], getParamsAt(k, last.time+1, reader));
-
-		for (int j=1; j < states.get(i).time - time; ++j) { // TODO: Make sure this handles time wrapping...
-		    pos[k] = SimulationUtils.nextPosition(new PlayerState(k, pos[k][0], pos[k][1], pos[k][2],
-									  pos[k][3], pos[k][4], 0, 0, 0),
-							  getParamsAt(k, last.time+1+j, reader));
-		}
-
-		players[k] = new PlayerState(k, pos[k][0], pos[k][1], pos[k][2], pos[k][3], pos[k][4],
-					     last.states[k].energy, last.states[k].loopStarted,
-					     last.states[k].score);
-
+	    if (i < N-1 || (i == N-1 && states.get(i).time == time)) {
+		// TODO: might want to interpolate in
+		// case there are holes in the history.
+		return states.get(i);
 	    }
 
-
-	    Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
-	    int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
-	    Bullet b;
-	    int dir;
-
-	    for (int k=0; k < bullets.size(); ++k) {
-		b = bullets.get(k);
-
-		bulPos = SimulationUtils.nextBulletPosition(b);
-		dir = b.direction;
-
-		for (int j=1; j < states.get(i).time - time; ++j) { // TODO: Make sure this handles time wrapping...
-		    bulPos = SimulationUtils.nextBulletPosition(new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
-		}
-
-		bullets.set(k, new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
-	    }
-
-
-	    return new GameState(time, players, bullets);
-
+	    // Otherwise need to extrapolate into the future.
+	    // Start from the last authorative state.
+	    last = states.lastElement();
 	}
+
+
+
+
+	// 1st dim: player no.
+	// 2nd dim: position data returned by nextPos()
+	int[][] pos = new int[Simulation.NUMPLAYERS][SimulationUtils.nextPosition(null, null).length];
+	PlayerState[] players = new PlayerState[Simulation.NUMPLAYERS];
+
+
+	// Need to predict the future.
+	// Note: this _only_ interpolates position. Doesn't check for crashing into stuff
+	//       or scoring. If we want those, we should include them in SimulationUtils.
+	for (int k=0; k < Simulation.NUMPLAYERS; ++k) {
+
+	    pos[k] = SimulationUtils.nextPosition(last.states[k], getParamsAt(k, last.time+1, reader));
+
+	    for (int j=1; j < time - last.time; ++j) {
+		pos[k] = SimulationUtils.nextPosition(new PlayerState(k, pos[k][0], pos[k][1], pos[k][2],
+								      pos[k][3], pos[k][4], 0, 0, 0),
+						      getParamsAt(k, last.time+1+j, reader));
+	    }
+
+	    players[k] = new PlayerState(k, pos[k][0], pos[k][1], pos[k][2], pos[k][3], pos[k][4],
+					 last.states[k].energy, last.states[k].loopStarted,
+					 last.states[k].score);
+	    
+	}
+
+
+	Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
+	int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
+	Bullet b;
+	int dir;
+
+	for (int k=0; k < bullets.size(); ++k) {
+	    b = bullets.get(k);
+
+	    bulPos = SimulationUtils.nextBulletPosition(b);
+	    dir = b.direction;
+
+	    for (int j=1; j < time - last.time; ++j) {
+		bulPos = SimulationUtils.nextBulletPosition(new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+	    }
+
+	    bullets.set(k, new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+	}
+
+
+	return new GameState(time, players, bullets);
+
     }
 
 
     // Get the control parameters of player number playerNo at the given time.
-    private PlayerControlParameters getParamsAt(int playerNo, int time, MindReader reader) {
+    private PlayerControlParameters getParamsAt(int playerNo,
+						int time,
+						MindReader reader) {
 	if (playerNo == config.playerNo) return getOwnParamsAt(time);
 
-	if (reader != null) return reader.paramsAt(time);
+	PlayerControlParameters params = null;
+	if (reader != null) params = reader.paramsAt(time);
+	if (params != null) return params;
+
+	//System.err.println("Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");
 
 	if (states.size() == 0) return null;
 
 	// Fall back to assuming motion in current direction.
-	// TODO: could at least calculate the acceleration
-	//       from the last three steps...
-	return new PlayerControlParameters(time, Simulation.INTMAX, states.get(states.size()-1).states[config.playerNo].direction, 0, 0);
+	return new PlayerControlParameters(time, Simulation.INTMAX, states.lastElement().states[config.playerNo].direction, 0, 0);
     }
 
 
     // Get the control parameters of the local player at the given time.
     private PlayerControlParameters getOwnParamsAt(int time) {
 
-	int i = 0;
-	while (ownParams.size() > i && ownParams.get(i).effectiveOn - time < 0) i++;
+	synchronized (ownParams) {
+	    final int N = ownParams.size();
 
-	if (i == 0) return null;
+	    int i = 0;
+	    while (i < N && ownParams.get(i).effectiveOn - time <= 0) i++;
 
-	return ownParams.get(i-1);
+	    /*
+	    if (i>0 && ownParams.get(i-1).effectiveOn - time < -2) {
+		System.err.println("getOwnParamsAt(" + time + ")");
+		System.err.println("effectiveOn: " + ownParams.get(i-1).effectiveOn);
+	    }
+	    */
+
+	    if (i > 0) return ownParams.get(i-1);
+
+	    // Fall back to assuming motion in current direction.
+	    //System.err.println("Couldn't get own parameters at t=" + time + ".");
+	    assert(states.size() > 0);
+	    return new PlayerControlParameters(time, Simulation.INTMAX, states.lastElement().states[config.playerNo].direction, 0, 0);
+
+	}
     }
 
 }

@@ -48,6 +48,8 @@ public class PlayerListener implements Runnable {
 	    while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0) // TODO: check that this handles time wrapping
 		ctrls.remove(0);
 
+	    //System.err.println("Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
+
 	    return ctrls.get(0);
 	}
 
