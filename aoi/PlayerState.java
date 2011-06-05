@@ -32,8 +32,11 @@ public class PlayerState implements Cloneable {
     // How many clusters the player has collected already
     public final int score;
 
+    // True if the player is currently waiting to be respawn.
+    public final boolean respawning;
 
-    public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score) {
+
+    public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score, boolean respawning) {
 	this.playerNo = playerNo;
 	this.x = x;
 	this.y = y;
@@ -43,6 +46,7 @@ public class PlayerState implements Cloneable {
 	this.energy = energy;
 	this.loopStarted = loopStarted;
 	this.score = score;
+	this.respawning = respawning;
 
 	assert(playerNo < Simulation.NUMPLAYERS);
 	assert(playerNo >= 0);
@@ -69,15 +73,18 @@ public class PlayerState implements Cloneable {
 	int energy = this.energy;
 	int loopStarted = this.loopStarted;
 	int score = this.score;
+	boolean respawning = this.respawning;
 
 	if (key.equals("score"))
 	    score = value;
 	else if (key.equals("loopStarted"))
 	    loopStarted = value;
+	else if (key.equals("respawning"))
+	    respawning = (value != 0);
 	else 
 	    assert(false);  // lol
 
-	return new PlayerState(playerNo, x, y, vx, vy, direction, energy, loopStarted, score);
+	return new PlayerState(playerNo, x, y, vx, vy, direction, energy, loopStarted, score, respawning);
     }
 
 
@@ -132,6 +139,9 @@ public class PlayerState implements Cloneable {
 	    o.writeBytes("s");
 	    o.writeInt(score);
 
+	    o.writeBytes("r");
+	    o.writeBoolean(respawning);
+
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
 	    assert(false);
@@ -143,6 +153,7 @@ public class PlayerState implements Cloneable {
 
 	Byte cmd;
 	int p, x, y, vx, vy, d, e, l, s;
+	boolean r;
 
 	try {
 
@@ -184,6 +195,10 @@ public class PlayerState implements Cloneable {
 	    assert(cmd == 's');
 	    s = i.readInt();
 
+	    cmd = i.readByte();
+	    assert(cmd == 'r');
+	    r = i.readBoolean();
+
 	    
 	} catch (IOException ioe) {
 	    System.out.println(ioe.toString());
@@ -191,7 +206,7 @@ public class PlayerState implements Cloneable {
 	    return null;
 	}
 
-	return new PlayerState(p, x, y, vx, vy, d, e, l, s);
+	return new PlayerState(p, x, y, vx, vy, d, e, l, s, r);
     }
 
 

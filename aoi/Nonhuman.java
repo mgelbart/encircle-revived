@@ -126,7 +126,7 @@ public class Nonhuman implements Intelligence {
 			    intPos = SimulationUtils.nextPosition(
 				        new PlayerState(0, intPos[0], intPos[1],
 							intPos[2], intPos[3],
-							intPos[4], 0, 0, 0),
+							intPos[4], 0, 0, 0, false),
 					testCtrl);
 
 			    V = Math.max(V, potentialFunction(intPos[0], intPos[1]));

@@ -136,13 +136,13 @@ public class TimeMachine {
 
 	    for (int j=1; j < time - last.time; ++j) {
 		pos[k] = SimulationUtils.nextPosition(new PlayerState(k, pos[k][0], pos[k][1], pos[k][2],
-								      pos[k][3], pos[k][4], 0, 0, 0),
+								      pos[k][3], pos[k][4], 0, 0, 0, false),
 						      getParamsAt(k, last.time+1+j, reader));
 	    }
 
 	    players[k] = new PlayerState(k, pos[k][0], pos[k][1], pos[k][2], pos[k][3], pos[k][4],
 					 last.states[k].energy, last.states[k].loopStarted,
-					 last.states[k].score);
+					 last.states[k].score, last.states[k].respawning);
 	    
 	}
 
@@ -183,10 +183,13 @@ public class TimeMachine {
 
 	//System.err.println("Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");
 
-	if (states.size() == 0) return null;
-
-	// Fall back to assuming motion in current direction.
-	return new PlayerControlParameters(time, Simulation.INTMAX, states.lastElement().states[config.playerNo].direction, 0, 0);
+	// Fall back to assuming motion in current direction (unless at standstill).
+	assert(states.size() > 0);
+	PlayerState last = states.lastElement().states[config.playerNo];
+	if (Math.abs(last.vx) + Math.abs(last.vy) > Simulation.MAXACC/2)
+	    return new PlayerControlParameters(time, Simulation.INTMAX, last.direction, 0, 0);
+	else
+	    return new PlayerControlParameters(time, Simulation.INTMAX, last.direction, 0, 0);
     }
 
 
@@ -208,10 +211,12 @@ public class TimeMachine {
 
 	    if (i > 0) return ownParams.get(i-1);
 
+	    // This should never happen under normal circumstances except when
+	    // the game is just starting and the player hasn't sent any commands.
 	    // Fall back to assuming motion in current direction.
 	    //System.err.println("Couldn't get own parameters at t=" + time + ".");
 	    assert(states.size() > 0);
-	    return new PlayerControlParameters(time, Simulation.INTMAX, states.lastElement().states[config.playerNo].direction, 0, 0);
+	    return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].direction, 0, 0);
 
 	}
     }

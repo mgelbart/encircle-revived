@@ -66,7 +66,7 @@ public abstract class SimulationUtils {
 	    for (int j=1; j<interpolationTime; ++j)
 		pos = nextPosition(new PlayerState(0, pos[0], pos[1],
 						   pos[2], pos[3],
-						   pos[4], 0, 0, 0),
+						   pos[4], 0, 0, 0, false),
 				   params);
 
 	    return pos;

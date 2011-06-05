@@ -141,7 +141,7 @@ public class Simulation
 	playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
 	return new PlayerState(playerNo, x, y, 0, 0, dir, INITIALENERGY,
-			       (game == null) ? 0 : game.time, score); 
+			       (game == null) ? 0 : game.time, score, false); 
     }
 
     @SuppressWarnings("unchecked")
@@ -205,6 +205,7 @@ public class Simulation
 			for (int k=0; k<NUMPLAYERS; ++k) {
 			    playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
 			    states[k] = states[k].clone("score", 0);
+			    states[k] = states[k].clone("respawning", 1);
 			}
 		    }
 
@@ -330,7 +331,7 @@ public class Simulation
 			loopStarted = states[j].loopStarted;
 		    }
 		    
-		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, loopStarted, score);
+		    states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, loopStarted, score, states[j].respawning);
 		
 		}
 
@@ -404,6 +405,7 @@ public class Simulation
 		    if (crashed) {
 
 			playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
+			states[j] = states[j].clone("respawning", 1);
 
 		    }
 
