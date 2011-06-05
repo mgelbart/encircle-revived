@@ -62,12 +62,6 @@ public class Nonhuman implements Intelligence {
   public void think() {
 
     int acc, dir, shots, boosts;
-    int[] intPos;
-    int[] ComparedSayWithPET;
-
-    // define a potential function V for decision making
-    double bestV, V, currentV;
-    PlayerControlParameters bestCtrl, testCtrl;
 
     acc = Simulation.INTMAX / 2;
 
@@ -76,8 +70,6 @@ public class Nonhuman implements Intelligence {
       try {
         Thread.sleep(1000); // Sleep when there's nothing better to do.
       } catch (InterruptedException e) {
-
-        // if (Math.abs(games[0].time - lastAction) > 200/Simulation.TIMESTEP) {
 			
         // Shoot if appropriate, i.e., if your path is not too long and another player is in range
         double MAX_LOOP_TO_SHOOT = 20000/Simulation.TIMESTEP;
@@ -85,11 +77,11 @@ public class Nonhuman implements Intelligence {
         shots = 0;
         if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < MAX_LOOP_TO_SHOOT) { 
           if (prevCtrl != null) {
-            ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo],
+            PlayerState.Position ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo].pos,
                                                               new PlayerControlParameters(prevCtrl.effectiveOn, Simulation.INTMAX/10, prevCtrl.targetDirection, 0, 0));
             for (int playerNos = 0; playerNos < Simulation.NUMPLAYERS; playerNos++) {
               if (playerNos == config.playerNo) continue; // Skip yourself
-              double theangle = SimulationUtils.angle(games[0].states[playerNos].x, games[0].states[playerNos].y, games[0].states[config.playerNo].x, games[0].states[config.playerNo].y, ComparedSayWithPET[0], ComparedSayWithPET[1]);
+              double theangle = SimulationUtils.angle(games[0].states[playerNos].pos.x, games[0].states[playerNos].pos.y, games[0].states[config.playerNo].pos.x, games[0].states[config.playerNo].pos.y, ComparedSayWithPET.x, ComparedSayWithPET.y);
               // System.out.println(theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
               if (theangle < MAX_ANGLE_TO_SHOOT) {
                 shots = 1;
@@ -99,8 +91,14 @@ public class Nonhuman implements Intelligence {
         }
         boosts = 0;
 
-        currentV = potentialFunction(games[0].states[config.playerNo].x,
-                                     games[0].states[config.playerNo].y);
+
+        // define a potential function V for decision making
+        double bestV, V, currentV;
+        PlayerControlParameters bestCtrl, testCtrl;
+
+
+        currentV = potentialFunction(games[0].states[config.playerNo].pos.x,
+                                     games[0].states[config.playerNo].pos.y);
 
         bestV = Double.POSITIVE_INFINITY;
         bestCtrl = null;
@@ -108,28 +106,26 @@ public class Nonhuman implements Intelligence {
         // Try different directions.
         for (int j=-1; j<=1; ++j) {
 
-          dir = games[0].states[config.playerNo].direction
+          dir = games[0].states[config.playerNo].pos.direction
             + j*(Simulation.INTMAX/3);
 
           // The candidate set of control parameters.
-          testCtrl = new PlayerControlParameters(games[0].time, acc, dir, shots, boosts);
+          testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
+                                                 shots, boosts);
 
-          intPos = SimulationUtils.nextPosition(games[0].states[config.playerNo],
-                                                testCtrl);
+          PlayerState.Position intPos
+            = SimulationUtils.nextPosition(games[0].states[config.playerNo].pos,
+                                           testCtrl);
 
           V = Double.NEGATIVE_INFINITY;
 
           // For this given direction candidate, look ahead 1000 time 
-          // steps and sum the potential function (?)
+          // steps and take the maximum of the potential along the path.
           for (int k=1; k < 1000/Simulation.TIMESTEP; ++k) {
 
-            intPos = SimulationUtils.nextPosition(
-                                                  new PlayerState(0, intPos[0], intPos[1],
-                                                                  intPos[2], intPos[3],
-                                                                  intPos[4], 0, 0, 0, false),
-                                                  testCtrl);
+            intPos = SimulationUtils.nextPosition(intPos, testCtrl);
 
-            V = Math.max(V, potentialFunction(intPos[0], intPos[1]));
+            V = Math.max(V, potentialFunction(intPos.x, intPos.y));
           }
 
           // Prefer going straight
@@ -158,9 +154,6 @@ public class Nonhuman implements Intelligence {
         ctrl = bestCtrl;
       }
 
-
-      // }
-
     }
 
   }
@@ -174,8 +167,8 @@ public class Nonhuman implements Intelligence {
     Point2D loc = new Point(x, y);
 
     double range = 500 / Simulation.TIMESTEP
-      * Math.sqrt( Math.pow(games[0].states[config.playerNo].vx, 2)
-                   + Math.pow(games[0].states[config.playerNo].vy, 2));
+      * Math.sqrt( Math.pow(games[0].states[config.playerNo].pos.vx, 2)
+                   + Math.pow(games[0].states[config.playerNo].pos.vy, 2));
 
     range = Math.max(range, Simulation.ARENASIZE/20);
 

@@ -12,18 +12,14 @@ package aoi;
 
 import java.io.*;
 
-public class PlayerState implements Cloneable {
+public class PlayerState {
 
   public static final int SHIPLENGTH = Simulation.ARENASIZE * 7/200;
   public static final int SHIPWIDTH = Simulation.ARENASIZE * 4/200;
 
   /* Values transmitted to the clients. */
   public final int playerNo;
-  public final int x;
-  public final int y;
-  public final int vx;
-  public final int vy;
-  public final int direction;
+  public final Position pos;
   public final int energy;
 
   // The time at which the last loop was completed/current one started.
@@ -36,13 +32,9 @@ public class PlayerState implements Cloneable {
   public final boolean respawning;
 
 
-  public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score, boolean respawning) {
+  public PlayerState(int playerNo, Position pos, int energy, int loopStarted, int score, boolean respawning) {
     this.playerNo = playerNo;
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.direction = direction;
+    this.pos = pos;
     this.energy = energy;
     this.loopStarted = loopStarted;
     this.score = score;
@@ -52,39 +44,47 @@ public class PlayerState implements Cloneable {
     assert(playerNo >= 0);
   }	
 
-  // Make a deep copy
-  public PlayerState clone() {
-    try {
-      return (PlayerState) super.clone();
-    }
-    catch (CloneNotSupportedException e) {
-      return null;
-    }
-  }
+  public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score, boolean respawning) {
+    this(playerNo, new Position(x, y, vx, vy, direction), energy, loopStarted, score, respawning);
+  }	
+
 
   // Make a deep copy but set some parameter
   public PlayerState clone(String key, int value) {
 
     int playerNo = this.playerNo;
-    int x = this.x;
-    int vx = this.vx;
-    int vy = this.vy;
-    int direction = this.direction;
     int energy = this.energy;
     int loopStarted = this.loopStarted;
     int score = this.score;
-    boolean respawning = this.respawning;
 
+    // TODO: use an enum for these.
     if (key.equals("score"))
       score = value;
     else if (key.equals("loopStarted"))
       loopStarted = value;
-    else if (key.equals("respawning"))
-      respawning = (value != 0);
     else 
       assert(false);  // lol
 
-    return new PlayerState(playerNo, x, y, vx, vy, direction, energy, loopStarted, score, respawning);
+    return new PlayerState(playerNo, this.pos, energy, loopStarted, score, this.respawning);
+  }
+
+  // Make a deep copy but set some parameter
+  public PlayerState clone(String key, boolean value) {
+
+    boolean respawning = this.respawning;
+
+    // TODO: use an enum for these.
+    if (key.equals("respawning")) // We'll probably end up having more boolean fields...
+      respawning = value;
+    else 
+      assert(false);
+
+    return new PlayerState(this.playerNo, this.pos, this.energy, this.loopStarted, this.score, respawning);
+  }
+
+  // Make a deep copy but set some parameter
+  public PlayerState clone(Position pos) {
+    return new PlayerState(this.playerNo, pos, this.energy, this.loopStarted, this.score, this.respawning);
   }
 
 
@@ -95,13 +95,13 @@ public class PlayerState implements Cloneable {
     s.append(playerNo);
 
     s.append("\nx: ");
-    s.append(x);
+    s.append(pos.x);
 
     s.append("\ny: ");
-    s.append(y);
+    s.append(pos.y);
 
     s.append("\ndirection: ");
-    s.append(direction);
+    s.append(pos.direction);
 
     s.append("\n");
 
@@ -116,19 +116,19 @@ public class PlayerState implements Cloneable {
       o.writeInt(playerNo);
 
       o.writeBytes("x");
-      o.writeInt(x);
+      o.writeInt(pos.x);
 
       o.writeBytes("y");
-      o.writeInt(y);
+      o.writeInt(pos.y);
 
       o.writeBytes("u");
-      o.writeInt(vx);
+      o.writeInt(pos.vx);
 
       o.writeBytes("v");
-      o.writeInt(vy);
+      o.writeInt(pos.vy);
 
       o.writeBytes("d");
-      o.writeInt(direction);
+      o.writeInt(pos.direction);
 
       o.writeBytes("e");
       o.writeInt(energy);
@@ -214,8 +214,8 @@ public class PlayerState implements Cloneable {
     assert(playerNo >= 0);
     assert(playerNo < Simulation.NUMPLAYERS);
 
-    double cos = Math.cos(Math.PI * (direction / (double) Simulation.INTMAX));
-    double sin = Math.sin(Math.PI * (direction / (double) Simulation.INTMAX));
+    double cos = Math.cos(Math.PI * (pos.direction / (double) Simulation.INTMAX));
+    double sin = Math.sin(Math.PI * (pos.direction / (double) Simulation.INTMAX));
 
     int x, y;
 
@@ -230,12 +230,30 @@ public class PlayerState implements Cloneable {
 
       // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
       // and translate to player location.
-      px[j] = this.x + (int) (cos*x - sin*y);
-      py[j] = this.y + (int) (sin*x + cos*y);
+      px[j] = this.pos.x + (int) (cos*x - sin*y);
+      py[j] = this.pos.y + (int) (sin*x + cos*y);
 
     }
 
     return new int[][]{px, py};
+  }
+
+  // Variables relating to the position of the player in the 'positional'
+  // phase space.
+  public static class Position {
+    public int x;
+    public int y;
+    public int vx;
+    public int vy;
+    public int direction;
+
+    public Position(int x, int y, int vx, int vy, int direction) {
+      this.x = x;
+      this.y = y;
+      this.vx = vx;
+      this.vy = vy;
+      this.direction = direction;
+    }
   }
 
 }

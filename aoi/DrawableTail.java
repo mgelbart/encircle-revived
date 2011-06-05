@@ -34,9 +34,9 @@ public class DrawableTail extends DrawablePath {
     }
 
     if (path.getCurrentPoint() == null) {
-      path.moveTo(s.x, s.y);
+      path.moveTo(s.pos.x, s.pos.y);
     } else {
-      path.lineTo(s.x, s.y);
+      path.lineTo(s.pos.x, s.pos.y);
     }
 
     return new Shape[]{path};

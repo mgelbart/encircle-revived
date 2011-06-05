@@ -150,21 +150,6 @@ public class Simulation
     PlayerState[] states = (PlayerState[]) (game.states.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
 
-    // Some temp variables used during calculation
-    int[] nextPos;
-    int dir, x, y, vx, vy, energy, score, loopStarted;
-
-    Bullet b;
-    boolean remove;
-
-    int[][] xy;
-    int[] bulletPos = new int[2];
-    Polygon p;
-    boolean crashed;
-
-    Point2D curPoint, prevPoint, prevPrevPoint;
-    Path2D loop;
-    boolean erasePath;
 
     Rectangle mapedges = new Rectangle(-2*ARENASIZE, -2*ARENASIZE,
                                        4*ARENASIZE, 4*ARENASIZE);
@@ -205,7 +190,7 @@ public class Simulation
             for (int k=0; k<NUMPLAYERS; ++k) {
               playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
               states[k] = states[k].clone("score", 0);
-              states[k] = states[k].clone("respawning", 1);
+              states[k] = states[k].clone("respawning", true);
             }
           }
 
@@ -235,11 +220,11 @@ public class Simulation
 
 
           // Add one point of energy every RECHARGEPERIOD steps.
-          energy = Math.min(MAXENERGY, states[j].energy
-                            + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
+          int energy = Math.min(MAXENERGY, states[j].energy
+                                + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
 
 
-          erasePath = false;
+          boolean erasePath = false;
 
 
           // Take shots first:
@@ -253,9 +238,9 @@ public class Simulation
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
             bullets.add(new Bullet(j,
-                                   states[j].x,
-                                   states[j].y,
-                                   states[j].direction));
+                                   states[j].pos.x,
+                                   states[j].pos.y,
+                                   states[j].pos.direction));
 
             playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
             erasePath = true;
@@ -264,19 +249,12 @@ public class Simulation
 
 
           // Calculate where the player moved.
-          nextPos = SimulationUtils.nextPosition(states[j], playerStatesInt[j].params);
-
-          x = nextPos[0];
-          y = nextPos[1];
-          vx = nextPos[2];
-          vy = nextPos[3];
-          dir = nextPos[4];
-
+          PlayerState.Position pos = SimulationUtils.nextPosition(states[j].pos, playerStatesInt[j].params);
 
           // Add the new position to the player's trajectory
-          curPoint = new Point(x, y);
-          prevPoint = playerStatesInt[j].trajectory.lastElement().getP2();
-          prevPrevPoint = playerStatesInt[j].trajectory.lastElement().getP1();
+          Point2D curPoint = new Point(pos.x, pos.y);
+          Point2D prevPoint = playerStatesInt[j].trajectory.lastElement().getP2();
+          Point2D prevPrevPoint = playerStatesInt[j].trajectory.lastElement().getP1();
 
           if (prevPoint.distance(curPoint) > 0.9) {
 
@@ -295,12 +273,12 @@ public class Simulation
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
           // Also checks if players scored.
-          score = states[j].score;
+          int score = states[j].score;
 		    
           // Check if any player (including j) is crossing j's path
           for (int i=0; i<NUMPLAYERS; ++i) {
             //   if (i != j) continue;   // uncomment this to disable path-killing
-            loop = checkForIntersection(j, i);
+            Path2D loop = checkForIntersection(j, i);
 		        
             if (loop != null) {
               erasePath = true;
@@ -311,7 +289,7 @@ public class Simulation
               for (int k=0; k<NUMPLAYERS; ++k) {
                 if (k==j) continue;
 
-                if (loop.contains(states[k].x, states[k].y)) {
+                if (loop.contains(states[k].pos.x, states[k].pos.y)) {
 
                   // This is a bit beautiful..
                   states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
@@ -322,30 +300,31 @@ public class Simulation
             }
           }
 
+          int loopStarted;
           if (erasePath) {
             playerStatesInt[j].trajectory.clear();
-            playerStatesInt[j].trajectory.add(
-                                              new Line2D.Double(curPoint, curPoint));
+            playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint,
+                                                                curPoint));
             loopStarted = game.time;
           } else {
             loopStarted = states[j].loopStarted;
           }
-		    
-          states[j] = new PlayerState(j, x, y, vx, vy, dir, energy, loopStarted, score, states[j].respawning);
+
+          states[j] = new PlayerState(j, pos, energy, loopStarted, score, states[j].respawning);
 		
         }
 
         // Calculate the new positions for the bullets and figure out
         // if anyone died.
         for (int k = bullets.size() - 1; k >= 0; --k) {
-          b = bullets.get(k);
+          Bullet b = bullets.get(k);
 
           // Whether the bullet hit something.
-          remove = false;
+          boolean remove = false;
 
-          bulletPos = SimulationUtils.nextBulletPosition(b);
-          x = bulletPos[0];
-          y = bulletPos[1];
+          int[] bulletPos = SimulationUtils.nextBulletPosition(b);
+          int x = bulletPos[0];
+          int y = bulletPos[1];
 
           // TODO: This isn't an accurate way of doing this if
           //   the bullets/players move fast.
@@ -353,8 +332,8 @@ public class Simulation
 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
-            xy = states[j].shape();
-            p = new Polygon(xy[0], xy[1], xy[0].length);
+            int[][] xy = states[j].shape();
+            Polygon p = new Polygon(xy[0], xy[1], xy[0].length);
 
             if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    
@@ -362,9 +341,9 @@ public class Simulation
 
               // This is a bit beautiful but whatever...
               playerStatesInt[j].trajectory.clear();
-              curPoint = new Point(states[j].x, states[j].y);
-              playerStatesInt[j].trajectory.add(
-                                                new Line2D.Double(curPoint, curPoint));
+              Point curPoint = new Point(states[j].pos.x, states[j].pos.y);
+              playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint,
+                                                                  curPoint));
 			    
               states[j] = states[j].clone("loopStarted", game.time);
 
@@ -392,20 +371,20 @@ public class Simulation
 
           if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
-          crashed = false;
+          boolean crashed = false;
 
-          if (!mapedges.contains(states[j].x, states[j].y))
+          if (!mapedges.contains(states[j].pos.x, states[j].pos.y))
             crashed = true;
 
           for (Cluster c : clusters) {
-            if (c.boundingBox().contains(states[j].x, states[j].y))
+            if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
               crashed = true;
           } 
 
           if (crashed) {
 
             playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
-            states[j] = states[j].clone("respawning", 1);
+            states[j] = states[j].clone("respawning", true);
 
           }
 

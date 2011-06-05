@@ -121,28 +121,31 @@ public class TimeMachine {
 
 
 
-    // 1st dim: player no.
-    // 2nd dim: position data returned by nextPos()
-    int[][] pos = new int[Simulation.NUMPLAYERS][SimulationUtils.nextPosition(null, null).length];
+    // The extrapolated states for each player.
+    PlayerState.Position[] pos = new PlayerState.Position[Simulation.NUMPLAYERS];
     PlayerState[] players = new PlayerState[Simulation.NUMPLAYERS];
 
 
     // Need to predict the future.
-    // Note: this _only_ interpolates position. Doesn't check for crashing into stuff
-    //       or scoring. If we want those, we should include them in SimulationUtils.
+    // Note: this _only_ extrapolates position. Doesn't check for crashing
+    //       into stuff or scoring. If we want those, we should include
+    //       them in SimulationUtils.
     for (int k=0; k < Simulation.NUMPLAYERS; ++k) {
 
-      pos[k] = SimulationUtils.nextPosition(last.states[k], getParamsAt(k, last.time+1, reader));
+      // Start from the last known state.
+      pos[k] = last.states[k].pos;
 
-      for (int j=1; j < time - last.time; ++j) {
-        pos[k] = SimulationUtils.nextPosition(new PlayerState(k, pos[k][0], pos[k][1], pos[k][2],
-                                                              pos[k][3], pos[k][4], 0, 0, 0, false),
-                                              getParamsAt(k, last.time+1+j, reader));
+      // Extrapolate (time-last.time) steps.
+      for (int j=0; j < time - last.time; ++j) {
+        pos[k] = SimulationUtils.nextPosition(pos[k],
+                                              getParamsAt(k, last.time+j, reader));
       }
 
-      players[k] = new PlayerState(k, pos[k][0], pos[k][1], pos[k][2], pos[k][3], pos[k][4],
-                                   last.states[k].energy, last.states[k].loopStarted,
-                                   last.states[k].score, last.states[k].respawning);
+      players[k] = new PlayerState(k, pos[k],
+                                   last.states[k].energy,
+                                   last.states[k].loopStarted,
+                                   last.states[k].score,
+                                   last.states[k].respawning);
 	    
     }
 
@@ -186,10 +189,10 @@ public class TimeMachine {
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[config.playerNo];
-    if (Math.abs(last.vx) + Math.abs(last.vy) > Simulation.MAXACC/2)
-      return new PlayerControlParameters(time, Simulation.INTMAX, last.direction, 0, 0);
+    if (Math.abs(last.pos.vx) + Math.abs(last.pos.vy) > Simulation.MAXACC/2)
+      return new PlayerControlParameters(time, Simulation.INTMAX, last.pos.direction, 0, 0);
     else
-      return new PlayerControlParameters(time, Simulation.INTMAX, last.direction, 0, 0);
+      return new PlayerControlParameters(time, Simulation.INTMAX, last.pos.direction, 0, 0);
   }
 
 
@@ -216,7 +219,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       //System.err.println("Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].direction, 0, 0);
+      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].pos.direction, 0, 0);
 
     }
   }

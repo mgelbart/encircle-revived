@@ -16,15 +16,11 @@ public abstract class SimulationUtils {
 
      Note that this in particular does not tell you
      if you hit something (a boundary, cluster, bullet).
-
-     If both parameters are null this return an empty
-     int[] of the correct size.
-
   */
-  public static int[] nextPosition(PlayerState state,
-                                   PlayerControlParameters params) {
-
-    if (state == null && params == null) return new int[5];
+  public static PlayerState.Position nextPosition(PlayerState.Position state,
+                                                  PlayerControlParameters params) {
+    assert(state != null);
+    assert(params != null);
 
     Double a = Math.max(0.0, Simulation.MAXACC * (params.acceleration / (double) Simulation.INTMAX));
 
@@ -47,34 +43,7 @@ public abstract class SimulationUtils {
         != Integer.signum(dir - params.targetDirection))
       dir = params.targetDirection;
 
-    return new int[]{x, y, vx, vy, dir};
-  }
-
-  /*
-    Returns an array of {x, y, vx, vy, direction} after
-    'interpolationTime' time steps given an initial state
-    and control parameters.
-      
-    Note that this function does not tell you
-    if you hit something (a boundary, cluster, bullet).
-  */
-  public static int[] interpolatePosition(PlayerState state, PlayerControlParameters params, int interpolationTime) {
-
-    if (interpolationTime > 0) {
-      int[] pos = nextPosition(state, params);
-
-      for (int j=1; j<interpolationTime; ++j)
-        pos = nextPosition(new PlayerState(0, pos[0], pos[1],
-                                           pos[2], pos[3],
-                                           pos[4], 0, 0, 0, false),
-                           params);
-
-      return pos;
-
-    } else {
-      return new int[]{state.x, state.y, state.vx, state.vy, state.direction};
-    }
-
+    return new PlayerState.Position(x, y, vx, vy, dir);
   }
 
 

@@ -8,7 +8,7 @@ package aoi;
 import java.io.*;
 import java.util.Vector;
 
-public class GameState implements Cloneable {
+public class GameState {
   public final int time;
   public final PlayerState[] states;
   public final Vector<Bullet> bullets;
@@ -20,19 +20,6 @@ public class GameState implements Cloneable {
     this.time = time;
     this.states = (PlayerState[]) states.clone();
     this.bullets = (Vector<Bullet>) bullets.clone();
-  }
-
-  public GameState clone() {
-    PlayerState[] clonedStates = new PlayerState[Simulation.NUMPLAYERS];
-    Vector<Bullet> clonedBullets = new Vector<Bullet>();
-
-    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-      clonedStates[j] = states[j].clone();
-
-    for (int j=0; j<bullets.size(); ++j)
-      clonedBullets.add(bullets.get(j).clone());
-
-    return new GameState(time, clonedStates, clonedBullets);
   }
 
   public String toString() {
