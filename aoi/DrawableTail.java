@@ -2,7 +2,7 @@ package aoi;
 
 /*
   A GUI element for a tail.
- */
+*/
 
 
 import java.awt.geom.Path2D;
@@ -12,34 +12,34 @@ import java.awt.Polygon;
 
 public class DrawableTail extends DrawablePath {
 
-    private int playerNo;
+  private int playerNo;
 
-    // Time when the current loop was started.
-    private int currentLoopStarted = 0;
+  // Time when the current loop was started.
+  private int currentLoopStarted = 0;
 
 
-    public DrawableTail(int playerNo, Color color, double width) {
-	super(new Path2D.Double(), color, width);
+  public DrawableTail(int playerNo, Color color, double width) {
+    super(new Path2D.Double(), color, width);
 
-	this.playerNo = playerNo;
+    this.playerNo = playerNo;
+  }
+
+  // Return the path to be drawn.
+  public Shape[] shapes(GameState game) {
+    final PlayerState s = game.states[playerNo];
+
+    if (currentLoopStarted != s.loopStarted) {
+      path = new Path2D.Double();
+      currentLoopStarted = s.loopStarted;
     }
 
-    // Return the path to be drawn.
-    public Shape[] shapes(GameState game) {
-	final PlayerState s = game.states[playerNo];
-
-	if (currentLoopStarted != s.loopStarted) {
-	    path = new Path2D.Double();
-	    currentLoopStarted = s.loopStarted;
-	}
-
-	if (path.getCurrentPoint() == null) {
-	    path.moveTo(s.x, s.y);
-	} else {
-	    path.lineTo(s.x, s.y);
-	}
-
-	return new Shape[]{path};
+    if (path.getCurrentPoint() == null) {
+      path.moveTo(s.x, s.y);
+    } else {
+      path.lineTo(s.x, s.y);
     }
+
+    return new Shape[]{path};
+  }
 
 }

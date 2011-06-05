@@ -2,7 +2,7 @@ package aoi;
 
 /*
   A GUI element for drawing bullets.
- */
+*/
 
 
 import java.awt.geom.Path2D;
@@ -13,50 +13,50 @@ import java.awt.Image;
 
 public class DrawableBullets implements Drawable {
 
-    private boolean removed = false;
-    private Color[] colors = null;
-    private boolean[] fill = null;
-    private double[] widths = null;
+  private boolean removed = false;
+  private Color[] colors = null;
+  private boolean[] fill = null;
+  private double[] widths = null;
 
-    private final static int BULLETSIZE = Simulation.ARENASIZE / 200;
-    private final static Color BULLETCOLOR = stdlib.StdDraw.GREEN;
+  private final static int BULLETSIZE = Simulation.ARENASIZE / 200;
+  private final static Color BULLETCOLOR = stdlib.StdDraw.GREEN;
 
 
-    // Return the polygon to be drawn.
-    public Shape[] shapes(GameState game) {
+  // Return the polygon to be drawn.
+  public Shape[] shapes(GameState game) {
 
-	Shape[] shapes = new Shape[game.bullets.size()];
-	colors = new Color[shapes.length];
-	fill = new boolean[shapes.length];
-	widths = new double[shapes.length];
+    Shape[] shapes = new Shape[game.bullets.size()];
+    colors = new Color[shapes.length];
+    fill = new boolean[shapes.length];
+    widths = new double[shapes.length];
 
-	for (int j=0; j < game.bullets.size(); ++j) {
+    for (int j=0; j < game.bullets.size(); ++j) {
 
-	    Bullet b = game.bullets.get(j);
-	    shapes[j] = new Rectangle(b.x - BULLETSIZE/2,
-				      b.y - BULLETSIZE/2,
-				      BULLETSIZE,
-				      BULLETSIZE);
+      Bullet b = game.bullets.get(j);
+      shapes[j] = new Rectangle(b.x - BULLETSIZE/2,
+                                b.y - BULLETSIZE/2,
+                                BULLETSIZE,
+                                BULLETSIZE);
 
-	    colors[j] = BULLETCOLOR;
-	    fill[j] = true;
-	    widths[j] = 0.;
+      colors[j] = BULLETCOLOR;
+      fill[j] = true;
+      widths[j] = 0.;
 
-	}	
+    }	
 
-	return shapes;
-    }
+    return shapes;
+  }
 
-    public Color[] color() { return colors; }
+  public Color[] color() { return colors; }
 
-    public boolean[] fill() { return fill; }
+  public boolean[] fill() { return fill; }
 
-    public double[] width() { return widths; }
+  public double[] width() { return widths; }
 
-    public boolean ingameCoordinates() { return true; }
-    public void remove() { removed = true; }
-    public boolean isRemoved() { return removed; }
-    public Image img(GameState game) { return null; }
-    public int[] imgLocation() { return null; }
+  public boolean ingameCoordinates() { return true; }
+  public void remove() { removed = true; }
+  public boolean isRemoved() { return removed; }
+  public Image img(GameState game) { return null; }
+  public int[] imgLocation() { return null; }
 
 }
