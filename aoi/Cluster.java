@@ -8,12 +8,14 @@ package aoi;
  */
 
 import java.awt.Rectangle;
+import java.awt.Polygon;
 
 public class Cluster {
     public final int x;
     public final int y;
     public final int width;
     public final int height;
+	public final Polygon p;
     public final String imgPath;
 
     public Cluster(int x, int y, int width, int height, String imgPath) {
@@ -22,6 +24,7 @@ public class Cluster {
 	this.width = width;
 	this.height = height;
 	this.imgPath = imgPath;
+	p = null;
 
 	assert(x-width/2 <=  Simulation.ARENASIZE/2);
 	assert(x-width/2 >= -Simulation.ARENASIZE/2);
@@ -39,7 +42,8 @@ public class Cluster {
 	    + "\" y=\"" + y
 	    + "\" width=\"" + width
 	    + "\" height=\"" + height
-	    + "\" img=\"" + imgPath + "\"/>";
+	    + "\" img=\"" + imgPath
+		+ "\" d=\"" + "M250 150 L150 350 L350 350 Z" + "\"/>";
     }
 
     public Rectangle boundingBox() {

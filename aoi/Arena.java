@@ -100,6 +100,7 @@ public class Arena {
 		int width = Integer.parseInt(attr.getValue("width"));
 		int height = Integer.parseInt(attr.getValue("height"));
 		String img = attr.getValue("img");
+		String polygon = attr.getValue("d");
 
 		clusters.add(new DrawableCluster(x, y, width, height, img));
 	    }
