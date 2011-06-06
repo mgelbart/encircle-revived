@@ -3,113 +3,100 @@ package aoi;
 /*
   A class used for communicating the game state
   from the server to the client.
- */
+*/
 
 import java.io.*;
 import java.util.Vector;
 
-public class GameState implements Cloneable {
-    public final int time;
-    public final PlayerState[] states;
-    public final Vector<Bullet> bullets;
+public class GameState {
+  public final int time;
+  public final PlayerState[] states;
+  public final Vector<Bullet> bullets;
 
-    @SuppressWarnings("unchecked")
+  @SuppressWarnings("unchecked")
     public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
-	assert(states.length == Simulation.NUMPLAYERS);
+    assert(states.length == Simulation.NUMPLAYERS);
 
-	this.time = time;
-	this.states = (PlayerState[]) states.clone();
-	this.bullets = (Vector<Bullet>) bullets.clone();
-    }
+    this.time = time;
+    this.states = (PlayerState[]) states.clone();
+    this.bullets = (Vector<Bullet>) bullets.clone();
+  }
 
-    public GameState clone() {
-	PlayerState[] clonedStates = new PlayerState[Simulation.NUMPLAYERS];
-	Vector<Bullet> clonedBullets = new Vector<Bullet>();
-
-	for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-	    clonedStates[j] = states[j].clone();
-
-	for (int j=0; j<bullets.size(); ++j)
-	    clonedBullets.add(bullets.get(j).clone());
-
-	return new GameState(time, clonedStates, clonedBullets);
-    }
-
-    public String toString() {
-	StringBuilder s = new StringBuilder();
+  public String toString() {
+    StringBuilder s = new StringBuilder();
 	
-	s.append("time: ");
-	s.append(time);
-	s.append("\n");
+    s.append("time: ");
+    s.append(time);
+    s.append("\n");
 
-	for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-	    s.append(states[j].toString());
+    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+      s.append(states[j].toString());
 
-	for (int j=0; j<bullets.size(); ++j)
-	    s.append(bullets.get(j).toString());
+    for (int j=0; j<bullets.size(); ++j)
+      s.append(bullets.get(j).toString());
 
-	return s.toString();
+    return s.toString();
+  }
+
+  public void serialize(OutputStream o) {
+
+    BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
+    DataOutputStream b = new DataOutputStream(bufferedStream);
+
+    try {
+
+      b.writeBytes("t");
+      b.writeInt(time);
+
+      for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+        states[j].serialize(b);
+
+      b.writeBytes("b");
+      b.writeInt(bullets.size());
+
+      for (int j=0; j<bullets.size(); ++j)
+        bullets.get(j).serialize(b);
+
+      bufferedStream.flush();
+
+    } catch (IOException ioe) {
+      System.err.println(ioe.toString());
+      assert(false);
     }
 
-    public void serialize(OutputStream o) {
+  }
 
-	BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
-	DataOutputStream b = new DataOutputStream(bufferedStream);
+  public static GameState parse(DataInputStream i) {
 
-	try {
+    Byte cmd;
+    int t, bCount;
+    PlayerState states[] = new PlayerState[Simulation.NUMPLAYERS];
+    Vector<Bullet> bullets = new Vector<Bullet>();
 
-	    b.writeBytes("t");
-	    b.writeInt(time);
+    try {
 
-	    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-		states[j].serialize(b);
+      cmd = i.readByte();
+      assert(cmd == 't');
+      t = i.readInt();
 
-	    b.writeBytes("b");
-	    b.writeInt(bullets.size());
+      for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+        states[j] = PlayerState.parse(i);
+	    
+      cmd = i.readByte();
+      assert(cmd == 'b');
+      bCount = i.readInt();
+      assert(bCount >= 0);
+	    
+      for (int j=0; j<bCount; ++j)
+        bullets.add(Bullet.parse(i));
+	    
 
-	    for (int j=0; j<bullets.size(); ++j)
-		bullets.get(j).serialize(b);
-
-	    bufferedStream.flush();
-
-	} catch (IOException ioe) {
-	    System.err.println(ioe.toString());
-	    assert(false);
-	}
-
+    } catch (IOException ioe) {
+      System.out.println(ioe.toString());
+      assert(false);
+      return null;
     }
 
-    public static GameState parse(DataInputStream i) {
-
-	Byte cmd;
-	int t, bCount;
-	PlayerState states[] = new PlayerState[Simulation.NUMPLAYERS];
-	Vector<Bullet> bullets = new Vector<Bullet>();
-
-	try {
-
-	    cmd = i.readByte();
-	    assert(cmd == 't');
-	    t = i.readInt();
-
-	    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
-		states[j] = PlayerState.parse(i);
-	    
-	    cmd = i.readByte();
-	    assert(cmd == 'b');
-	    bCount = i.readInt();
-	    assert(bCount >= 0);
-	    
-	    for (int j=0; j<bCount; ++j)
-		bullets.add(Bullet.parse(i));
-	    
-
-	} catch (IOException ioe) {
-	    System.out.println(ioe.toString());
-	    assert(false);
-	    return null;
-	}
-
-	return new GameState(t, states, bullets);
-    }
+    return new GameState(t, states, bullets);
+  }
 }
