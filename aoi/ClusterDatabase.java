@@ -126,7 +126,7 @@ public class ClusterDatabase {
    	  }
 	}
 
-    return new ClusterServerSide(imageCoords, imagePath, filename, nsLikelihoods);
+  return new ClusterServerSide(imageCoords, imagePath, filename, nsLikelihoods);
   }
 
   // Return a random cluster that includes nSegments as an acceptable possibility.

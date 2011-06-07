@@ -24,28 +24,19 @@ public class ClusterServerSide extends Cluster {
   public ClusterServerSide(NotStupidPolygon p, String imgPath, String imgName, Map<Integer, Double> nsLikelihoods) {
 	super(p, imgPath, imgName);
 	this.nsLikelihoods = nsLikelihoods;
-	int x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-	int y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-	p.move(x, y);
   }
-
-// need to check if the polygon
-
+  
+  public void randomizeLocation() {
+  	int x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+  	int y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+  	p.move(x, y);    
+  }
 
   // Construct a ClusterServerSide corresponding to a cluster
   public static ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
-	System.out.println(c.imgName);
-	System.out.println(Server.clusterDbSayWithPET);
-	return Server.clusterDbSayWithPET.parseCluster(c.imgName);
+	ClusterServerSide css = Server.clusterDbSayWithPET.parseCluster(c.imgName);
+	return new ClusterServerSide(c.p, c.imgPath, c.imgName, css.nsLikelihoods);
   }
-
-
-  // // Copy a ClusterServerSide
-  //  public ClusterServerSide(ClusterServerSide that) {
-  // 	this(that.x, that.y, that.width, that.height, that.imgPath, that.imgName, that.nsLikelihoods);
-  // 	// ok, they share the same nSegments... not very legit. maybe ok for now????
-  //  }
- 
 
   // Is nSegments an acceptable guess for this cluster?
   public boolean acceptable(int nSegments) {
@@ -77,6 +68,8 @@ public class ClusterServerSide extends Cluster {
         while (overlaps) {
 
           clust = Server.clusterDbSayWithPET.getRandom(1+j);
+          // give it a random location
+          clust.randomizeLocation();
 
           //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
 

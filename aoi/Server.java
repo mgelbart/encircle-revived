@@ -64,7 +64,6 @@ public abstract class Server {
 
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
           for (Cluster c : simulation.arena.clusters) {
-			System.out.println(c);
             simulation.clusters.add(ClusterServerSide.copyFromCluster(c));
 		  }
 
