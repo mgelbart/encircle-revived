@@ -65,7 +65,7 @@ public class DrawableScoringEffect extends DrawablePath {
   }
 
   // Return the pen width used to draw the shape.
-  public double[] width() {
+  public double[] penWidth() {
 
     assert(scored >= 0);
 
