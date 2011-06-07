@@ -62,6 +62,6 @@ public class DrawableShip extends DrawablePath {
 
   public boolean[] fill() { return new boolean[]{true, false}; }
 
-  public double[] width() { return new double[]{width, width}; }
+  public double[] penWidth() { return new double[]{width, width}; }
 
 }

@@ -95,15 +95,22 @@ public class Arena {
 	public void startElement(String uri, String localName, String qName, Attributes attr)  {
 
 	    if (qName == "cluster") {
-		int x = Integer.parseInt(attr.getValue("x"));
-		int y = Integer.parseInt(attr.getValue("y"));
-		int width = Integer.parseInt(attr.getValue("width"));
-		int height = Integer.parseInt(attr.getValue("height"));
 		String imgPath = attr.getValue("imgPath");
 		String imgID = attr.getValue("imgID");
 		String polygon = attr.getValue("d");
+		String[] parts = polygon.split(":");
+		int n = Integer.parseInt(parts[0]);
+		String[] coords = parts[1].split(" ");
+		int[] xCoords = new int[n];
+		int[] yCoords = new int[n];
+		int j = 0;
+		for (int i = 0; i < n; i++) {
+			xCoords[i] = Integer.parseInt(coords[j++]);
+			yCoords[i] = Integer.parseInt(coords[j++]);
+		}
+		
 
-		clusters.add(new DrawableCluster(x, y, width, height, imgPath, imgID));
+		clusters.add(new DrawableCluster(new NotStupidPolygon(xCoords, yCoords), imgPath, imgID));
 	    }
 
 	}

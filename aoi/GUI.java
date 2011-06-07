@@ -215,7 +215,7 @@ public class GUI implements Runnable {
         if (s != null) {
           boolean[] fill = d.fill();
           Color[] colors = d.color();
-          double[] widths = d.width();
+          double[] widths = d.penWidth();
           for (int k=0; k<s.length; ++k) {
             StdDraw.setPenColor(colors[k]);
             StdDraw.setPenRadius(widths[k]);

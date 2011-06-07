@@ -17,8 +17,8 @@ public class DrawableCluster extends Cluster implements Drawable {
 
   public final Image img;
 
-  public DrawableCluster(int x, int y, int width, int height, String imgPath, String imgName) {
-    super(x, y, width, height, imgPath, imgName);
+  public DrawableCluster(NotStupidPolygon p, String imgPath, String imgName) {
+    super(p, imgPath, imgName);
 
     // System.err.print(imgPath + " ");
 
@@ -26,15 +26,15 @@ public class DrawableCluster extends Cluster implements Drawable {
     // already included is a bit hax0r but eventually
     // we won't be loading the data here from a file
     // anyway...
-    URL p = getClass().getResource("/" + imgPath);
-    assert(p != null);
-    this.img = (new ImageIcon(p)).getImage();
+    URL url = getClass().getResource("/" + imgPath);
+    assert(url != null);
+    this.img = (new ImageIcon(url)).getImage();
 
     // System.err.println("loaded.");
   }
 
   public DrawableCluster(Cluster c) {
-    this(c.x, c.y, c.width, c.height, c.imgPath, c.imgName);
+    this(c.p, c.imgPath, c.imgName);
   }
 
 
@@ -43,13 +43,13 @@ public class DrawableCluster extends Cluster implements Drawable {
 
 
   // Return {centerx, centery, width, height} of the image
-  public int[] imgLocation() { return new int[] {x, y, width, height}; }
+  public int[] imgLocation() { return new int[] {p.centerX(), p.centerY(), p.width(), p.height()}; }
 
 
   public Shape[] shapes(GameState state) { return null; }
   public boolean[] fill() { return null; }
   public Color[] color() { return null; }
-  public double[] width() { return null; }
+  public double[] penWidth() { return null; }
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }
   public boolean isRemoved() { return removed; }

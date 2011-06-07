@@ -19,7 +19,7 @@ package aoi;
 
 import java.io.*;
 import java.util.*;
-import javax.swing.ImageIcon;
+import java.awt.Polygon;
 
 public class ClusterDatabase {
 
@@ -49,18 +49,17 @@ public class ClusterDatabase {
 
 
 
-  // Name of the data set
+  // Name of the data set.
   public final String datasetName;
 
-  // All the image filenames in the database
+  // All the image filenames in the database.
   public final String[] imageFilenames;
 
-  // The current Cluster index
-  private int i;
+  // The Clusters that have already been returned, and thus should not be used again.
+  public final boolean[] alreadyUsed;
 
   @SuppressWarnings("unchecked")
   public ClusterDatabase(String datasetName) throws FileNotFoundException {
-	i = 0;
 	this.datasetName = datasetName;
     Vector<String> vImageFilenames = new Vector<String>();
 
@@ -73,6 +72,7 @@ public class ClusterDatabase {
 
     imageFilenames = new String[vImageFilenames.size()];
     vImageFilenames.toArray(imageFilenames);
+	alreadyUsed = new boolean[imageFilenames.length];
 	// Shuffle the array of filenames, and then use in order from now on. 
 	// This fascilitates random sampling without replacement.
     Collections.shuffle(Arrays.asList(imageFilenames));
@@ -83,12 +83,6 @@ public class ClusterDatabase {
 	return SEGMENTATION_BASEDIR + OS_FILESEP + 
 		   IMAGE_RAW_PATH + OS_FILESEP + datasetName + 
 		   OS_FILESEP + filename + IMAGE_RAW_FORMAT;
-  }
-
-  // Returns the next filename
-  private String nextFilename() {
-	if (i >= imageFilenames.length) return null;
-    return imageFilenames[i++];
   }
   
   // Parse all the data about a particular ProtoCluster given the filename
@@ -102,8 +96,20 @@ public class ClusterDatabase {
 									SEGMENTATION_BASEDIR + OS_FILESEP + 
 									IMAGE_POLY_PATH + OS_FILESEP + 
 									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
-    
-	
+
+    String polyXCoordsString = polyScanner.nextLine();
+    String polyYCoordsString = polyScanner.nextLine();
+    String[] polyXCoordsStrings = polyXCoordsString.split(",");
+    String[] polyYCoordsStrings = polyYCoordsString.split(",");
+	assert(polyXCoordsStrings.length == polyYCoordsStrings.length);
+	int nPoints = polyXCoordsStrings.length;
+	int[] polyXCoords = new int[nPoints];
+	int[] polyYCoords = new int[nPoints];
+	for (int i = 0; i < nPoints; i++) {
+	  	polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*(Simulation.ARENASIZE/800));
+	  	polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*(Simulation.ARENASIZE/800));		
+	}
+	NotStupidPolygon imageCoords = new NotStupidPolygon(polyXCoords, polyYCoords);
 	
 	// Read the segment likelihoods
  	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
@@ -120,24 +126,20 @@ public class ClusterDatabase {
 		nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]), Double.parseDouble(nsLikelihoodPair[1]));
    	  }
 	}
-	
-	// temporary crap, later we will get polygons
-    ImageIcon img = new ImageIcon(imagePath);
 
-    return new ClusterServerSide(img.getIconWidth() * (Simulation.ARENASIZE/800),
-                                 img.getIconHeight() * (Simulation.ARENASIZE/800),
-                                 imagePath, filename, nsLikelihoods);
+    return new ClusterServerSide(imageCoords, imagePath, filename, nsLikelihoods);
   }
 
-  // Return a random ProtoCluster that includes nSegments as an acceptable possibility
+  // Return a random cluster that includes nSegments as an acceptable possibility.
+  // Guarantees that this cluster has not already been returned by this function.
+  // If no Clusters are available, returns null;
   public ClusterServerSide getRandom(int nSegments) throws FileNotFoundException {
- 	ClusterServerSide css;
-	do {
-      css = parseCluster(nextFilename());
-System.out.println(css);
-System.out.println(nSegments);
-System.out.println(css.acceptable(nSegments));
-	} while (!css.acceptable(nSegments));
+ 	ClusterServerSide css = null;
+	for (int i = 0; i < imageFilenames.length; i++) {
+		if (alreadyUsed[i]) continue;
+		css = parseCluster(imageFilenames[i]);
+		if (css.acceptable(nSegments)) break;
+	}
     return css;
   }
 

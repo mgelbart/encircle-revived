@@ -7,53 +7,59 @@ package aoi;
   increasing order of numberical value.
  */
 
-import java.awt.Rectangle;
-import java.awt.Polygon;
-
 public class Cluster {
-    public int x;
-    public int y;
-    public final int width;
-    public final int height;
-	public final Polygon p;
+	public final NotStupidPolygon p;
 	public final String imgPath;
     public final String imgName; // a unique image ID
+								// eventually, the client should not have this information
+								// but it's currently needed for making a 
+								// ClusterServerSide out of a Cluster
 
-
-    public Cluster(int x, int y, int width, int height, String imgPath, String imgName) {
-	this.x = x;
-	this.y = y;
-	this.width = width;
-	this.height = height;
+    public Cluster(NotStupidPolygon p, String imgPath, String imgName) {
+	this.p = p;
 	this.imgPath = imgPath;
 	this.imgName = imgName;
-	this.p = null;
 
-	assert(x-width/2 <=  Simulation.ARENASIZE/2);
-	assert(x-width/2 >= -Simulation.ARENASIZE/2);
-	assert(x+width/2 <=  Simulation.ARENASIZE/2);
-	assert(x+width/2 >= -Simulation.ARENASIZE/2);
+	assert(p.centerX()+p.width()/2  <=  Simulation.ARENASIZE/2);
+	assert(p.centerX()+p.width()/2  >= -Simulation.ARENASIZE/2);
+	assert(p.centerX()-p.width()/2  <=  Simulation.ARENASIZE/2);
+	assert(p.centerX()-p.width()/2  >= -Simulation.ARENASIZE/2);
 
-	assert(y-height/2 <=  Simulation.ARENASIZE/2);
-	assert(y-height/2 >= -Simulation.ARENASIZE/2);
-	assert(y+height/2 <=  Simulation.ARENASIZE/2);
-	assert(y+height/2 >= -Simulation.ARENASIZE/2);
-    }
+	assert(p.centerY()+p.height()/2	<=  Simulation.ARENASIZE/2);
+	assert(p.centerY()+p.height()/2 >= -Simulation.ARENASIZE/2);
+	assert(p.centerY()-p.height()/2 <=  Simulation.ARENASIZE/2);
+	assert(p.centerY()-p.height()/2 >= -Simulation.ARENASIZE/2);    
+	}
 
 	// For serializing in XML file
     public String toString() {
-	return "<cluster x=\"" + x
-	    + "\" y=\"" + y
-	    + "\" width=\"" + width
-	    + "\" height=\"" + height
-	    + "\" imgPath=\"" + imgPath
-		+ "\" imgID=\"" + imgName
-		+ "\" d=\"" + "M250 150 L150 350 L350 350 Z" + "\"/>";
+		String s = "<cluster imgPath=\"" + imgPath
+	    + "\" imgID=\"" + imgName
+		+ "\" d=\"" + p.n() + ":";
+		int[][] coords = p.coords();
+		for (int i = 0; i < p.n(); i++)
+			s += coords[0][i] + " " + coords[1][i] + " ";
+		s += "\"/>";
+		return s;
     }
-
-	// soon to be use polygon's boundingbox fuction...
-    public Rectangle boundingBox() {
-	return new Rectangle(x - width/2, y - height/2, width, height);
-    }
+	
+	public boolean intersects(Cluster that) {
+		return p.intersects(that.p);
+	}	
+	public boolean contains(int x, int y) {
+		return p.contains(x, y);
+	}
+	public int x() {
+		return p.centerX();
+	}
+	public int y() {
+		return p.centerY();
+	}
+	public int height() {
+		return p.height();
+	}
+	public int width() {
+		return p.width();
+	}
 
 }

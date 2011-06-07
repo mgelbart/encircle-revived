@@ -51,7 +51,7 @@ public class DrawableBullets implements Drawable {
 
   public boolean[] fill() { return fill; }
 
-  public double[] width() { return widths; }
+  public double[] penWidth() { return widths; }
 
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }

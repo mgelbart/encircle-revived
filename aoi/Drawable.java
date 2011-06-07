@@ -31,7 +31,7 @@ interface Drawable {
   public Color[] color();
 
   // Return the pen widths used to draw the shapes.
-  public double[] width();
+  public double[] penWidth();
 
   // Tells whether the coordinates are to be interpreted
   // as in-game coordinates scaled relative to

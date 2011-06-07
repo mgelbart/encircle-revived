@@ -354,7 +354,7 @@ public class Simulation
             remove = true;
 
           for (Cluster c : clusters) {
-            if (c.boundingBox().contains(x, y))
+            if (c.contains(x, y))
               remove = true;
           } 
 
@@ -377,7 +377,8 @@ public class Simulation
             crashed = true;
 
           for (Cluster c : clusters) {
-            if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
+            // if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
+		    if (c.contains(states[j].pos.x, states[j].pos.y))
               crashed = true;
           } 
 
@@ -454,19 +455,14 @@ public class Simulation
   private boolean checkForScoring(int j, Path2D loop) {
 
     for (ClusterServerSide c : clusters) {
-      if (c.acceptable(game.states[j].score+1) && loop.contains(c.x, c.y)) {
-        System.out.println("Player " + j + " encircled (" + c.x + ", " + c.y + ").");
+      if (c.acceptable(game.states[j].score+1) && loop.contains(c.x(), c.y())) {
+        System.out.println("Player " + j + " encircled (" + c.x() + ", " + c.y() + ").");
         // This is an important point - what to do
         // if someone encircles a cluster. For now
         // write the data in the Database. 
 		
         // It maybe be cool to also remove the cluster but right
         // now the Arena is only transmitted to the client at the beginning.
-			    
-        // Note that determining what nSegments values
-        // are acceptable is determined in ProtoCluster.acceptableN()
-		
-		
 		
 
         return true; // collect only one cluster per loop

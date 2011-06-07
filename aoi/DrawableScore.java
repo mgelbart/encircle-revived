@@ -104,7 +104,7 @@ public class DrawableScore implements Drawable {
   public Color[] color() { return colors; }
 
 
-  public double[] width() { return widths; }
+  public double[] penWidth() { return widths; }
 
 
   public Image img(GameState state) { return null; }

@@ -10,7 +10,6 @@ package aoi;
 */
 
 import java.util.*;
-import javax.swing.ImageIcon;
 import java.io.FileNotFoundException;
 
 public class ClusterServerSide extends Cluster {
@@ -22,18 +21,15 @@ public class ClusterServerSide extends Cluster {
   // Determines which clusters we accept given the likelihood function.
   private static final double MIN_ACCEPTED_LIKELIHOOD = 0.9;
 
-  public ClusterServerSide(int x, int y, int width, int height, String imgPath,
-                           String imgName, Map<Integer, Double> nsLikelihoods) {
-    super(x, y, width, height, imgPath, imgName);
-    this.nsLikelihoods = nsLikelihoods;
+  public ClusterServerSide(NotStupidPolygon p, String imgPath, String imgName, Map<Integer, Double> nsLikelihoods) {
+	super(p, imgPath, imgName);
+	this.nsLikelihoods = nsLikelihoods;
+	int x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+	int y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+	p.move(x, y);
   }
-  // If no (x, y) specified, use random coordinates
-  public ClusterServerSide(int width, int height, String imgPath,
-                           String imgName, Map<Integer, Double> nsLikelihoods) {
-	this(0, 0, width, height, imgPath, imgName, nsLikelihoods);
-	x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-	y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-  }
+
+// need to check if the polygon
 
 
   // Construct a ClusterServerSide corresponding to a cluster
@@ -44,12 +40,12 @@ public class ClusterServerSide extends Cluster {
   }
 
 
-  // Copy a ClusterServerSide
-  public ClusterServerSide(ClusterServerSide that) {
-	this(that.x, that.y, that.width, that.height, that.imgPath, that.imgName, that.nsLikelihoods);
-	// ok, they share the same nSegments... not very legit. maybe ok for now????
-  }
-
+  // // Copy a ClusterServerSide
+  //  public ClusterServerSide(ClusterServerSide that) {
+  // 	this(that.x, that.y, that.width, that.height, that.imgPath, that.imgName, that.nsLikelihoods);
+  // 	// ok, they share the same nSegments... not very legit. maybe ok for now????
+  //  }
+ 
 
   // Is nSegments an acceptable guess for this cluster?
   public boolean acceptable(int nSegments) {
@@ -57,34 +53,6 @@ public class ClusterServerSide extends Cluster {
 	return nsLikelihoods.get(nSegments) >= MIN_ACCEPTED_LIKELIHOOD;
   }
 
-
-
-  /* Returns a random cluster which has nSegments as a possible
-     number of segments reported by the preparser.
-
-	 This cluster should have at least likelihood minLikelihood
-	 of having nSegments segments.
-  */
-  // @SuppressWarnings("unchecked")
-  //   public static ClusterServerSide getRandom(int nSegments, double minLikelihood, 
-  // 						  ClusterDatabase db) throws FileNotFoundException {
-  // 
-  //   // Get a random ProtoCluster from the database
-  //   return db.getRandom(nSegments, minLikelihood);
-  // 
-  //   System.out.println(pc);
-  // 
-  //   ImageIcon img = new ImageIcon(pc.filepath);
-  // 
-  //   Set<Integer> segNos = new TreeSet<Integer>();
-  //   segNos.add(nSegments);
-  // 
-  //   return new ClusterServerSide(x, y,
-  //                                img.getIconWidth() * (Simulation.ARENASIZE/800),
-  //                                img.getIconHeight() * (Simulation.ARENASIZE/800),
-  //                                pc.filepath, segNos);
-  // 
-  // }
 
   /*
     Generates a collection of clusters that can be used to initialize a Map.
@@ -114,7 +82,7 @@ public class ClusterServerSide extends Cluster {
 
           overlaps = false;
           for (Cluster prevClust : clusters) {
-            if (prevClust.boundingBox().intersects(clust.boundingBox())) 
+            if (prevClust.intersects(clust)) 
               overlaps = true;
 
           }

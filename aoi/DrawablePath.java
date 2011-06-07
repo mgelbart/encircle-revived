@@ -69,7 +69,7 @@ public class DrawablePath implements Drawable {
   }
 
   // Return the pen width used to draw the shape.
-  public double[] width() {
+  public double[] penWidth() {
     return new double[]{width};
   }
 
