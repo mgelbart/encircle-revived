@@ -69,28 +69,6 @@ public class ClusterDatabase {
 									OS_FILESEP + datasetName + TEXT_FORMAT));
     while (infoScanner.hasNext()) { 
       vImageFilenames.add(infoScanner.nextLine());
-
-	  // The image filename.
-      // String filename = infoScanner.nextLine();
-	  //
-      // // The likelihoods of different nSegments values.
-      // Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
-      // String nsLikelihoodsLine = infoScanner.nextLine();
-      // if (nsLikelihoodsLine.length() > 0) {
-      //   String[] nsLikelihoodStrings = nsLikelihoodsLine.split(",");
-      //   for (int i = 0; i < nsLikelihoodStrings.length; ++i) {
-      //     String[] nsLikelihoodPair = nsLikelihoodStrings[i].split(":");
-      //     nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]),
-      //                       Double.parseDouble(nsLikelihoodPair[1]));
-      //   }
-      // }
-      // 
-      // // The details about votes from past data collection;
-      // // currently unused.
-      // String votes = infoScanner.nextLine();
-      // 
-      // vProtoClusters.add(new ProtoCluster(IMAGE_PATH + datasetName + "/" + filename, 
-      //                                     nsLikelihoods, votes));
     }
 
     imageFilenames = new String[vImageFilenames.size()];
@@ -162,32 +140,6 @@ System.out.println(css.acceptable(nSegments));
 	} while (!css.acceptable(nSegments));
     return css;
   }
- 
 
-  // // Returns a random ProtoCluster than has at least minLikelihood likelihood
-  // // of having nSegments segments. If none exist, return null.
-  // public ProtoCluster getRandom(int nSegments) {
-  //   // Shuffle allProtoClusters.
-  //   // This might be SLOW. There's surely a smarter way of doing this...
-  //   // Like sorting by number of segments, etc. Oh well, can change it later.
-  //   Collections.shuffle(Arrays.asList(allProtoClusters));
-  //   for (ProtoCluster pc : allProtoClusters)
-  //     if (pc.acceptableNS().contains(nSegments))
-  //       return pc;
-  //   return null;
-  // }
-  // 
-  // 
-  // // Return the metadata for one particular image stored in 'path'.
-  // public ProtoCluster getByPath(String path) {
-  // 
-  //   for (ProtoCluster p : allProtoClusters) {
-  //     if (p.filepath.equals(path))
-  //       return p;
-  //   }
-  // 
-  //   assert(false);
-  //   return null;
-  // }
 
 }
