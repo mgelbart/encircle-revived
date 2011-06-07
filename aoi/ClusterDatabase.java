@@ -19,7 +19,6 @@ package aoi;
 
 import java.io.*;
 import java.util.*;
-import java.awt.Polygon;
 
 public class ClusterDatabase {
 
