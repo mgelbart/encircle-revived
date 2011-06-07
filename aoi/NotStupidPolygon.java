@@ -20,16 +20,16 @@ public class NotStupidPolygon extends Polygon {
     }
 
 	public int width() {
-		return (int) getBounds().getWidth();
+		return (int) getBounds2D().getWidth();
 	}
 	public int height() {
-		return (int) getBounds().getHeight();
+		return (int) getBounds2D().getHeight();
 	}
 	public int centerX() {
-		return (int) getBounds().getX() + width()/2;
+		return (int) getBounds2D().getX() + width()/2;
 	}
 	public int centerY() {
-		return (int) getBounds().getY() + height()/2; //make sure should be minus
+		return (int) getBounds2D().getY() + height()/2; //make sure should be minus
 	}
 	public int n() {
 		return n;
