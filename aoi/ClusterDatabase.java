@@ -137,7 +137,11 @@ public class ClusterDatabase {
 	for (int i = 0; i < imageFilenames.length; i++) {
 		if (alreadyUsed[i]) continue;
 		css = parseCluster(imageFilenames[i]);
-		if (css.acceptable(nSegments)) break;
+		if (css.acceptable(nSegments)) {
+		  alreadyUsed[i] = true;
+		  break;
+	  }
+		  
 	}
     return css;
   }
