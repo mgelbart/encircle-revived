@@ -9,10 +9,14 @@ package aoi;
 import java.io.*;
 import java.net.*;
 
-public class Server {
+public abstract class Server {
 
   public static final int TCPPORT = 7601;
   public static final int UDPPORT = 7601;
+
+
+  public static ClusterDatabase clusterDbSayWithPET;
+  private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
 
 
   public static void main(String argv[]) throws Exception {
@@ -25,6 +29,10 @@ public class Server {
 
 
     ServerSocket servSocket = new ServerSocket(TCPPORT);
+
+
+	// (This can be moved later) Initialize ClusterDatabase;
+	clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
 
     while (true) {
@@ -55,9 +63,10 @@ public class Server {
         try {
 
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
-          for (Cluster c : simulation.arena.clusters)
+          for (Cluster c : simulation.arena.clusters) {
+			System.out.println(c);
             simulation.clusters.add(ClusterServerSide.copyFromCluster(c));
-
+		  }
 
         } catch (Exception e) {
           System.out.println(e.toString());

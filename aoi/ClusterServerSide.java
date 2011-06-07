@@ -14,22 +14,13 @@ import javax.swing.ImageIcon;
 import java.io.FileNotFoundException;
 
 public class ClusterServerSide extends Cluster {
-
-  // Number of segments in the cluster.
-  // int[] rather than int because we may not know the exact number.
-  // These are the values that will be ACCEPTED by the game.
-  // public final Set<Integer> nSegments;
-
   // Likelihoods for each value of nSegments
   // Whether or not a given value of nSegments is accepted is now computed
   // on the fly
   Map<Integer, Double> nsLikelihoods;
 
-
-  private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
+  // Determines which clusters we accept given the likelihood function.
   private static final double MIN_ACCEPTED_LIKELIHOOD = 0.9;
-  private static ClusterDatabase clusterDbSayWithPET;
-
 
   public ClusterServerSide(int x, int y, int width, int height, String imgPath,
                            String imgName, Map<Integer, Double> nsLikelihoods) {
@@ -45,27 +36,11 @@ public class ClusterServerSide extends Cluster {
   }
 
 
-  // 
-  // // Construct a ClusterServerSide corresponding to a cluster
-  // public ClusterServerSide(Cluster c) {
-  //   super(c.x, c.y, c.width, c.height, c.imgPath);
-  // 
-  //   if (clusterDbSayWithPET == null) {
-  //     try {
-  //       clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
-  //     } catch (Exception e) {
-  //       System.out.println(e.toString());
-  //       assert(false);
-  //     }
-  //   }
-  // 
-  //   this.nSegments = clusterDbSayWithPET.getByPath(c.imgPath).acceptableNS();
-  // }
-
-
   // Construct a ClusterServerSide corresponding to a cluster
-  public static ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException{
-	return clusterDbSayWithPET.parseCluster(c.imgName);
+  public static ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
+	System.out.println(c.imgName);
+	System.out.println(Server.clusterDbSayWithPET);
+	return Server.clusterDbSayWithPET.parseCluster(c.imgName);
   }
 
 
@@ -120,12 +95,6 @@ public class ClusterServerSide extends Cluster {
   */
   public static Vector<ClusterServerSide> generateArena(int[] clustersPerValue) throws FileNotFoundException{
 
-    // Read in all the Cluster info into a ClusterDatabase.
-    // I might prefer this to be done in Simulation and maybe even stored,
-    // but this is ok for now.
-    if (clusterDbSayWithPET == null)
-      clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
-
     Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
     int count, x, y;
@@ -139,7 +108,7 @@ public class ClusterServerSide extends Cluster {
         overlaps = true;
         while (overlaps) {
 
-          clust = clusterDbSayWithPET.getRandom(1+j);
+          clust = Server.clusterDbSayWithPET.getRandom(1+j);
 
           //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
 

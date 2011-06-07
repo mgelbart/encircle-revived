@@ -1,13 +1,13 @@
 <arena>
-<cluster x="13911" y="12937" width="4500" height="4750" imgPath="segmentation/images/fly/0076.jpg" imgID="0076" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-9099" y="4563" width="4000" height="3875" imgPath="segmentation/images/fly/0199.jpg" imgID="0199" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-8592" y="37615" width="3625" height="4750" imgPath="segmentation/images/fly/0148.jpg" imgID="0148" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-1514" y="-28085" width="3375" height="4500" imgPath="segmentation/images/fly/0158.jpg" imgID="0158" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-368" y="-38243" width="4125" height="5625" imgPath="segmentation/images/fly/0074.jpg" imgID="0074" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="6634" y="-25919" width="3625" height="5125" imgPath="segmentation/images/fly/0085.jpg" imgID="0085" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="30690" y="18168" width="7500" height="4625" imgPath="segmentation/images/fly/0021.jpg" imgID="0021" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-16094" y="10101" width="4875" height="6375" imgPath="segmentation/images/fly/0042.jpg" imgID="0042" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="10688" y="-36170" width="5625" height="9000" imgPath="segmentation/images/fly/0009.jpg" imgID="0009" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="4997" y="3676" width="5375" height="10875" imgPath="segmentation/images/fly/0010.jpg" imgID="0010" d="M250 150 L150 350 L350 350 Z"/>
-<cluster x="-7385" y="-15106" width="5750" height="10875" imgPath="segmentation/images/fly/0007.jpg" imgID="0007" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="34670" y="-19524" width="4125" height="4125" imgPath="segmentation/images/fly/0172.jpg" imgID="0172" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="29587" y="13050" width="4000" height="3875" imgPath="segmentation/images/fly/0179.jpg" imgID="0179" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-20549" y="-24968" width="3875" height="4000" imgPath="segmentation/images/fly/0195.jpg" imgID="0195" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-25701" y="22119" width="3875" height="4375" imgPath="segmentation/images/fly/0143.jpg" imgID="0143" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-28689" y="29258" width="5500" height="6625" imgPath="segmentation/images/fly/0033.jpg" imgID="0033" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="26001" y="-21199" width="5125" height="4500" imgPath="segmentation/images/fly/0107.jpg" imgID="0107" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-32867" y="15910" width="6250" height="6625" imgPath="segmentation/images/fly/0020.jpg" imgID="0020" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-25425" y="-29815" width="4750" height="6500" imgPath="segmentation/images/fly/0039.jpg" imgID="0039" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="38980" y="-9700" width="4875" height="9750" imgPath="segmentation/images/fly/0014.jpg" imgID="0014" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="-22395" y="-16764" width="5500" height="8125" imgPath="segmentation/images/fly/0015.jpg" imgID="0015" d="M250 150 L150 350 L350 350 Z"/>
+<cluster x="21914" y="-1962" width="7875" height="7750" imgPath="segmentation/images/fly/0012.jpg" imgID="0012" d="M250 150 L150 350 L350 350 Z"/>
 </arena>
