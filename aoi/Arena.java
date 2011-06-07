@@ -99,10 +99,11 @@ public class Arena {
 		int y = Integer.parseInt(attr.getValue("y"));
 		int width = Integer.parseInt(attr.getValue("width"));
 		int height = Integer.parseInt(attr.getValue("height"));
-		String img = attr.getValue("img");
+		String imgPath = attr.getValue("imgPath");
+		String imgID = attr.getValue("imgID");
 		String polygon = attr.getValue("d");
 
-		clusters.add(new DrawableCluster(x, y, width, height, img));
+		clusters.add(new DrawableCluster(x, y, width, height, imgPath, imgID));
 	    }
 
 	}

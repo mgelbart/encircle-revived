@@ -138,6 +138,7 @@ fprintf('extracted contour with %u points\n', size(C,2));
     
     % write the contour to a file
     polygon_file = fopen(sprintf('../polygons/fly/%04u.txt', i), 'w');
+%     fprintf(polygon_file, '%d\n', size(C,2));
     for j =  1:2
         for k = 1:size(C, 2);
             fprintf(polygon_file, '%.2f,', C(j, k));

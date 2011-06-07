@@ -11,20 +11,23 @@ import java.awt.Rectangle;
 import java.awt.Polygon;
 
 public class Cluster {
-    public final int x;
-    public final int y;
+    public int x;
+    public int y;
     public final int width;
     public final int height;
 	public final Polygon p;
-    public final String imgPath;
+	public final String imgPath;
+    public final String imgName; // a unique image ID
 
-    public Cluster(int x, int y, int width, int height, String imgPath) {
+
+    public Cluster(int x, int y, int width, int height, String imgPath, String imgName) {
 	this.x = x;
 	this.y = y;
 	this.width = width;
 	this.height = height;
 	this.imgPath = imgPath;
-	p = null;
+	this.imgName = imgName;
+	this.p = null;
 
 	assert(x-width/2 <=  Simulation.ARENASIZE/2);
 	assert(x-width/2 >= -Simulation.ARENASIZE/2);
@@ -37,15 +40,18 @@ public class Cluster {
 	assert(y+height/2 >= -Simulation.ARENASIZE/2);
     }
 
+	// For serializing in XML file
     public String toString() {
 	return "<cluster x=\"" + x
 	    + "\" y=\"" + y
 	    + "\" width=\"" + width
 	    + "\" height=\"" + height
-	    + "\" img=\"" + imgPath
+	    + "\" imgPath=\"" + imgPath
+		+ "\" imgID=\"" + imgName
 		+ "\" d=\"" + "M250 150 L150 350 L350 350 Z" + "\"/>";
     }
 
+	// soon to be use polygon's boundingbox fuction...
     public Rectangle boundingBox() {
 	return new Rectangle(x - width/2, y - height/2, width, height);
     }

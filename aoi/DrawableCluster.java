@@ -17,8 +17,8 @@ public class DrawableCluster extends Cluster implements Drawable {
 
   public final Image img;
 
-  public DrawableCluster(int x, int y, int width, int height, String imgPath) {
-    super(x, y, width, height, imgPath);
+  public DrawableCluster(int x, int y, int width, int height, String imgPath, String imgName) {
+    super(x, y, width, height, imgPath, imgName);
 
     // System.err.print(imgPath + " ");
 
@@ -34,7 +34,7 @@ public class DrawableCluster extends Cluster implements Drawable {
   }
 
   public DrawableCluster(Cluster c) {
-    this(c.x, c.y, c.width, c.height, c.imgPath);
+    this(c.x, c.y, c.width, c.height, c.imgPath, c.imgName);
   }
 
 

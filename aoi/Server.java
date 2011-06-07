@@ -36,7 +36,7 @@ public class Server {
       if (generateNewMap) {
 
         // For now, two of each nSegments from 1 to 7
-        simulation.clusters = ClusterServerSide.generateArena(new int[]{2, 2, 2, 2, 2, 2, 2});
+        simulation.clusters = ClusterServerSide.generateArena(new int[]{4, 2, 2, 2, 1, 0, 0});
 
         simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
 
@@ -56,7 +56,8 @@ public class Server {
 
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
           for (Cluster c : simulation.arena.clusters)
-            simulation.clusters.add(new ClusterServerSide(c));
+            simulation.clusters.add(ClusterServerSide.copyFromCluster(c));
+
 
         } catch (Exception e) {
           System.out.println(e.toString());
