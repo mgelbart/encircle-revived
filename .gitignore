@@ -5,6 +5,5 @@ out/
 resources/
 *~
 arena.xml
-map.xml
 #*
 *.mat
