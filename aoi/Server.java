@@ -31,6 +31,7 @@ public abstract class Server {
     int[] numPerNum = new int[maxSegmentNumber]; 
     for (int i = 0; i < maxSegmentNumber; i++)
       numPerNum[i] = Integer.parseInt(segmentNos[i]);
+// NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
 
     ServerSocket servSocket = new ServerSocket(TCPPORT);
 

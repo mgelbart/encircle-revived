@@ -42,10 +42,9 @@ public class Simulation
   // Hence increasing this only increases the resolution.
   public static final int ARENASIZE = 100000;
 
-
   // Maximum angular turning rate (i.e. domega/dt).
   // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-  public static final int OMEGA = (INTMAX/1600) * TIMESTEP;
+  public static final int OMEGA = (INTMAX/1400) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
   public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
@@ -56,17 +55,8 @@ public class Simulation
   // Time to wait until respawning.
   public static final int RESPAWNTIME = 1000 / TIMESTEP;
 
-  // Maximum energy.
-  public static final int MAXENERGY = 10;
-
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
-
-  // Energy at the start of the game/after being shot.
-  public static final int INITIALENERGY = MAXENERGY;
-
-  // Energy cost per bullet.
-  public static final int BULLETCOST = 2;
 
   // Roughly the minimum distance between adjacent points in the trajectory for
   // encircling clusters. See the algorithm to see why this is only 'roughly' so.
@@ -137,7 +127,7 @@ public class Simulation
 
     playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
-    return new PlayerState(playerNo, x, y, 0, 0, dir, INITIALENERGY,
+    return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
                            (game == null) ? 0 : game.time, score, false); 
   }
 
@@ -214,12 +204,6 @@ public class Simulation
             playerStatesInt[j].respawnTimeLeft--;
             continue;
           }
-
-
-          // Add one point of energy every RECHARGEPERIOD steps.
-          int energy = Math.min(MAXENERGY, states[j].energy
-                                + ((game.time % RECHARGEPERIOD == 0) ? 1:0));
-
 
           boolean erasePath = false;
 
@@ -307,7 +291,7 @@ public class Simulation
             loopStarted = states[j].loopStarted;
           }
 
-          states[j] = new PlayerState(j, pos, energy, loopStarted, score, states[j].respawning);
+          states[j] = new PlayerState(j, pos, 0, loopStarted, score, states[j].respawning);
 		
         }
 

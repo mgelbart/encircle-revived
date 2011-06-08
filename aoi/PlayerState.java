@@ -35,7 +35,7 @@ public class PlayerState {
   public PlayerState(int playerNo, Position pos, int energy, int loopStarted, int score, boolean respawning) {
     this.playerNo = playerNo;
     this.pos = pos;
-    this.energy = energy;
+    this.energy = energy;                     // NOT USED
     this.loopStarted = loopStarted;
     this.score = score;
     this.respawning = respawning;
