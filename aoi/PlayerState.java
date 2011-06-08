@@ -1,17 +1,16 @@
 package aoi;
 
-/* A "read-only" class that describes a player's
-   position in phase space.
-
-   Note that ints are used although floats might be
-   more natural. This is because ints don't need
-   any special serialization/parsing to be transmitted
-   over the network.
-
-*/
-
 import java.io.*;
 
+/** 
+ * A "read-only" class that describes a player's
+ * position in phase space.
+ *
+ * Note that ints are used although floats might be
+ * more natural. This is because ints don't need
+ * any special serialization/parsing to be transmitted
+ * over the network.
+*/
 public class PlayerState {
 
   public static final int SHIPLENGTH = Simulation.ARENASIZE * 7/200;
@@ -238,8 +237,10 @@ public class PlayerState {
     return new int[][]{px, py};
   }
 
-  // Variables relating to the position of the player in the 'positional'
-  // phase space.
+/**
+ * Variables relating to the position of the player in the 'positional'
+ * phase space.
+ */
   public static class Position {
     public int x;
     public int y;

@@ -1,17 +1,15 @@
 package aoi;
 
-/* A "read-only" class used to represent a bullet in
-   the game.
-
-   Note that ints are used although floats might be
-   more natural. This is because ints don't need
-   any special serialization/parsing to be transmitted
-   over the network.
-
-*/
-
 import java.io.*;
 
+/** A "read-only" class used to represent a bullet in
+ * the game.
+ *
+ * Note that ints are used although floats might be
+ * more natural. This is because ints don't need
+ * any special serialization/parsing to be transmitted
+ * over the network.
+ */
 public class Bullet implements Cloneable {
 
   /* The bullet speed is a universal constant. */

@@ -1,17 +1,16 @@
 package aoi;
 
-/*
-  This class decides what to do based on (the
-  history of) the game state.
-
-  This implementation of Intelligence does
-  not rely on any human input.
-
-*/
-
 import java.awt.Point;
 import java.awt.geom.Point2D;
 
+ /**
+ *  This class decides what to do based on (the
+ *  history of) the game state.
+ *
+ *  This implementation of Intelligence does
+ *  not rely on any human input.
+ *
+ */
 public class Nonhuman implements Intelligence {
 
   // The input options received from Client.

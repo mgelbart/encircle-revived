@@ -1,14 +1,14 @@
 package aoi;
 
-/*
-  Interface for object passed to the GUI
-  for drawing purposes.
-*/
-
 import java.awt.Shape;
 import java.awt.Image;
 import java.awt.Color;
 
+
+/**
+ *  Interface for object passed to the GUI
+ *  for drawing purposes.
+ */
 interface Drawable {
 
   // Returns the image to be drawn, if any.

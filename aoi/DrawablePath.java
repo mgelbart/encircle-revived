@@ -1,16 +1,15 @@
 package aoi;
 
-/*
-  A class used to pass a sequence of points to the GUI
-  to be connected by lines. Can be used to render polygons
-  or open paths.
-*/
-
 import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Image;
 import java.awt.Color;
 
+/**
+ *  A class used to pass a sequence of points to the GUI
+ *  to be connected by lines. Can be used to render polygons
+ *  or open paths.
+ */
 public class DrawablePath implements Drawable {
 
   private boolean removed = false;

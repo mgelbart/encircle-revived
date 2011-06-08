@@ -1,25 +1,24 @@
 package aoi;
 
-/*
-  Loads all the cluster information for a 
-  particular data set. This information is
-  then accessed to make instances of
-  ClusterServerSide
-
-  We don't create the Cluster objects at 
-  this point because that would take extra
-  memory. Instead, we just create them
-  (and the associated ClusterServerSide) 
-  as needed.
-
-  Also, this may be more reasonable from
-  an organizational standpoint... this is
-  still unclear.
-*/
-
 import java.io.*;
 import java.util.*;
 
+/**
+ *  Loads all the cluster information for a 
+ *  particular data set. This information is
+ *  then accessed to make instances of
+ *  ClusterServerSide
+ *
+ *  We don't create the Cluster objects at 
+ *  this point because that would take extra
+ *  memory. Instead, we just create them
+ *  (and the associated ClusterServerSide) 
+ *  as needed.
+ *
+ *  Also, this may be more reasonable from
+ *  an organizational standpoint... this is
+ *  still unclear.
+ */
 public class ClusterDatabase {
 
   // Either '/' or '\' depending on OS. Eventually we can find the real way of doing this.

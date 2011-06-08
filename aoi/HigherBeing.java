@@ -1,21 +1,20 @@
 package aoi;
 
-/*
-  This class decides what to do based on (the
-  history of) the game state.
-
-  This implementation of Intelligence relies
-  on a combination of human input and machine
-  decision making, i.e. it implements an
-  "augmented intelligence".
-*/
-
 import java.awt.event.KeyEvent;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+/**
+ *  This class decides what to do based on (the
+ *  history of) the game state.
+ *
+ *  This implementation of Intelligence relies
+ *  on a combination of human input and machine
+ *  decision making, i.e. it implements an
+ *  "augmented intelligence".
+ */
 public class HigherBeing implements Intelligence {
 
   // The input options received from Client.

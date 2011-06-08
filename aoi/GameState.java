@@ -1,13 +1,12 @@
 package aoi;
 
-/*
-  A class used for communicating the game state
-  from the server to the client.
-*/
-
 import java.io.*;
 import java.util.Vector;
 
+/**
+ *  A class used for communicating the game state
+ *  from the server to the client.
+ */
 public class GameState {
   public final int time;
   public final PlayerState[] states;

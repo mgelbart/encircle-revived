@@ -1,16 +1,14 @@
 package aoi;
 
-/*
-  A GUI element for drawing bullets.
-*/
-
-
 import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.awt.Image;
 
+/**
+ *  A GUI element for drawing bullets.
+ */
 public class DrawableBullets implements Drawable {
 
   private boolean removed = false;

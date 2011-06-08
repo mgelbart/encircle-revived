@@ -1,13 +1,12 @@
 package aoi;
 
-/*
-  This class contains static functions used by
-  the server to calculate certain quantities.
-
-  These are provided to the clients so that there
-  is no need to reverse engineer any parameters.
-*/
-
+/**
+ * This class contains static functions used by
+ * the server to calculate certain quantities.
+ *
+ * These are provided to the clients so that there
+ * is no need to reverse engineer any parameters.
+ */
 public abstract class SimulationUtils {
 
   /* Returns an array of {x, y, vx, vy, direction} after

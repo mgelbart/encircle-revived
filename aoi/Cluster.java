@@ -1,12 +1,11 @@
 package aoi;
 
-/*
-  Clusters are image patches spread around the map. Each cluster
-  contains a particular number of segments which defines the
-  clusters numerical value. The players collect clusters in
-  increasing order of numberical value.
+/**
+ *  Clusters are image patches spread around the map. Each cluster
+ *  contains a particular number of segments which defines the
+ *  clusters numerical value. The players collect clusters in
+ *  increasing order of numberical value.
  */
-
 public class Cluster {
 	public final NotStupidPolygon p;
 	public final String imgPath;

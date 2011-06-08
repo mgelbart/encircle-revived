@@ -1,15 +1,13 @@
 package aoi;
 
-/*
-  A GUI element for the special FX shown when you score.
-*/
-
-
 import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Polygon;
 
+/**
+ *  A GUI element for the special FX shown when you score.
+ */
 public class DrawableScoringEffect extends DrawablePath {
 
   private int playerNo;

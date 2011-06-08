@@ -1,18 +1,16 @@
 package aoi;
 
-/*
-  A class dedicated to listening and parsing commands from
-  a remote player.
-
-  Meant to be run in a separate thread. Once the data for a new
-  PlayerControlParameters object is parsed it is passed on
-  to the simulation via the shared variable game.player1/2CtrlParams.
-
-*/
-
 import java.io.*;
 import java.util.Vector;
 
+/**
+ *  A class dedicated to listening and parsing commands from
+ *  a remote player.
+ *
+ *  Meant to be run in a separate thread. Once the data for a new
+ *  PlayerControlParameters object is parsed it is passed on
+ *  to the simulation via the shared variable game.player1/2CtrlParams.
+*/
 public class PlayerListener implements Runnable {
 
   public final static int CTRLBUFFERSIZE = 30;

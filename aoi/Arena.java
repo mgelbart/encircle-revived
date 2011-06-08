@@ -1,10 +1,5 @@
 package aoi;
 
-/*
-  A class for the static map information,
-  namely about the clusters.
- */
-
 import java.io.*;
 import java.util.Vector;
 import java.util.Arrays;
@@ -13,6 +8,10 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
 
+/**
+ * A class for the static map information,
+ *  namely about the clusters.
+ */
 public class Arena {
 
     public static final String ARENA_METADATA_FILENAME = "arena.xml";

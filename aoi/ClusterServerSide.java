@@ -1,17 +1,16 @@
 package aoi;
 
-/*
-  Extends the cluster class in order to store
-  information and methods about the clusters
-  that the clients are not supposed to have.
-
-  Namely the number of segments and some
-  generation functions.
-*/
-
 import java.util.*;
 import java.io.FileNotFoundException;
 
+/**
+ *  Extends the cluster class in order to store
+ *  information and methods about the clusters
+ *  that the clients are not supposed to have.
+ *
+ *  Namely the number of segments and some
+ *  generation functions.
+ */
 public class ClusterServerSide extends Cluster {
   // Likelihoods for each value of nSegments
   // Whether or not a given value of nSegments is accepted is now computed

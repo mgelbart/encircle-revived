@@ -1,14 +1,13 @@
 package aoi;
 
-/*
-  The main class ran by the server that handles
-  connections to the clients and starts the
-  Simulation.
-*/
-
 import java.io.*;
 import java.net.*;
 
+/**
+ * The main class ran by the server that handles
+ * connections to the clients and starts the
+ * Simulation.
+ */
 public abstract class Server {
 
   public static final int TCPPORT = 7601;

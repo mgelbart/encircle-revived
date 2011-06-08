@@ -1,15 +1,14 @@
 package aoi;
 
-/*
-  A class that figures out what the other
-  player is going to do.
-
-  This could very much benefit from human
-  input!
-*/
-
 import java.util.Vector;
 
+/**
+ * A class that figures out what the other
+ * player is going to do.
+ *
+ * This could very much benefit from human
+ * input!
+ */
 public class MindReader {
 
   private ClientConfiguration config;

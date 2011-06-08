@@ -1,18 +1,16 @@
 package aoi;
 
-/*
-  A class dedicated to serializing and sending the game state
-  to a remote player.
-
-  Meant to be run in a separate thread. The thread will sleep
-  immediately after sending the state until next interruption
-  (by Simulation when game state changes).
-
-*/
-
 import java.io.*;
 
-
+/**
+ * A class dedicated to serializing and sending the game state
+ * to a remote player.
+ *
+ * Meant to be run in a separate thread. The thread will sleep
+ * immediately after sending the state until next interruption
+ * (by Simulation when game state changes).
+ * 
+ */
 public class GameStateSender implements Runnable {
 
   private int playerNo;

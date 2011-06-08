@@ -1,11 +1,10 @@
 package aoi;
 
-/*
-  The same as java.awt.Polygon except you can get the list of points out.
- */
-
 import java.awt.Polygon;
 
+/**
+ *  The same as java.awt.Polygon except you can get the list of points out.
+ */
 public class NotStupidPolygon extends Polygon {
 	private int[] x;
 	private int[] y;

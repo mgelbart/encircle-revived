@@ -1,12 +1,11 @@
 package aoi;
 
-/*
-  A class used for storing client options, like
-  server address, enabled modules, etc.
-*/
-
 import java.io.*;
 
+/**
+ *  A class used for storing client options, like
+ * server address, enabled modules, etc.
+ */
 public class ClientConfiguration {
 
   // The server address, without port information.

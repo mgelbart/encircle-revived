@@ -1,18 +1,5 @@
 package aoi;
 
-/*
-
-  A class for interacting with a human, i.e. for
-  drawing the game state and getting inputs.
-
-  Designed to be ran in a separate thread such that
-  frames are skipped in the visualization as needed.
-
-  This class should be more or less tightly integrated
-  with an instance of Intelligence.
-
-*/
-
 import stdlib.*;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
@@ -27,6 +14,16 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.io.*;
 
+/**
+ *  A class for interacting with a human, i.e. for
+ *  drawing the game state and getting inputs.
+ *
+ *  Designed to be ran in a separate thread such that
+ *  frames are skipped in the visualization as needed.
+ *
+ *  This class should be more or less tightly integrated
+ *  with an instance of Intelligence.
+*/
 public class GUI implements Runnable {
 
   // The input options received from Client.

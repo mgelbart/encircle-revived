@@ -1,10 +1,5 @@
 package aoi;
 
-/*
-  A GUI element for drawing the score.
-*/
-
-
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Image;
@@ -15,7 +10,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
-
+/**
+ *  A GUI element for drawing the score.
+ */
 public class DrawableScore implements Drawable {
 
   private boolean removed = false;

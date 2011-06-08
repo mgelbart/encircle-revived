@@ -1,15 +1,13 @@
 package aoi;
 
-/*
-  A GUI element for a ship.
-*/
-
-
 import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Polygon;
 
+/**
+ *  A GUI element for a ship.
+ */
 public class DrawableShip extends DrawablePath {
 
   private int playerNo;

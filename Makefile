@@ -16,6 +16,7 @@ doc:
 
 clean:
 	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class
+	rm -rf doc
 
 run_serv:
 	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/serv.mem -ea aoi/Server < server.conf

@@ -1,16 +1,16 @@
 package aoi;
 
-/* A "read-only" class used to tell the simulator what the
-   player wants to do.
-
-   Note that ints are used although floats might be
-   more natural. This is because ints don't need
-   any special serialization/parsing to be transmitted
-   over the network.
-*/
-
 import java.io.*;
 
+/**
+ * A "read-only" class used to tell the simulator what the
+ * player wants to do.
+ *
+ * Note that ints are used although floats might be
+ * more natural. This is because ints don't need
+ * any special serialization/parsing to be transmitted
+ * over the network.
+*/
 public class PlayerControlParameters implements Cloneable {
 
   // The specified parameters will first become active in
