@@ -1,5 +1,5 @@
 clear all; close all; clc;
-
+%{
 % read in the sample image (in current directory)
 x = double(imread('fly3.tif'))/256;
 
@@ -23,16 +23,24 @@ s = flipud(sortrows([a(:) (1:length(a))']));
 s(1:2,:) = [];
 
 save temp;
-
+%}
 %%
 load temp
 
 
 meta_file = fopen('../meta/fly.txt', 'w');
 
+
+
 LABELING_RELIABILITY = 0.9;
+
 % allows the user to label the images
 % writes the images, labels, polygon contours to their respective files
+
+
+h1 = figure(1);
+
+
 for i = 1:size(s, 1)
     % make a binary mask for region i
     mask = z==s(i,2);
@@ -60,34 +68,52 @@ for i = 1:size(s, 1)
     C(:,1) = [];
     % reduce the number of contour points by imposing a maximum angle  
     % on three adjacent points
-  
+    Corig = C;
     
-MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS = 45;
-while size(C,2) > MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS
-    windowSize = 3;
-    Cfilter = filter(ones(1,windowSize)/windowSize, 1, C.').';
-    Cfilter = Cfilter(:,windowSize:end-(windowSize-2));
-    C = Cfilter;
-    
-    Ccopy = C;
-    MIN_ANGLE = 15;  % angles of less than this many degrees are removed
-    for j = size(C, 2)-1:-1:2
-        xy = C(:,j-1:j+1);
-        xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
-        theta1 = atan2(xy(2,1),xy(1,1));
-        theta3 = atan2(xy(2,3),xy(1,3));
-        theta = abs(theta1-theta3);
-        theta = abs(theta - pi);
-        theta = theta*180/pi;
-        if theta < MIN_ANGLE
-            Ccopy(:,j) = [];
-        end
-        
-    end
-    C = Ccopy;
-    
+% MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS = 80;
+% while size(C,2) > MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS
+%     windowSize = 3;
+%     Cfilter = filter(ones(1,windowSize)/windowSize, 1, C.').';
+%     Cfilter = Cfilter(:,windowSize:end-(windowSize-2));
+%     C = Cfilter;
+%     
+%     Ccopy = C;
+%     MIN_ANGLE = 15;  % angles of less than this many degrees are removed
+%     for j = size(C, 2)-1:-1:2
+%         xy = C(:,j-1:j+1);
+%         xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
+%         theta1 = atan2(xy(2,1),xy(1,1));
+%         theta3 = atan2(xy(2,3),xy(1,3));
+%         theta = abs(theta1-theta3);
+%         theta = abs(theta - pi);
+%         theta = theta*180/pi;
+%         if theta < MIN_ANGLE
+%             Ccopy(:,j) = [];
+%         end
+%         
+%     end
+%     C = Ccopy;
+%     
+% end
+% fprintf('extracted contour with %u points\n', size(C,2));
+
+
+
+% iteratively remove closeest points
+Ccopy = C; 
+NUM_POINTS = 100;
+
+while size(C, 2) > NUM_POINTS
+%    plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
+% drawnow;
+distmat = sqrt(bsxfun(@minus, C(1,:), C(1,:).').^2 + bsxfun(@minus, C(2,:), C(2,:).').^2);
+distmat(logical(eye(size(distmat)))) = Inf;
+[~, minind] = min(distmat(:));
+[a b] = ind2sub(size(distmat), minind);
+C(:,a)=[];
 end
-fprintf('extracted contour with %u points\n', size(C,2));
+
+
     
     % the above doesn't work so well, because it's hard to get rid of
     % useless points. for now, just get convex hull
@@ -114,23 +140,36 @@ fprintf('extracted contour with %u points\n', size(C,2));
     
     
     % display the image and get the label
-    h1 = figure(1);
+    hold off;
     imshow(patch_crop);
     title(sprintf('%u of %u', i, size(s, 1)));
-
+    hold on;
+    plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
+    plot([Corig(1,end) Corig(1,:)], [Corig(2,end) Corig(2,:)], '--r');
+    
+    skip = 0;
     label = [];
     while isempty(label)
         k = waitforbuttonpress;
         label = get(h1, 'CurrentCharacter');
         if label == ' ' % if you want to discard the image
+            label = NaN;
+            skip = 1;
             break;
         end
         label = str2double(label);
         if ((label < 0) || (label > 10)) || ~(label > 0 && label < 10)
             label = [];
         end
+    end    
+    cla;
+    title(sprintf('You labeled the last image with: %d',label), 'FontSize', 30);   
+    drawnow;
+    
+    if skip
+        continue
     end
-
+    
     fprintf(meta_file, '%04u\n', i);
     
     % write the image to a file
