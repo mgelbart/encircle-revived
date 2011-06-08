@@ -31,7 +31,7 @@ load temp
 meta_file = fopen('../meta/fly.txt', 'w');
 
 
-
+NUM_CONTOUR_POINTS = 100;
 LABELING_RELIABILITY = 0.9;
 
 % allows the user to label the images
@@ -66,78 +66,21 @@ for i = 1:size(s, 1)
     % find the contour around the mask
     C = contourc(mask_crop, [0.5 0.5]);
     C(:,1) = [];
-    % reduce the number of contour points by imposing a maximum angle  
-    % on three adjacent points
-    Corig = C;
+
+    % iteratively remove closeest points
+    Ccopy = C; 
     
-% MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS = 80;
-% while size(C,2) > MAXIMUM_NUMBER_OF_POINTS_IN_THE_POLYGON_THAT_REPRESENTS_THINGS
-%     windowSize = 3;
-%     Cfilter = filter(ones(1,windowSize)/windowSize, 1, C.').';
-%     Cfilter = Cfilter(:,windowSize:end-(windowSize-2));
-%     C = Cfilter;
-%     
-%     Ccopy = C;
-%     MIN_ANGLE = 15;  % angles of less than this many degrees are removed
-%     for j = size(C, 2)-1:-1:2
-%         xy = C(:,j-1:j+1);
-%         xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
-%         theta1 = atan2(xy(2,1),xy(1,1));
-%         theta3 = atan2(xy(2,3),xy(1,3));
-%         theta = abs(theta1-theta3);
-%         theta = abs(theta - pi);
-%         theta = theta*180/pi;
-%         if theta < MIN_ANGLE
-%             Ccopy(:,j) = [];
-%         end
-%         
-%     end
-%     C = Ccopy;
-%     
-% end
-% fprintf('extracted contour with %u points\n', size(C,2));
 
+    while size(C, 2) > NUM_CONTOUR_POINTS
+        %    plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
+        % drawnow;
+        distmat = sqrt(bsxfun(@minus, C(1,:), C(1,:).').^2 + bsxfun(@minus, C(2,:), C(2,:).').^2);
+        distmat(logical(eye(size(distmat)))) = Inf;
+        [~, minind] = min(distmat(:));
+        [a b] = ind2sub(size(distmat), minind);
+        C(:,a)=[];
+    end
 
-
-% iteratively remove closeest points
-Ccopy = C; 
-NUM_POINTS = 100;
-
-while size(C, 2) > NUM_POINTS
-%    plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
-% drawnow;
-distmat = sqrt(bsxfun(@minus, C(1,:), C(1,:).').^2 + bsxfun(@minus, C(2,:), C(2,:).').^2);
-distmat(logical(eye(size(distmat)))) = Inf;
-[~, minind] = min(distmat(:));
-[a b] = ind2sub(size(distmat), minind);
-C(:,a)=[];
-end
-
-
-    
-    % the above doesn't work so well, because it's hard to get rid of
-    % useless points. for now, just get convex hull
-%     R = regionprops(mask_crop, 'ConvexHull');
-%     C = R.ConvexHull.';
-%     Ccopy = C;
-%     MIN_ANGLE = 20;
-%     for j = size(C, 2)-1:-1:2
-%         xy = C(:,j-1:j+1);
-%         xy = bsxfun(@minus, xy, xy(:,2));  % middle point becomes origin
-%         theta1 = atan2(xy(2,1),xy(1,1));
-%         theta3 = atan2(xy(2,3),xy(1,3));
-%         theta = abs(theta1-theta3);
-%         theta = abs(theta - pi);
-%         theta = theta*180/pi;
-%         if theta < MIN_ANGLE
-%             Ccopy(:,j) = [];
-%             fprintf('removed angle %f\n', theta);
-%         else
-%             fprintf('kept angle %f\n', theta);
-%         end
-%         
-%     end
-    
     
     % display the image and get the label
     hold off;
@@ -173,7 +116,7 @@ end
     fprintf(meta_file, '%04u\n', i);
     
     % write the image to a file
-    imwrite(patch_crop, sprintf('../images/fly/%04u.jpg', i), 'jpg');
+    imwrite(patch_crop, sprintf('../images/fly/%04u.jpg', i), 'png');
     
     % write the contour to a file
     polygon_file = fopen(sprintf('../polygons/fly/%04u.txt', i), 'w');
@@ -188,7 +131,6 @@ end
     
     % write an initial database entry to a file
     nsegments_file = fopen(sprintf('../segment_likelihoods/fly/%04u.txt', i), 'w');
-    %fprintf(nsegments_file, '%04u.jpg\n', i);
     fprintf(nsegments_file, '%u:%.2f,\n', label, LABELING_RELIABILITY);
     fprintf(nsegments_file, '\n');
     fclose(nsegments_file);
