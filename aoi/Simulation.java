@@ -75,9 +75,6 @@ public class Simulation
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
 
-  // The length of the sequence you need to collect.
-  public static final int POINTSPERROUND = 7;
-
   /*
    * TODO: Should write a proper constructor and/or accessor
    *       method for Simulation that can be called from
@@ -145,7 +142,7 @@ public class Simulation
   }
 
   @SuppressWarnings("unchecked")
-    public void startGame() {
+    public void startGame(int pointsPerRound) {
 
     PlayerState[] states = (PlayerState[]) (game.states.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
@@ -184,9 +181,9 @@ public class Simulation
         // Check if one of the players won.
         for (int j=0; j<NUMPLAYERS; ++j) {
 
-          assert(states[j].score <= POINTSPERROUND);
+          assert(states[j].score <= pointsPerRound);
 
-          if (states[j].score == POINTSPERROUND) {
+          if (states[j].score == pointsPerRound) {
             for (int k=0; k<NUMPLAYERS; ++k) {
               playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
               states[k] = states[k].clone("score", 0);

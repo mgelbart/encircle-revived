@@ -22,9 +22,15 @@ public abstract class Server {
     // Parse input options:
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    reader.readLine();
+    reader.readLine();  // dummy line
     final boolean generateNewMap = Boolean.parseBoolean(reader.readLine());
 
+    reader.readLine();  // dummy line
+    String[] segmentNos = reader.readLine().split(",");
+    int maxSegmentNumber = segmentNos.length;
+    int[] numPerNum = new int[maxSegmentNumber]; 
+    for (int i = 0; i < maxSegmentNumber; i++)
+      numPerNum[i] = Integer.parseInt(segmentNos[i]);
 
     ServerSocket servSocket = new ServerSocket(TCPPORT);
 
@@ -42,7 +48,7 @@ public abstract class Server {
       if (generateNewMap) {
 
         // For now, two of each nSegments from 1 to 7
-        simulation.clusters = clusterDbSayWithPET.generateArena(new int[]{4, 2, 2, 2, 2, 2, 1});
+        simulation.clusters = clusterDbSayWithPET.generateArena(numPerNum);
 
         simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
 
@@ -113,7 +119,7 @@ public abstract class Server {
 
 
       // Start simulating the game!
-      simulation.startGame();
+      simulation.startGame(maxSegmentNumber);
 
       // TODO: start the while(true) loop from the beginnig
       //       to server multiple games at a time.
