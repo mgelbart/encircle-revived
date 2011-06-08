@@ -10,15 +10,15 @@ package aoi;
 public class Cluster {
 	public final NotStupidPolygon p;
 	public final String imgPath;
-    public final String imgName; // a unique image ID
+  public final int imgID; // a unique image ID
 								// eventually, the client should not have this information
 								// but it's currently needed for making a 
 								// ClusterServerSide out of a Cluster
 
-    public Cluster(NotStupidPolygon p, String imgPath, String imgName) {
+    public Cluster(NotStupidPolygon p, String imgPath, int imgID) {
 	this.p = p;
 	this.imgPath = imgPath;
-	this.imgName = imgName;
+	this.imgID = imgID;
 
 	assert(p.centerX()+p.width()/2  <=  Simulation.ARENASIZE/2);
 	assert(p.centerX()+p.width()/2  >= -Simulation.ARENASIZE/2);
@@ -34,7 +34,7 @@ public class Cluster {
 	// For serializing in XML file
     public String toString() {
 		String s = "<cluster imgPath=\"" + imgPath
-	    + "\" imgID=\"" + imgName
+	    + "\" imgID=\"" + imgID
 		+ "\" d=\"" + p.n() + ":";
 		int[][] coords = p.coords();
 		for (int i = 0; i < p.n(); i++)

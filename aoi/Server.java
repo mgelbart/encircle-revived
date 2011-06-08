@@ -14,8 +14,6 @@ public abstract class Server {
   public static final int TCPPORT = 7601;
   public static final int UDPPORT = 7601;
 
-
-  public static ClusterDatabase clusterDbSayWithPET;
   private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
 
 
@@ -32,7 +30,7 @@ public abstract class Server {
 
 
 	// (This can be moved later) Initialize ClusterDatabase;
-	clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+	ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
 
     while (true) {
@@ -44,7 +42,7 @@ public abstract class Server {
       if (generateNewMap) {
 
         // For now, two of each nSegments from 1 to 7
-        simulation.clusters = ClusterServerSide.generateArena(new int[]{4, 2, 2, 2, 1, 0, 0});
+        simulation.clusters = clusterDbSayWithPET.generateArena(new int[]{4, 2, 2, 2, 2, 2, 1});
 
         simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
 
@@ -64,7 +62,7 @@ public abstract class Server {
 
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
           for (Cluster c : simulation.arena.clusters) {
-            simulation.clusters.add(ClusterServerSide.copyFromCluster(c));
+            simulation.clusters.add(clusterDbSayWithPET.copyFromCluster(c));
 		  }
 
         } catch (Exception e) {

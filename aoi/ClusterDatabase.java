@@ -85,9 +85,11 @@ public class ClusterDatabase {
   }
   
   // Parse all the data about a particular ProtoCluster given the filename
-  public ClusterServerSide parseCluster(String filename) throws FileNotFoundException {
-	assert(filename != null);
-	
+  public ClusterServerSide parseCluster(int imgID) throws FileNotFoundException {
+  assert(imgID >= 0);
+  assert(imgID < imageFilenames.length);
+    
+	String filename = imageFilenames[imgID];
 	String imagePath =  imagePath(filename);
 
 	// Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
@@ -126,24 +128,95 @@ public class ClusterDatabase {
    	  }
 	}
 
-  return new ClusterServerSide(imageCoords, imagePath, filename, nsLikelihoods);
+  return new ClusterServerSide(imageCoords, imagePath, imgID, nsLikelihoods);
   }
 
   // Return a random cluster that includes nSegments as an acceptable possibility.
   // Guarantees that this cluster has not already been returned by this function.
   // If no Clusters are available, returns null;
   public ClusterServerSide getRandom(int nSegments) throws FileNotFoundException {
- 	ClusterServerSide css = null;
+ 	ClusterServerSide css;
 	for (int i = 0; i < imageFilenames.length; i++) {
 		if (alreadyUsed[i]) continue;
-		css = parseCluster(imageFilenames[i]);
-		if (css.acceptable(nSegments)) {
-		  alreadyUsed[i] = true;
-		  break;
-	  }
-		  
+		css = parseCluster(i);
+		if (css.acceptable(nSegments))
+		  return css;
 	}
-    return css;
+    return null;
+  }
+  
+  
+  
+  // Construct a ClusterServerSide corresponding to a Cluster
+  public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
+	ClusterServerSide css = parseCluster(c.imgID);
+	return new ClusterServerSide(c.p, c.imgPath, c.imgID  , css.nsLikelihoods);
+  }
+  
+
+  /*
+    Generates a collection of clusters that can be used to initialize a Map.
+
+    In the end the placement of the clusters will be quite important for game-
+    play as well as information gain about the cluster size so we probably want
+    to think about how to do this more carefully.
+  */
+  public Vector<ClusterServerSide> generateArena(int[] clustersPerValue) throws FileNotFoundException{
+
+    Vector<ClusterServerSide> arenaClusters = new Vector<ClusterServerSide>();
+
+    int count, x, y;
+    ClusterServerSide clust = null;
+    boolean overlaps;
+
+    for (int j=0; j < clustersPerValue.length; ++j) {
+
+      for (int k=0; k < clustersPerValue[j]; ++k) {
+        
+        // keep searching while they are overlapping
+        // (until finds a non-overlapping cluster)
+        overlaps = true;
+        while (overlaps) {
+
+          clust = getRandom(j+1);
+        
+          
+          if (j+1 == 6) {
+            System.err.println("**"+(j+1) + " *** " + k);
+            System.err.println("*" + clust);
+            System.err.println("*" + clust.acceptable(j+1));
+          }
+        
+        
+          
+          if (clust == null) System.err.println("****" +  (j+1) + " " + k + " " + clust);
+          assert(clust != null);
+        
+          
+          // give it a random location
+          clust.randomizeLocation();
+
+          //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
+
+          overlaps = false;
+          for (Cluster prevClust : arenaClusters) {
+            if (prevClust.intersects(clust)) 
+              overlaps = true;
+
+          }
+
+        }
+
+        arenaClusters.add(clust);
+        // Only if this cluster is actually added to the arena does alreadyUsed get edited
+        alreadyUsed[clust.imgID] = true;
+
+      }
+
+    }
+
+    return arenaClusters;
+
   }
 
 

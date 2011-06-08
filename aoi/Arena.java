@@ -96,7 +96,7 @@ public class Arena {
 
 	    if (qName == "cluster") {
 		String imgPath = attr.getValue("imgPath");
-		String imgID = attr.getValue("imgID");
+		int imgID = Integer.parseInt(attr.getValue("imgID"));
 		String polygon = attr.getValue("d");
 		String[] parts = polygon.split(":");
 		int n = Integer.parseInt(parts[0]);

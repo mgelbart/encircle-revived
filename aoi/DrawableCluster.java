@@ -17,8 +17,8 @@ public class DrawableCluster extends Cluster implements Drawable {
 
   public final Image img;
 
-  public DrawableCluster(NotStupidPolygon p, String imgPath, String imgName) {
-    super(p, imgPath, imgName);
+  public DrawableCluster(NotStupidPolygon p, String imgPath, int imgID) {
+    super(p, imgPath, imgID);
 
     // System.err.print(imgPath + " ");
 
@@ -34,7 +34,7 @@ public class DrawableCluster extends Cluster implements Drawable {
   }
 
   public DrawableCluster(Cluster c) {
-    this(c.p, c.imgPath, c.imgName);
+    this(c.p, c.imgPath, c.imgID);
   }
 
 

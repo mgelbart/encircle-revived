@@ -48,10 +48,10 @@ public class Simulation
   public static final int OMEGA = (INTMAX/1600) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 3) * TIMESTEP * TIMESTEP) ;
+  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
  
   // Drag coefficient.
-  public static final double DRAG = 0.0013 * TIMESTEP;
+  public static final double DRAG = 0.002 * TIMESTEP;
 
   // Time to wait until respawning.
   public static final int RESPAWNTIME = 1000 / TIMESTEP;
