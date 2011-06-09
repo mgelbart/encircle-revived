@@ -73,47 +73,30 @@ public class Arena {
     }
 
 
-    public static void main(String argv[]) throws Exception {
-	FileInputStream file = new FileInputStream(ARENA_METADATA_FILENAME);
-	Arena arena = Arena.parse(file);
-	System.out.println("Parsed arena:");
-	System.out.println(arena.toString());
-    }
+  public static void main(String argv[]) throws Exception {
+	  FileInputStream file = new FileInputStream(ARENA_METADATA_FILENAME);
+  	Arena arena = Arena.parse(file);
+  	System.out.println("Parsed arena:");
+  	System.out.println(arena.toString());
+  }
 
 
     // SAX parser for extracting the clusters out of the arena XML file.
-    private static class ArenaParser extends DefaultHandler {
+  private static class ArenaParser extends DefaultHandler {
 
-	public Vector<Cluster> clusters;
+  	public Vector<Cluster> clusters;
 
-	public ArenaParser() {
-	    super();
-	    clusters = new Vector<Cluster>();
-	}
+  	public ArenaParser() {
+  	    super();
+  	    clusters = new Vector<Cluster>();
+  	}
 
-	public void startElement(String uri, String localName, String qName, Attributes attr)  {
+  	public void startElement(String uri, String localName, String qName, Attributes attr)  {
+      if (qName == "cluster")
+        clusters.add(new DrawableCluster(new NotStupidPolygon(attr), new ImageMetaData(attr)));
 
-	    if (qName == "cluster") {
-		String imgPath = attr.getValue("imgPath");
-		int imgID = Integer.parseInt(attr.getValue("imgID"));
-		String polygon = attr.getValue("d");
-		String[] parts = polygon.split(":");
-		int n = Integer.parseInt(parts[0]);
-		String[] coords = parts[1].split(" ");
-		int[] xCoords = new int[n];
-		int[] yCoords = new int[n];
-		int j = 0;
-		for (int i = 0; i < n; i++) {
-			xCoords[i] = Integer.parseInt(coords[j++]);
-			yCoords[i] = Integer.parseInt(coords[j++]);
-		}
-		
+  	}  // end function
 
-		clusters.add(new DrawableCluster(new NotStupidPolygon(xCoords, yCoords), imgPath, imgID));
-	    }
+  }  // end inner class
 
-	}
-
-    }
-
-}
+}  // end outer class

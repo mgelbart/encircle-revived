@@ -179,10 +179,10 @@ public class Nonhuman implements Intelligence {
     double dist;
     for (Cluster clust : arena.clusters) {
 
-      V += -truncatedLog(loc.distance(clust.x(), clust.y() + clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.x(), clust.y() - clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.x() + clust.width()/2, clust.y()), range);
-      V += -truncatedLog(loc.distance(clust.x() + clust.width()/2, clust.y()), range);
+      V += -truncatedLog(loc.distance(clust.centerX(), clust.centerY() + clust.height()/2), range);
+      V += -truncatedLog(loc.distance(clust.centerX(), clust.centerY() - clust.height()/2), range);
+      V += -truncatedLog(loc.distance(clust.centerX() + clust.width()/2, clust.centerY()), range);
+      V += -truncatedLog(loc.distance(clust.centerX() + clust.width()/2, clust.centerY()), range);
 
     }
 

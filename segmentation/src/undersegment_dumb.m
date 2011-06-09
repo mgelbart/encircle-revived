@@ -1,4 +1,18 @@
 clear all; close all; clc;
+
+%%%%%
+ERASE_EXISTING = 1;
+WRITE_DATA = 1;
+DATASET = 'fly';
+%%%%%
+
+
+% delete all existing output files!!!
+if ERASE_EXISTING && WRITE_DATA
+    make_clean(DATASET);
+end
+
+
 %{
 % read in the sample image (in current directory)
 x = double(imread('fly3.tif'))/256;
@@ -27,9 +41,11 @@ save temp;
 %%
 load temp
 
-
-meta_file = fopen('../meta/fly.txt', 'w');
-
+if WRITE_DATA
+    meta_file = fopen('../meta/fly.txt', 'w');
+else
+    disp('You have selected NOT to write any data!');
+end
 
 NUM_CONTOUR_POINTS = 100;
 LABELING_RELIABILITY = 0.9;
@@ -68,7 +84,7 @@ for i = 1:size(s, 1)
     C(:,1) = [];
 
     % iteratively remove closeest points
-    Ccopy = C; 
+    Corig = C; 
     
 
     while size(C, 2) > NUM_CONTOUR_POINTS
@@ -80,6 +96,9 @@ for i = 1:size(s, 1)
         [a b] = ind2sub(size(distmat), minind);
         C(:,a)=[];
     end
+    % may want to add something so that if a contour point is at an extreme
+    % of a dimension (e.g., the furthest to the left), we keep it. 
+    % not a big deal though
 
     
     % display the image and get the label
@@ -89,7 +108,7 @@ for i = 1:size(s, 1)
     hold on;
     plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
     plot([Corig(1,end) Corig(1,:)], [Corig(2,end) Corig(2,:)], '--r');
-    
+        
     skip = 0;
     label = [];
     while isempty(label)
@@ -113,6 +132,19 @@ for i = 1:size(s, 1)
         continue
     end
     
+    % change the coordinate system of the countour so that zero is at the
+    % center of the image
+    % the +1 is needed because of how the contour coordinates and the image
+    % coordinates work. in the contour coordinate system, the image goes
+    % from 0.5 to N + 0.5, where N is the size of the image in that
+    % dimension. therefore the center is (0.5+N+0.5)/2 = (N+1)/2. 
+    % therefore, we center the contour at this value.
+    C = bsxfun(@minus, C, (fliplr(size(patch_crop)).'+1)/2);
+   
+    if ~WRITE_DATA
+        continue
+    end
+    
     fprintf(meta_file, '%04u\n', i);
     
     % write the image to a file
@@ -120,7 +152,18 @@ for i = 1:size(s, 1)
     
     % write the contour to a file
     polygon_file = fopen(sprintf('../polygons/fly/%04u.txt', i), 'w');
-%     fprintf(polygon_file, '%d\n', size(C,2));
+    
+    % write the size of the image ((x, y) not (y, x))
+    % because this information is not implicit in the contour given that
+    % the extremes of the contour may not touch the edges of the images.
+    % this depends on the "PAD" factor earlier in this script.
+    fprintf(polygon_file, '%d,%d\n', size(patch_crop,2), size(patch_crop,1));
+    
+    % write the number of points in the contour
+    fprintf(polygon_file, '%d\n', size(C,2));
+    
+    % note that C does not need to be flipped because it is already in
+    % (x, y) format unlike most things in matlab which are (y, x)[
     for j =  1:2
         for k = 1:size(C, 2);
             fprintf(polygon_file, '%.2f,', C(j, k));
@@ -137,5 +180,7 @@ for i = 1:size(s, 1)
     
 end
 close(1)
-close(meta_file);
+if WRITE_DATA
+    fclose(meta_file);
+end
    

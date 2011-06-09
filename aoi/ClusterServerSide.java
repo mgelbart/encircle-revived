@@ -20,17 +20,11 @@ public class ClusterServerSide extends Cluster {
   // Determines which clusters we accept given the likelihood function.
   private static final double MIN_ACCEPTED_LIKELIHOOD = 0.9;
 
-  public ClusterServerSide(NotStupidPolygon p, String imgPath, int imgID, Map<Integer, Double> nsLikelihoods) {
-	super(p, imgPath, imgID);
+  public ClusterServerSide(NotStupidPolygon contour, ImageMetaData imgMetaData, Map<Integer, Double> nsLikelihoods) {
+	super(contour, imgMetaData);
 	this.nsLikelihoods = nsLikelihoods;
   }
   
-  public void randomizeLocation() {
-  	int x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-  	int y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-  	p.move(x, y);    
-  }
-
   // Is nSegments an acceptable guess for this cluster?
   public boolean acceptable(int nSegments) {
 	if (!nsLikelihoods.containsKey(nSegments)) return false;

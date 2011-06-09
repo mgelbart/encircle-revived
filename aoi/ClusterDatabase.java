@@ -85,62 +85,84 @@ public class ClusterDatabase {
   
   // Parse all the data about a particular ProtoCluster given the filename
   public ClusterServerSide parseCluster(int imgID) throws FileNotFoundException {
-  assert(imgID >= 0);
-  assert(imgID < imageFilenames.length);
+    assert(imgID >= 0);
+    assert(imgID < imageFilenames.length);
     
-	String filename = imageFilenames[imgID];
-	String imagePath =  imagePath(filename);
+  	String filename = imageFilenames[imgID];
+  	
+  	// Get the file path from the stored paths in memory
+  	String imagePath = imagePath(filename);
 
-	// Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
-	Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-									SEGMENTATION_BASEDIR + OS_FILESEP + 
-									IMAGE_POLY_PATH + OS_FILESEP + 
-									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
-
+  	// Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
+  	Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
+  									SEGMENTATION_BASEDIR + OS_FILESEP + 
+  									IMAGE_POLY_PATH + OS_FILESEP + 
+  									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+    
+    String[] imageSizeString = polyScanner.nextLine().split(",");
+    int imageSizeX = Integer.parseInt(imageSizeString[0]);
+    int imageSizeY = Integer.parseInt(imageSizeString[1]);
+    
+    int numPointsInContour = Integer.parseInt(polyScanner.nextLine());
+     
     String polyXCoordsString = polyScanner.nextLine();
     String polyYCoordsString = polyScanner.nextLine();
     String[] polyXCoordsStrings = polyXCoordsString.split(",");
     String[] polyYCoordsStrings = polyYCoordsString.split(",");
-	assert(polyXCoordsStrings.length == polyYCoordsStrings.length);
-	int nPoints = polyXCoordsStrings.length;
-	int[] polyXCoords = new int[nPoints];
-	int[] polyYCoords = new int[nPoints];
-	for (int i = 0; i < nPoints; i++) {
-	  	polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*(Simulation.ARENASIZE/800));
-	  	polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*(Simulation.ARENASIZE/800));		
-	}
-	NotStupidPolygon imageCoords = new NotStupidPolygon(polyXCoords, polyYCoords);
+  	assert(polyXCoordsStrings.length == numPointsInContour);
+  	assert(polyYCoordsStrings.length == numPointsInContour);
+  	int[] polyXCoords = new int[numPointsInContour];
+  	int[] polyYCoords = new int[numPointsInContour];
+  	
+  	double scale = Simulation.ARENASIZE*DrawableCluster.CLUSTER_SCALING_FACTOR; // convert to Arena coordinates
+  	for (int i = 0; i < numPointsInContour; i++) {
+  	  	polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*scale);
+  	  	polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*scale);		
+  	}
+  	imageSizeX *= scale;
+  	imageSizeY *= scale;
+  	// scale the image size as well
+  	// this could also be done with the scale() and scaledVersion() commands of ImageMetaData and NotStupidPolygon
+  	// respectively, but it's simpler to do it this way because of double/int conversion + rounding errors
+  	
+  	NotStupidPolygon imageContour = new NotStupidPolygon(polyXCoords, polyYCoords);
+  	// The data from the database comes from Matlab which gives the coordinates
+  	// from the center of the image. This does not mean that the center of these
+  	// coordinates is necessarily (0,0) because the contour might not be centered
+  	// in the image. But, this is approximately and if untrue, probably only
+  	// by one pixel. 
+  	ImageMetaData imageMetaData = new ImageMetaData(imagePath, imageSizeX, imageSizeY, 0, 0, imgID);
 	
-	// Read the segment likelihoods
- 	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-									SEGMENTATION_BASEDIR + OS_FILESEP + 
-									IMAGE_LIKELIHOOD_PATH + OS_FILESEP + 
-									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
-    // The likelihoods of different nSegments values.
-	Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
+  	// Read the segment likelihoods
+   	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
+  									SEGMENTATION_BASEDIR + OS_FILESEP + 
+  									IMAGE_LIKELIHOOD_PATH + OS_FILESEP + 
+  									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+      // The likelihoods of different nSegments values.
+  	Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
     String nsLikelihoodsLine = nsScanner.nextLine();
     if (nsLikelihoodsLine.length() > 0) {
- 	  String[] nsLikelihoodStrings = nsLikelihoodsLine.split(",");
-  	  for (int i = 0; i < nsLikelihoodStrings.length; ++i) {
-  	    String[] nsLikelihoodPair = nsLikelihoodStrings[i].split(":");
-		nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]), Double.parseDouble(nsLikelihoodPair[1]));
-   	  }
-	}
+ 	    String[] nsLikelihoodStrings = nsLikelihoodsLine.split(",");
+    	for (int i = 0; i < nsLikelihoodStrings.length; ++i) {
+    	  String[] nsLikelihoodPair = nsLikelihoodStrings[i].split(":");
+  		  nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]), Double.parseDouble(nsLikelihoodPair[1]));
+  		}
+	  }
 
-  return new ClusterServerSide(imageCoords, imagePath, imgID, nsLikelihoods);
+    return new ClusterServerSide(imageContour, imageMetaData, nsLikelihoods);
   }
 
   // Return a random cluster that includes nSegments as an acceptable possibility.
   // Guarantees that this cluster has not already been returned by this function.
   // If no Clusters are available, returns null;
   public ClusterServerSide getRandom(int nSegments) throws FileNotFoundException {
- 	ClusterServerSide css;
-	for (int i = 0; i < imageFilenames.length; i++) {
-		if (alreadyUsed[i]) continue;
-		css = parseCluster(i);
-		if (css.acceptable(nSegments))
-		  return css;
-	}
+ 	  ClusterServerSide css;
+  	for (int i = 0; i < imageFilenames.length; i++) {
+  		if (alreadyUsed[i]) continue;
+  		css = parseCluster(i);
+  		if (css.acceptable(nSegments))
+  		  return css;
+  	}
     return null;
   }
   
@@ -148,8 +170,8 @@ public class ClusterDatabase {
   
   // Construct a ClusterServerSide corresponding to a Cluster
   public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
-	ClusterServerSide css = parseCluster(c.imgID);
-	return new ClusterServerSide(c.p, c.imgPath, c.imgID  , css.nsLikelihoods);
+	  ClusterServerSide css = parseCluster(c.imgID());
+	  return new ClusterServerSide(c.contour(), c.imgMetaData(), css.nsLikelihoods);
   }
   
 
@@ -172,43 +194,34 @@ public class ClusterDatabase {
 
       for (int k=0; k < clustersPerValue[j]; ++k) {
         
-        // keep searching while they are overlapping
-        // (until finds a non-overlapping cluster)
-        overlaps = true;
-        while (overlaps) {
-
-          clust = getRandom(j+1);
-        
-          
-          if (j+1 == 6) {
-            System.err.println("**"+(j+1) + " *** " + k);
-            System.err.println("*" + clust);
-            System.err.println("*" + clust.acceptable(j+1));
-          }
+        //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
+        clust = getRandom(j+1);
+        assert(clust != null);
+        // if (j+1 == 6) {
+        //   System.err.println("**"+(j+1) + " *** " + k);
+        //   System.err.println("*" + clust);
+        //   System.err.println("*" + clust.acceptable(j+1));
+        // }      
+        // if (clust == null) System.err.println("****" +  (j+1) + " " + k + " " + clust);
         
         
-          
-          if (clust == null) System.err.println("****" +  (j+1) + " " + k + " " + clust);
-          assert(clust != null);
-        
-          
+        // keep searching for a random location until finding one that does not
+        // overlap with any existing clusters already chosen for the arena
+        while (true) {
           // give it a random location
           clust.randomizeLocation();
 
-          //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
-
-          overlaps = false;
-          for (Cluster prevClust : arenaClusters) {
-            if (prevClust.intersects(clust)) 
-              overlaps = true;
-
-          }
-
+          for (Cluster inArena : arenaClusters)
+            if (inArena.intersects(clust)) 
+              continue;
+          break;
         }
 
         arenaClusters.add(clust);
         // Only if this cluster is actually added to the arena does alreadyUsed get edited
-        alreadyUsed[clust.imgID] = true;
+        alreadyUsed[clust.imgID()] = true;
+        // System.err.println(clust.width() + " " + clust.height() + " " + clust.centerX() + " " + clust.centerY());
+        //        System.err.println("** " + clust.imgWidth() + " " + clust.imgHeight() + " " + clust.imgCenterX() + " " + clust.imgCenterY());
 
       }
 
