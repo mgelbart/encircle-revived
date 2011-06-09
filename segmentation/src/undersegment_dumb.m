@@ -4,6 +4,7 @@ clear all; close all; clc;
 ERASE_EXISTING = 1;
 WRITE_DATA = 1;
 DATASET = 'fly';
+IMAGE_FORMAT = 'png';
 %%%%%
 
 
@@ -150,7 +151,7 @@ for i = 1:size(s, 1)
     fprintf(meta_file, '%04u\n', i);
     
     % write the image to a file
-    imwrite(patch_crop, sprintf('../images/fly/%04u.jpg', i), 'png');
+    imwrite(patch_crop, sprintf('../images/fly/%04u.%s', i, IMAGE_FORMAT), IMAGE_FORMAT);
     
     % write the contour to a file
     polygon_file = fopen(sprintf('../polygons/fly/%04u.txt', i), 'w');

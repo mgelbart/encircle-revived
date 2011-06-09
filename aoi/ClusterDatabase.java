@@ -34,7 +34,7 @@ public class ClusterDatabase {
   public static final String IMAGE_RAW_PATH = "images";
 
   // The format of these raw images
-  public static final String IMAGE_RAW_FORMAT = ".jpg";
+  public static final String IMAGE_RAW_FORMAT = ".png";
 
   // The path where all image polygon bounding boxes are stored
   public static final String IMAGE_POLY_PATH = "polygons";
