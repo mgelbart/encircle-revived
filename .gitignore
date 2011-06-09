@@ -5,4 +5,4 @@ out/
 resources/
 *~
 arena.xml
-#arena.xml#
+\#arena.xml#
