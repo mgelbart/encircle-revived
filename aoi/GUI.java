@@ -86,7 +86,10 @@ public class GUI implements Runnable {
      */
 
     for (Cluster c : arena.clusters) {
+      // The cluster image
       drawables.add(new DrawableCluster(c));
+      // The cluster contour
+      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, StdDraw.GREEN, StdDraw.DEFAULT_PEN_RADIUS));
     }
 
     Color[] colors = new Color[2];

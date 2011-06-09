@@ -140,6 +140,8 @@ for i = 1:size(s, 1)
     % dimension. therefore the center is (0.5+N+0.5)/2 = (N+1)/2. 
     % therefore, we center the contour at this value.
     C = bsxfun(@minus, C, (fliplr(size(patch_crop)).'+1)/2);
+    % also, flip the y-coordinate to get the normal convention for drawing
+    C(2,:) = -C(2,:);
    
     if ~WRITE_DATA
         continue

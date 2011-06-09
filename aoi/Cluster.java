@@ -37,7 +37,6 @@ public class Cluster {
 	}	
 	public boolean contains(int x, int y) {
     return contour.contains(x, y);
-    // return contour.getBounds2D().contains(x, y); 
 	}
 	
 	// move the cluster by (deltaX, deltaY)

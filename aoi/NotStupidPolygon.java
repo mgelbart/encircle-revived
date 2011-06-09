@@ -67,6 +67,15 @@ public class NotStupidPolygon extends Polygon {
 		coords[1] = y;
 		return coords;
 	}
+	public int[][] coordsTranspose() {
+	  int[][] coords = new int[n][2];
+    for (int i = 0; i < n; i++) {
+      coords[i][0] = x[i];
+      coords[i][1] = y[i];
+    }
+    return coords;
+	}
+	
 	public boolean intersects(NotStupidPolygon that) {
 		return intersects(that.getBounds2D());
 	}

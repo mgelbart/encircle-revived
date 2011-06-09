@@ -434,7 +434,7 @@ public class Simulation {
   private boolean checkForScoring(int j, Path2D loop) {
 
     for (ClusterServerSide c : clusters) {
-      if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerX())) {
+      if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
         System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
         // This is an important point - what to do
         // if someone encircles a cluster. For now

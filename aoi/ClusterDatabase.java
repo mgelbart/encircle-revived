@@ -197,32 +197,22 @@ public class ClusterDatabase {
         //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
         clust = getRandom(j+1);
         assert(clust != null);
-        // if (j+1 == 6) {
-        //   System.err.println("**"+(j+1) + " *** " + k);
-        //   System.err.println("*" + clust);
-        //   System.err.println("*" + clust.acceptable(j+1));
-        // }      
-        // if (clust == null) System.err.println("****" +  (j+1) + " " + k + " " + clust);
-        
         
         // keep searching for a random location until finding one that does not
         // overlap with any existing clusters already chosen for the arena
-        while (true) {
+        do {
           // give it a random location
           clust.randomizeLocation();
 
+          overlaps = false;
           for (Cluster inArena : arenaClusters)
             if (inArena.intersects(clust)) 
-              continue;
-          break;
-        }
+              overlaps = true;
+        } while(overlaps);
 
         arenaClusters.add(clust);
         // Only if this cluster is actually added to the arena does alreadyUsed get edited
         alreadyUsed[clust.imgID()] = true;
-        // System.err.println(clust.width() + " " + clust.height() + " " + clust.centerX() + " " + clust.centerY());
-        //        System.err.println("** " + clust.imgWidth() + " " + clust.imgHeight() + " " + clust.imgCenterX() + " " + clust.imgCenterY());
-
       }
 
     }
