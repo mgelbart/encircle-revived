@@ -67,7 +67,7 @@ public class Cluster {
   public int imgHeight()  { return imgMetaData.height(); }
   public int imgCenterX() { return imgMetaData.centerX(); }
   public int imgCenterY() { return imgMetaData.centerY(); }
-  public int imgID()      { return imgMetaData.id(); }
+  public String imgName() { return imgMetaData.name(); }
   
   public int width()   { return contour.width(); }
   public int height()  { return contour.height(); }

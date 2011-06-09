@@ -30,13 +30,13 @@ public abstract class Server {
     int[] numPerNum = new int[maxSegmentNumber]; 
     for (int i = 0; i < maxSegmentNumber; i++)
       numPerNum[i] = Integer.parseInt(segmentNos[i]);
-// NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
+    // NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
 
     ServerSocket servSocket = new ServerSocket(TCPPORT);
 
 
-	// (This can be moved later) Initialize ClusterDatabase;
-	ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+	  // (This can be moved later) Initialize ClusterDatabase;
+	  ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
 
     while (true) {
@@ -69,7 +69,7 @@ public abstract class Server {
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
           for (Cluster c : simulation.arena.clusters) {
             simulation.clusters.add(clusterDbSayWithPET.copyFromCluster(c));
-		  }
+		      }
 
         } catch (Exception e) {
           System.out.println(e.toString());

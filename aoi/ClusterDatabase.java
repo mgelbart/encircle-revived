@@ -84,12 +84,7 @@ public class ClusterDatabase {
   }
   
   // Parse all the data about a particular ProtoCluster given the filename
-  public ClusterServerSide parseCluster(int imgID) throws FileNotFoundException {
-    assert(imgID >= 0);
-    assert(imgID < imageFilenames.length);
-    
-  	String filename = imageFilenames[imgID];
-  	
+  public ClusterServerSide parseCluster(String filename) throws FileNotFoundException {
   	// Get the file path from the stored paths in memory
   	String imagePath = imagePath(filename);
 
@@ -131,7 +126,7 @@ public class ClusterDatabase {
   	// coordinates is necessarily (0,0) because the contour might not be centered
   	// in the image. But, this is approximately and if untrue, probably only
   	// by one pixel. 
-  	ImageMetaData imageMetaData = new ImageMetaData(imagePath, imageSizeX, imageSizeY, 0, 0, imgID);
+  	ImageMetaData imageMetaData = new ImageMetaData(imagePath, imageSizeX, imageSizeY, 0, 0, filename);
 	
   	// Read the segment likelihoods
    	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
@@ -151,26 +146,21 @@ public class ClusterDatabase {
 
     return new ClusterServerSide(imageContour, imageMetaData, nsLikelihoods);
   }
-
-  // Return a random cluster that includes nSegments as an acceptable possibility.
-  // Guarantees that this cluster has not already been returned by this function.
-  // If no Clusters are available, returns null;
-  public ClusterServerSide getRandom(int nSegments) throws FileNotFoundException {
- 	  ClusterServerSide css;
-  	for (int i = 0; i < imageFilenames.length; i++) {
-  		if (alreadyUsed[i]) continue;
-  		css = parseCluster(i);
-  		if (css.acceptable(nSegments))
-  		  return css;
-  	}
-    return null;
+  private ClusterServerSide parseCluster(int i) throws FileNotFoundException {
+    assert(i >= 0);
+    assert(i < imageFilenames.length);
+  
+    return parseCluster(imageFilenames[i]);
   }
-  
-  
   
   // Construct a ClusterServerSide corresponding to a Cluster
   public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
-	  ClusterServerSide css = parseCluster(c.imgID());
+	  ClusterServerSide css = parseCluster(c.imgName());
+    // System.err.println(c.imgName());
+    // System.err.println(c.contour());
+    // System.err.println(c.imgMetaData());
+    // System.err.println(css.nsLikelihoods);
+    // System.err.println("--");
 	  return new ClusterServerSide(c.contour(), c.imgMetaData(), css.nsLikelihoods);
   }
   
@@ -186,33 +176,45 @@ public class ClusterDatabase {
 
     Vector<ClusterServerSide> arenaClusters = new Vector<ClusterServerSide>();
 
-    int count, x, y;
-    ClusterServerSide clust = null;
+    ClusterServerSide css;
+    int count, x, y, i;
     boolean overlaps;
 
-    for (int j=0; j < clustersPerValue.length; ++j) {
+    for (int nSegments=1; nSegments <= clustersPerValue.length; nSegments++) {
 
-      for (int k=0; k < clustersPerValue[j]; ++k) {
+      for (int k=0; k < clustersPerValue[nSegments-1]; ++k) {
         
-        //System.out.println("Generated " + (1+j) + "-cluster at (" + x + ", " + y + "). k = " + k);
-        clust = getRandom(j+1);
-        assert(clust != null);
+        // Get a random cluster that includes nSegments as an acceptable possibility.
+        // Guarantees that this cluster has not already been returned by this function.
+        // If no Clusters are available, throw an error (for now, just an assert)
+       	css = null;
+      	for (i = 0; i < imageFilenames.length; i++) {
+      		if (alreadyUsed[i]) continue;
+      		css = parseCluster(i);
+      		if (css.acceptable(nSegments))
+      		  break;
+      		else
+      		  css = null;
+      	}
+        
+        if (css == null) System.err.println("Error: database does not have enough clusters with " + nSegments + " segments.");
+        assert(css != null);
         
         // keep searching for a random location until finding one that does not
         // overlap with any existing clusters already chosen for the arena
         do {
           // give it a random location
-          clust.randomizeLocation();
+          css.randomizeLocation();
 
           overlaps = false;
           for (Cluster inArena : arenaClusters)
-            if (inArena.intersects(clust)) 
+            if (inArena.intersects(css)) 
               overlaps = true;
         } while(overlaps);
 
-        arenaClusters.add(clust);
+        arenaClusters.add(css);
         // Only if this cluster is actually added to the arena does alreadyUsed get edited
-        alreadyUsed[clust.imgID()] = true;
+        alreadyUsed[i] = true;
       }
 
     }
