@@ -18,21 +18,29 @@ public class NotStupidPolygon extends Polygon {
   	this.x = x;
   	this.y = y;
   }
+  public NotStupidPolygon(int[][] coords) {
+    this(coords[0], coords[1]);
+  }
+  
   
   // Decode serialized object
-  public NotStupidPolygon (Attributes serialized) {
+  public NotStupidPolygon(Attributes serialized) {
+     this(deserialize(serialized));
+  }
+  // Helper function for deserializing
+  private static int[][] deserialize(Attributes serialized) {
     String[] mainParts = serialized.getValue("d").split(":");
 		
-		n = Integer.parseInt(mainParts[0]);
+		int n = Integer.parseInt(mainParts[0]);
 		
-		String[] coords = mainParts[1].split(",");
-		x = new int[n];
-		y = new int[n];
+		String[] coordsString = mainParts[1].split(",");
+		int[][] coords = new int[2][n];
 		for (int i = 0; i < n; i++) {
-		  String[] oneCoord = coords[i].split(" ");
-			x[i] = Integer.parseInt(oneCoord[0]);
-			y[i] = Integer.parseInt(oneCoord[1]);
+		  String[] oneCoord = coordsString[i].split(" ");
+			coords[0][i] = Integer.parseInt(oneCoord[0]);
+			coords[1][i] = Integer.parseInt(oneCoord[1]);
 		}
+    return coords;
   }
   // Serialize (encode) object
   public String toString() {
