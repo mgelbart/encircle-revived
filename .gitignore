@@ -4,5 +4,4 @@ doc/
 out/
 resources/
 *~
-arena.xml
-\#arena.xml#
+\#*#
