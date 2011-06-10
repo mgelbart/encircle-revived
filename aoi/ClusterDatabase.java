@@ -64,13 +64,12 @@ public class ClusterDatabase {
     Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
 									SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_NAME_LIST + 
 									OS_FILESEP + datasetName + TEXT_FORMAT));
-    while (infoScanner.hasNext()) { 
+    while (infoScanner.hasNext())
       vImageFilenames.add(infoScanner.nextLine());
-    }
 
     imageFilenames = new String[vImageFilenames.size()];
     vImageFilenames.toArray(imageFilenames);
-	alreadyUsed = new boolean[imageFilenames.length];
+	  alreadyUsed = new boolean[imageFilenames.length];
 	// Shuffle the array of filenames, and then use in order from now on. 
 	// This fascilitates random sampling without replacement.
     Collections.shuffle(Arrays.asList(imageFilenames));
