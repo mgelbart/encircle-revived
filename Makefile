@@ -34,4 +34,4 @@ run_client1r:
 	java -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -Xloggc:out/client1.mem -ea aoi/Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt aoi/*.class stdlib/*.class arena.xml images/fly.info images/fly/*.jpg 
+	jar cfm aoi.jar Manifest.txt aoi/*.class stdlib/*.class arena.xml segmentation/images/fly/*.png segmentation/meta/fly.txt segmentation/polygons/fly/*.txt segmentation/segment_likelihoods/fly/*.txt 
