@@ -1,3 +1,4 @@
 When I run it, sometimes it doesn't automatically focus on the StdDraw
 When you crash into a cluster, you vibrate a bit before respawning
 Bullets pass through small clusters, probably becasue of bad time resolution
+After changing server.conf:generate area from 'false' to 'true', sometimes it still *displays* the old arena whereas the cluster locations are clearly changed (i.e., you run into invisible things, etc.). No idea why this happens and it's not reproducible
