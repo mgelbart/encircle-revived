@@ -2,6 +2,7 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
+import javax.swing.JFrame;
 
 /**
  *  A class for connecting to the server and parsing the game state
@@ -33,6 +34,12 @@ public class Client {
     } catch (Exception e) {
       System.out.println(e.toString());
       assert(false);
+    }
+
+
+    // Initialize the GUI for human players
+    if (!config.nonhuman) {
+      DrawUtils.initialize(new JFrame(), 700, 700);
     }
 
 

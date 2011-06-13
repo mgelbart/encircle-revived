@@ -4,6 +4,8 @@ import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Image;
 import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  *  A class used to pass a sequence of points to the GUI
@@ -15,14 +17,14 @@ public class DrawablePath implements Drawable {
   private boolean removed = false;
 
   protected Path2D path;
-  protected Color color;
-  protected double width;
+  protected Paint paint;
+  protected Stroke stroke;
 
   // Connect the pts[npoints][2] with lines.
   // If close is true, the first and last points are connected.
-  public DrawablePath(int[][] pts, boolean close, Color color, double width) {
-    this.color = color;
-    this.width = width;
+  public DrawablePath(int[][] pts, boolean close, Paint paint, Stroke stroke) {
+    this.paint = paint;
+    this.stroke = stroke;
 
     Path2D p = new Path2D.Double(Path2D.WIND_NON_ZERO, pts.length);
 
@@ -33,13 +35,15 @@ public class DrawablePath implements Drawable {
       }
     }
 
+    if (close) p.closePath();
+
     this.path = p;
   }
 
-  public DrawablePath(Path2D path, Color color, double width) {
+  public DrawablePath(Path2D path, Paint paint, Stroke stroke) {
     this.path = path;
-    this.color = color;
-    this.width = width;
+    this.paint = paint;
+    this.stroke = stroke;
   }
 
   // Returns the shape to be drawn, if any.
@@ -62,14 +66,14 @@ public class DrawablePath implements Drawable {
 
   public boolean[] fill() { return new boolean[]{false}; }
 
-  // Return the pen color used to draw the shape.
-  public Color[] color() {
-    return new Color[]{color};
+  // Return the Paint object used to draw the shape.
+  public Paint[] paint() {
+    return new Paint[]{paint};
   }
 
   // Return the pen width used to draw the shape.
-  public double[] penWidth() {
-    return new double[]{width};
+  public Stroke[] stroke() {
+    return new Stroke[]{stroke};
   }
 
   public boolean ingameCoordinates() { return true; }

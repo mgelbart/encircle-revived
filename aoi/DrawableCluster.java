@@ -5,7 +5,8 @@ import java.awt.Image;
 import java.net.URL;
 import java.awt.Shape;
 import java.awt.Image;
-import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  *  A GUI element for rendering a cluster.
@@ -61,8 +62,8 @@ public class DrawableCluster extends Cluster implements Drawable {
 
   public Shape[] shapes(GameState state) { return null; }
   public boolean[] fill() { return null; }
-  public Color[] color() { return null; }
-  public double[] penWidth() { return null; }
+  public Paint[] paint() { return null; }
+  public Stroke[] stroke() { return null; }
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }
   public boolean isRemoved() { return removed; }

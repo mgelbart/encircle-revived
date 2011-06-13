@@ -4,6 +4,8 @@ import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Polygon;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  *  A GUI element for a ship.
@@ -22,13 +24,17 @@ public class DrawableShip extends DrawablePath {
   // Time duration of the pwnage effect in turns.
   private final int PWNAGETIME = 1500 / Simulation.TIMESTEP;
   // The color of the ship during the effect.
-  private final Color PWNAGECOLOR = stdlib.StdDraw.GREEN;
+  private final Color PWNAGECOLOR = Color.GREEN;
 
 
-  public DrawableShip(int playerNo, Color color, double width) {
-    super(null, color, width);
+  // The color of the outline of the ship.
+  private Color color;
+
+  public DrawableShip(int playerNo, Color color, Stroke stroke) {
+    super(null, color, stroke);
 
     this.playerNo = playerNo;
+    this.color = color;
   }
 
   // Return the polygon to be drawn.
@@ -45,21 +51,21 @@ public class DrawableShip extends DrawablePath {
   }
 
   // Return the pen color used to draw the shape.
-  public Color[] color() {
+  public Paint[] paint() {
 
     assert(pwned >= 0);
 
     if (pwned == 0)
-      return new Color[]{color.darker().darker().darker(), color};
+      return new Paint[]{color.darker().darker().darker(), color};
     else {
       pwned--;
-      return new Color[]{PWNAGECOLOR, PWNAGECOLOR};
+      return new Paint[]{PWNAGECOLOR, PWNAGECOLOR};
     }
 
   }
 
   public boolean[] fill() { return new boolean[]{true, false}; }
 
-  public double[] penWidth() { return new double[]{width, width}; }
+  public Stroke[] stroke() { return new Stroke[]{stroke, stroke}; }
 
 }

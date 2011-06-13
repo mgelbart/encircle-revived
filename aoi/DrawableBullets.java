@@ -3,6 +3,8 @@ package aoi;
 import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
 import java.awt.Rectangle;
 import java.awt.Image;
 
@@ -12,21 +14,21 @@ import java.awt.Image;
 public class DrawableBullets implements Drawable {
 
   private boolean removed = false;
-  private Color[] colors = null;
-  private boolean[] fill = null;
-  private double[] widths = null;
+  private Paint[] colors;
+  private boolean[] fill;
+  private Stroke[] strokes;
 
   private final static int BULLETSIZE = Simulation.ARENASIZE / 200;
-  private final static Color BULLETCOLOR = stdlib.StdDraw.GREEN;
+  private final static Color BULLETCOLOR = Color.GREEN;
 
 
   // Return the polygon to be drawn.
   public Shape[] shapes(GameState game) {
 
     Shape[] shapes = new Shape[game.bullets.size()];
-    colors = new Color[shapes.length];
+    colors = new Paint[shapes.length];
     fill = new boolean[shapes.length];
-    widths = new double[shapes.length];
+    strokes = new Stroke[shapes.length];
 
     for (int j=0; j < game.bullets.size(); ++j) {
 
@@ -38,18 +40,18 @@ public class DrawableBullets implements Drawable {
 
       colors[j] = BULLETCOLOR;
       fill[j] = true;
-      widths[j] = 0.;
+      strokes[j] = DrawUtils.DEFAULTSTROKE;
 
     }	
 
     return shapes;
   }
 
-  public Color[] color() { return colors; }
+  public Paint[] paint() { return colors; }
 
   public boolean[] fill() { return fill; }
 
-  public double[] penWidth() { return widths; }
+  public Stroke[] stroke() { return strokes; }
 
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }

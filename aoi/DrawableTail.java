@@ -4,6 +4,8 @@ import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Polygon;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 /**
  *  A GUI element for a tail.
@@ -16,8 +18,8 @@ public class DrawableTail extends DrawablePath {
   private int currentLoopStarted = 0;
 
 
-  public DrawableTail(int playerNo, Color color, double width) {
-    super(new Path2D.Double(), color, width);
+  public DrawableTail(int playerNo, Paint paint, Stroke stroke) {
+    super(new Path2D.Double(), paint, stroke);
 
     this.playerNo = playerNo;
   }

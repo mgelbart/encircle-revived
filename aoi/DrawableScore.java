@@ -9,6 +9,9 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.Paint;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 
 /**
  *  A GUI element for drawing the score.
@@ -21,9 +24,9 @@ public class DrawableScore implements Drawable {
   //  [0] The neutral color for the sequence
   //  [1] The color of the 1st player's score
   //  [2] The color of the 2nd player's score
-  private Color[] colors;
+  private Paint[] colors;
   private boolean[] fill;
-  private double[] widths;
+  private Stroke[] strokes;
   private Shape[] shapes;
   private GlyphVector scoreboard;
 
@@ -45,10 +48,11 @@ public class DrawableScore implements Drawable {
       colors[j] = playerColors[j-1];
 
 
-    widths = new double[1+Simulation.NUMPLAYERS];
-    widths[0] = stdlib.StdDraw.DEFAULT_PEN_RADIUS;
-    for (int j=1; j<widths.length; ++j)
-      widths[j] = 3*stdlib.StdDraw.DEFAULT_PEN_RADIUS;
+    strokes = new Stroke[1+Simulation.NUMPLAYERS];
+    strokes[0] = DrawUtils.DEFAULTSTROKE;
+    Stroke highlightStroke = new BasicStroke(DrawUtils.DEFAULTSTROKE.getLineWidth() * 3);
+    for (int j=1; j<strokes.length; ++j)
+      strokes[j] = highlightStroke;
 
 
     // This is a bit hackz but we need to create an
@@ -61,10 +65,10 @@ public class DrawableScore implements Drawable {
 
     double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
     double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
-    double scaleFact = 1. / boardHeight / 40.;
+    double scaleFact = 15. / boardHeight;  // make the letters 15 px high
 
     at = new AffineTransform();
-    at.translate(0., 0.47); // Move to the top
+    at.translate(0., 0.47 * DrawUtils.height()); // Move to the top
     at.scale(scaleFact, scaleFact);
     at.translate(-boardWidth/2, 0.); // Center
     at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
@@ -73,7 +77,7 @@ public class DrawableScore implements Drawable {
     shapes[0] = at.createTransformedShape(scoreboard.getOutline());
 
     assert(colors.length == 1+Simulation.NUMPLAYERS);
-    assert(widths.length == 1+Simulation.NUMPLAYERS);
+    assert(strokes.length == 1+Simulation.NUMPLAYERS);
     assert(shapes.length == 1+Simulation.NUMPLAYERS);
   }
 
@@ -98,10 +102,10 @@ public class DrawableScore implements Drawable {
   public boolean[] fill() { return fill; }
 
 
-  public Color[] color() { return colors; }
+  public Paint[] paint() { return colors; }
 
 
-  public double[] penWidth() { return widths; }
+  public Stroke[] stroke() { return strokes; }
 
 
   public Image img(GameState state) { return null; }

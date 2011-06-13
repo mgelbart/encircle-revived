@@ -4,6 +4,9 @@ import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Polygon;
+import java.awt.Paint;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 
 /**
  *  A GUI element for the special FX shown when you score.
@@ -24,12 +27,12 @@ public class DrawableScoringEffect extends DrawablePath {
 
   // Time duration of the scoring effect in turns.
   private final int SCORINGTIME = 1500 / Simulation.TIMESTEP;
-  // The factor by which the loop is fattened during the effect.
-  private final double SCORINGWIDTH = 8.;
+  // The number of pixels the loop is fattened to when scoring.
+  private final float SCORINGWIDTH = (float) 10.;
 
 
-  public DrawableScoringEffect(int playerNo, Color color, double width) {
-    super(new Path2D.Double(), color, width);
+  public DrawableScoringEffect(int playerNo, Paint paint, Stroke stroke) {
+    super(new Path2D.Double(), paint, stroke);
 
     this.playerNo = playerNo;
   }
@@ -62,22 +65,22 @@ public class DrawableScoringEffect extends DrawablePath {
 
   }
 
-  // Return the pen width used to draw the shape.
-  public double[] penWidth() {
+  // Return the pen stroke used to draw the shape.
+  public Stroke[] stroke() {
 
     assert(scored >= 0);
 
     if (scored == 0) {
 
-      return new double[]{width};
+      return new Stroke[]{stroke};
 
     } else {
       scored--;
 
       assert(scored < SCORINGTIME);
 
-      return new double[]
-        {width*SCORINGWIDTH * (SCORINGTIME - scored) / (double)SCORINGTIME};
+      return new Stroke[]
+        { new BasicStroke(SCORINGWIDTH * (SCORINGTIME - scored) / (float)SCORINGTIME) };
     }
 
   }

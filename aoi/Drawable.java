@@ -2,7 +2,8 @@ package aoi;
 
 import java.awt.Shape;
 import java.awt.Image;
-import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Stroke;
 
 
 /**
@@ -27,11 +28,12 @@ interface Drawable {
   // or only the outlines drawn.
   public boolean[] fill();
 
-  // Return the pen colors used to draw the shapes.
-  public Color[] color();
+  // Return the Paint objects used to draw the shapes.
+  // In particular determines the color.
+  public Paint[] paint();
 
-  // Return the pen widths used to draw the shapes.
-  public double[] penWidth();
+  // Return the stroke object used to draw the shape outlines.
+  public Stroke[] stroke();
 
   // Tells whether the coordinates are to be interpreted
   // as in-game coordinates scaled relative to

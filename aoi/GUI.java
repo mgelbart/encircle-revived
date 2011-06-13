@@ -1,6 +1,5 @@
 package aoi;
 
-import stdlib.*;
 import java.awt.KeyboardFocusManager;
 import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
@@ -8,6 +7,8 @@ import java.awt.geom.Point2D;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Image;
+import java.awt.Paint;
+import java.awt.Stroke;
 import java.awt.Color;
 import java.util.Set;
 import java.util.TreeSet;
@@ -89,41 +90,35 @@ public class GUI implements Runnable {
       // The cluster image
       drawables.add(new DrawableCluster(c));
       // The cluster contour
-      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, StdDraw.GREEN, StdDraw.DEFAULT_PEN_RADIUS));
+      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, Color.GREEN, DrawUtils.DEFAULTSTROKE));
     }
 
     Color[] colors = new Color[2];
     for (int j=0; j < Simulation.NUMPLAYERS; ++j)
-      colors[j] = (j == config.playerNo) ? StdDraw.RED : StdDraw.BLUE;
+      colors[j] = (j == config.playerNo) ? Color.RED : Color.BLUE;
 	
 
     for (int j=0; j < Simulation.NUMPLAYERS; ++j)
-      drawables.add(new DrawableTail(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+      drawables.add(new DrawableTail(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
     for (int j=0; j < Simulation.NUMPLAYERS; ++j)
-      drawables.add(new DrawableShip(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+      drawables.add(new DrawableShip(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableBullets());
 
     for (int j=0; j < Simulation.NUMPLAYERS; ++j)
-      drawables.add(new DrawableScoringEffect(j, colors[j], StdDraw.DEFAULT_PEN_RADIUS));
+      drawables.add(new DrawableScoringEffect(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
-    drawables.add(new DrawableScore(StdDraw.GRAY, colors));
+    drawables.add(new DrawableScore(Color.GRAY, colors));
 
 
     /* Canvas parameters: */
+    DrawUtils.setRenderedGameCoords(0, 0, Simulation.ARENASIZE, Simulation.ARENASIZE);
+    DrawUtils.clear(Color.BLACK);
+    DrawUtils.show();
 
-    StdDraw.setCanvasSize(700, 700);
 
-    StdDraw.setXscale(-Simulation.ARENASIZE/2, Simulation.ARENASIZE/2);
-    StdDraw.setYscale(-Simulation.ARENASIZE/2, Simulation.ARENASIZE/2);
-
-    StdDraw.setPenColor(StdDraw.BLUE);
-
-    StdDraw.clear(StdDraw.BLACK);
-
-    StdDraw.show(0);
-
+    /* Catch keyboard events. */
     KeyboardFocusManager.getCurrentKeyboardFocusManager()
       .addKeyEventDispatcher(new KeyEventDispatcher() {
           @Override
@@ -139,6 +134,8 @@ public class GUI implements Runnable {
                 keysPressed.remove(key);
               }
             }
+
+            e.consume();
 
             return false;
           }
@@ -195,14 +192,14 @@ public class GUI implements Runnable {
   @SuppressWarnings("unchecked")
     private void drawGameState(Arena m, GameState g) {
 
-    StdDraw.clear(StdDraw.BLACK);
+    DrawUtils.clear(Color.BLACK);
 
     // Set the zoom level
     final double r = Math.max(Simulation.ARENASIZE/2,
                               Math.max(Math.abs(g.states[config.playerNo].pos.x * 1.05),
                                        Math.abs(g.states[config.playerNo].pos.y * 1.05)));
-    StdDraw.setXscale(-r, r);
-    StdDraw.setYscale(-r, r);
+
+    DrawUtils.setRenderedGameCoords(0, 0, (int) (2*r), (int) (2*r));
 
     for (int j=0; j<drawables.size(); ++j) {
       Drawable d = drawables.get(j);
@@ -214,20 +211,18 @@ public class GUI implements Runnable {
 
         if (s != null) {
           boolean[] fill = d.fill();
-          Color[] colors = d.color();
-          double[] widths = d.penWidth();
+          Paint[] colors = d.paint();
+          Stroke[] strokes = d.stroke();
           for (int k=0; k<s.length; ++k) {
-            StdDraw.setPenColor(colors[k]);
-            StdDraw.setPenRadius(widths[k]);
-            StdDraw.shape(s[k], d.ingameCoordinates(), fill[k]);
+            DrawUtils.setPaint(colors[k]);
+            DrawUtils.setStroke(strokes[k]);
+            DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
           }
         }
 
         if (img != null) {
-          // TODO: implement ingameCoordinates == false case
-          assert(d.ingameCoordinates() == true);
           int[] loc = d.imgLocation();
-          StdDraw.picture(loc[0], loc[1], img, loc[2], loc[3]);
+          DrawUtils.picture(loc[0], loc[1], loc[2], loc[3], img, true);
         }
 
       } else {
@@ -237,7 +232,7 @@ public class GUI implements Runnable {
 
     }
 
-    StdDraw.show(0);
+    DrawUtils.show();
 
   }
 
