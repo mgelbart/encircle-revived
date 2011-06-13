@@ -33,6 +33,8 @@ public class DrawablePath implements Drawable {
       for (int j=1; j<pts.length; ++j) {
         p.lineTo(pts[j][0], pts[j][1]);
       }
+      if (close)
+        p.closePath();
     }
 
     if (close) p.closePath();
