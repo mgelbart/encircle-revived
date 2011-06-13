@@ -1,9 +1,11 @@
 JOONAS:
 Dynamic arena
 Java applet in browser (or whatever makes it easy for us to play with people)
-Get the new sever up and running
+Get the new server up and running
+Fix CSP!
 
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
-Store votes when people score
+Store votes when people score  (I think it's better to just store the entire game history and post-process it later. JMG)
+Better hit-checking algorithm for bullets.
