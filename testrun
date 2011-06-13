@@ -3,7 +3,7 @@
 rm out/*
 
 make run_serv > out/serv.out 2> out/serv.err &
-sleep 2
+sleep 3
 make run_client1 > out/client1.out 2> out/client1.err &
 make run_client0 2>&1 | tee out/client0.out
 
