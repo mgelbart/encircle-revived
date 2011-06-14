@@ -21,14 +21,35 @@ public abstract class SimulationUtils {
     assert(state != null);
     assert(params != null);
 
-    Double a = Math.max(0.0, Simulation.MAXACC * (params.acceleration / (double) Simulation.INTMAX));
+    // Acceleration
+    double a = Math.max(0.0, Simulation.MAXACC * (params.acceleration / (double) Simulation.INTMAX));
+    
+    // Angle the ship is currently pointing, in [-PI, +PI]
+    double angleFacing = Math.PI * (state.direction / (double) Simulation.INTMAX);
 
-    int vx = state.vx + (int) (a * Math.cos(Math.PI * (state.direction / (double) Simulation.INTMAX)));
-    int vy = state.vy + (int) (a * Math.sin(Math.PI * (state.direction / (double) Simulation.INTMAX)));
-
-    vx -= Simulation.DRAG * vx;
-    vy -= Simulation.DRAG * vy;
-
+    // Currently, turning does not "slow you down". This might not be good
+    int vx = state.vx + (int) (a * Math.cos(angleFacing));
+    int vy = state.vy + (int) (a * Math.sin(angleFacing));
+/*
+    // Drag increases with the angle between your current direction and the direction you're facing,
+    // to represent the fact that you are more aerodynamic facing forwards. This also helps to slow 
+    // you down on turns, making it easier to navigate around obstacles.
+    // if (a < 1) {
+  // the larger this is, the crazier the effect will be 
+    double PERSISTENCE_FACTOR = 1.0;
+    double drag = Simulation.DRAG * (0.6 + Math.pow(angleDifference(angleFacing, Math.atan2(vy, vx)), PERSISTENCE_FACTOR));  // * scaled by this angle!
+    System.out.println("drag factor: " + drag/Simulation.DRAG);
+*/
+// I ultimately decided the above is stupid because I realized that the special ability to 
+// speed boost will create exactly this effect that I want, since it will add some
+// fixed factor to your speed. Thus I just need to make the drag bigger to get the effect
+// I want. 
+    double drag = Simulation.DRAG;
+    
+    
+    vx -= drag * vx;
+    vy -= drag * vy;
+    
     int x = state.x + vx;
     int y = state.y + vy;
 
@@ -83,5 +104,8 @@ public abstract class SimulationUtils {
     y2 /= len2;
     // Return arc cosine of vector 0 dot vector 2
     return Math.acos(x0*x2+y0*y2);
+  }
+  public static double angleDifference(double a, double b) {
+    return Math.min(Math.abs(a-b),(2.*Math.PI)-Math.abs(a-b));
   }
 }

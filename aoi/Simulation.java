@@ -42,10 +42,10 @@ public class Simulation {
 
   // Maximum angular turning rate (i.e. domega/dt).
   // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-  public static final int OMEGA = (INTMAX/1400) * TIMESTEP;
+  public static final int OMEGA = (INTMAX/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 6.5) * TIMESTEP * TIMESTEP) ;
+  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
  
   // Drag coefficient.
   public static final double DRAG = 0.0025 * TIMESTEP;
