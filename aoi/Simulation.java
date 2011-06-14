@@ -56,10 +56,6 @@ public class Simulation {
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
 
-  // Roughly the minimum distance between adjacent points in the trajectory for
-  // encircling clusters. See the algorithm to see why this is only 'roughly' so.
-  public static final int MINTRAJECTORYSEGMENT = ARENASIZE / 200;
-
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
 
@@ -191,7 +187,7 @@ public class Simulation {
         // First copy the parameters to minimize the time difference
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
-        //   fields of PlayerControlParameters are final.
+        // fields of PlayerControlParameters are final.
         for (int j=0; j<NUMPLAYERS; ++j)
           playerStatesInt[j].params = listeners[j].getCtrlParams(game.time);
 
@@ -210,6 +206,7 @@ public class Simulation {
           if (playerStatesInt[j].prevParams != playerStatesInt[j].params)
             playerStatesInt[j].shotsTaken = 0;
 
+          // if players have not yet taken enough time to reload
           if (playerStatesInt[j].reloadTimeLeft > 0) {
 
             playerStatesInt[j].reloadTimeLeft--;
@@ -226,28 +223,11 @@ public class Simulation {
 			
           }
 
-
           // Calculate where the player moved.
           PlayerState.Position pos = SimulationUtils.nextPosition(states[j].pos, playerStatesInt[j].params);
 
-          // Add the new position to the player's trajectory
-          Point2D curPoint = new Point(pos.x, pos.y);
-          Point2D prevPoint = playerStatesInt[j].trajectory.lastElement().getP2();
-          Point2D prevPrevPoint = playerStatesInt[j].trajectory.lastElement().getP1();
-
-          if (prevPoint.distance(curPoint) > 0.9) {
-
-            // Always add the latest position to the trajectory
-            // but combine it with the previous segment if both are short.
-            if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
-              playerStatesInt[j].trajectory.remove(playerStatesInt[j].trajectory.size()-1);
-              playerStatesInt[j].trajectory.add(new Line2D.Double(prevPrevPoint, curPoint));
-            } else {
-              playerStatesInt[j].trajectory.add(new Line2D.Double(prevPoint, curPoint));
-            }
-			    
-          }
-		
+          // Add the new position to the player's tail
+          playerStatesInt[j].tail.addPoint(pos.x, pos.y);
 	    
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
@@ -256,34 +236,39 @@ public class Simulation {
 		    
           // Check if any player (including j) is crossing j's path
           for (int i=0; i<NUMPLAYERS; ++i) {
-            //   if (i != j) continue;   // uncomment this to disable path-killing
-            Path2D loop = checkForIntersection(j, i);
-		        
-            if (loop != null) {
+            //   if (i != j) continue;   // uncomment this to disable path-killing            
+            // Check if the last step of player j intersects with the path of player i
+            // and if so, return the loop of player j that is now complete
+            // (note: the behavior is not really defined when there is an intersection and i!=j,
+            // but this is fine because in the i!=j case all we really need out of this function
+            // is a boolean and loop==null is that boolean)
+            // Note this is not symmetric in i and j.
+            Path2D loop = playerStatesInt[i].tail.intersects(playerStatesInt[j].tail.getLastSegment());
+
+            if (loop != null) {  // if an intersection occurred
               erasePath = true;
 
-              if (checkForScoring(j, loop)) score++;
+              if (i == j) {   
+                if (checkForScoring(j, loop)) score++;
 
-              // Check if the other player got pwned.
-              for (int k=0; k<NUMPLAYERS; ++k) {
-                if (k==j) continue;
+                // Check if the other player got pwned.
+                for (int k=0; k<NUMPLAYERS; ++k) {
+                  if (k==j) continue;
 
-                if (loop.contains(states[k].pos.x, states[k].pos.y)) {
+                  if (loop.contains(states[k].pos.x, states[k].pos.y)) {
 
-                  // This is a bit beautiful..
-                  states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
+                    // This is a bit beautiful..
+                    states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
+                  }
                 }
               }
-
             }
           }
 
           int loopStarted;
           if (erasePath) {
-            playerStatesInt[j].trajectory.clear();
-            playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint,
-                                                                curPoint));
+            playerStatesInt[j].tail = new Tail(pos.x, pos.y);
             loopStarted = game.time;
           } else {
             loopStarted = states[j].loopStarted;
@@ -318,11 +303,7 @@ public class Simulation {
 			    
               remove = true;
 
-              // This is a bit beautiful but whatever...
-              playerStatesInt[j].trajectory.clear();
-              Point curPoint = new Point(states[j].pos.x, states[j].pos.y);
-              playerStatesInt[j].trajectory.add(new Line2D.Double(curPoint,
-                                                                  curPoint));
+			        playerStatesInt[j].tail = new Tail(states[j].pos.x, states[j].pos.y);
 			    
               states[j] = states[j].clone("loopStarted", game.time);
 
@@ -379,55 +360,6 @@ public class Simulation {
     }
   }
 
-
-  // Check if the last step of player i intersects with the path of player j
-  // and if so, return the loop of player j that is now broken.
-  // Note this is not symmetric in i and j.
-  private Path2D checkForIntersection(int i, int j) {
-
-    Path2D loop;
-    Point2D point;
-
-    final int Ni = playerStatesInt[i].trajectory.size();
-    final int Nj = playerStatesInt[j].trajectory.size();	
-    final Line2D lastSegment = playerStatesInt[i].trajectory.get(Ni-1);
-
-    for (int k=0; k < Nj-2; ++k) {
-
-      // Check if i's last step crossed any line segment of player
-      // j's path, O(N).
-      if (lastSegment.intersectsLine(playerStatesInt[j].trajectory.get(k))) {
-
-        // Construct a Path2D for the loop only.
-        loop = new Path2D.Double();
-
-        point = playerStatesInt[j].trajectory.get(k).getP2();
-        loop.moveTo(point.getX(), point.getY());
-
-        if (i == j) {
-
-          for (int l=k+1; l < Nj; ++l) {
-            point = playerStatesInt[j].trajectory.get(l).getP2();
-            loop.lineTo(point.getX(), point.getY());
-          }
-          return loop;
-
-        } else {
-
-          // A closed loop can only be formed by a player crossing
-          // his own path
-          //
-          // Note that returning an empty loop instead of null
-          // causes different behavior in the main simulation loop
-          // compared to returning null.
-          return loop;
-
-        }
-		    
-      }
-    }
-    return null;
-  }
     
   // Check if the particular loop merits a score up for player j. 
   // If so, return true; else, false.
@@ -459,7 +391,7 @@ public class Simulation {
     public int respawnTimeLeft = 0;
 
     // The path traced by the ship since the last loop completion.
-    public Vector<Line2D> trajectory;
+    public Tail tail;
 
     // The last two control parameters.
     public PlayerControlParameters params = null;
@@ -467,8 +399,7 @@ public class Simulation {
 
 
     public PlayerStateInternal(int xInitial, int yInitial) {
-      trajectory = new Vector<Line2D>();
-      trajectory.add(new Line2D.Double(xInitial, yInitial, xInitial, yInitial)); // Zero length line
+      tail = new Tail(xInitial, yInitial);
     }
   }
 

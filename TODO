@@ -3,6 +3,7 @@ Dynamic arena
 Java applet in browser (or whatever makes it easy for us to play with people)
 Get the new server up and running
 Fix CSP!
+If possible, can the aoi/*.class files be in a separate folder from the aoi/*.java files? This is often annoying for me.
 
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
