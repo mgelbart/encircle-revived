@@ -249,7 +249,27 @@ public class Simulation {
               erasePath = true;
 
               if (i == j) {   
-                if (checkForScoring(j, loop)) score++;
+                
+                // Check for scoring
+                for (ClusterServerSide c : clusters) {
+                  if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
+                    System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
+                    
+                    // CALL TO CLUSTER DATABASE TO WRITE NEW INFO
+
+                    // This is an important point - what to do
+                    // if someone encircles a cluster. For now
+                    // write the data in the Database. 
+
+                    // It maybe be cool to also remove the cluster but right
+                    // now the Arena is only transmitted to the client at the beginning.
+
+                    score++;
+                    
+                    break; // score only one cluster per turn
+                  }
+                }
+
 
                 // Check if the other player got pwned.
                 for (int k=0; k<NUMPLAYERS; ++k) {
@@ -257,7 +277,6 @@ public class Simulation {
 
                   if (loop.contains(states[k].pos.x, states[k].pos.y)) {
 
-                    // This is a bit beautiful..
                     states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
                   }
@@ -360,27 +379,6 @@ public class Simulation {
     }
   }
 
-    
-  // Check if the particular loop merits a score up for player j. 
-  // If so, return true; else, false.
-  private boolean checkForScoring(int j, Path2D loop) {
-
-    for (ClusterServerSide c : clusters) {
-      if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
-        System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
-        // This is an important point - what to do
-        // if someone encircles a cluster. For now
-        // write the data in the Database. 
-		
-        // It maybe be cool to also remove the cluster but right
-        // now the Arena is only transmitted to the client at the beginning.
-		
-
-        return true; // collect only one cluster per loop
-      }
-    }
-    return false;
-  }
     
 
   private class PlayerStateInternal {
