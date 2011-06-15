@@ -8,5 +8,4 @@ If possible, can the aoi/*.class files be in a separate folder from the aoi/*.ja
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
-Store votes when people score  (I think it's better to just store the entire game history and post-process it later. JMG)
 Better hit-checking algorithm for bullets.

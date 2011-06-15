@@ -250,21 +250,23 @@ public class Simulation {
 
               if (i == j) {   
                 
+                boolean scored = false;
                 // Check for scoring
                 for (ClusterServerSide c : clusters) {
                   if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
                     System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
                     
                     // Store the vote in a file for post-processing
+                    // Currently stores the vote for all clusters in the loop that
+                    // *could* have been accepted, since we don't know which cluster in particular
+                    // the player was going for.
                     clusterDB.writeData(c.imgName(), score+1, "Mike R");
 
                     // It maybe be cool to also remove the cluster but right
                     // now the Arena is only transmitted to the client at the beginning.
-
-                    score++;                    
-                    break; // score only one cluster per turn
                   }
                 }
+                if (scored) score++;
 
 
                 // Check if the other player got pwned.
