@@ -41,6 +41,9 @@ public class ClusterDatabase {
 
   // The path where all segment likelihoods are stored
   public static final String IMAGE_LIKELIHOOD_PATH = "segment_likelihoods";
+  
+  // The path where votes are written to files during the game
+  public static final String IMAGE_OUTPUT = "game_output";
 
   // The format for all the text info
   public static final String TEXT_FORMAT = ".txt";
@@ -150,6 +153,17 @@ public class ClusterDatabase {
     assert(i < imageFilenames.length);
   
     return parseCluster(imageFilenames[i]);
+  }
+  
+  // Write to file that a player voted cluster name to have a particular number of segments
+  public void writeData(String name, int vote, String playerID) throws IOException {
+    BufferedWriter out = new BufferedWriter(new FileWriter(
+                          SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_OUTPUT + 
+		                      OS_FILESEP + datasetName + OS_FILESEP + name + TEXT_FORMAT, true));
+		                      // the "true" above causes the writer to append instead of overwrite
+		out.write(vote + "::" + playerID);
+		out.newLine();
+		out.close();
   }
   
   // Construct a ClusterServerSide corresponding to a Cluster

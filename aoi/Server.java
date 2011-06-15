@@ -119,7 +119,7 @@ public abstract class Server {
 
 
       // Start simulating the game!
-      simulation.startGame(maxSegmentNumber);
+      simulation.startGame(clusterDbSayWithPET, maxSegmentNumber);
 
       // TODO: start the while(true) loop from the beginnig
       //       to server multiple games at a time.

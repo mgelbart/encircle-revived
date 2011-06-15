@@ -28,8 +28,8 @@ public class Client {
     try {
       arena = Arena.parse(Client.class.getClassLoader().getResourceAsStream(Arena.ARENA_METADATA_FILENAME));
 
-      System.out.println("Parsed the arena: ");
-      System.out.println(arena);
+      // System.out.println("Parsed the arena: ");
+      // System.out.println(arena);
 
     } catch (Exception e) {
       System.out.println(e.toString());

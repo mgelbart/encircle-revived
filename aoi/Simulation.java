@@ -126,7 +126,7 @@ public class Simulation {
   }
 
   @SuppressWarnings("unchecked")
-    public void startGame(int pointsPerRound) {
+    public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
 
     PlayerState[] states = (PlayerState[]) (game.states.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
@@ -255,17 +255,13 @@ public class Simulation {
                   if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
                     System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
                     
-                    // CALL TO CLUSTER DATABASE TO WRITE NEW INFO
-
-                    // This is an important point - what to do
-                    // if someone encircles a cluster. For now
-                    // write the data in the Database. 
+                    // Store the vote in a file for post-processing
+                    clusterDB.writeData(c.imgName(), score+1, "Mike R");
 
                     // It maybe be cool to also remove the cluster but right
                     // now the Arena is only transmitted to the client at the beginning.
 
-                    score++;
-                    
+                    score++;                    
                     break; // score only one cluster per turn
                   }
                 }
