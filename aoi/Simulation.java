@@ -171,7 +171,7 @@ public class Simulation {
             for (int k=0; k<NUMPLAYERS; ++k) {
               playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
               states[k] = states[k].clone("score", 0);
-              states[k] = states[k].clone("respawning", true);
+              states[k] = states[k].clone("respawning", 1);
             }
           }
 
@@ -364,7 +364,7 @@ public class Simulation {
           if (crashed) {
 
             playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
-            states[j] = states[j].clone("respawning", true);
+            states[j] = states[j].clone("respawning", 1);
 
           }
 

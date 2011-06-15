@@ -58,7 +58,7 @@ public class GUI implements Runnable {
 
 
   @SuppressWarnings("unchecked")
-    public GUI(Arena arena, ClientConfiguration config) {
+  public GUI(Arena arena, ClientConfiguration config) {
 
     this.arena = arena;
     this.config = config;
@@ -122,7 +122,7 @@ public class GUI implements Runnable {
     KeyboardFocusManager.getCurrentKeyboardFocusManager()
       .addKeyEventDispatcher(new KeyEventDispatcher() {
           @Override
-            public boolean dispatchKeyEvent(KeyEvent e) {
+          public boolean dispatchKeyEvent(KeyEvent e) {
             int key = e.getKeyCode();
 
             if (e.getID() == KeyEvent.KEY_PRESSED) {
@@ -168,7 +168,7 @@ public class GUI implements Runnable {
 
   // Get the set of currently pressed keys.
   @SuppressWarnings("unchecked")
-    public Set<Integer> pressedKeys() {
+  public Set<Integer> pressedKeys() {
 
     // Note that the Integer objects themselves
     // aren't cloned...
@@ -190,7 +190,7 @@ public class GUI implements Runnable {
   }
 
   @SuppressWarnings("unchecked")
-    private void drawGameState(Arena m, GameState g) {
+  private void drawGameState(Arena m, GameState g) {
 
     DrawUtils.clear(Color.BLACK);
 

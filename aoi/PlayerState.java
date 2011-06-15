@@ -55,30 +55,19 @@ public class PlayerState {
     int energy = this.energy;
     int loopStarted = this.loopStarted;
     int score = this.score;
+    boolean respawning = this.respawning;
 
     // TODO: use an enum for these.
     if (key.equals("score"))
       score = value;
     else if (key.equals("loopStarted"))
       loopStarted = value;
+    else if (key.equals("respawning"))
+      respawning = value != 0;
     else 
       assert(false);  // lol
 
-    return new PlayerState(playerNo, this.pos, energy, loopStarted, score, this.respawning);
-  }
-
-  // Make a deep copy but set some parameter
-  public PlayerState clone(String key, boolean value) {
-
-    boolean respawning = this.respawning;
-
-    // TODO: use an enum for these.
-    if (key.equals("respawning")) // We'll probably end up having more boolean fields...
-      respawning = value;
-    else 
-      assert(false);
-
-    return new PlayerState(this.playerNo, this.pos, this.energy, this.loopStarted, this.score, respawning);
+    return new PlayerState(playerNo, this.pos, energy, loopStarted, score, respawning);
   }
 
   // Make a deep copy but set some parameter

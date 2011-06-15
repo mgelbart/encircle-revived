@@ -1,28 +1,9 @@
-
-When I run it, sometimes it doesn't automatically focus on the StdDraw   ---Mike
-
-This happens to me almost every time. I'm about to get rid off StdDraw though so let's see if the problem persists before trying to solve it.  ---JMG
-
-----------
-
-When you crash into a cluster, you vibrate a bit before respawning.  ---Mike
-
-Yes. This is on Joonas' TODO list.  ---JMG
-
-----------
-
-Bullets pass through small clusters, probably becasue of bad time resolution. ---Mike
-
-I think so too. Mike volunteered to write a better algorithmin for bullet hit checking.  ---JMG
-
-----------
-
 After changing server.conf:generate area from 'false' to 'true', sometimes it still *displays* the old arena whereas the cluster locations are clearly changed (i.e., you run into invisible things, etc.). No idea why this happens and it's not reproducible  ---Mike
 
 This sounds like the server generated a new map (hence you die when you hit the new clusters) but the client still loaded the old map. This could happen if the 2 second sleep in ./testrun wasn't enough for the server to generate the new arena.xml so that the client read the old one when it started up. We can just make the sleep time a bit longer since this is just a temporary way of distributing arena.xml to the clients.  ---JMG
 
-Ok, I changed it to 3 seconds, let's see if this helps   ---Mike
+Ok, I changed it to 3 seconds, and now it's fine  ---Mike
 
 ---------
 
-After switching away from StdDraw, the green paths don't perfectly lie on top of the clusters any more; they seem off by 1 pixel or so.  ---Mike
+After switching away from StdDraw in favor of DrawUtils, the green paths don't perfectly lie on top of the clusters any more; they seem off by 1 pixel or so.  ---Mike
