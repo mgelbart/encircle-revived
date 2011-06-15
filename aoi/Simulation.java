@@ -253,9 +253,11 @@ public class Simulation {
                 boolean scored = false;
                 // Check for scoring
                 for (ClusterServerSide c : clusters) {
-                  if (c.acceptable(game.states[j].score+1) && loop.contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(score+1) && loop.contains(c.centerX(), c.centerY())) {
                     System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
-                    
+
+                    scored = true;
+
                     // Store the vote in a file for post-processing
                     // Currently stores the vote for all clusters in the loop that
                     // *could* have been accepted, since we don't know which cluster in particular
