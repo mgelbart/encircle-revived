@@ -7,10 +7,11 @@ import java.util.Vector;
  *  A class dedicated to listening and parsing commands from
  *  a remote player.
  *
- *  Meant to be run in a separate thread. Once the data for a new
- *  PlayerControlParameters object is parsed it is passed on
- *  to the simulation via the shared variable game.player1/2CtrlParams.
-*/
+ *  Meant to be run in a separate thread. This class buffers
+ *  up to CTRLBUFFERSIZE commands from the remote client
+ *  and returns the most recent already effective one to
+ *  the Simulation when it calls getCtrlParams().
+ */
 public class PlayerListener implements Runnable {
 
   public final static int CTRLBUFFERSIZE = 30;
@@ -43,16 +44,19 @@ public class PlayerListener implements Runnable {
     synchronized (ctrls) {
       // Find the active command and prune old ones:
       // (never empty ctrls entirely though)
-      while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0) // TODO: check that this handles time wrapping
+      while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0)
         ctrls.remove(0);
 
       //System.err.println("Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
+      //System.err.println("#" + playerNo + " Requested - retrieved time: " + (ctrls.get(0).effectiveOn - time));
 
       return ctrls.get(0);
     }
 
   }
 
+
+  @SuppressWarnings("unchecked")
   public void run() {
 
     Byte cmd = 0;
@@ -67,15 +71,18 @@ public class PlayerListener implements Runnable {
       // Keep ctrls ordered by effectiveOn.
       j = 0;
       synchronized (ctrls) {
-        while (j < ctrls.size() && ctrl.effectiveOn - ctrls.get(j).effectiveOn > 0) // TODO: check that this handles time wrapping
-          ++j;
-
-        ctrls.insertElementAt(ctrl, j);
+        ctrls.add(ctrl);
+        java.util.Collections.sort(ctrls);
       }
 
-      System.out.print("Received from #");
-      System.out.println(playerNo);
-      System.out.println(ctrl.toString());
+      /*
+      System.err.print("Received from #");
+      System.err.print(playerNo);
+      System.err.print(" (queue size: ");
+      System.err.print(ctrls.size());
+      System.err.println(")");
+      System.err.println(ctrl.toString());
+      */
 
     }
 
