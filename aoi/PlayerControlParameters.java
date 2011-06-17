@@ -11,7 +11,7 @@ import java.io.*;
  * any special serialization/parsing to be transmitted
  * over the network.
 */
-public class PlayerControlParameters implements Cloneable {
+public class PlayerControlParameters implements Comparable {
 
   // The specified parameters will first become active in
   // the simulation step effectiveOn...effectiveOn+1
@@ -36,13 +36,19 @@ public class PlayerControlParameters implements Cloneable {
     this.boostsToTake = boostsToTake;
   }
 
-  public PlayerControlParameters clone() {
-    try {
-      return (PlayerControlParameters) super.clone();
-    }
-    catch (CloneNotSupportedException e) {
-      return null;
-    }
+  /** The 'natural' order is time ordering.
+   *
+   * Note: Since time is periodic, the ordering is also periodic
+   *       and transitivity _is_ violated if the GameStates in
+   *       the set of interest differ by more than half the full
+   *       time range.
+   */
+  public int compareTo(Object o) {
+    return this.effectiveOn - ((PlayerControlParameters) o).effectiveOn;
+  }
+
+  public boolean equals(Object o) {
+    return this.effectiveOn == ((PlayerControlParameters) o).effectiveOn;
   }
 
   public String toString() {
