@@ -78,7 +78,7 @@ public class TimeMachine {
 
     if (states.size() == 0) return null;
 
-    return states.get(0);
+    return states.lastElement();
 
   }
 
