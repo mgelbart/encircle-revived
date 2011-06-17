@@ -178,7 +178,7 @@ public class TimeMachine {
     if (playerNo == config.playerNo) return getOwnParamsAt(time);
 
     PlayerControlParameters params = null;
-    if (reader != null) params = reader.paramsAt(time);
+    if (reader != null) params = reader.paramsAt(time, playerNo);
     if (params != null) return params;
 
     //System.err.println("Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");

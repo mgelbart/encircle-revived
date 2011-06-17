@@ -34,7 +34,7 @@ public class MindReader {
       final int N = states.size();
 
       int i = 0;
-      while (i < N && g.time - states.get(i).time > 0) i++;
+      while (i < N && g.compareTo(states.get(i)) > 0) i++;
 
       assert(i <= states.size());
 
@@ -54,10 +54,11 @@ public class MindReader {
     Return the best guess at the parameters
     of the player at the given time.
   */
-  public PlayerControlParameters paramsAt(int time) {
+  public PlayerControlParameters paramsAt(int time, int playerNo) {
 
-	
-    final int P = config.playerNo;
+    assert(playerNo != config.playerNo); // You don't need to guess your own parameters.
+
+    final int P = playerNo;
 
     GameState s0, s1;
 
