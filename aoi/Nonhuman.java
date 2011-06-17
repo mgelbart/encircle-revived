@@ -28,6 +28,9 @@ public class Nonhuman implements Intelligence {
   // Last time ctrl was changed.
   int lastAction = -999999;
 
+  // The main thread that runs think() in an infinite loop.
+  Thread intelThread;
+
   public Nonhuman(ClientConfiguration config, Arena arena) {
 
     this.config = config;
@@ -37,6 +40,8 @@ public class Nonhuman implements Intelligence {
 
     games = new GameState[1];
 
+    intelThread = new Thread(this);
+    intelThread.start();
   }
 
   public void run() {
@@ -46,6 +51,8 @@ public class Nonhuman implements Intelligence {
   /* Store the latest game state in a queue. */
   public void processGameStateUpdate(GameState game) {
     games[0] = game; /* Our queue consists of one element! */
+
+    intelThread.interrupt();
   }
 
 

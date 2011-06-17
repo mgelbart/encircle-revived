@@ -70,6 +70,9 @@ public class HigherBeing implements Intelligence {
   // The timer in charge of updating the GUI.
   private Timer renderTimer;
 
+  // The main thread that runs think() in an infinite loop.
+  private Thread intelThread;
+
   public HigherBeing(ClientConfiguration config, Arena arena) {
 
     this.config = config;
@@ -89,6 +92,8 @@ public class HigherBeing implements Intelligence {
     renderTimer = new Timer();
     renderTimer.schedule(renderTask, 0, frametime);
 
+    intelThread = new Thread(this);
+    intelThread.start();
   }
 
   public void run() {
@@ -219,20 +224,16 @@ public class HigherBeing implements Intelligence {
       if (newRenderedTime - renderedAuthorativeState.time < MINSIMULATEDSTEPS) {
 
         /*
-          System.err.println("Skipped "
-          + (renderedAuthorativeState.time
-          + MINSIMULATEDSTEPS
-          - newRenderedTime)
-          + " frames.");
+        System.err.println("Skipped "
+                           + (renderedAuthorativeState.time
+                              + MINSIMULATEDSTEPS
+                              - newRenderedTime)
+                           + " frames.");
 
-          System.err.println("Authorative time: " + renderedAuthorativeState.time);
-          if (renderedState != null) {
+        System.err.println("Authorative time: " + renderedAuthorativeState.time);
+        if (renderedState != null) {
           System.err.println("Rendered time: " + renderedState.time);
-
-          System.err.println("Rotation in simulated time: "
-          + (renderedState.states[config.playerNo].direction
-          - renderedAuthorativeState.states[config.playerNo].direction));
-          }
+        }
         */
 
         newRenderedTime = renderedAuthorativeState.time
@@ -248,6 +249,7 @@ public class HigherBeing implements Intelligence {
       gui.setGameState(renderedState);
       guiThread.interrupt();
 
+      intelThread.interrupt();
     }
 
   }

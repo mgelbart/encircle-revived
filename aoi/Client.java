@@ -66,9 +66,6 @@ public class Client {
       else
         intel = new HigherBeing(config, arena);
 
-      Thread intelThread = new Thread(intel);
-      intelThread.start();
-
       GameState game;
 
       System.out.println("Ready...");
@@ -76,7 +73,6 @@ public class Client {
       while (true) {
         game = parseGameState(stateStream);
         intel.processGameStateUpdate(game);
-        intelThread.interrupt(); // in case she was sleeping!
 
         sendControlParameters(controlStream, intel.getNewControlParameters());
       }
