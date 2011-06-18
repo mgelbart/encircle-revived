@@ -8,24 +8,56 @@ import javax.swing.JFrame;
  *  A class for connecting to the server and parsing the game state
  *  and sending the desired control parameters.
  */
-public class Client {
+public class Client implements Runnable {
 
-  public static void main(String argv[]) throws Exception {
+  // Path to the default configuration file.
+  private static final String DEFAULTCONFIGPATH = "client.conf";
 
+  // The actual configuration:
+  private ClientConfiguration config;
 
-    Socket socket;
+  // The frame for the GUI.
+  private JFrame frame;
 
-    ClientConfiguration config = ClientConfiguration.parse(System.in);
-	
-    // Read input options from stdin.
-    socket = new Socket(config.serverUrl, config.serverPort);
+  /**
+   * Constructs a new Client using the configuration parsed
+   * from configStream and with the GUI drawn in frame.
+   *
+   * If configStream is null, the default configuration file
+   * is used.
+   */
+  public Client(InputStream configStream, JFrame frame) {
+    this.frame = frame;
 
-    // Don't buffer data before sending TCP packets.
-    socket.setTcpNoDelay(true);
+    InputStream stream = configStream;
+
+    if (stream == null) {
+      stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
+    }
+
+    config = ClientConfiguration.parse(configStream);
+  }
+
+  public void run() {
+
+    Socket socket = null;
+
+    try {
+
+      // Read input options from stdin.
+      socket = new Socket(config.serverUrl, config.serverPort);
+
+      // Don't buffer data before sending TCP packets.
+      socket.setTcpNoDelay(true);
+
+    } catch (Exception e) {
+      System.err.println(e);
+      assert(false);
+    } 
 
     // Initialize the GUI for human players
     if (!config.nonhuman) {
-      DrawUtils.initialize(new JFrame(), 700, 700);
+      DrawUtils.initialize(frame, 700, 700);
     }
 
 
@@ -85,9 +117,14 @@ public class Client {
       }
 
     } catch (Exception e) {
-      socket.close();
 
-      throw e;
+      try {
+        socket.close();
+      } catch (Exception ee) {
+      }
+
+      System.err.println(e);
+      assert(false);
     }
 
     //socket.close();
@@ -103,5 +140,13 @@ public class Client {
 
     params.serialize(o);
 
+  }
+
+  /**
+   * main() for running the client directly outside an Applet.
+   */
+  public static void main(String argv[]) throws Exception {
+    Client client = new Client(System.in, new JFrame());
+    client.run(); // Can just run this from the main() thread.
   }
 }
