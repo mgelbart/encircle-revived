@@ -93,7 +93,7 @@ public class Arena {
 
     public void startElement(String uri, String localName, String qName, Attributes attr)  {
       if (qName == "cluster")
-        clusters.add(new DrawableCluster(new NotStupidPolygon(attr), new ImageMetaData(attr)));
+        clusters.add(new DrawableCluster(new NotStupidPolygon(attr), ImageMetaData.parse(attr)));
 
     }
 

@@ -1,5 +1,5 @@
 *.class
-*.jar
+aoi.jar
 doc/
 out/
 resources/

@@ -81,6 +81,27 @@ public class ClusterDatabase {
   	// Get the file path from the stored paths in memory
   	String imagePath = imagePath(filename);
 
+        // Read the image data from the file to a vector of bytes.
+        InputStream imgStream = Client.class.getClassLoader().getResourceAsStream(imagePath);
+        Vector<Byte> imgDataVec = new Vector<Byte>();
+
+        try {
+          int b = imgStream.read();
+          while(b >= 0) {
+            imgDataVec.add((byte) b);
+            b = imgStream.read(); // Returns -1 at end of stream.
+          }
+        } catch (Exception e) {
+          System.err.println(e);
+          assert(false);
+        }
+
+        // Convert to a byte[]
+        byte[] imgData = new byte[imgDataVec.size()];
+        for (int j=0; j < imgData.length; ++j)
+          imgData[j] = imgDataVec.get(j);
+
+
   	// Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
   	Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
   									SEGMENTATION_BASEDIR + OS_FILESEP + 
@@ -119,7 +140,7 @@ public class ClusterDatabase {
   	// coordinates is necessarily (0,0) because the contour might not be centered
   	// in the image. But, this is approximately and if untrue, probably only
   	// by one pixel. 
-  	ImageMetaData imageMetaData = new ImageMetaData(imagePath, imageSizeX, imageSizeY, 0, 0, filename);
+  	ImageMetaData imageMetaData = new ImageMetaData(imgData, imageSizeX, imageSizeY, 0, 0, filename);
 	
   	// Read the segment likelihoods
    	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
@@ -170,7 +191,7 @@ public class ClusterDatabase {
   
 
   /*
-    Generates a collection of clusters that can be used to initialize a Map.
+    Generates a collection of clusters that can be used to initialize an Arena.
 
     In the end the placement of the clusters will be quite important for game-
     play as well as information gain about the cluster size so we probably want

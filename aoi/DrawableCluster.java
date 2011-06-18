@@ -32,15 +32,7 @@ public class DrawableCluster extends Cluster implements Drawable {
   public DrawableCluster(NotStupidPolygon contour, ImageMetaData imgMetaData) {
     super(contour, imgMetaData);
 
-    // System.err.print(imgPath + " ");
-
-    // Prepending the "/" w/o checking if it's
-    // already included is a bit hax0r but eventually
-    // we won't be loading the data here from a file
-    // anyway...
-    URL url = getClass().getResource("/" + imgMetaData.path());
-    assert(url != null);
-    this.img = (new ImageIcon(url)).getImage();
+    this.img = imgMetaData.img();
 
     // System.err.println("loaded.");
   }
