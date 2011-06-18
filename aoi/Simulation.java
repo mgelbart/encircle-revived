@@ -94,6 +94,12 @@ public class Simulation {
   }
 
 
+  // Return the arena used in the game
+  public Arena arena() {
+    return arena;
+  }
+
+
   public void initGameState() {
     PlayerState[] states = new PlayerState[NUMPLAYERS];
 

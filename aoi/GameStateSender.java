@@ -39,8 +39,17 @@ public class GameStateSender implements Runnable {
     // First shake hands:
     try {
       DataOutputStream ds = new DataOutputStream(client);
+
+      // Send the (dynamically assigned) player number to the client.
       ds.writeBytes("p");
       ds.writeInt(playerNo);
+
+      // Send the serialized arena.
+      String arena = sim.arena().toString();
+      ds.writeBytes("a");
+      ds.writeInt(arena.length());
+      ds.writeBytes(arena);
+
     } catch (IOException ioe) {
       System.err.println(ioe.toString());
       assert(false);

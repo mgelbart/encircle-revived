@@ -23,20 +23,6 @@ public class Client {
     // Don't buffer data before sending TCP packets.
     socket.setTcpNoDelay(true);
 
-    // Read the Arena from a local file for now...
-    Arena arena = null;
-    try {
-      arena = Arena.parse(Client.class.getClassLoader().getResourceAsStream(Arena.ARENA_METADATA_FILENAME));
-
-      // System.out.println("Parsed the arena: ");
-      // System.out.println(arena);
-
-    } catch (Exception e) {
-      System.out.println(e.toString());
-      assert(false);
-    }
-
-
     // Initialize the GUI for human players
     if (!config.nonhuman) {
       DrawUtils.initialize(new JFrame(), 700, 700);
@@ -50,9 +36,28 @@ public class Client {
 
 
       /* Process the handshake */
+
+      // Read the player number assigned to self.
       Byte cmd = stateStream.readByte();
       assert(cmd == 'p');
       config.setPlayerNo(stateStream.readInt());
+
+
+      // Parse the arena
+      cmd = stateStream.readByte();
+      assert(cmd == 'a');
+      int arenaSize = stateStream.readInt(); // Length of the serialized arena in bytes
+      assert(arenaSize > 0);
+
+      // First read all bytes into a buffer.
+      byte[] arenaBuf = new byte[arenaSize];
+      stateStream.readFully(arenaBuf);
+
+      // Now parse from the buffer.
+      Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf));
+      
+
+      /* End of handshake. */
 
 	    
       System.out.println(config);
