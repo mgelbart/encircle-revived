@@ -51,62 +51,62 @@ public class ClusterDatabase {
   public final boolean[] alreadyUsed;
 
   @SuppressWarnings("unchecked")
-  public ClusterDatabase(String datasetName) throws FileNotFoundException {
-	this.datasetName = datasetName;
+    public ClusterDatabase(String datasetName) throws FileNotFoundException {
+    this.datasetName = datasetName;
     Vector<String> vImageFilenames = new Vector<String>();
 
     Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-									SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_NAME_LIST + 
-									OS_FILESEP + datasetName + TEXT_FORMAT));
+                                                                                                 SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_NAME_LIST + 
+                                                                                                 OS_FILESEP + datasetName + TEXT_FORMAT));
     while (infoScanner.hasNext())
       vImageFilenames.add(infoScanner.nextLine());
 
     imageFilenames = new String[vImageFilenames.size()];
     vImageFilenames.toArray(imageFilenames);
-	  alreadyUsed = new boolean[imageFilenames.length];
-	// Shuffle the array of filenames, and then use in order from now on. 
-	// This fascilitates random sampling without replacement.
+    alreadyUsed = new boolean[imageFilenames.length];
+    // Shuffle the array of filenames, and then use in order from now on. 
+    // This fascilitates random sampling without replacement.
     Collections.shuffle(Arrays.asList(imageFilenames));
   }
 
   // Get image path from image filename
   public String imagePath(String filename) {
-	return SEGMENTATION_BASEDIR + OS_FILESEP + 
-		   IMAGE_RAW_PATH + OS_FILESEP + datasetName + 
-		   OS_FILESEP + filename + IMAGE_RAW_FORMAT;
+    return SEGMENTATION_BASEDIR + OS_FILESEP + 
+      IMAGE_RAW_PATH + OS_FILESEP + datasetName + 
+      OS_FILESEP + filename + IMAGE_RAW_FORMAT;
   }
   
   // Parse all the data about a particular ProtoCluster given the filename
   public ClusterServerSide parseCluster(String filename) throws FileNotFoundException {
-  	// Get the file path from the stored paths in memory
-  	String imagePath = imagePath(filename);
+    // Get the file path from the stored paths in memory
+    String imagePath = imagePath(filename);
 
-        // Read the image data from the file to a vector of bytes.
-        InputStream imgStream = Client.class.getClassLoader().getResourceAsStream(imagePath);
-        Vector<Byte> imgDataVec = new Vector<Byte>();
+    // Read the image data from the file to a vector of bytes.
+    InputStream imgStream = Client.class.getClassLoader().getResourceAsStream(imagePath);
+    Vector<Byte> imgDataVec = new Vector<Byte>();
 
-        try {
-          int b = imgStream.read();
-          while(b >= 0) {
-            imgDataVec.add((byte) b);
-            b = imgStream.read(); // Returns -1 at end of stream.
-          }
-        } catch (Exception e) {
-          System.err.println(e);
-          assert(false);
-        }
+    try {
+      int b = imgStream.read();
+      while(b >= 0) {
+        imgDataVec.add((byte) b);
+        b = imgStream.read(); // Returns -1 at end of stream.
+      }
+    } catch (Exception e) {
+      System.err.println(e);
+      assert(false);
+    }
 
-        // Convert to a byte[]
-        byte[] imgData = new byte[imgDataVec.size()];
-        for (int j=0; j < imgData.length; ++j)
-          imgData[j] = imgDataVec.get(j);
+    // Convert to a byte[]
+    byte[] imgData = new byte[imgDataVec.size()];
+    for (int j=0; j < imgData.length; ++j)
+      imgData[j] = imgDataVec.get(j);
 
 
-  	// Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
-  	Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-  									SEGMENTATION_BASEDIR + OS_FILESEP + 
-  									IMAGE_POLY_PATH + OS_FILESEP + 
-  									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+    // Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
+    Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
+                                                                                                 SEGMENTATION_BASEDIR + OS_FILESEP + 
+                                                                                                 IMAGE_POLY_PATH + OS_FILESEP + 
+                                                                                                 datasetName + OS_FILESEP + filename + TEXT_FORMAT));
     
     String[] imageSizeString = polyScanner.nextLine().split(",");
     int imageSizeX = Integer.parseInt(imageSizeString[0]);
@@ -118,45 +118,45 @@ public class ClusterDatabase {
     String polyYCoordsString = polyScanner.nextLine();
     String[] polyXCoordsStrings = polyXCoordsString.split(",");
     String[] polyYCoordsStrings = polyYCoordsString.split(",");
-  	assert(polyXCoordsStrings.length == numPointsInContour);
-  	assert(polyYCoordsStrings.length == numPointsInContour);
-  	int[] polyXCoords = new int[numPointsInContour];
-  	int[] polyYCoords = new int[numPointsInContour];
+    assert(polyXCoordsStrings.length == numPointsInContour);
+    assert(polyYCoordsStrings.length == numPointsInContour);
+    int[] polyXCoords = new int[numPointsInContour];
+    int[] polyYCoords = new int[numPointsInContour];
   	
-  	double scale = Simulation.ARENASIZE*DrawableCluster.CLUSTER_SCALING_FACTOR; // convert to Arena coordinates
-  	for (int i = 0; i < numPointsInContour; i++) {
-  	  	polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*scale);
-  	  	polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*scale);		
-  	}
-  	imageSizeX *= scale;
-  	imageSizeY *= scale;
-  	// scale the image size as well
-  	// this could also be done with the scale() and scaledVersion() commands of ImageMetaData and NotStupidPolygon
-  	// respectively, but it's simpler to do it this way because of double/int conversion + rounding errors
+    double scale = Simulation.ARENASIZE*DrawableCluster.CLUSTER_SCALING_FACTOR; // convert to Arena coordinates
+    for (int i = 0; i < numPointsInContour; i++) {
+      polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*scale);
+      polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*scale);		
+    }
+    imageSizeX *= scale;
+    imageSizeY *= scale;
+    // scale the image size as well
+    // this could also be done with the scale() and scaledVersion() commands of ImageMetaData and NotStupidPolygon
+    // respectively, but it's simpler to do it this way because of double/int conversion + rounding errors
   	
-  	NotStupidPolygon imageContour = new NotStupidPolygon(polyXCoords, polyYCoords);
-  	// The data from the database comes from Matlab which gives the coordinates
-  	// from the center of the image. This does not mean that the center of these
-  	// coordinates is necessarily (0,0) because the contour might not be centered
-  	// in the image. But, this is approximately and if untrue, probably only
-  	// by one pixel. 
-  	ImageMetaData imageMetaData = new ImageMetaData(imgData, imageSizeX, imageSizeY, 0, 0, filename);
+    NotStupidPolygon imageContour = new NotStupidPolygon(polyXCoords, polyYCoords);
+    // The data from the database comes from Matlab which gives the coordinates
+    // from the center of the image. This does not mean that the center of these
+    // coordinates is necessarily (0,0) because the contour might not be centered
+    // in the image. But, this is approximately and if untrue, probably only
+    // by one pixel. 
+    ImageMetaData imageMetaData = new ImageMetaData(imgData, imageSizeX, imageSizeY, 0, 0, filename);
 	
-  	// Read the segment likelihoods
-   	Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-  									SEGMENTATION_BASEDIR + OS_FILESEP + 
-  									IMAGE_LIKELIHOOD_PATH + OS_FILESEP + 
-  									datasetName + OS_FILESEP + filename + TEXT_FORMAT));
-      // The likelihoods of different nSegments values.
-  	Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
+    // Read the segment likelihoods
+    Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
+                                                                                               SEGMENTATION_BASEDIR + OS_FILESEP + 
+                                                                                               IMAGE_LIKELIHOOD_PATH + OS_FILESEP + 
+                                                                                               datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+    // The likelihoods of different nSegments values.
+    Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
     String nsLikelihoodsLine = nsScanner.nextLine();
     if (nsLikelihoodsLine.length() > 0) {
- 	    String[] nsLikelihoodStrings = nsLikelihoodsLine.split(",");
-    	for (int i = 0; i < nsLikelihoodStrings.length; ++i) {
-    	  String[] nsLikelihoodPair = nsLikelihoodStrings[i].split(":");
-  		  nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]), Double.parseDouble(nsLikelihoodPair[1]));
-  		}
-	  }
+      String[] nsLikelihoodStrings = nsLikelihoodsLine.split(",");
+      for (int i = 0; i < nsLikelihoodStrings.length; ++i) {
+        String[] nsLikelihoodPair = nsLikelihoodStrings[i].split(":");
+        nsLikelihoods.put(Integer.parseInt(nsLikelihoodPair[0]), Double.parseDouble(nsLikelihoodPair[1]));
+      }
+    }
 
     return new ClusterServerSide(imageContour, imageMetaData, nsLikelihoods);
   }
@@ -170,23 +170,23 @@ public class ClusterDatabase {
   // Write to file that a player voted cluster name to have a particular number of segments
   public void writeData(String name, int vote, String playerID) throws IOException {
     BufferedWriter out = new BufferedWriter(new FileWriter(
-                          SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_OUTPUT + 
-		                      OS_FILESEP + datasetName + OS_FILESEP + name + TEXT_FORMAT, true));
-		                      // the "true" above causes the writer to append instead of overwrite
-		out.write(vote + "::" + playerID);
-		out.newLine();
-		out.close();
+                                                           SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_OUTPUT + 
+                                                           OS_FILESEP + datasetName + OS_FILESEP + name + TEXT_FORMAT, true));
+    // the "true" above causes the writer to append instead of overwrite
+    out.write(vote + "::" + playerID);
+    out.newLine();
+    out.close();
   }
   
   // Construct a ClusterServerSide corresponding to a Cluster
   public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
-	  ClusterServerSide css = parseCluster(c.imgName());
+    ClusterServerSide css = parseCluster(c.imgName());
     // System.err.println(c.imgName());
     // System.err.println(c.contour());
     // System.err.println(c.imgMetaData());
     // System.err.println(css.nsLikelihoods);
     // System.err.println("--");
-	  return new ClusterServerSide(c.contour(), c.imgMetaData(), css.nsLikelihoods);
+    return new ClusterServerSide(c.contour(), c.imgMetaData(), css.nsLikelihoods);
   }
   
 
@@ -214,12 +214,12 @@ public class ClusterDatabase {
         // If no Clusters are available, throw an error (for now, just an assert)
        	css = null;
       	for (i = 0; i < imageFilenames.length; i++) {
-      		if (alreadyUsed[i]) continue;
-      		css = parseCluster(i);
-      		if (css.acceptable(nSegments))
-      		  break;
-      		else
-      		  css = null;
+          if (alreadyUsed[i]) continue;
+          css = parseCluster(i);
+          if (css.acceptable(nSegments))
+            break;
+          else
+            css = null;
       	}
         
         if (css == null) System.err.println("Error: database does not have enough clusters with " + nSegments + " segments.");
