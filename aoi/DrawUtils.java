@@ -185,7 +185,6 @@ public class DrawUtils {
 
   /**
    * Set the Stroke object used to draw the outlines of Shapes.
-   * In particular Paint can be just a Color object.
    */
   public static void setStroke(Stroke s) {
     stroke = s;
@@ -204,7 +203,7 @@ public class DrawUtils {
 
   /**
    * Clear the buffered image with the given color.
-   * @param color the Color to make the background
+   * @param c the Color to make the background
    */
   public static void clear(Color c) {
     offscreen.setColor(c);
@@ -245,7 +244,7 @@ public class DrawUtils {
    * @param gameCoordinates determines whether to draw the object in game or overlay coordinates.
    */
   public static void picture(int x, int y, int w, int h, Image image, boolean gameCoordinates) {
-    picture(new Rectangle(x - w/2, y - h/2, w, h), image, gameCoordinates);
+    picture(new Rectangle((int) Math.round(x - w/2.), (int) Math.round(y - h/2.), w, h), image, gameCoordinates);
   }
 
   /**
@@ -264,10 +263,10 @@ public class DrawUtils {
 
     //System.err.println("Picture at (" + xs + ", " + ys + ")");
     offscreen.drawImage(image,
-                        (int) (b.getX()),
-                        (int) (b.getY()),
-                        (int) (b.getWidth()),
-                        (int) (b.getHeight()),
+                        (int) Math.round((b.getX())),
+                        (int) Math.round((b.getY())),
+                        (int) Math.round((b.getWidth())),
+                        (int) Math.round((b.getHeight())),
                         null);
   }
 
