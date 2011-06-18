@@ -148,7 +148,7 @@ public class Simulation {
 
     TimerTask interruptTask = new InterruptThreadsTask(threads);
     Timer timer = new Timer();
-    timer.schedule(interruptTask, 0, TIMESTEP);
+    timer.scheduleAtFixedRate(interruptTask, 0, TIMESTEP);
 
 
     System.out.println("Game starting.");

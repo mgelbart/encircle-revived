@@ -90,7 +90,7 @@ public class HigherBeing implements Intelligence {
 
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
-    renderTimer.schedule(renderTask, 0, frametime);
+    renderTimer.scheduleAtFixedRate(renderTask, 0, frametime);
 
     intelThread = new Thread(this);
     intelThread.start();
