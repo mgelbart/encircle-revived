@@ -23,6 +23,10 @@ public class PlayerState {
 
   // The time at which the last loop was completed/current one started.
   public final int loopStarted;
+  
+  // original path started
+  // last path ended
+  // current path started
 
   // How many clusters the player has collected already
   public final int score;

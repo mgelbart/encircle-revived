@@ -1,10 +1,6 @@
 package aoi;
 
-import java.awt.Shape;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Stroke;
-
+import java.awt.*;
 
 /**
  *  Interface for object passed to the GUI

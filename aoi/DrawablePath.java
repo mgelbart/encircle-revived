@@ -1,11 +1,7 @@
 package aoi;
 
 import java.awt.geom.Path2D;
-import java.awt.Shape;
-import java.awt.Image;
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Stroke;
+import java.awt.*;
 
 /**
  *  A class used to pass a sequence of points to the GUI
@@ -36,8 +32,6 @@ public class DrawablePath implements Drawable {
       if (close)
         p.closePath();
     }
-
-    if (close) p.closePath();
 
     this.path = p;
   }
