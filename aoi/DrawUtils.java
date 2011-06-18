@@ -16,9 +16,9 @@ package aoi;
   handed and centered at (0,0).
 
     * Overlay coordinates can be used to draw objects
-      at a fixed location in the frame. The x and y
+      at a fixed location on the canvas. The x and y
       coordinates are specified in pixels between
-      plus and minus frameWidth/2 and frameHeight/2,
+      plus and minus canvasWidth/2 and canvasHeight/2,
       respectively
 
     * The in-game-coordinates are used to draw
@@ -66,8 +66,8 @@ public class DrawUtils {
   private static AffineTransform fromOverlayCoords;
   private static AffineTransform fromGameCoords;
 
-  private static int frameWidth;
-  private static int frameHeight;
+  private static int canvasWidth;
+  private static int canvasHeight;
 
 
   // The Paint and Stroke objects currently in use.
@@ -82,27 +82,27 @@ public class DrawUtils {
   private static BufferedImage offscreenImage, onscreenImage;
   private static Graphics2D offscreen, onscreen;
 
-  // The frame that the objects are drawn in.
-  private static JFrame frame;
+  // The JLabel that the objects are drawn on.
+  private static JLabel canvas;
 
 
-  // Initialize the module to draw objects in the specified frame.
-  public static void initialize(JFrame f, int width, int height) {
+  // Initialize the module to draw objects on the specified canvas.
+  public static void initialize(JLabel f, int width, int height) {
     assert(!initialized);
 
     assert(f != null);
-    frame = f;
+    canvas = f;
 
     assert(width > 0);
     assert(height > 0);
-    frameWidth = width;
-    frameHeight = height;
+    canvasWidth = width;
+    canvasHeight = height;
 
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
 
     fromOverlayCoords = new AffineTransform();
-    fromOverlayCoords.translate(frameHeight/2, frameWidth/2);
+    fromOverlayCoords.translate(canvasHeight/2, canvasWidth/2);
     // Java Graphics use a left handed coordinate
     // system with x || East and y || South.
     fromOverlayCoords.scale(1, -1);
@@ -110,13 +110,10 @@ public class DrawUtils {
 
     // Initialize the buffer and the screen.
 
-    //if (frame != null) frame.setVisible(false);
-    offscreenImage = new BufferedImage(frameWidth, frameHeight, BufferedImage.TYPE_INT_ARGB);
-    onscreenImage  = new BufferedImage(frameWidth, frameHeight, BufferedImage.TYPE_INT_ARGB);
+    offscreenImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
+    onscreenImage  = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
     offscreen = offscreenImage.createGraphics();
     onscreen  = onscreenImage.createGraphics();
-    //offscreen.setColor(DEFAULT_CLEAR_COLOR);
-    //offscreen.fillRect(0, 0, width, height);
     setPaint(DEFAULTPAINT);
     setStroke(DEFAULTSTROKE);
     clear(Color.BLACK);
@@ -128,25 +125,8 @@ public class DrawUtils {
     offscreen.addRenderingHints(hints);
 
 
-    // frame stuff
     ImageIcon icon = new ImageIcon(onscreenImage);
-    JLabel draw = new JLabel(icon);
-
-    //draw.addMouseListener(std);
-    //draw.addMouseMotionListener(std);
-
-    frame.setContentPane(draw);
-    //frame.addKeyListener(std);    // JLabel cannot get keyboard focus
-    frame.setResizable(false);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);            // closes all windows
-    // frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);      // closes only current window
-    frame.setTitle("AoI");
-    JMenuBar menubar = new JMenuBar();
-    menubar.add(new JMenu("Press here to focus!"));
-    frame.setJMenuBar(menubar); // hackz... just need something focusable for keyboard events.
-    frame.pack();
-    frame.setVisible(true);
-
+    canvas.setIcon(icon);
 
     initialized = true;
   }
@@ -167,7 +147,7 @@ public class DrawUtils {
   public static void setRenderedGameCoords(int x, int y, int width, int height) {
     fromGameCoords = new AffineTransform();
 
-    fromGameCoords.scale(frameWidth / (double) width, frameHeight / (double) height);
+    fromGameCoords.scale(canvasWidth / (double) width, canvasHeight / (double) height);
     fromGameCoords.translate(-x + width/2, -y + height/2);
     fromGameCoords.scale(1, -1); // Switch to Java's left-handed coordinate system.
   }
@@ -207,7 +187,7 @@ public class DrawUtils {
    */
   public static void clear(Color c) {
     offscreen.setColor(c);
-    offscreen.fillRect(0, 0, frameWidth, frameHeight);
+    offscreen.fillRect(0, 0, canvasWidth, canvasHeight);
     offscreen.setPaint(paint);
   }
 
@@ -276,23 +256,23 @@ public class DrawUtils {
    */
   public static void show() {
     onscreen.drawImage(offscreenImage, 0, 0, null);
-    frame.repaint();
+    canvas.repaint();
   }
 
 
   /**
-   * Return the current frame height (in pixels).
+   * Return the current canvas height (in pixels).
    */
   public static int height() {
-    return frameHeight;
+    return canvasHeight;
   }
 
 
   /**
-   * Return the current frame width (in pixels).
+   * Return the current canvas width (in pixels).
    */
   public static int width() {
-    return frameWidth;
+    return canvasWidth;
   }
 
 }

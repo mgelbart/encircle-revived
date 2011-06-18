@@ -2,7 +2,7 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 /**
  *  A class for connecting to the server and parsing the game state
@@ -16,26 +16,25 @@ public class Client implements Runnable {
   // The actual configuration:
   private ClientConfiguration config;
 
-  // The frame for the GUI.
-  private JFrame frame;
+  // The JLabel for the GUI.
+  private JLabel gui;
 
   /**
-   * Constructs a new Client using the configuration parsed
-   * from configStream and with the GUI drawn in frame.
+   * Constructs a new Client using the given configuration
+   * and with the GUI drawn in frame.
    *
-   * If configStream is null, the default configuration file
+   * If config is null, the default configuration file
    * is used.
    */
-  public Client(InputStream configStream, JFrame frame) {
-    this.frame = frame;
+  public Client(ClientConfiguration config, JLabel gui) {
+    this.gui = gui;
+    this.config = config;
 
-    InputStream stream = configStream;
-
-    if (stream == null) {
-      stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
+    if (config == null) {
+      InputStream stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
+      this.config = ClientConfiguration.parse(stream);
     }
 
-    config = ClientConfiguration.parse(configStream);
   }
 
   public void run() {
@@ -57,7 +56,7 @@ public class Client implements Runnable {
 
     // Initialize the GUI for human players
     if (!config.nonhuman) {
-      DrawUtils.initialize(frame, 700, 700);
+      DrawUtils.initialize(gui, 700, 700);
     }
 
 
@@ -146,7 +145,39 @@ public class Client implements Runnable {
    * main() for running the client directly outside an Applet.
    */
   public static void main(String argv[]) throws Exception {
-    Client client = new Client(System.in, new JFrame());
+
+    ClientConfiguration config = ClientConfiguration.parse(System.in);
+
+    Client client;
+
+    if (!config.nonhuman) {
+
+      // The main application window
+      JFrame frame = new JFrame();
+
+      // The JLabel on which the whole GUI is drawn.
+      JLabel gui = new JLabel();
+
+      frame.setContentPane(gui);
+
+      frame.setResizable(true);
+      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+      frame.setTitle("AoI");
+      JMenuBar menubar = new JMenuBar();
+      menubar.add(new JMenu("Press here to focus!"));
+      frame.setJMenuBar(menubar); // hackz... just need something focusable for keyboard events.
+      frame.pack();
+      frame.setVisible(true);
+
+
+      client = new Client(config, gui);
+
+    } else {
+      client = new Client(config, null);
+    }
+
     client.run(); // Can just run this from the main() thread.
   }
+
 }

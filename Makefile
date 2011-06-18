@@ -12,7 +12,7 @@ simulation: common
 	javac $(compileopts) aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java aoi/ClusterServerSide.java aoi/ClusterDatabase.java aoi/Server.java
 
 client: common
-	javac $(compileopts) aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java aoi/ClientConfiguration.java aoi/Nonhuman.java aoi/TimeMachine.java aoi/MindReader.java aoi/Drawable.java aoi/DrawablePath.java aoi/DrawableShip.java aoi/DrawableTail.java aoi/DrawableScoringEffect.java aoi/DrawableBullets.java aoi/DrawUtils.java
+	javac $(compileopts) aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java aoi/ClientConfiguration.java aoi/Nonhuman.java aoi/TimeMachine.java aoi/MindReader.java aoi/Drawable.java aoi/DrawablePath.java aoi/DrawableShip.java aoi/DrawableTail.java aoi/DrawableScoringEffect.java aoi/DrawableBullets.java aoi/DrawUtils.java aoi/App.java
 
 common:
 	javac $(compileopts) aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Cluster.java aoi/Arena.java aoi/SimulationUtils.java aoi/DrawableCluster.java aoi/NotStupidPolygon.java
@@ -40,4 +40,4 @@ run_client1r:
 	java $(runopts) -Xloggc:out/client1.mem aoi/Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt aoi/*.class arena.xml segmentation/images/fly/*.png segmentation/meta/fly.txt segmentation/polygons/fly/*.txt segmentation/segment_likelihoods/fly/*.txt 
+	jar cfm aoi.jar Manifest.txt aoi/*.class client.conf
