@@ -32,7 +32,8 @@ public class Client {
     try {
 
       DataInputStream stateStream = new DataInputStream(socket.getInputStream());
-      DataOutputStream controlStream = new DataOutputStream(socket.getOutputStream());
+      BufferedOutputStream bufferedControlStream = new BufferedOutputStream(socket.getOutputStream());
+      DataOutputStream controlStream = new DataOutputStream(bufferedControlStream);
 
 
       /* Process the handshake */
@@ -80,6 +81,7 @@ public class Client {
         intel.processGameStateUpdate(game);
 
         sendControlParameters(controlStream, intel.getNewControlParameters());
+        bufferedControlStream.flush();
       }
 
     } catch (Exception e) {

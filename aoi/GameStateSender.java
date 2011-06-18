@@ -14,7 +14,7 @@ import java.io.*;
 public class GameStateSender implements Runnable {
 
   private int playerNo;
-  private OutputStream client;
+  private BufferedOutputStream stream; // Add manual buffering since we set TCP_NODELAY
   private Simulation sim;
 
   private int previousTime = -1;
@@ -22,14 +22,14 @@ public class GameStateSender implements Runnable {
   public GameStateSender(int player, Simulation sim, OutputStream o) {
     this.playerNo = player;
     this.sim = sim;
-    this.client = o;
+    this.stream = new BufferedOutputStream(o);
 
     assert(playerNo < Simulation.NUMPLAYERS);
     assert(playerNo >= 0);
   }
 
   public synchronized void setOutput(OutputStream out) {
-    this.client = out;
+    this.stream = new BufferedOutputStream(out);
   }
 
   public synchronized void run() {
@@ -38,7 +38,7 @@ public class GameStateSender implements Runnable {
 
     // First shake hands:
     try {
-      DataOutputStream ds = new DataOutputStream(client);
+      DataOutputStream ds = new DataOutputStream(stream);
 
       // Send the (dynamically assigned) player number to the client.
       ds.writeBytes("p");
@@ -49,6 +49,8 @@ public class GameStateSender implements Runnable {
       ds.writeBytes("a");
       ds.writeInt(arena.length());
       ds.writeBytes(arena);
+
+      stream.flush();
 
     } catch (IOException ioe) {
       System.err.println(ioe.toString());
@@ -64,7 +66,7 @@ public class GameStateSender implements Runnable {
         wait();
       } catch (InterruptedException e) {
 
-        assert(client != null);
+        assert(stream != null);
 
         // Serialize & send game state
         // Note: don't need locking since
@@ -72,8 +74,11 @@ public class GameStateSender implements Runnable {
         g = sim.gameState();
 
         if (previousTime != g.time) {
-          g.serialize(client);
+          g.serialize(stream);
           previousTime = g.time;
+
+          try { stream.flush(); }
+          catch (Exception ex) { System.err.println(ex); assert(false); }
         }
 
       }

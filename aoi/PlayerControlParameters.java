@@ -70,8 +70,7 @@ public class PlayerControlParameters implements Comparable {
 
   public void serialize(OutputStream o) {
 
-    BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
-    DataOutputStream b = new DataOutputStream(bufferedStream);
+    DataOutputStream b = new DataOutputStream(o);
 
     try {
 
@@ -92,8 +91,6 @@ public class PlayerControlParameters implements Comparable {
 
       b.writeBytes("b");
       b.writeInt(boostsToTake);
-
-      bufferedStream.flush();
 
     } catch (IOException ioe) {
       System.err.println(ioe.toString());

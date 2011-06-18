@@ -54,8 +54,7 @@ public class GameState implements Comparable {
 
   public void serialize(OutputStream o) {
 
-    BufferedOutputStream bufferedStream = new BufferedOutputStream(o);
-    DataOutputStream b = new DataOutputStream(bufferedStream);
+    DataOutputStream b = new DataOutputStream(o);
 
     try {
 
@@ -70,8 +69,6 @@ public class GameState implements Comparable {
 
       for (int j=0; j<bullets.size(); ++j)
         bullets.get(j).serialize(b);
-
-      bufferedStream.flush();
 
     } catch (IOException ioe) {
       System.err.println(ioe.toString());
