@@ -2,11 +2,14 @@ JOONAS:
 Dynamic arena
 Java applet in browser (or whatever makes it easy for us to play with people)
 Get the new server up and running
-Fix CSP!
-If possible, can the aoi/*.class files be in a separate folder from the aoi/*.java files? This is often annoying for me.
+Fix CSP! Your own ship now responds instanteneously as expected. Still some issues smaller issues to fix though:
+    --- The DrawablePath should correct itself according to the latest Authorative state.
+    --- Get rid of the jittering when hitting a cluster/after respawning.
+
 
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
 Better hit-checking algorithm for bullets.
 Set up Bugzilla
+If possible, can the aoi/*.class files be in a separate folder from the aoi/*.java files? This is often annoying for me.

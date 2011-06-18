@@ -7,7 +7,7 @@ import java.util.Vector;
  *  A class used for communicating the game state
  *  from the server to the client.
  */
-public class GameState {
+public class GameState implements Comparable {
   public final int time;
   public final PlayerState[] states;
   public final Vector<Bullet> bullets;
@@ -19,6 +19,21 @@ public class GameState {
     this.time = time;
     this.states = (PlayerState[]) states.clone();
     this.bullets = (Vector<Bullet>) bullets.clone();
+  }
+
+  /** The 'natural' order is time ordering.
+   *
+   * Note: Since time is periodic, the ordering is also periodic
+   *       and transitivity _is_ violated if the GameStates in
+   *       the set of interest differ by more than half the full
+   *       time range.
+   */
+  public int compareTo(Object o) {
+    return this.time - ((GameState) o).time;
+  }
+
+  public boolean equals(Object o) {
+    return this.time == ((GameState) o).time;
   }
 
   public String toString() {

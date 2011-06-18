@@ -35,12 +35,12 @@ public class TimeMachine {
       final int N = states.size();
 
       int i = 0;
-      while (i < N && g.time - states.get(i).time > 0) i++;
+      while (i < N && g.compareTo(states.get(i)) > 0) i++;
 
       assert(i <= states.size());
 
       // Don't add duplicates.
-      if (i < N && g.time == states.get(i).time) return;
+      if (i < N && g == states.get(i)) return;
 
       states.insertElementAt(g, i);
 
@@ -56,18 +56,16 @@ public class TimeMachine {
 
   // Call this whenever sending new control
   // parameters to the server.
+  @SuppressWarnings("unchecked")
   public void processParamsUpdate(PlayerControlParameters p) {
 
     synchronized (ownParams) {
 
-      final int N = ownParams.size();
-
-      int i = 0;
-      while (N > i && p.effectiveOn - ownParams.get(i).effectiveOn > 0) i++;
-      ownParams.insertElementAt(p, i);
+      ownParams.add(p);
+      java.util.Collections.sort(ownParams);
 
       // Prune old control params.
-      while (ownParams.size() > 2 && ownParams.get(1).effectiveOn < states.lastElement().time)
+      while (ownParams.size() > 2 && ownParams.get(1).effectiveOn - states.lastElement().time < 0)
         ownParams.removeElementAt(0);
 
     }
@@ -80,7 +78,7 @@ public class TimeMachine {
 
     if (states.size() == 0) return null;
 
-    return states.get(0);
+    return states.lastElement();
 
   }
 
@@ -180,7 +178,7 @@ public class TimeMachine {
     if (playerNo == config.playerNo) return getOwnParamsAt(time);
 
     PlayerControlParameters params = null;
-    if (reader != null) params = reader.paramsAt(time);
+    if (reader != null) params = reader.paramsAt(time, playerNo);
     if (params != null) return params;
 
     //System.err.println("Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");
