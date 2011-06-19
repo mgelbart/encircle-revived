@@ -32,7 +32,7 @@ public class DrawableScore implements Drawable {
 
   private AffineTransform at;
 
-  public DrawableScore(Color neutralColor, Color[] playerColors) {
+  public DrawableScore(Color neutralColor, Color[] playerColors, int[] sequence) {
     assert(playerColors.length == Simulation.NUMPLAYERS);
 
 
@@ -54,14 +54,21 @@ public class DrawableScore implements Drawable {
     for (int j=1; j<strokes.length; ++j)
       strokes[j] = highlightStroke;
 
+    // Make a string out of the sequence
+    assert(sequence.length > 0);
+    StringBuilder seq = new StringBuilder();
+    seq.append(sequence[0]);
+    for (int j=1; j< sequence.length; ++j)
+      seq.append(" " + sequence[j]);
+    seq.append(" *");
 
     // This is a bit hackz but we need to create an
-    // actual graphics object in order to get the FontMetrics.
+    // actual graphics object in order to get the FontMetrics object.
     Graphics2D graphics = (new BufferedImage(1, 1,
                                              BufferedImage.TYPE_INT_ARGB))
       .createGraphics();
     Font f = new Font("Monospaced", Font.PLAIN, 10);
-    scoreboard = f.createGlyphVector(graphics.getFontMetrics(f).getFontRenderContext(), "1 2 3 4 5 6 7 *");
+    scoreboard = f.createGlyphVector(graphics.getFontMetrics(f).getFontRenderContext(), seq.toString());
 
     double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
     double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();

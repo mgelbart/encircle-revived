@@ -109,7 +109,7 @@ public class GUI implements Runnable {
     for (int j=0; j < Simulation.NUMPLAYERS; ++j)
       drawables.add(new DrawableScoringEffect(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
-    drawables.add(new DrawableScore(Color.GRAY, colors));
+    drawables.add(new DrawableScore(Color.GRAY, colors, arena.sequence()));
 
 
     /* Canvas parameters: */

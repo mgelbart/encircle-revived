@@ -258,9 +258,12 @@ public class Simulation {
               if (i == j) {   
                 
                 boolean scored = false;
+
+                assert(score < arena.sequence().length);
+
                 // Check for scoring
                 for (ClusterServerSide c : clusters) {
-                  if (c.acceptable(score+1) && loop.contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(arena.sequence()[score]) && loop.contains(c.centerX(), c.centerY())) {
                     System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;

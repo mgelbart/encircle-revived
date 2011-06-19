@@ -26,7 +26,7 @@ public abstract class Server {
 
     reader.readLine();  // dummy line
     String[] segmentNos = reader.readLine().split(",");
-    int maxSegmentNumber = segmentNos.length;
+    final int maxSegmentNumber = segmentNos.length;
     int[] numPerNum = new int[maxSegmentNumber]; 
     for (int i = 0; i < maxSegmentNumber; i++)
       numPerNum[i] = Integer.parseInt(segmentNos[i]);
@@ -50,7 +50,7 @@ public abstract class Server {
         // For now, two of each nSegments from 1 to 7
         simulation.clusters = clusterDbSayWithPET.generateArena(numPerNum);
 
-        simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]));
+        simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]), numPerNum);
 
         try {
           FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
