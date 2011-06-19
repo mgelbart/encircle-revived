@@ -21,15 +21,9 @@ public class NotStupidPolygon extends Polygon {
   public NotStupidPolygon(int[][] coords) {
     this(coords[0], coords[1]);
   }
-  
-  
-  // Decode serialized object
-  public NotStupidPolygon(Attributes serialized) {
-    this(deserialize(serialized));
-  }
 
-  // Helper function for deserializing
-  private static int[][] deserialize(Attributes serialized) {
+  // Decode serialized object
+  public static NotStupidPolygon parse(Attributes serialized) {
     String[] mainParts = serialized.getValue("d").split(":");
 		
     int n = Integer.parseInt(mainParts[0]);
@@ -41,7 +35,8 @@ public class NotStupidPolygon extends Polygon {
       coords[0][i] = Integer.parseInt(oneCoord[0]);
       coords[1][i] = Integer.parseInt(oneCoord[1]);
     }
-    return coords;
+
+    return new NotStupidPolygon(coords);
   }
 
   // Serialize (encode) object
