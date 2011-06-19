@@ -87,16 +87,14 @@ public class DrawUtils {
 
 
   // Initialize the module to draw objects on the specified canvas.
-  public static void initialize(JLabel f, int width, int height) {
+  public static void initialize(JLabel canv) {
     assert(!initialized);
 
-    assert(f != null);
-    canvas = f;
+    assert(canv != null);
+    canvas = canv;
 
-    assert(width > 0);
-    assert(height > 0);
-    canvasWidth = width;
-    canvasHeight = height;
+    canvasWidth = canvas.getSize().width;
+    canvasHeight = canvas.getSize().height;
 
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);

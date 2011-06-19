@@ -2,6 +2,7 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
+import java.awt.*;
 import javax.swing.*;
 
 /**
@@ -56,7 +57,7 @@ public class Client implements Runnable {
 
     // Initialize the GUI for human players
     if (!config.nonhuman) {
-      DrawUtils.initialize(gui, 700, 700);
+      DrawUtils.initialize(gui);
     }
 
 
@@ -157,10 +158,11 @@ public class Client implements Runnable {
 
       // The JLabel on which the whole GUI is drawn.
       JLabel gui = new JLabel();
+      gui.setPreferredSize(new Dimension(700, 700));
 
       frame.setContentPane(gui);
 
-      frame.setResizable(true);
+      frame.setResizable(false);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
       frame.setTitle("AoI");
