@@ -30,7 +30,7 @@ public class PlayerListener implements Runnable {
     // Never let the buffer be empty.
     ctrls.add(new PlayerControlParameters(0, 0, 0, 0, 0));
 
-    assert(playerNo < Simulation.NUMPLAYERS);
+    assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);
   }
 

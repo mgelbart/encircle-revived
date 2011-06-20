@@ -14,7 +14,7 @@ public class GameState implements Comparable {
 
   @SuppressWarnings("unchecked")
     public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
-    assert(states.length == Simulation.NUMPLAYERS);
+    assert(states.length == SimulationUtils.NUMPLAYERS);
 
     this.time = time;
     this.states = (PlayerState[]) states.clone();
@@ -43,7 +43,7 @@ public class GameState implements Comparable {
     s.append(time);
     s.append("\n");
 
-    for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
       s.append(states[j].toString());
 
     for (int j=0; j<bullets.size(); ++j)
@@ -61,7 +61,7 @@ public class GameState implements Comparable {
       b.writeBytes("t");
       b.writeInt(time);
 
-      for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+      for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
         states[j].serialize(b);
 
       b.writeBytes("b");
@@ -81,7 +81,7 @@ public class GameState implements Comparable {
 
     Byte cmd;
     int t, bCount;
-    PlayerState states[] = new PlayerState[Simulation.NUMPLAYERS];
+    PlayerState states[] = new PlayerState[SimulationUtils.NUMPLAYERS];
     Vector<Bullet> bullets = new Vector<Bullet>();
 
     try {
@@ -90,7 +90,7 @@ public class GameState implements Comparable {
       assert(cmd == 't');
       t = i.readInt();
 
-      for (int j=0; j<Simulation.NUMPLAYERS; ++j)
+      for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
         states[j] = PlayerState.parse(i);
 	    
       cmd = i.readByte();

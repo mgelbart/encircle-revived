@@ -8,7 +8,49 @@ package aoi;
  * is no need to reverse engineer any parameters.
  */
 public abstract class SimulationUtils {
+ 
+  // The range of representable integer values for various coordinates.
+  public static final int INTMAX = Integer.MAX_VALUE;
+  public static final int INTMIN = Integer.MIN_VALUE;
 
+  // Advance the simulation every TIMESTEP milliseconds.
+  // This will not be respected if the computation takes longer
+  // than TIMESTEP.
+  //
+  // All other times are defined in terms of TIMESTEP. Hence
+  // decreasing this only increases resolution.
+  public static final int TIMESTEP = 40;
+ 
+  // All distances are defined in terms of ARENASIZE.
+  // Hence increasing this only increases the resolution.
+  public static final int ARENASIZE = 100000;
+
+  // Maximum angular turning rate (i.e. domega/dt).
+  // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
+  public static final int OMEGA = (INTMAX/1000) * TIMESTEP;
+
+  // Maximum thrust, i.e. max dx/dt^2.
+  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
+ 
+  // Drag coefficient.
+  public static final double DRAG = 0.0025 * TIMESTEP;
+
+  // Time to wait until respawning.
+  public static final int RESPAWNTIME = 1000 / TIMESTEP;
+
+  // Energy recharge period (i.e. how many turns to gain one point).
+  public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
+
+  // The number of players in the game. Currently not adjustable.
+  public static final int NUMPLAYERS = 2;
+
+  /*
+   * TODO: Should write a proper constructor and/or accessor
+   *       method for Simulation that can be called from
+   *       Server instead of using all these public fields.
+   */
+ 
+ 
   /* Returns an array of {x, y, vx, vy, direction} after
      a single time step given an initial state and
      control parameters.
@@ -22,10 +64,10 @@ public abstract class SimulationUtils {
     assert(params != null);
 
     // Acceleration
-    double a = Math.max(0.0, Simulation.MAXACC * (params.acceleration / (double) Simulation.INTMAX));
+    double a = Math.max(0.0, MAXACC * (params.acceleration / (double) INTMAX));
     
     // Angle the ship is currently pointing, in [-PI, +PI]
-    double angleFacing = Math.PI * (state.direction / (double) Simulation.INTMAX);
+    double angleFacing = Math.PI * (state.direction / (double) INTMAX);
 
     // Currently, turning does not "slow you down". This might not be good
     int vx = state.vx + (int) (a * Math.cos(angleFacing));
@@ -44,7 +86,7 @@ public abstract class SimulationUtils {
 // speed boost will create exactly this effect that I want, since it will add some
 // fixed factor to your speed. Thus I just need to make the drag bigger to get the effect
 // I want. 
-    double drag = Simulation.DRAG;
+    double drag = DRAG;
     
     
     vx -= drag * vx;
@@ -54,9 +96,9 @@ public abstract class SimulationUtils {
     int y = state.y + vy;
 
     // Figure out whether to turn clockwise or counterclockwise.
-    boolean turnCcw =   Math.abs(state.direction + Simulation.OMEGA - params.targetDirection)
-      < Math.abs(state.direction - Simulation.OMEGA - params.targetDirection);
-    int dir = state.direction + ((turnCcw)? 1:-1)*Simulation.OMEGA;
+    boolean turnCcw =   Math.abs(state.direction + OMEGA - params.targetDirection)
+      < Math.abs(state.direction - OMEGA - params.targetDirection);
+    int dir = state.direction + ((turnCcw)? 1:-1)*OMEGA;
 
     // Don't go past the target direction.
     if (Integer.signum(state.direction - params.targetDirection)
@@ -81,8 +123,8 @@ public abstract class SimulationUtils {
 
     if (b == null) return new int[2];
 
-    int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) Simulation.INTMAX)));
-    int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) Simulation.INTMAX)));
+    int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
+    int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
 
     return new int[]{x, y};
   }

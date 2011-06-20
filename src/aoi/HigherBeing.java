@@ -54,18 +54,18 @@ public class HigherBeing implements Intelligence {
   // client-side prediction will be used to render
   // the next frame.
   //
-  // Setting this to > Simulation.TIMESTEP will tend to push
+  // Setting this to > SimulationUtils.TIMESTEP will tend to push
   // the simulated time (== renderedTime - renderedServerTime)
   // towards MINSIMULATEDTIME.
   public int frametime = MINFRAMETIME;
 
-  private static int MINFRAMETIME = Simulation.TIMESTEP + 1;
+  private static int MINFRAMETIME = SimulationUtils.TIMESTEP + 1;
 	
   // Minimum number of turns to predict into the future.
-  private static int MINSIMULATEDSTEPS = 200/Simulation.TIMESTEP;
+  private static int MINSIMULATEDSTEPS = 200/SimulationUtils.TIMESTEP;
 
   // Maximum number of turns to predict into the future.
-  private static int MAXSIMULATEDSTEPS = 1000/Simulation.TIMESTEP;
+  private static int MAXSIMULATEDSTEPS = 1000/SimulationUtils.TIMESTEP;
 
   // The timer in charge of updating the GUI.
   private Timer renderTimer;
@@ -156,8 +156,8 @@ public class HigherBeing implements Intelligence {
         keysPressed = gui.pressedKeys();
 
         if (keysPressed.contains(KeyEvent.VK_UP)) {
-          if (acc != Simulation.INTMAX) {
-            acc = Simulation.INTMAX;
+          if (acc != SimulationUtils.INTMAX) {
+            acc = SimulationUtils.INTMAX;
             update = true;
           }
         } else if (acc > 0) {
@@ -184,13 +184,13 @@ public class HigherBeing implements Intelligence {
 
         if (keysPressed.contains(KeyEvent.VK_LEFT)) {
           dir = renderedState.states[config.playerNo].pos.direction
-            + Simulation.INTMAX/2;
+            + SimulationUtils.INTMAX/2;
           update = true;
         } else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
           dir = renderedState.states[config.playerNo].pos.direction
-            - Simulation.INTMAX/2;
+            - SimulationUtils.INTMAX/2;
           update = true;
-        } else if (Math.abs(dir - renderedState.states[config.playerNo].pos.direction) > Simulation.INTMAX/5) {
+        } else if (Math.abs(dir - renderedState.states[config.playerNo].pos.direction) > SimulationUtils.INTMAX/5) {
           dir = renderedState.states[config.playerNo].pos.direction;
           update = true;
         }		    
@@ -219,7 +219,7 @@ public class HigherBeing implements Intelligence {
       // This simply skips frames if the rendered states is less than
       // MINSIMULATEDSTEPS ahead of the authorative state.
       // The opposite should never happen as long as
-      // frametime > Simulation.TIMESTEP.
+      // frametime > SimulationUtils.TIMESTEP.
       int newRenderedTime = (renderedState != null) ? renderedState.time + 1 : 0;
       if (newRenderedTime - renderedAuthorativeState.time < MINSIMULATEDSTEPS) {
 

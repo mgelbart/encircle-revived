@@ -24,7 +24,7 @@ public class GameStateSender implements Runnable {
     this.sim = sim;
     this.stream = new BufferedOutputStream(o);
 
-    assert(playerNo < Simulation.NUMPLAYERS);
+    assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);
   }
 

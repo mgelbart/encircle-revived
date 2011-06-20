@@ -64,14 +64,14 @@ public class GUI implements Runnable {
     this.config = config;
     game = null;
 
-    currentLoopStarted = new int[Simulation.NUMPLAYERS];
-    loop = new Vector[Simulation.NUMPLAYERS];
+    currentLoopStarted = new int[SimulationUtils.NUMPLAYERS];
+    loop = new Vector[SimulationUtils.NUMPLAYERS];
 
-    lastScore = new int[Simulation.NUMPLAYERS];
-    lastScoringTime = new int[Simulation.NUMPLAYERS];
-    lastScoringLoop = new Vector[Simulation.NUMPLAYERS];
+    lastScore = new int[SimulationUtils.NUMPLAYERS];
+    lastScoringTime = new int[SimulationUtils.NUMPLAYERS];
+    lastScoringLoop = new Vector[SimulationUtils.NUMPLAYERS];
 
-    for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
       currentLoopStarted[j] = -999;
       loop[j] = new Vector<Point2D>();
 
@@ -94,26 +94,26 @@ public class GUI implements Runnable {
     }
 
     Color[] colors = new Color[2];
-    for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       colors[j] = (j == config.playerNo) ? Color.RED : Color.BLUE;
 	
 
-    for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableTail(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
-    for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableShip(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableBullets());
 
-    for (int j=0; j < Simulation.NUMPLAYERS; ++j)
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableScoringEffect(j, colors[j], DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScore(Color.GRAY, colors, arena.sequence()));
 
 
     /* Canvas parameters: */
-    DrawUtils.setRenderedGameCoords(0, 0, Simulation.ARENASIZE, Simulation.ARENASIZE);
+    DrawUtils.setRenderedGameCoords(0, 0, SimulationUtils.ARENASIZE, SimulationUtils.ARENASIZE);
     DrawUtils.clear(Color.BLACK);
     DrawUtils.show();
 
@@ -195,7 +195,7 @@ public class GUI implements Runnable {
     DrawUtils.clear(Color.BLACK);
 
     // Set the zoom level
-    final double r = Math.max(Simulation.ARENASIZE/2,
+    final double r = Math.max(SimulationUtils.ARENASIZE/2,
                               Math.max(Math.abs(g.states[config.playerNo].pos.x * 1.05),
                                        Math.abs(g.states[config.playerNo].pos.y * 1.05)));
 

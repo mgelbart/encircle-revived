@@ -88,7 +88,7 @@ public abstract class Server {
 
       Socket[] sockets = new Socket[2];
 
-      for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
+      for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
         simulation.senders[j] = new GameStateSender(j, simulation, null);
         simulation.listeners[j] = new PlayerListener(j, simulation, null);
 

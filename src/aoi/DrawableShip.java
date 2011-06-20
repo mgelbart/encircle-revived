@@ -22,7 +22,7 @@ public class DrawableShip extends DrawablePath {
   private int pwned = 0;
 
   // Time duration of the pwnage effect in turns.
-  private final int PWNAGETIME = 1500 / Simulation.TIMESTEP;
+  private final int PWNAGETIME = 1500 / SimulationUtils.TIMESTEP;
   // The color of the ship during the effect.
   private final Color PWNAGECOLOR = Color.GREEN;
 

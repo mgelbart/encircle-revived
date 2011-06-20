@@ -18,7 +18,7 @@ public class DrawableBullets implements Drawable {
   private boolean[] fill;
   private Stroke[] strokes;
 
-  private final static int BULLETSIZE = Simulation.ARENASIZE / 200;
+  private final static int BULLETSIZE = SimulationUtils.ARENASIZE / 200;
   private final static Color BULLETCOLOR = Color.GREEN;
 
 

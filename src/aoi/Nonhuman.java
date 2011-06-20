@@ -69,7 +69,7 @@ public class Nonhuman implements Intelligence {
 
     int acc, dir, shots, boosts;
 
-    acc = Simulation.INTMAX / 2;
+    acc = SimulationUtils.INTMAX / 2;
 
     while (true) {
 	    
@@ -78,14 +78,14 @@ public class Nonhuman implements Intelligence {
       } catch (InterruptedException e) {
 			
         // Shoot if appropriate, i.e., if your path is not too long and another player is in range
-        double MAX_LOOP_TO_SHOOT = 20000/Simulation.TIMESTEP;
+        double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
         double MAX_ANGLE_TO_SHOOT = 0.1;
         shots = 0;
         if (Math.abs(games[0].time - games[0].states[config.playerNo].loopStarted) < MAX_LOOP_TO_SHOOT) { 
           if (prevCtrl != null) {
             PlayerState.Position ComparedSayWithPET = SimulationUtils.nextPosition(games[0].states[config.playerNo].pos,
-                                                              new PlayerControlParameters(prevCtrl.effectiveOn, Simulation.INTMAX/10, prevCtrl.targetDirection, 0, 0));
-            for (int playerNos = 0; playerNos < Simulation.NUMPLAYERS; playerNos++) {
+                                                              new PlayerControlParameters(prevCtrl.effectiveOn, SimulationUtils.INTMAX/10, prevCtrl.targetDirection, 0, 0));
+            for (int playerNos = 0; playerNos < SimulationUtils.NUMPLAYERS; playerNos++) {
               if (playerNos == config.playerNo) continue; // Skip yourself
               double theangle = SimulationUtils.angle(games[0].states[playerNos].pos.x, games[0].states[playerNos].pos.y, games[0].states[config.playerNo].pos.x, games[0].states[config.playerNo].pos.y, ComparedSayWithPET.x, ComparedSayWithPET.y);
               // System.out.println(theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
@@ -113,7 +113,7 @@ public class Nonhuman implements Intelligence {
         for (int j=-1; j<=1; ++j) {
 
           dir = games[0].states[config.playerNo].pos.direction
-            + j*(Simulation.INTMAX/3);
+            + j*(SimulationUtils.INTMAX/3);
 
           // The candidate set of control parameters.
           testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
@@ -127,7 +127,7 @@ public class Nonhuman implements Intelligence {
 
           // For this given direction candidate, look ahead 1000 time 
           // steps and take the maximum of the potential along the path.
-          for (int k=1; k < 1000/Simulation.TIMESTEP; ++k) {
+          for (int k=1; k < 1000/SimulationUtils.TIMESTEP; ++k) {
 
             intPos = SimulationUtils.nextPosition(intPos, testCtrl);
 
@@ -146,10 +146,10 @@ public class Nonhuman implements Intelligence {
 
 
         if (bestV < currentV)
-          acc = Simulation.INTMAX;
+          acc = SimulationUtils.INTMAX;
         else {
           acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
-                       * Simulation.INTMAX);
+                       * SimulationUtils.INTMAX);
           //System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
         }
         // if (Math.random() < .9) acc=0;
@@ -172,15 +172,15 @@ public class Nonhuman implements Intelligence {
 
     Point2D loc = new Point(x, y);
 
-    double range = 500 / Simulation.TIMESTEP
+    double range = 500 / SimulationUtils.TIMESTEP
       * Math.sqrt( Math.pow(games[0].states[config.playerNo].pos.vx, 2)
                    + Math.pow(games[0].states[config.playerNo].pos.vy, 2));
 
-    range = Math.max(range, Simulation.ARENASIZE/20);
+    range = Math.max(range, SimulationUtils.ARENASIZE/20);
 
     // Repuslive terms pushing you away from the arena boundaries
-    V += Math.exp((Math.abs(x) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
-    V += Math.exp((Math.abs(y) - Simulation.ARENASIZE/2) / (Simulation.ARENASIZE/50));
+    V += Math.exp((Math.abs(x) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
+    V += Math.exp((Math.abs(y) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
 
     // Attractive terms for four points around the clusters
     double dist;

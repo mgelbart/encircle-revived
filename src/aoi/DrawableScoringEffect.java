@@ -26,7 +26,7 @@ public class DrawableScoringEffect extends DrawablePath {
   private Path2D scoringLoop = null;
 
   // Time duration of the scoring effect in turns.
-  private final int SCORINGTIME = 1500 / Simulation.TIMESTEP;
+  private final int SCORINGTIME = 1500 / SimulationUtils.TIMESTEP;
   // The number of pixels the loop is fattened to when scoring.
   private final float SCORINGWIDTH = (float) 10.;
 

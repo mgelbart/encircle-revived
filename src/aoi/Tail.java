@@ -13,7 +13,7 @@ public class Tail {
   
   // Roughly the minimum distance between adjacent points in the trajectory for
   // encircling clusters. See the algorithm to see why this is only 'roughly' so.
-  public static final int MINTRAJECTORYSEGMENT = Simulation.ARENASIZE / 200;
+  public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
   
   private Vector<Line2D> trajectory;
@@ -27,10 +27,10 @@ public class Tail {
     length = 0;
   }
 
-  // TODO!!!! // 
-  public DrawableTail getDrawable() {
-    return null;
-  }
+  // // TODO!!!! // 
+  // public DrawableTail getDrawable() {
+  //   return null;
+  // }
   
   public double pathLength() {
     return length;

@@ -33,7 +33,7 @@ interface Drawable {
 
   // Tells whether the coordinates are to be interpreted
   // as in-game coordinates scaled relative to
-  // Simulation.ARENASIZE or as coordinates for on-screen
+  // SimulationUtils.ARENASIZE or as coordinates for on-screen
   // overlays scaled between -1/2...+1/2.
   public boolean ingameCoordinates();
 

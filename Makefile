@@ -1,43 +1,56 @@
 SHELL := /bin/bash
 
-classpath := .:lib/commons-codec-1.5.jar
+package := aoi
 
-compileopts := -g -classpath $(classpath)
+srcdir := src/$(package)/
+
+classpath := .:lib/commons-codec-1.5.jar:bin/
+
+compileopts := -g -classpath $(classpath) -d bin/
 
 runopts := -classpath $(classpath) -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -ea
 
-default: simulation client
+serverFiles := $(srcdir)GameStateSender.java $(srcdir)PlayerListener.java $(srcdir)Simulation.java $(srcdir)ClusterServerSide.java $(srcdir)ClusterDatabase.java $(srcdir)Server.java
 
-simulation: common
-	javac $(compileopts) aoi/GameStateSender.java aoi/PlayerListener.java aoi/Simulation.java aoi/ClusterServerSide.java aoi/ClusterDatabase.java aoi/Server.java
+clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DrawablePath.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)DrawableScoringEffect.java $(srcdir)DrawableScore.java $(srcdir)DrawableBullets.java $(srcdir)DrawUtils.java $(srcdir)App.java
 
-client: common
-	javac $(compileopts) aoi/Intelligence.java aoi/HigherBeing.java aoi/GUI.java aoi/Client.java aoi/ClientConfiguration.java aoi/Nonhuman.java aoi/TimeMachine.java aoi/MindReader.java aoi/Drawable.java aoi/DrawablePath.java aoi/DrawableShip.java aoi/DrawableTail.java aoi/DrawableScoringEffect.java aoi/DrawableBullets.java aoi/DrawUtils.java aoi/App.java
+commonFiles := $(srcdir)PlayerState.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawableCluster.java $(srcdir)NotStupidPolygon.java $(srcdir)ImageMetaData.java
+
+default: server client
+
+server:
+	javac $(compileopts) $(serverFiles) $(commonFiles)
+
+client:
+	javac $(compileopts) $(clientFiles) $(commonFiles)
 
 common:
-	javac $(compileopts) aoi/PlayerState.java aoi/PlayerControlParameters.java aoi/GameState.java aoi/Bullet.java aoi/Cluster.java aoi/Arena.java aoi/SimulationUtils.java aoi/DrawableCluster.java aoi/NotStupidPolygon.java
+	javac $(compileopts) $(commonFiles)
+
+all:
+	javac $(compileopts) $(serverFiles) $(clientFiles) $(commonFiles)
 
 doc:
 	javadoc -d doc aoi
 
 clean:
-	rm -f *~ *.class aoi/*~ aoi/*.class stdlib/*~ stdlib/*.class
+	rm -f *~ *.class $(srcdir)*~ bin/aoi/*~ bin/aoi/*.class stdlib/*~ stdlib/*.class
 	rm -rf doc
 
 run_serv:
-	java $(runopts) -Xloggc:out/serv.mem aoi/Server < server.conf
+	java $(runopts) -Xloggc:out/serv.mem $(package).Server < server.conf
 
 run_client0:
-	java $(runopts) -Xloggc:out/client0.mem aoi/Client < client0local.conf
+	java $(runopts) -Xloggc:out/client0.mem $(package).Client < client0local.conf
 
 run_client0r:
-	java $(runopts) -Xloggc:out/client0.mem aoi/Client < client0remote.conf
+	java $(runopts) -Xloggc:out/client0.mem $(package).Client < client0remote.conf
 
 run_client1:
-	java $(runopts) -Xloggc:out/client1.mem aoi/Client < client1local.conf
+	java $(runopts) -Xloggc:out/client1.mem $(package).Client < client1local.conf
 
 run_client1r:
-	java $(runopts) -Xloggc:out/client1.mem aoi/Client < client1remote.conf
+	java $(runopts) -Xloggc:out/client1.mem $(package).Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt aoi/*.class client.conf
+	jar cfm aoi.jar Manifest.txt client0remote.conf -C bin/aoi/ .

@@ -119,15 +119,15 @@ public class TimeMachine {
 
 
     // The extrapolated states for each player.
-    PlayerState.Position[] pos = new PlayerState.Position[Simulation.NUMPLAYERS];
-    PlayerState[] players = new PlayerState[Simulation.NUMPLAYERS];
+    PlayerState.Position[] pos = new PlayerState.Position[SimulationUtils.NUMPLAYERS];
+    PlayerState[] players = new PlayerState[SimulationUtils.NUMPLAYERS];
 
 
     // Need to predict the future.
     // Note: this _only_ extrapolates position. Doesn't check for crashing
     //       into stuff or scoring. If we want those, we should include
     //       them in SimulationUtils.
-    for (int k=0; k < Simulation.NUMPLAYERS; ++k) {
+    for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
 
       // Start from the last known state.
       pos[k] = last.states[k].pos;
@@ -186,10 +186,10 @@ public class TimeMachine {
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[config.playerNo];
-    if (Math.abs(last.pos.vx) + Math.abs(last.pos.vy) > Simulation.MAXACC/2)
-      return new PlayerControlParameters(time, Simulation.INTMAX, last.pos.direction, 0, 0);
+    if (Math.abs(last.pos.vx) + Math.abs(last.pos.vy) > SimulationUtils.MAXACC/2)
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.pos.direction, 0, 0);
     else
-      return new PlayerControlParameters(time, Simulation.INTMAX, last.pos.direction, 0, 0);
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.pos.direction, 0, 0);
   }
 
 

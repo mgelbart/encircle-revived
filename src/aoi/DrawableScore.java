@@ -33,22 +33,22 @@ public class DrawableScore implements Drawable {
   private AffineTransform at;
 
   public DrawableScore(Color neutralColor, Color[] playerColors, int[] sequence) {
-    assert(playerColors.length == Simulation.NUMPLAYERS);
+    assert(playerColors.length == SimulationUtils.NUMPLAYERS);
 
 
-    fill = new boolean[1+Simulation.NUMPLAYERS];
+    fill = new boolean[1+SimulationUtils.NUMPLAYERS];
     fill[0] = true;
     for (int j=1; j<fill.length; ++j)
       fill[j] = false;
 
 
-    colors = new Color[1+Simulation.NUMPLAYERS];
+    colors = new Color[1+SimulationUtils.NUMPLAYERS];
     colors[0] = neutralColor;
     for (int j=1; j<colors.length; ++j)
       colors[j] = playerColors[j-1];
 
 
-    strokes = new Stroke[1+Simulation.NUMPLAYERS];
+    strokes = new Stroke[1+SimulationUtils.NUMPLAYERS];
     strokes[0] = DrawUtils.DEFAULTSTROKE;
     Stroke highlightStroke = new BasicStroke(DrawUtils.DEFAULTSTROKE.getLineWidth() * 3);
     for (int j=1; j<strokes.length; ++j)
@@ -80,17 +80,17 @@ public class DrawableScore implements Drawable {
     at.translate(-boardWidth/2, 0.); // Center
     at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
 
-    shapes = new Shape[1+Simulation.NUMPLAYERS];
+    shapes = new Shape[1+SimulationUtils.NUMPLAYERS];
     shapes[0] = at.createTransformedShape(scoreboard.getOutline());
 
-    assert(colors.length == 1+Simulation.NUMPLAYERS);
-    assert(strokes.length == 1+Simulation.NUMPLAYERS);
-    assert(shapes.length == 1+Simulation.NUMPLAYERS);
+    assert(colors.length == 1+SimulationUtils.NUMPLAYERS);
+    assert(strokes.length == 1+SimulationUtils.NUMPLAYERS);
+    assert(shapes.length == 1+SimulationUtils.NUMPLAYERS);
   }
 
   public Shape[] shapes(GameState game) {
 
-    for (int j=0; j<Simulation.NUMPLAYERS; ++j) {
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
       Rectangle2D box = scoreboard.getGlyphOutline(2*game.states[j].score).getBounds2D();
 
       double margin = box.getWidth() * 0.35;

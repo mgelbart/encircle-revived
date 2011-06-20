@@ -16,15 +16,15 @@ public class Cluster {
   	this.contour = contour;
     this.imgMetaData = imgMetaData;
     
-    // assert(p.centerX()+p.width()/2  <=  Simulation.ARENASIZE/2);
-    // assert(p.centerX()+p.width()/2  >= -Simulation.ARENASIZE/2);
-    // assert(p.centerX()-p.width()/2  <=  Simulation.ARENASIZE/2);
-    // assert(p.centerX()-p.width()/2  >= -Simulation.ARENASIZE/2);
+    // assert(p.centerX()+p.width()/2  <=  SimulationUtils.ARENASIZE/2);
+    // assert(p.centerX()+p.width()/2  >= -SimulationUtils.ARENASIZE/2);
+    // assert(p.centerX()-p.width()/2  <=  SimulationUtils.ARENASIZE/2);
+    // assert(p.centerX()-p.width()/2  >= -SimulationUtils.ARENASIZE/2);
     // 
-    // assert(p.centerY()+p.height()/2  <=  Simulation.ARENASIZE/2);
-    // assert(p.centerY()+p.height()/2 >= -Simulation.ARENASIZE/2);
-    // assert(p.centerY()-p.height()/2 <=  Simulation.ARENASIZE/2);
-    // assert(p.centerY()-p.height()/2 >= -Simulation.ARENASIZE/2);    
+    // assert(p.centerY()+p.height()/2  <=  SimulationUtils.ARENASIZE/2);
+    // assert(p.centerY()+p.height()/2 >= -SimulationUtils.ARENASIZE/2);
+    // assert(p.centerY()-p.height()/2 <=  SimulationUtils.ARENASIZE/2);
+    // assert(p.centerY()-p.height()/2 >= -SimulationUtils.ARENASIZE/2);    
 	}
 
 	// For serializing in XML file
@@ -52,8 +52,8 @@ public class Cluster {
 	
 	// used for initializing clusters
   public void randomizeLocation() {
-  	int x = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
-  	int y = (int) (Simulation.ARENASIZE * 0.85*(0.5 - Math.random()));
+  	int x = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
+  	int y = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
   	moveTo(x, y);    
   }
   

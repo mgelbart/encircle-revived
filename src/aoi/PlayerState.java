@@ -13,8 +13,8 @@ import java.io.*;
 */
 public class PlayerState {
 
-  public static final int SHIPLENGTH = Simulation.ARENASIZE * 7/200;
-  public static final int SHIPWIDTH = Simulation.ARENASIZE * 4/200;
+  public static final int SHIPLENGTH = SimulationUtils.ARENASIZE * 7/200;
+  public static final int SHIPWIDTH = SimulationUtils.ARENASIZE * 4/200;
 
   /* Values transmitted to the clients. */
   public final int playerNo;
@@ -43,7 +43,7 @@ public class PlayerState {
     this.score = score;
     this.respawning = respawning;
 
-    assert(playerNo < Simulation.NUMPLAYERS);
+    assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);
   }	
 
@@ -204,10 +204,10 @@ public class PlayerState {
 
   public int[][] shape() {
     assert(playerNo >= 0);
-    assert(playerNo < Simulation.NUMPLAYERS);
+    assert(playerNo < SimulationUtils.NUMPLAYERS);
 
-    double cos = Math.cos(Math.PI * (pos.direction / (double) Simulation.INTMAX));
-    double sin = Math.sin(Math.PI * (pos.direction / (double) Simulation.INTMAX));
+    double cos = Math.cos(Math.PI * (pos.direction / (double) SimulationUtils.INTMAX));
+    double sin = Math.sin(Math.PI * (pos.direction / (double) SimulationUtils.INTMAX));
 
     int x, y;
 

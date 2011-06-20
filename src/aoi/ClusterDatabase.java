@@ -123,7 +123,7 @@ public class ClusterDatabase {
     int[] polyXCoords = new int[numPointsInContour];
     int[] polyYCoords = new int[numPointsInContour];
   	
-    double scale = Simulation.ARENASIZE*DrawableCluster.CLUSTER_SCALING_FACTOR; // convert to Arena coordinates
+    double scale = SimulationUtils.ARENASIZE*DrawableCluster.CLUSTER_SCALING_FACTOR; // convert to Arena coordinates
     for (int i = 0; i < numPointsInContour; i++) {
       polyXCoords[i] = (int) (Double.parseDouble(polyXCoordsStrings[i])*scale);
       polyYCoords[i] = (int) (Double.parseDouble(polyYCoordsStrings[i])*scale);		

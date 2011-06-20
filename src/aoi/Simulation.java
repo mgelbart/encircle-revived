@@ -25,47 +25,6 @@ import java.util.TimerTask;
  */
 public class Simulation {
 
-  // The range of representable integer values for various coordinates.
-  public static final int INTMAX = Integer.MAX_VALUE;
-  public static final int INTMIN = Integer.MIN_VALUE;
-
-  // Advance the simulation every TIMESTEP milliseconds.
-  // This will not be respected if the computation takes longer
-  // than TIMESTEP.
-  //
-  // All other times are defined in terms of TIMESTEP. Hence
-  // decreasing this only increases resolution.
-  public static final int TIMESTEP = 40;
- 
-  // All distances are defined in terms of ARENASIZE.
-  // Hence increasing this only increases the resolution.
-  public static final int ARENASIZE = 100000;
-
-  // Maximum angular turning rate (i.e. domega/dt).
-  // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-  public static final int OMEGA = (INTMAX/1000) * TIMESTEP;
-
-  // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
- 
-  // Drag coefficient.
-  public static final double DRAG = 0.0025 * TIMESTEP;
-
-  // Time to wait until respawning.
-  public static final int RESPAWNTIME = 1000 / TIMESTEP;
-
-  // Energy recharge period (i.e. how many turns to gain one point).
-  public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
-
-  // The number of players in the game. Currently not adjustable.
-  public static final int NUMPLAYERS = 2;
-
-  /*
-   * TODO: Should write a proper constructor and/or accessor
-   *       method for Simulation that can be called from
-   *       Server instead of using all these public fields.
-   */
-
   // The current game state.
   public GameState game;
 
@@ -81,10 +40,10 @@ public class Simulation {
   public Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
   // References to the senders/listeners threads so we can interrupt them.
-  public final Thread[] senderThreads = new Thread[NUMPLAYERS];
-  public final Thread[] listenerThreads = new Thread[NUMPLAYERS];
-  public final GameStateSender[] senders = new GameStateSender[NUMPLAYERS];
-  public final PlayerListener[] listeners = new PlayerListener[NUMPLAYERS];
+  public final Thread[] senderThreads = new Thread[SimulationUtils.NUMPLAYERS];
+  public final Thread[] listenerThreads = new Thread[SimulationUtils.NUMPLAYERS];
+  public final GameStateSender[] senders = new GameStateSender[SimulationUtils.NUMPLAYERS];
+  public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
 
 
   // Return the current state of the game.
@@ -101,9 +60,9 @@ public class Simulation {
 
 
   public void initGameState() {
-    PlayerState[] states = new PlayerState[NUMPLAYERS];
+    PlayerState[] states = new PlayerState[SimulationUtils.NUMPLAYERS];
 
-    for (int j=0; j<NUMPLAYERS; ++j)
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
       states[j] = initPlayerState(j, 0, true);
 
     this.game = new GameState(0, states, new Vector<Bullet>());
@@ -115,16 +74,16 @@ public class Simulation {
   private PlayerState initPlayerState(int playerNo, int score,
                                       boolean homeCorner) {
     assert(playerNo >= 0);
-    assert(playerNo < NUMPLAYERS);
+    assert(playerNo < SimulationUtils.NUMPLAYERS);
     if (score < 0) score = 0;
 
     // Always start from one of the corners of the map.
     final int corner = (homeCorner) ? 2*playerNo : (int) (4 * Math.random());
 
-    final int x = ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
-    final int y = ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
+    final int x = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
+    final int y = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
 
-    int dir = (int) (INTMAX  * (1   - 2*Math.random()));
+    int dir = (int) (SimulationUtils.INTMAX  * (1 - 2*Math.random()));
 
     playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
 
@@ -139,22 +98,22 @@ public class Simulation {
     Vector<Bullet> bullets = new Vector<Bullet>();
 
 
-    Rectangle mapedges = new Rectangle(-2*ARENASIZE, -2*ARENASIZE,
-                                       4*ARENASIZE, 4*ARENASIZE);
+    Rectangle mapedges = new Rectangle(-2*SimulationUtils.ARENASIZE, -2*SimulationUtils.ARENASIZE,
+                                       4*SimulationUtils.ARENASIZE, 4*SimulationUtils.ARENASIZE);
 
 
     // Set up a timer that wakes up the simulation thread every TIMESTEP
     // milliseconds. Note that, if the computation takes even slightly longer
     // than TIMESTEP, the time step will be doubled.
-    Thread[] threads = new Thread[1+NUMPLAYERS];
+    Thread[] threads = new Thread[1+SimulationUtils.NUMPLAYERS];
     threads[0] = Thread.currentThread();
-    for (int j=0; j<NUMPLAYERS; ++j)
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
       threads[1+j] = senderThreads[j];
 
 
     TimerTask interruptTask = new InterruptThreadsTask(threads);
     Timer timer = new Timer();
-    timer.scheduleAtFixedRate(interruptTask, 0, TIMESTEP);
+    timer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
 
 
     System.out.println("Game starting.");
@@ -170,13 +129,13 @@ public class Simulation {
           System.out.println("Current local time: " + game.time);
 
         // Check if one of the players won.
-        for (int j=0; j<NUMPLAYERS; ++j) {
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
           assert(states[j].score <= pointsPerRound);
 
           if (states[j].score == pointsPerRound) {
-            for (int k=0; k<NUMPLAYERS; ++k) {
-              playerStatesInt[k].respawnTimeLeft = RESPAWNTIME;
+            for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
+              playerStatesInt[k].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
               states[k] = states[k].clone("score", 0);
               states[k] = states[k].clone("respawning", 1);
             }
@@ -185,7 +144,7 @@ public class Simulation {
         }
 
         // Check for players waiting to be respawn:
-        for (int j=0; j<NUMPLAYERS; ++j) {
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           if (playerStatesInt[j].respawnTimeLeft == 1)
             states[j] = initPlayerState(j, states[j].score, false);
         }
@@ -195,10 +154,10 @@ public class Simulation {
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
-        for (int j=0; j<NUMPLAYERS; ++j)
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           playerStatesInt[j].params = listeners[j].getCtrlParams(game.time);
 
-        for (int j=0; j<NUMPLAYERS; ++j) {
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
           // Freeze before respawning.
           if (playerStatesInt[j].respawnTimeLeft > 0) {
@@ -242,7 +201,7 @@ public class Simulation {
           int score = states[j].score;
 		    
           // Check if any player (including j) is crossing j's path
-          for (int i=0; i<NUMPLAYERS; ++i) {
+          for (int i=0; i<SimulationUtils.NUMPLAYERS; ++i) {
             //   if (i != j) continue;   // uncomment this to disable path-killing            
             // Check if the last step of player j intersects with the path of player i
             // and if so, return the loop of player j that is now complete
@@ -282,7 +241,7 @@ public class Simulation {
 
 
                 // Check if the other player got pwned.
-                for (int k=0; k<NUMPLAYERS; ++k) {
+                for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
                   if (loop.contains(states[k].pos.x, states[k].pos.y)) {
@@ -321,7 +280,7 @@ public class Simulation {
 
           // TODO: This isn't an accurate way of doing this if
           //   the bullets/players move fast.
-          for (int j=0; j<NUMPLAYERS; ++j) {
+          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
@@ -356,7 +315,7 @@ public class Simulation {
         }
 
         // Check if anyone went out of bounds or hit a cluster:
-        for (int j=0; j<NUMPLAYERS; ++j) {
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
           if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
@@ -373,7 +332,7 @@ public class Simulation {
 
           if (crashed) {
 
-            playerStatesInt[j].respawnTimeLeft = RESPAWNTIME;
+            playerStatesInt[j].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
             states[j] = states[j].clone("respawning", 1);
 
           }

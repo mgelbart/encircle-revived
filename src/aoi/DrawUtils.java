@@ -27,7 +27,7 @@ package aoi;
       is shown and how they are scaled at any given
       time is up to the implementation. The default
       visible area is between plus and minus
-      Simulation.ARENASIZE/2.
+      SimulationUtils.ARENASIZE/2.
 
 
 
@@ -54,8 +54,8 @@ import javax.imageio.ImageIO;
 
 public class DrawUtils {
 
-  public static int DEFAULTRENDEREDGAMEWIDTH = Simulation.ARENASIZE;
-  public static int DEFAULTRENDEREDGAMEHEIGHT = Simulation.ARENASIZE;
+  public static int DEFAULTRENDEREDGAMEWIDTH = SimulationUtils.ARENASIZE;
+  public static int DEFAULTRENDEREDGAMEHEIGHT = SimulationUtils.ARENASIZE;
 
   public static Paint DEFAULTPAINT = Color.BLACK;
   public static BasicStroke DEFAULTSTROKE = new BasicStroke((float) 1.);
