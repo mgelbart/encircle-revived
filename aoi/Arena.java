@@ -123,7 +123,7 @@ public class Arena {
       }
 
       if (qName == "cluster")
-        clusters.add(new DrawableCluster(new NotStupidPolygon(attr), ImageMetaData.parse(attr)));
+        clusters.add(new DrawableCluster(NotStupidPolygon.parse(attr), ImageMetaData.parse(attr)));
 
     }
 
