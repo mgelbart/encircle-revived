@@ -6,3 +6,4 @@ resources/
 *~
 \#*#
 segmentation/game_output/*
+arena.xml
