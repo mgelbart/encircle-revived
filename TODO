@@ -12,4 +12,7 @@ Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
 Better hit-checking algorithm for bullets.
 Set up Bugzilla
+Refactor: get rid of Drawable*.java and just make the base classes (e.g., Cluster, Ship, Tail) implement drawable. get rid of drawable path and have the path around cluster by part of cluster drawing. drawableTail then just goes into Tail. Add ship class and make it implement drawable. Playerstate will own a Ship.
+
+
 
