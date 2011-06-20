@@ -1,1 +1,3 @@
 very slight delay after you score until you see the animation. this can be seen also by the fact that the highlighted part of the path is a bit longer than just the loop
+
+"make" currently broken; use "make all" (see my commit log message on this, should be an easy fix)

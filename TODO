@@ -12,4 +12,4 @@ Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
 Better hit-checking algorithm for bullets.
 Set up Bugzilla
-If possible, can the aoi/*.class files be in a separate folder from the aoi/*.java files? This is often annoying for me.
+
