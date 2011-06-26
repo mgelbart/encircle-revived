@@ -50,7 +50,7 @@ public abstract class Server {
         // For now, two of each nSegments from 1 to 7
         simulation.clusters = clusterDbSayWithPET.generateArena(numPerNum);
 
-        simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]), numPerNum);
+        simulation.arena = new Arena(simulation.clusters.toArray(new ClusterServerSide[0]), new int[]{4,2,3,6,1,5,7});
 
         try {
           FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
