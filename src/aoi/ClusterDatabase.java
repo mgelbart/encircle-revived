@@ -82,7 +82,7 @@ public class ClusterDatabase {
     String imagePath = imagePath(filename);
 
     // Read the image data from the file to a vector of bytes.
-    InputStream imgStream = Client.class.getClassLoader().getResourceAsStream(imagePath);
+    InputStream imgStream = ClusterDatabase.class.getClassLoader().getResourceAsStream(imagePath);
     Vector<Byte> imgDataVec = new Vector<Byte>();
 
     try {
