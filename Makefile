@@ -53,4 +53,4 @@ run_client1r:
 	java $(runopts) -Xloggc:out/client1.mem $(package).Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt client0remote.conf bin/aoi/*.class
+	jar cfm aoi.jar Manifest.txt client0remote.conf -C bin/ aoi
