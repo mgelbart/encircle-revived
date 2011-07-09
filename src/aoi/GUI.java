@@ -121,7 +121,6 @@ public class GUI implements Runnable {
     /* Catch keyboard events. */
     KeyboardFocusManager.getCurrentKeyboardFocusManager()
       .addKeyEventDispatcher(new KeyEventDispatcher() {
-          @Override
           public boolean dispatchKeyEvent(KeyEvent e) {
             int key = e.getKeyCode();
 
