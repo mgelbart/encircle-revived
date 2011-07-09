@@ -5,7 +5,7 @@ import java.util.Vector;
 /**
  * A class for storing the history of the game
  * state as well as predicting the future.
- */
+ */ 
 public class TimeMachine {
 
   private final ClientConfiguration config;
