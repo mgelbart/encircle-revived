@@ -9,12 +9,12 @@ import java.io.*;
  * more natural. This is because ints don't need
  * any special serialization/parsing to be transmitted
  * over the network.
- */
+ */ 
 public class Bullet implements Cloneable {
 
   /* The bullet speed is a universal constant. */
   public static final int SPEED = SimulationUtils.ARENASIZE * SimulationUtils.TIMESTEP / 1000 * 1;
- 
+
   /* Minimum time between firing two bullets. */
   public static final int RELOADTIME = 400 / SimulationUtils.TIMESTEP;
  
