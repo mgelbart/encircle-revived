@@ -1,13 +1,18 @@
 package aoi;
 
+import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.geom.Line2D;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 import org.xml.sax.Attributes;
 
 /**
  * The same as java.awt.Polygon except you can get the list of points out. 
  */
 @SuppressWarnings("serial")
-public class NotStupidPolygon extends Polygon {
+public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
   private int[] x;
   private int[] y;
   private final int n;
@@ -88,9 +93,28 @@ public class NotStupidPolygon extends Polygon {
     return coords;
   }
 	
-  public boolean intersects(NotStupidPolygon that) {
-    return intersects(that.getBounds2D());
+  // Actually intersects or contains.
+  // If I just wanted intersects, I would use XOR below
+  public boolean intersects(Line2D line) {
+    return contains(line.getP1()) || contains(line.getP2());
   }
+  
+  public boolean intersects(NotStupidPolygon that) {
+    // To speed up, first check the bounding box of that
+    if (!intersects(that.getBounds2D())) return false;
+    for (Line2D l : that)
+      if (intersects(l))
+        return true;
+    return false;
+  }
+  
+  public boolean intersects(NSPath path) {
+    for (Line2D l : path)
+      if (intersects(l))
+        return true;
+    return false;
+  }
+  
 	
   public NotStupidPolygon scaledVersion(int factorX, int factorY) {
     int[] newX = new int[n];
@@ -109,5 +133,25 @@ public class NotStupidPolygon extends Polygon {
       y[i] += deltaY;
     }
   }
+  
+  public Iterator<Line2D> iterator() {
+    return new NSPathIterator();
+  }
+  // an iterator, doesn't implement remove() since it's optional
+  private class NSPathIterator implements Iterator<Line2D> {
+    private int i = 0;  // the next element to show (i to i+1)
+
+    public boolean hasNext()  { return i < n-1; }
+    public void remove()      { throw new UnsupportedOperationException();  }
+
+    public Line2D next() {
+      if (!hasNext()) throw new NoSuchElementException();
+      i++;
+      return new Line2D.Double(new Point(x[i-1],y[i-1]), new Point(x[i], y[i]));
+    }
+  }
+  
+  
+  
 	
 }

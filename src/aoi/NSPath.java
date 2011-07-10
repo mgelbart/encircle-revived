@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Vector;
  * Also has a minimum trajectory segment length.
  * Cousin of NSPolygon.
  */
-public class NSPath {
+public class NSPath implements Iterable<Line2D >{
   
   // Roughly the minimum distance between adjacent points in the trajectory for
   // encircling clusters. See the algorithm to see why this is only 'roughly' so.
@@ -67,13 +68,16 @@ public class NSPath {
     }  
   }
   
+  public Path2D intersects(NSPath that) {
+    return intersects(that.getLastElement());
+  }
+  
   /**
    * Does this Tail intersect with the input Line2D?
    * If so, return the loop that is formed. If not, return null.
    */
-  public Path2D intersects(NSPath that) {
-    Path2D loop;
-    Line2D last = that.getLastElement();
+  public Path2D intersects(Line2D last) {
+    Path2D loop;  
     
     for (int k=0; k < nPoints()-2; ++k) {
 
@@ -98,7 +102,10 @@ public class NSPath {
     }
     return null;
   }
-  
-  
+
+
+  public Iterator<Line2D> iterator()  {
+      return lines.iterator();
+  }
   
 }

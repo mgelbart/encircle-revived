@@ -1,5 +1,7 @@
 package aoi;
 
+import java.awt.geom.Line2D;
+
 /** 
  * A "read-only" class that describes a player's
  * position in phase space.
@@ -14,12 +16,13 @@ public class Ship {
   public static final int SHIPLENGTH = SimulationUtils.ARENASIZE * 7/200;
   public static final int SHIPWIDTH = SimulationUtils.ARENASIZE * 4/200;
 
+  private final int x;
+  private final int y;
+  private final int vx;
+  private final int vy;
+  private final int direction;
   
-  private int x;
-  private int y;
-  private int vx;
-  private int vy;
-  private int direction;
+//  private final NSPath path;  // cache the path for intersection checking
   
   public int x() { return x; }
   public int y() { return y; }
@@ -38,8 +41,17 @@ public class Ship {
     this.vx = vx;
     this.vy = vy;
     this.direction = direction;
+    
+//    path = new NSPath();
+//    int[][] shape = shape();
+//    path.addPoints(shape[0][1]);
   }
 
+  
+  public boolean intersects(Line2D line) {
+    
+    return true;
+  }
 
 
   public int[][] shape() {
