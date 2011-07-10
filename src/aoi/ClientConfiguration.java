@@ -21,13 +21,19 @@ public class ClientConfiguration {
   // True if the player is controlled entirely by the computer.
   public final boolean nonhuman;
 
+  // The number of milliseconds to predict the game into the future,
+  // a.k.a. client-side-prediction.
+  // Set to zero to disable prediction.
+  public final int predictFuture;
 
   public ClientConfiguration(String serverUrl, int serverPort,
-                             int playerNo, boolean nonhuman) {
+                             int playerNo, boolean nonhuman,
+                             int predictFuture) {
     this.serverUrl = serverUrl;
     this.serverPort = serverPort;
     this.playerNo = playerNo;
     this.nonhuman = nonhuman;
+    this.predictFuture = predictFuture;
 
     assert(serverPort > 1023);
     assert(serverPort < 65536);
@@ -43,7 +49,8 @@ public class ClientConfiguration {
     return "server:\n" + serverUrl
       + "\nport:\n" + serverPort
       + "\nplayer no:\n" + playerNo
-      + "\nnon-human:\n" + nonhuman;
+      + "\nnon-human:\n" + nonhuman
+      + "\npredict:\n" + predictFuture;
   }
 
 
@@ -51,7 +58,7 @@ public class ClientConfiguration {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
     String serverUrl;
-    int serverPort;
+    int serverPort, predict;
     boolean nonhuman;
 
     try {
@@ -65,6 +72,9 @@ public class ClientConfiguration {
       reader.readLine();
       nonhuman = Boolean.parseBoolean(reader.readLine());
 
+      reader.readLine();
+      predict = Integer.parseInt(reader.readLine());
+
     } catch (Exception e) {
 
       System.err.println(e.toString());
@@ -74,7 +84,7 @@ public class ClientConfiguration {
     }
 
     return new ClientConfiguration(serverUrl, serverPort,
-                                   -1, nonhuman);
+                                   -1, nonhuman, predict);
   }
 
 }
