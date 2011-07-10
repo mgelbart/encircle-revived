@@ -26,7 +26,7 @@ public class Tail {
   public int nPoints() { return trajectory.nPoints(); }
   
   public Path2D intersects(Tail that) {
-    return trajectory.intersects(that.trajectory);
+    return trajectory.intersectsLastElement(that.trajectory);
   }
   
   public void addPoint(int x, int y, int time) {

@@ -68,7 +68,7 @@ public class NSPath implements Iterable<Line2D >{
     }  
   }
   
-  public Path2D intersects(NSPath that) {
+  public Path2D intersectsLastElement(NSPath that) {
     return intersects(that.getLastElement());
   }
   
