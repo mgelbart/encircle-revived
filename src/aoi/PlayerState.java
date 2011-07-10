@@ -17,7 +17,7 @@ public class PlayerState {
 
   /* Values transmitted to the clients. */
   public final int playerNo;
-  public final Position pos;
+  public final Ship ship;
   public final int energy;
 
   // The time at which the last loop was completed/current one started.
@@ -34,9 +34,9 @@ public class PlayerState {
   public final boolean respawning;
 
 
-  public PlayerState(int playerNo, Position pos, int energy, int loopStarted, int score, boolean respawning) {
+  public PlayerState(int playerNo, Ship ship, int energy, int loopStarted, int score, boolean respawning) {
     this.playerNo = playerNo;
-    this.pos = pos;
+    this.ship = ship;
     this.energy = energy;                     // NOT USED
     this.loopStarted = loopStarted;
     this.score = score;
@@ -47,7 +47,7 @@ public class PlayerState {
   }	
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score, boolean respawning) {
-    this(playerNo, new Position(x, y, vx, vy, direction), energy, loopStarted, score, respawning);
+    this(playerNo, new Ship(x, y, vx, vy, direction), energy, loopStarted, score, respawning);
   }	
 
 
@@ -70,11 +70,11 @@ public class PlayerState {
     else 
       assert(false);  // lol
 
-    return new PlayerState(playerNo, this.pos, energy, loopStarted, score, respawning);
+    return new PlayerState(playerNo, this.ship, energy, loopStarted, score, respawning);
   }
 
   // Make a deep copy but set some parameter
-  public PlayerState clone(Position pos) {
+  public PlayerState clone(Ship pos) {
     return new PlayerState(this.playerNo, pos, this.energy, this.loopStarted, this.score, this.respawning);
   }
 
@@ -86,13 +86,13 @@ public class PlayerState {
     s.append(playerNo);
 
     s.append("\nx: ");
-    s.append(pos.x);
+    s.append(ship.x);
 
     s.append("\ny: ");
-    s.append(pos.y);
+    s.append(ship.y);
 
     s.append("\ndirection: ");
-    s.append(pos.direction);
+    s.append(ship.direction);
 
     s.append("\n");
 
@@ -107,19 +107,19 @@ public class PlayerState {
       o.writeInt(playerNo);
 
       o.writeBytes("x");
-      o.writeInt(pos.x);
+      o.writeInt(ship.x);
 
       o.writeBytes("y");
-      o.writeInt(pos.y);
+      o.writeInt(ship.y);
 
       o.writeBytes("u");
-      o.writeInt(pos.vx);
+      o.writeInt(ship.vx);
 
       o.writeBytes("v");
-      o.writeInt(pos.vy);
+      o.writeInt(ship.vy);
 
       o.writeBytes("d");
-      o.writeInt(pos.direction);
+      o.writeInt(ship.direction);
 
       o.writeBytes("e");
       o.writeInt(energy);
@@ -205,8 +205,8 @@ public class PlayerState {
     assert(playerNo >= 0);
     assert(playerNo < SimulationUtils.NUMPLAYERS);
 
-    double cos = Math.cos(Math.PI * (pos.direction / (double) SimulationUtils.INTMAX));
-    double sin = Math.sin(Math.PI * (pos.direction / (double) SimulationUtils.INTMAX));
+    double cos = Math.cos(Math.PI * (ship.direction / (double) SimulationUtils.INTMAX));
+    double sin = Math.sin(Math.PI * (ship.direction / (double) SimulationUtils.INTMAX));
 
     int x, y;
 
@@ -221,32 +221,13 @@ public class PlayerState {
 
       // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
       // and translate to player location.
-      px[j] = this.pos.x + (int) (cos*x - sin*y);
-      py[j] = this.pos.y + (int) (sin*x + cos*y);
+      px[j] = this.ship.x + (int) (cos*x - sin*y);
+      py[j] = this.ship.y + (int) (sin*x + cos*y);
 
     }
 
     return new int[][]{px, py};
   }
 
-/**
- * Variables relating to the position of the player in the 'positional'
- * phase space.
- */
-  public static class Position {
-    public int x;
-    public int y;
-    public int vx;
-    public int vy;
-    public int direction;
-
-    public Position(int x, int y, int vx, int vy, int direction) {
-      this.x = x;
-      this.y = y;
-      this.vx = vx;
-      this.vy = vy;
-      this.direction = direction;
-    }
-  }
 
 }

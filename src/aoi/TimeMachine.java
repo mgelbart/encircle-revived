@@ -118,7 +118,7 @@ public class TimeMachine {
 
 
     // The extrapolated states for each player.
-    PlayerState.Position[] pos = new PlayerState.Position[SimulationUtils.NUMPLAYERS];
+    Ship[] ship = new Ship[SimulationUtils.NUMPLAYERS];
     PlayerState[] players = new PlayerState[SimulationUtils.NUMPLAYERS];
 
 
@@ -129,15 +129,15 @@ public class TimeMachine {
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
 
       // Start from the last known state.
-      pos[k] = last.states[k].pos;
+      ship[k] = last.states[k].ship;
 
       // Extrapolate (time-last.time) steps.
       for (int j=0; j < time - last.time; ++j) {
-        pos[k] = SimulationUtils.nextPosition(pos[k],
+        ship[k] = SimulationUtils.nextPosition(ship[k],
                                               getParamsAt(k, last.time+j, reader));
       }
 
-      players[k] = new PlayerState(k, pos[k],
+      players[k] = new PlayerState(k, ship[k],
                                    last.states[k].energy,
                                    last.states[k].loopStarted,
                                    last.states[k].score,
@@ -185,10 +185,10 @@ public class TimeMachine {
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[config.playerNo];
-    if (Math.abs(last.pos.vx) + Math.abs(last.pos.vy) > SimulationUtils.MAXACC/2)
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.pos.direction, 0, 0);
+    if (Math.abs(last.ship.vx) + Math.abs(last.ship.vy) > SimulationUtils.MAXACC/2)
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.direction, 0, 0);
     else
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.pos.direction, 0, 0);
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.direction, 0, 0);
   }
 
 
@@ -215,7 +215,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       //System.err.println("Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].pos.direction, 0, 0);
+      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].ship.direction, 0, 0);
 
     }
   }

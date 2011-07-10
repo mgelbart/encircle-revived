@@ -174,9 +174,9 @@ public class Simulation {
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
             bullets.add(new Bullet(j,
-                                   states[j].pos.x,
-                                   states[j].pos.y,
-                                   states[j].pos.direction));
+                                   states[j].ship.x,
+                                   states[j].ship.y,
+                                   states[j].ship.direction));
 
             playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
             erasePath = true;
@@ -184,7 +184,7 @@ public class Simulation {
           }
 
           // Calculate where the player moved.
-          PlayerState.Position pos = SimulationUtils.nextPosition(states[j].pos, playerStatesInt[j].params);
+          Ship pos = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
 
           // Add the new position to the player's tail
           playerStatesInt[j].tail.addPoint(pos.x, pos.y);
@@ -238,7 +238,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (loop.contains(states[k].pos.x, states[k].pos.y)) {
+                  if (loop.contains(states[k].ship.x, states[k].ship.y)) {
 
                     states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
@@ -276,16 +276,18 @@ public class Simulation {
           //   the bullets/players move fast.
           for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
+            // if player j is currently dead 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
             int[][] xy = states[j].shape();
             Polygon p = new Polygon(xy[0], xy[1], xy[0].length);
 
+            // if b does not belong to player j and the players ship contains b
             if (b.playerNo != j && p.contains(b.x, b.y)) {
 			    
               remove = true;
 
-			        playerStatesInt[j].tail = new Tail(states[j].pos.x, states[j].pos.y);
+			        playerStatesInt[j].tail = new Tail(states[j].ship.x, states[j].ship.y);
 			    
               states[j] = states[j].clone("loopStarted", game.time);
 
@@ -315,12 +317,12 @@ public class Simulation {
 
           boolean crashed = false;
 
-          if (!mapedges.contains(states[j].pos.x, states[j].pos.y))
+          if (!mapedges.contains(states[j].ship.x, states[j].ship.y))
             crashed = true;
 
           for (Cluster c : clusters) {
             // if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
-		    if (c.contains(states[j].pos.x, states[j].pos.y))
+		    if (c.contains(states[j].ship.x, states[j].ship.y))
               crashed = true;
           } 
 

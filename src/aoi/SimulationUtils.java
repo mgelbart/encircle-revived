@@ -58,8 +58,7 @@ public abstract class SimulationUtils {
      Note that this in particular does not tell you
      if you hit something (a boundary, cluster, bullet).
   */
-  public static PlayerState.Position nextPosition(PlayerState.Position state,
-                                                  PlayerControlParameters params) {
+  public static Ship nextPosition(Ship state, PlayerControlParameters params) {
     assert(state != null);
     assert(params != null);
 
@@ -105,7 +104,7 @@ public abstract class SimulationUtils {
         != Integer.signum(dir - params.targetDirection))
       dir = params.targetDirection;
 
-    return new PlayerState.Position(x, y, vx, vy, dir);
+    return new Ship(x, y, vx, vy, dir);
   }
 
 

@@ -182,8 +182,8 @@ public class GUI implements Runnable {
 
     // Set the zoom level
     final double r = Math.max(SimulationUtils.ARENASIZE/2,
-                              Math.max(Math.abs(g.states[config.playerNo].pos.x * 1.05),
-                                       Math.abs(g.states[config.playerNo].pos.y * 1.05)));
+                              Math.max(Math.abs(g.states[config.playerNo].ship.x * 1.05),
+                                       Math.abs(g.states[config.playerNo].ship.y * 1.05)));
 
     DrawUtils.setRenderedGameCoords(0, 0, (int) (2*r), (int) (2*r));
 
