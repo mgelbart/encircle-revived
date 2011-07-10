@@ -174,9 +174,9 @@ public class Simulation {
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
             bullets.add(new Bullet(j,
-                                   states[j].ship.x,
-                                   states[j].ship.y,
-                                   states[j].ship.direction));
+                                   states[j].ship.x(),
+                                   states[j].ship.y(),
+                                   states[j].ship.dir()));
 
             playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
             erasePath = true;
@@ -184,10 +184,10 @@ public class Simulation {
           }
 
           // Calculate where the player moved.
-          Ship pos = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
+          Ship ship = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
 
           // Add the new position to the player's tail
-          playerStatesInt[j].tail.addPoint(pos.x, pos.y);
+          playerStatesInt[j].tail.addPoint(ship.x(), ship.y());
 	    
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
@@ -238,7 +238,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (loop.contains(states[k].ship.x, states[k].ship.y)) {
+                  if (loop.contains(states[k].ship.x(), states[k].ship.y())) {
 
                     states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
@@ -250,13 +250,13 @@ public class Simulation {
 
           int loopStarted;
           if (erasePath) {
-            playerStatesInt[j].tail = new Tail(pos.x, pos.y);
+            playerStatesInt[j].tail = new Tail(ship.x(), ship.y());
             loopStarted = game.time;
           } else {
             loopStarted = states[j].loopStarted;
           }
 
-          states[j] = new PlayerState(j, pos, 0, loopStarted, score, states[j].respawning);
+          states[j] = new PlayerState(j, ship, 0, loopStarted, score, states[j].respawning);
 		
         }
 
@@ -287,7 +287,7 @@ public class Simulation {
 			    
               remove = true;
 
-			        playerStatesInt[j].tail = new Tail(states[j].ship.x, states[j].ship.y);
+			        playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y());
 			    
               states[j] = states[j].clone("loopStarted", game.time);
 
@@ -317,12 +317,12 @@ public class Simulation {
 
           boolean crashed = false;
 
-          if (!mapedges.contains(states[j].ship.x, states[j].ship.y))
+          if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
             crashed = true;
 
           for (Cluster c : clusters) {
             // if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
-		    if (c.contains(states[j].ship.x, states[j].ship.y))
+		    if (c.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
           } 
 

@@ -177,15 +177,16 @@ public class HigherBeing implements Intelligence {
         }
 
         if (keysPressed.contains(KeyEvent.VK_LEFT)) {
-          dir = renderedState.states[config.playerNo].ship.direction
+          dir = renderedState.states[config.playerNo].ship.dir()
             + SimulationUtils.INTMAX/2;
           update = true;
         } else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
-          dir = renderedState.states[config.playerNo].ship.direction
+          dir = renderedState.states[config.playerNo].ship.dir()
             - SimulationUtils.INTMAX/2;
           update = true;
-        } else if (Math.abs(dir - renderedState.states[config.playerNo].ship.direction) > SimulationUtils.INTMAX/5) {
-          dir = renderedState.states[config.playerNo].ship.direction;
+        } else if (Math.abs(dir - renderedState.states[config.playerNo].ship.dir()) > 
+        SimulationUtils.INTMAX/5) {
+          dir = renderedState.states[config.playerNo].ship.dir();
           update = true;
         }		    
 

@@ -15,11 +15,22 @@ public class Ship {
   public static final int SHIPWIDTH = SimulationUtils.ARENASIZE * 4/200;
 
   
-  public int x;
-  public int y;
-  public int vx;
-  public int vy;
-  public int direction;
+  private int x;
+  private int y;
+  private int vx;
+  private int vy;
+  private int direction;
+  
+  public int x() { return x; }
+  public int y() { return y; }
+  public int vx() { return vx; }
+  public int vy() { return vy; }
+  public int dir() { return direction; }
+  
+  
+  public Ship(Ship that) {
+    this(that.x, that.y, that.vx, that.vy, that.direction);
+  }
   
   public Ship(int x, int y, int vx, int vy, int direction) {
     this.x = x;
@@ -35,7 +46,7 @@ public class Ship {
     double cos = Math.cos(Math.PI * (direction / (double) SimulationUtils.INTMAX));
     double sin = Math.sin(Math.PI * (direction / (double) SimulationUtils.INTMAX));
 
-    int x, y;
+    int deltaX, deltaY;
 
     int px[] = new int[3];
     int py[] = new int[3];
@@ -43,13 +54,13 @@ public class Ship {
     for (int j=0; j<3; ++j) {
 
       // Generate one of the three corners relative to origin.
-      x = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
-      y = (j-1) * SHIPWIDTH / 2;
+      deltaX = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
+      deltaY = (j-1) * SHIPWIDTH / 2;
 
       // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
       // and translate to player location.
-      px[j] = x + (int) (cos*x - sin*y);
-      py[j] = y + (int) (sin*x + cos*y);
+      px[j] = x + (int) (cos*deltaX - sin*deltaY);
+      py[j] = y + (int) (sin*deltaX + cos*deltaY);
 
     }
 

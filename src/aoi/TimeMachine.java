@@ -185,10 +185,10 @@ public class TimeMachine {
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[config.playerNo];
-    if (Math.abs(last.ship.vx) + Math.abs(last.ship.vy) > SimulationUtils.MAXACC/2)
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.direction, 0, 0);
+    if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), 0, 0);
     else
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.direction, 0, 0);
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), 0, 0);
   }
 
 
@@ -215,7 +215,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       //System.err.println("Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].ship.direction, 0, 0);
+      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].ship.dir(), 0, 0);
 
     }
   }

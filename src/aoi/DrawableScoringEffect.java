@@ -51,9 +51,9 @@ public class DrawableScoringEffect extends DrawablePath {
     }
 
     if (path.getCurrentPoint() == null) {
-      path.moveTo(s.ship.x, s.ship.y);
+      path.moveTo(s.ship.x(), s.ship.y());
     } else {
-      path.lineTo(s.ship.x, s.ship.y);
+      path.lineTo(s.ship.x(), s.ship.y());
     }
 
     if (scored > 0)
