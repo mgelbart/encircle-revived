@@ -58,7 +58,7 @@ public class Simulation {
     PlayerState[] states = new PlayerState[SimulationUtils.NUMPLAYERS];
 
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-      states[j] = initPlayerState(j, 0, true);
+      states[j] = initPlayerState(j, 0, true, 0);
 
     this.game = new GameState(0, states, new Vector<Bullet>());
   }
@@ -67,7 +67,7 @@ public class Simulation {
   // If homeCorner is true, the corner is deterministic.
   // Otherwise it's random.
   private PlayerState initPlayerState(int playerNo, int score,
-                                      boolean homeCorner) {
+                                      boolean homeCorner, int time) {
     assert(playerNo >= 0);
     assert(playerNo < SimulationUtils.NUMPLAYERS);
     if (score < 0) score = 0;
@@ -80,20 +80,20 @@ public class Simulation {
 
     int dir = (int) (SimulationUtils.INTMAX  * (1 - 2*Math.random()));
 
-    playerStatesInt[playerNo] = new PlayerStateInternal(x, y);
+    playerStatesInt[playerNo] = new PlayerStateInternal(x, y, time);
 
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
                            (game == null) ? 0 : game.time, score, false); 
   }
 
-    public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
+  public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
 
     PlayerState[] states = (PlayerState[]) (game.states.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
 
 
     Rectangle mapedges = new Rectangle(-2*SimulationUtils.ARENASIZE, -2*SimulationUtils.ARENASIZE,
-                                       4*SimulationUtils.ARENASIZE, 4*SimulationUtils.ARENASIZE);
+        4*SimulationUtils.ARENASIZE, 4*SimulationUtils.ARENASIZE);
 
 
     // Set up a timer that wakes up the simulation thread every TIMESTEP
@@ -140,7 +140,7 @@ public class Simulation {
         // Check for players waiting to be respawn:
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           if (playerStatesInt[j].respawnTimeLeft == 1)
-            states[j] = initPlayerState(j, states[j].score, false);
+            states[j] = initPlayerState(j, states[j].score, false, game.time);
         }
 
 
@@ -174,26 +174,26 @@ public class Simulation {
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
 
             bullets.add(new Bullet(j,
-                                   states[j].ship.x(),
-                                   states[j].ship.y(),
-                                   states[j].ship.dir()));
+                states[j].ship.x(),
+                states[j].ship.y(),
+                states[j].ship.dir()));
 
             playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
             erasePath = true;
-			
+
           }
 
           // Calculate where the player moved.
           Ship ship = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
 
           // Add the new position to the player's tail
-          playerStatesInt[j].tail.addPoint(ship.x(), ship.y());
-	    
+          playerStatesInt[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
+
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
           // Also checks if players scored.
           int score = states[j].score;
-		    
+
           // Check if any player (including j) is crossing j's path
           for (int i=0; i<SimulationUtils.NUMPLAYERS; ++i) {
             //   if (i != j) continue;   // uncomment this to disable path-killing            
@@ -209,7 +209,7 @@ public class Simulation {
               erasePath = true;
 
               if (i == j) {   
-                
+
                 boolean scored = false;
 
                 assert(score < arena.sequence().length);
@@ -250,14 +250,14 @@ public class Simulation {
 
           int loopStarted;
           if (erasePath) {
-            playerStatesInt[j].tail = new Tail(ship.x(), ship.y());
+            playerStatesInt[j].tail = new Tail(ship.x(), ship.y(), game.time + 1);
             loopStarted = game.time;
           } else {
             loopStarted = states[j].loopStarted;
           }
 
           states[j] = new PlayerState(j, ship, 0, loopStarted, score, states[j].respawning);
-		
+
         }
 
         // Calculate the new positions for the bullets and figure out
@@ -284,11 +284,11 @@ public class Simulation {
 
             // if b does not belong to player j and the players ship contains b
             if (b.playerNo != j && p.contains(b.x, b.y)) {
-			    
+
               remove = true;
 
-			        playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y());
-			    
+              playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
+
               states[j] = states[j].clone("loopStarted", game.time);
 
             }
@@ -322,7 +322,7 @@ public class Simulation {
 
           for (Cluster c : clusters) {
             // if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
-		    if (c.contains(states[j].ship.x(), states[j].ship.y()))
+            if (c.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
           } 
 
@@ -344,7 +344,7 @@ public class Simulation {
     }
   }
 
-    
+
 
   private class PlayerStateInternal {
     /* Values used internally by the simulation. */
@@ -361,8 +361,8 @@ public class Simulation {
     public PlayerControlParameters prevParams = null;
 
 
-    public PlayerStateInternal(int xInitial, int yInitial) {
-      tail = new Tail(xInitial, yInitial);
+    public PlayerStateInternal(int xInitial, int yInitial, int time) {
+      tail = new Tail(xInitial, yInitial, time);
     }
   }
 
