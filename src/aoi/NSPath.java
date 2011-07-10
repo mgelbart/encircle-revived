@@ -32,6 +32,10 @@ public class NSPath {
   public double length() { return length; }
   public int nPoints() { return lines.size(); }
   
+  private Line2D getLastElement() {
+    return lines.get(nPoints()-1);
+  }
+  
   public void clear() {
     lines.clear();
     length = 0;
@@ -69,7 +73,8 @@ public class NSPath {
    */
   public Path2D intersects(NSPath that) {
     Path2D loop;
-    Line2D last = that.lines.get(nPoints()-1);
+    System.err.println(nPoints());
+    Line2D last = that.getLastElement();
     
     for (int k=0; k < nPoints()-2; ++k) {
 
