@@ -36,7 +36,7 @@ public class PlayerState {
 
   public PlayerState(int playerNo, Ship ship, int energy, int loopStarted, int score, boolean respawning) {
     this.playerNo = playerNo;
-    this.ship = ship;
+    this.ship = new Ship(ship);
     this.energy = energy;                     // NOT USED
     this.loopStarted = loopStarted;
     this.score = score;
@@ -70,12 +70,12 @@ public class PlayerState {
     else 
       assert(false);  // lol
 
-    return new PlayerState(playerNo, this.ship, energy, loopStarted, score, respawning);
+    return new PlayerState(playerNo, ship, energy, loopStarted, score, respawning);
   }
 
-  // Make a deep copy but set some parameter
-  public PlayerState clone(Ship pos) {
-    return new PlayerState(this.playerNo, pos, this.energy, this.loopStarted, this.score, this.respawning);
+  // Make a deep copy but set new ship
+  public PlayerState clone(Ship newShip) {
+    return new PlayerState(playerNo, newShip, energy, loopStarted, score, respawning);
   }
 
 
@@ -86,13 +86,13 @@ public class PlayerState {
     s.append(playerNo);
 
     s.append("\nx: ");
-    s.append(ship.x);
+    s.append(ship.x());
 
     s.append("\ny: ");
-    s.append(ship.y);
+    s.append(ship.y());
 
     s.append("\ndirection: ");
-    s.append(ship.direction);
+    s.append(ship.dir());
 
     s.append("\n");
 
@@ -107,19 +107,19 @@ public class PlayerState {
       o.writeInt(playerNo);
 
       o.writeBytes("x");
-      o.writeInt(ship.x);
+      o.writeInt(ship.x());
 
       o.writeBytes("y");
-      o.writeInt(ship.y);
+      o.writeInt(ship.y());
 
       o.writeBytes("u");
-      o.writeInt(ship.vx);
+      o.writeInt(ship.vx());
 
       o.writeBytes("v");
-      o.writeInt(ship.vy);
+      o.writeInt(ship.vy());
 
       o.writeBytes("d");
-      o.writeInt(ship.direction);
+      o.writeInt(ship.dir());
 
       o.writeBytes("e");
       o.writeInt(energy);

@@ -58,19 +58,19 @@ public abstract class SimulationUtils {
      Note that this in particular does not tell you
      if you hit something (a boundary, cluster, bullet).
   */
-  public static Ship nextPosition(Ship state, PlayerControlParameters params) {
-    assert(state != null);
+  public static Ship nextPosition(Ship ship, PlayerControlParameters params) {
+    assert(ship != null);
     assert(params != null);
 
     // Acceleration
     double a = Math.max(0.0, MAXACC * (params.acceleration / (double) INTMAX));
     
     // Angle the ship is currently pointing, in [-PI, +PI]
-    double angleFacing = Math.PI * (state.direction / (double) INTMAX);
+    double angleFacing = Math.PI * (ship.dir() / (double) INTMAX);
 
     // Currently, turning does not "slow you down". This might not be good
-    int vx = state.vx + (int) (a * Math.cos(angleFacing));
-    int vy = state.vy + (int) (a * Math.sin(angleFacing));
+    int vx = ship.vx() + (int) (a * Math.cos(angleFacing));
+    int vy = ship.vy() + (int) (a * Math.sin(angleFacing));
 /*
     // Drag increases with the angle between your current direction and the direction you're facing,
     // to represent the fact that you are more aerodynamic facing forwards. This also helps to slow 
@@ -91,16 +91,16 @@ public abstract class SimulationUtils {
     vx -= drag * vx;
     vy -= drag * vy;
     
-    int x = state.x + vx;
-    int y = state.y + vy;
+    int x = ship.x() + vx;
+    int y = ship.y() + vy;
 
     // Figure out whether to turn clockwise or counterclockwise.
-    boolean turnCcw =   Math.abs(state.direction + OMEGA - params.targetDirection)
-      < Math.abs(state.direction - OMEGA - params.targetDirection);
-    int dir = state.direction + ((turnCcw)? 1:-1)*OMEGA;
+    boolean turnCcw =   Math.abs(ship.dir() + OMEGA - params.targetDirection)
+      < Math.abs(ship.dir() - OMEGA - params.targetDirection);
+    int dir = ship.dir() + ((turnCcw)? 1:-1)*OMEGA;
 
     // Don't go past the target direction.
-    if (Integer.signum(state.direction - params.targetDirection)
+    if (Integer.signum(ship.dir() - params.targetDirection)
         != Integer.signum(dir - params.targetDirection))
       dir = params.targetDirection;
 
