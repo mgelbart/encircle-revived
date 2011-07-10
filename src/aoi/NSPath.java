@@ -68,16 +68,30 @@ public class NSPath implements Iterable<Line2D >{
     }  
   }
   
-  public Path2D intersectsLastElement(NSPath that) {
-    return intersects(that.getLastElement());
+  
+  public boolean intersects(Line2D l) {
+    for (Line2D line : this)
+      if (line.intersectsLine(l))
+        return true;
+    return false;
   }
+  
+  public boolean intersects(NSPath that) {
+    for (Line2D line : that)
+      if (intersects(line))
+        return true;
+    return false;
+  }
+  
   
   /**
    * Does this Tail intersect with the input Line2D?
    * If so, return the loop that is formed. If not, return null.
    */
-  public Path2D intersects(Line2D last) {
+  public Path2D intersectsLastElement(NSPath that) {
+
     Path2D loop;  
+    Line2D last = that.getLastElement();
     
     for (int k=0; k < nPoints()-2; ++k) {
 
@@ -101,6 +115,8 @@ public class NSPath implements Iterable<Line2D >{
       }
     }
     return null;
+    
+    
   }
 
 
