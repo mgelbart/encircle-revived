@@ -261,7 +261,7 @@ public class Simulation {
         }
 
         // Calculate the new positions for the bullets and figure out
-        // if anyone died.
+        // if anyone got hit.
         for (int k = bullets.size() - 1; k >= 0; --k) {
           Bullet b = bullets.get(k);
 
@@ -321,8 +321,8 @@ public class Simulation {
             crashed = true;
 
           for (Cluster c : clusters) {
-            // if (c.boundingBox().contains(states[j].pos.x, states[j].pos.y))
-            if (c.contains(states[j].ship.x(), states[j].ship.y()))
+//            if (c.intersects(states[j].ship))
+              if (c.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
           } 
 

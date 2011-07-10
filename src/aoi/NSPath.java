@@ -4,6 +4,7 @@ import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Line2D.Double;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -12,34 +13,25 @@ import java.util.Vector;
  * @author mgelbart
  *
  * Not Stupid Path. Like a Path2D object but gives access to the lines.
- * Also has a minimum trajectory segment length.
  * Cousin of NSPolygon.
  */
 public class NSPath implements Iterable<Line2D >{
   
-  // Roughly the minimum distance between adjacent points in the trajectory for
-  // encircling clusters. See the algorithm to see why this is only 'roughly' so.
-  public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
-  // ------------------------------------------------------------------------ //
-
   private Vector<Line2D> lines;
   private double length;  // Cache the trajectory length
   
   public NSPath() {
     lines = new Vector<Line2D>();
-    length = 0;
+    length = 0;    
   }
   
   public double length() { return length; }
   
   // Returns the number of points (not the number of line segments)
-  public int nPoints() { return lines.size()+1; }
-  
-  // Returns the number of line segments
-  public int nLines() { return lines.size(); }
-  
-  private Line2D getLastElement() {
-    return lines.get(nLines()-1);
+  public int nPoints() {
+    if (length == 0 && lines.size() == 1)
+      return 1;
+    return lines.size() + 1;
   }
   
   public void clear() {
@@ -47,32 +39,40 @@ public class NSPath implements Iterable<Line2D >{
     length = 0;
   }
   
+  public Point2D firstPoint() {
+    return lines.firstElement().getP1();
+  }
+  
+  public Point2D lastPoint() {
+    return lines.lastElement().getP2();
+  }
+  
+  public Point2D lastlastPoint() {
+    return lines.lastElement().getP1();
+  }
+  
+  public void removeLast() {
+    length -= lastlastPoint().distance(lastPoint());
+    lines.remove(lines.size()-1);
+  }
+   
+  public void addLine(Line2D l) {
+    lines.add(l);
+    length += l.getP1().distance(l.getP2());
+  }
+  
   public void addPoint(int x, int y) {
-    if (nLines() == 0) {
+    if (lines.size() == 0) {
       lines.add(new Line2D.Double(x, y, x, y));
       return;
     }
-      
-    Point2D curPoint = new Point(x, y);
-    Point2D prevPoint = lines.lastElement().getP2();
-    Point2D prevPrevPoint = lines.lastElement().getP1();
-    Point2D newPoint;
+    
+    Point newPoint = new Point(x, y);
+    
+    lines.add(new Line2D.Double(lastPoint(), newPoint));
+    length += lastPoint().distance(newPoint);
 
-    if (prevPoint.distance(curPoint) > 0.9) {
-
-      // Always add the latest position to the trajectory
-      // but combine it with the previous segment if both are short.
-      if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
-        lines.remove(lines.size()-1);
-        newPoint = prevPrevPoint;
-      } else {
-        newPoint = prevPoint;
-      }
-      lines.add(new Line2D.Double(newPoint, curPoint));
-      length += curPoint.distance(newPoint);
-    }  
   }
-  
   
   public boolean intersects(Line2D l) {
     for (Line2D line : this)
@@ -96,9 +96,9 @@ public class NSPath implements Iterable<Line2D >{
   public Path2D intersectsLastElement(NSPath that) {
 
     Path2D loop;  
-    Line2D last = that.getLastElement();
+    Line2D last = that.lines.lastElement();
     
-    for (int k=0; k < nLines()-2; ++k) {
+    for (int k=0; k < lines.size()-2; ++k) {
 
       // Check if i's last step crossed any line segment of player
       // j's path, O(N).
@@ -111,7 +111,7 @@ public class NSPath implements Iterable<Line2D >{
         loop.moveTo(point.getX(), point.getY());
 
 
-        for (int l=k+1; l < nLines(); ++l) {
+        for (int l=k+1; l < lines.size(); ++l) {
           point = lines.get(l).getP2();
           loop.lineTo(point.getX(), point.getY());
         }

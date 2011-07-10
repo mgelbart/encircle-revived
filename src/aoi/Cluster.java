@@ -39,6 +39,10 @@ public class Cluster {
     return contour.contains(x, y);
 	}
 	
+	public boolean intersects(Ship s) {
+	  return contour.intersects(s.getNSPath());
+	}
+	
 	// move the cluster by (deltaX, deltaY)
 	public void move(int deltaX, int deltaY) {
 	  contour.move(deltaX, deltaY);

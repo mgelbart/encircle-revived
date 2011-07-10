@@ -1,12 +1,21 @@
 package aoi;
 
+import java.awt.Point;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 import java.util.Vector;
 
 /** 
  * The tail.
  */
 public class Tail {
+  
+  // Roughly the minimum distance between adjacent points in the trajectory for
+  // encircling clusters. See the algorithm to see why this is only 'roughly' so.
+  public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
+  // ------------------------------------------------------------------------ //
+
   
   // The trajectory in the two space coordinates
   private NSPath trajectory;
@@ -16,24 +25,50 @@ public class Tail {
   
   public Tail(int x0, int y0, int time) {
     trajectory = new NSPath();
+    trajectory.addPoint(x0, y0);
     times = new Vector<Integer>();
-    trajectory.addPoint(x0, y0); // Zero length line
     times.add(time);
+    System.err.println(nPoints() + " " + times.size());
   }
   
   public double pathLength() { return trajectory.length(); }
   
-  public int nPoints() { return trajectory.nPoints(); }
+  private int nPoints() { return trajectory.nPoints(); }
   
   public Path2D intersects(Tail that) {
     return trajectory.intersectsLastElement(that.trajectory);
   }
   
+  
+
   public void addPoint(int x, int y, int time) {
-    trajectory.addPoint(x, y);
-    times.add(time);
+
+    Point2D curPoint = new Point(x, y);
+    Point2D prevPoint = trajectory.lastPoint();
+    Point2D prevPrevPoint = trajectory.lastlastPoint();
+    Point2D newPoint;
+
+    if (prevPoint.distance(curPoint) > 0.9) {
+
+      // Always add the latest position to the trajectory
+      // but combine it with the previous segment if both are short.
+      if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
+        System.err.println("*" + nPoints() + " " + trajectory.length());
+        trajectory.removeLast();
+        System.err.println("*" + nPoints() + " " + trajectory.length());
+        if (times.size() > 1) times.removeElementAt(times.size()-1);
+        newPoint = prevPrevPoint;
+      } else {
+        newPoint = prevPoint;
+      }
+      trajectory.addLine(new Line2D.Double(newPoint, curPoint));
+      times.add(time);
+    }  
     
+    System.err.println(nPoints());
+    System.err.println(times.size());
     assert(trajectory.nPoints() == times.size());
   }
+  
   
 }

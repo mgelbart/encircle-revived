@@ -96,6 +96,7 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
   // Actually intersects or contains.
   // If I just wanted intersects, I would use XOR below
   public boolean intersects(Line2D line) {
+//    System.err.println(line.getP1() + " " + line.getP2());
     return contains(line.getP1()) || contains(line.getP2());
   }
   
@@ -109,9 +110,11 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
   }
   
   public boolean intersects(NSPath path) {
-    for (Line2D l : path)
+   for (Line2D l : path) {
+//      System.err.println(l);
       if (intersects(l))
         return true;
+    }
     return false;
   }
   
