@@ -1,13 +1,23 @@
 #!/bin/bash
 
-rm out/*
+mkdir -p out bin segmentation/game_output/fly
+
+rm -f out/*
+
+# get the current time so we can limit the processes we kill in the end by their age
+STARTTIME=$(date +%s);
+
 
 make run_serv > out/serv.out 2> out/serv.err &
-sleep 3
 make run_client1 > out/client1.out 2> out/client1.err &
 make run_client0 2>&1 | tee out/client0.out
 
-# The above code can leave processes runnning...
+# The above code can leave processes runnning so use killall...
 # check with "ps -A | grep java"
-killall java
-killall make
+
+ENDTIME=$(date +%s);
+LIFETIME=$((ENDTIME-STARTTIME+2));
+
+killall -y"$LIFETIME"s java
+killall -y"$LIFETIME"s make
+echo "Killed all java and make processes younger than $LIFETIME seconds.";
