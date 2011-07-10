@@ -18,35 +18,35 @@ import java.util.Vector;
 public class HigherBeing implements Intelligence {
 
   // The input options received from Client.
-  ClientConfiguration config;
+  private ClientConfiguration config;
 
-  Arena arena;
+  private Arena arena;
 
   // Stores a (limited) history of the the game states
   // and predicts future states.
-  TimeMachine timemachine;
+  private TimeMachine timemachine;
 
   // Predicts what other people will do in the future.
   // Used in combination with TimeMachine.
-  MindReader mindreader;
+  private MindReader mindreader;
 
   // The control parameters to be sent to the server.
-  Vector<PlayerControlParameters> ctrl = new Vector<PlayerControlParameters>();
+  private Vector<PlayerControlParameters> ctrl = new Vector<PlayerControlParameters>();
 
   // Last time ctrl was changed.
-  int lastAction = -999999;
+  private int lastAction = -999999;
 
   // The GUI is ran in a separate thread so that drawing
   // doesn't block thinking.
-  GUI gui = null;
-  Thread guiThread = null;
+  private GUI gui = null;
+  private Thread guiThread = null;
 
   // The last authorative game state that was used to
   // predict the rendered state.
-  GameState renderedAuthorativeState = null;
+  private GameState renderedAuthorativeState = null;
 
   // The last rendered game state.
-  GameState renderedState = null;
+  private GameState renderedState = null;
 	
   // Life time of a rendered frame in ms.
   //
@@ -57,7 +57,7 @@ public class HigherBeing implements Intelligence {
   // Setting this to > SimulationUtils.TIMESTEP will tend to push
   // the simulated time (== renderedTime - renderedServerTime)
   // towards MINSIMULATEDTIME.
-  public int frametime = MINFRAMETIME;
+  private int frametime = MINFRAMETIME;
 
   private static int MINFRAMETIME = SimulationUtils.TIMESTEP + 1;
 	
