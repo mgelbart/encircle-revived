@@ -22,7 +22,7 @@ public class Ship {
   private final int vy;
   private final int direction;
   
-//  private final NSPath path;  // cache the path for intersection checking
+  private final NSPath path;  // cache the path for intersection checking
   
   public int x() { return x; }
   public int y() { return y; }
@@ -30,6 +30,7 @@ public class Ship {
   public int vy() { return vy; }
   public int dir() { return direction; }
   
+  public final NSPath getNSPath() { return path; }
   
   public Ship(Ship that) {
     this(that.x, that.y, that.vx, that.vy, that.direction);
@@ -42,9 +43,11 @@ public class Ship {
     this.vy = vy;
     this.direction = direction;
     
-//    path = new NSPath();
-//    int[][] shape = shape();
-//    path.addPoints(shape[0][1]);
+    path = new NSPath();
+    int[][] shape = shape();
+    path.addPoint(shape[0][0], shape[1][0]);
+    path.addPoint(shape[0][1], shape[1][1]);
+    path.addPoint(shape[0][2], shape[1][2]);
   }
 
   
