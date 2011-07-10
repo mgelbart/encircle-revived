@@ -31,10 +31,15 @@ public class NSPath implements Iterable<Line2D >{
   }
   
   public double length() { return length; }
-  public int nPoints() { return lines.size(); }
+  
+  // Returns the number of points (not the number of line segments)
+  public int nPoints() { return lines.size()+1; }
+  
+  // Returns the number of line segments
+  public int nLines() { return lines.size(); }
   
   private Line2D getLastElement() {
-    return lines.get(nPoints()-1);
+    return lines.get(nLines()-1);
   }
   
   public void clear() {
@@ -43,7 +48,7 @@ public class NSPath implements Iterable<Line2D >{
   }
   
   public void addPoint(int x, int y) {
-    if (nPoints() == 0) {
+    if (nLines() == 0) {
       lines.add(new Line2D.Double(x, y, x, y));
       return;
     }
@@ -93,7 +98,7 @@ public class NSPath implements Iterable<Line2D >{
     Path2D loop;  
     Line2D last = that.getLastElement();
     
-    for (int k=0; k < nPoints()-2; ++k) {
+    for (int k=0; k < nLines()-2; ++k) {
 
       // Check if i's last step crossed any line segment of player
       // j's path, O(N).
@@ -106,7 +111,7 @@ public class NSPath implements Iterable<Line2D >{
         loop.moveTo(point.getX(), point.getY());
 
 
-        for (int l=k+1; l < nPoints(); ++l) {
+        for (int l=k+1; l < nLines(); ++l) {
           point = lines.get(l).getP2();
           loop.lineTo(point.getX(), point.getY());
         }
