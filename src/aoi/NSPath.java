@@ -15,7 +15,7 @@ import java.util.Vector;
  * Also has a minimum trajectory segment length.
  * Cousin of NSPolygon.
  */
-public class NSPath implements Iterable<Line2D >{
+public class NSPath implements Iterable<Line2D> {
   
   // Roughly the minimum distance between adjacent points in the trajectory for
   // encircling clusters. See the algorithm to see why this is only 'roughly' so.
@@ -108,4 +108,19 @@ public class NSPath implements Iterable<Line2D >{
       return lines.iterator();
   }
   
+  // Make a deep copy of the path.
+  public synchronized NSPath clone() {
+    Vector<Line2D> ls = new Vector<Line2D>(lines.size()+1);
+    
+    final int N = lines.size();
+    for (int i = 0; i<N; i++) {
+      ls.set(i, (Line2D) (lines.get(i).clone()));
+    }
+
+    NSPath that = new NSPath();
+    that.lines = ls;
+    that.length = length;
+    
+    return that;
+  }
 }
