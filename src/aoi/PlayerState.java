@@ -200,34 +200,7 @@ public class PlayerState {
     return new PlayerState(p, x, y, vx, vy, d, e, l, s, r);
   }
 
-
-  public int[][] shape() {
-    assert(playerNo >= 0);
-    assert(playerNo < SimulationUtils.NUMPLAYERS);
-
-    double cos = Math.cos(Math.PI * (ship.direction / (double) SimulationUtils.INTMAX));
-    double sin = Math.sin(Math.PI * (ship.direction / (double) SimulationUtils.INTMAX));
-
-    int x, y;
-
-    int px[] = new int[3];
-    int py[] = new int[3];
-
-    for (int j=0; j<3; ++j) {
-
-      // Generate one of the three corners relative to origin.
-      x = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
-      y = (j-1) * SHIPWIDTH / 2;
-
-      // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
-      // and translate to player location.
-      px[j] = this.ship.x + (int) (cos*x - sin*y);
-      py[j] = this.ship.y + (int) (sin*x + cos*y);
-
-    }
-
-    return new int[][]{px, py};
-  }
-
+  
+  
 
 }

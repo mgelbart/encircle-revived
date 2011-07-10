@@ -279,7 +279,7 @@ public class Simulation {
             // if player j is currently dead 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
-            int[][] xy = states[j].shape();
+            int[][] xy = states[j].ship.shape();
             Polygon p = new Polygon(xy[0], xy[1], xy[0].length);
 
             // if b does not belong to player j and the players ship contains b

@@ -43,7 +43,7 @@ public class DrawableShip extends DrawablePath {
       pwned = PWNAGETIME;
     lastScore = game.states[playerNo].score;
 
-    int[][] xy = game.states[playerNo].shape();
+    int[][] xy = game.states[playerNo].ship.shape();
     Polygon pol = new Polygon(xy[0], xy[1], xy[0].length);
 
     return new Shape[]{pol, pol};

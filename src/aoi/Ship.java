@@ -30,4 +30,31 @@ public class Ship {
   }
 
 
+
+  public int[][] shape() {
+    double cos = Math.cos(Math.PI * (direction / (double) SimulationUtils.INTMAX));
+    double sin = Math.sin(Math.PI * (direction / (double) SimulationUtils.INTMAX));
+
+    int x, y;
+
+    int px[] = new int[3];
+    int py[] = new int[3];
+
+    for (int j=0; j<3; ++j) {
+
+      // Generate one of the three corners relative to origin.
+      x = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
+      y = (j-1) * SHIPWIDTH / 2;
+
+      // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
+      // and translate to player location.
+      px[j] = x + (int) (cos*x - sin*y);
+      py[j] = y + (int) (sin*x + cos*y);
+
+    }
+
+    return new int[][]{px, py};
+  }
+  
+  
 }
