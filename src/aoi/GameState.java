@@ -7,7 +7,7 @@ import java.util.Vector;
  *  A class used for communicating the game state
  *  from the server to the client.
  */
-public class GameState implements Comparable {
+public class GameState implements Comparable<GameState> {
   public final int time;
   public final PlayerState[] states;
   public final Vector<Bullet> bullets;
@@ -28,12 +28,12 @@ public class GameState implements Comparable {
    *       the set of interest differ by more than half the full
    *       time range.
    */
-  public int compareTo(Object o) {
-    return this.time - ((GameState) o).time;
+  public int compareTo(GameState that) {
+    return this.time - that.time;
   }
 
-  public boolean equals(Object o) {
-    return this.time == ((GameState) o).time;
+  public boolean equals(GameState that) {
+    return this.time == that.time;
   }
 
   public String toString() {

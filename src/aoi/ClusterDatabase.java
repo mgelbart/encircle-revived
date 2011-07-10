@@ -50,8 +50,7 @@ public class ClusterDatabase {
   // The Clusters that have already been returned, and thus should not be used again.
   public final boolean[] alreadyUsed;
 
-  @SuppressWarnings("unchecked")
-    public ClusterDatabase(String datasetName) throws FileNotFoundException {
+  public ClusterDatabase(String datasetName) throws FileNotFoundException {
     this.datasetName = datasetName;
     Vector<String> vImageFilenames = new Vector<String>();
 
@@ -202,7 +201,7 @@ public class ClusterDatabase {
     Vector<ClusterServerSide> arenaClusters = new Vector<ClusterServerSide>();
 
     ClusterServerSide css;
-    int count, x, y, i;
+    int i;
     boolean overlaps;
 
     for (int nSegments=1; nSegments <= clustersPerValue.length; nSegments++) {

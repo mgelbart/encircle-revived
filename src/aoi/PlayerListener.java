@@ -18,14 +18,13 @@ public class PlayerListener implements Runnable {
 
   private int playerNo;
   private DataInputStream client;
-  private Simulation sim;
+//  private Simulation sim;
 
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
 
   public PlayerListener(int player, Simulation sim, InputStream in) {
     this.playerNo = player;
     this.client = new DataInputStream(in);
-    this.sim = sim;
 
     // Never let the buffer be empty.
     ctrls.add(new PlayerControlParameters(0, 0, 0, 0, 0));
@@ -56,11 +55,10 @@ public class PlayerListener implements Runnable {
   }
 
 
-  @SuppressWarnings("unchecked")
   public void run() {
 
-    Byte cmd = 0;
-    int j;
+//    Byte cmd = 0;
+//    int j;
     PlayerControlParameters ctrl;
 
     while (true) {
@@ -69,7 +67,7 @@ public class PlayerListener implements Runnable {
       if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) continue;
 
       // Keep ctrls ordered by effectiveOn.
-      j = 0;
+//      j = 0;
       synchronized (ctrls) {
         ctrls.add(ctrl);
         java.util.Collections.sort(ctrls);

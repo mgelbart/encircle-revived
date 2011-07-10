@@ -1,10 +1,7 @@
 package aoi;
 
-import javax.swing.ImageIcon;
 import java.awt.Image;
-import java.net.URL;
 import java.awt.Shape;
-import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Stroke;
 

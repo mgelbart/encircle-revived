@@ -11,7 +11,7 @@ import java.io.*;
  * any special serialization/parsing to be transmitted
  * over the network.
 */
-public class PlayerControlParameters implements Comparable {
+public class PlayerControlParameters implements Comparable<PlayerControlParameters> {
 
   // The specified parameters will first become active in
   // the simulation step effectiveOn...effectiveOn+1
@@ -43,12 +43,12 @@ public class PlayerControlParameters implements Comparable {
    *       the set of interest differ by more than half the full
    *       time range.
    */
-  public int compareTo(Object o) {
-    return this.effectiveOn - ((PlayerControlParameters) o).effectiveOn;
+  public int compareTo(PlayerControlParameters that) {
+    return this.effectiveOn - that.effectiveOn;
   }
 
-  public boolean equals(Object o) {
-    return this.effectiveOn == ((PlayerControlParameters) o).effectiveOn;
+  public boolean equals(PlayerControlParameters that) {
+    return this.effectiveOn == that.effectiveOn;
   }
 
   public String toString() {

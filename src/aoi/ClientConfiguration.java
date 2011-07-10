@@ -51,7 +51,7 @@ public class ClientConfiguration {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
     String serverUrl;
-    int serverPort, playerNo;
+    int serverPort;
     boolean nonhuman;
 
     try {

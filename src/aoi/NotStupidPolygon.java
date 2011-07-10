@@ -6,6 +6,7 @@ import org.xml.sax.Attributes;
 /**
  * The same as java.awt.Polygon except you can get the list of points out. 
  */
+@SuppressWarnings("serial")
 public class NotStupidPolygon extends Polygon {
   private int[] x;
   private int[] y;

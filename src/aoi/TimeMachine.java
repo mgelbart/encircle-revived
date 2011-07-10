@@ -56,7 +56,6 @@ public class TimeMachine {
 
   // Call this whenever sending new control
   // parameters to the server.
-  @SuppressWarnings("unchecked")
   public void processParamsUpdate(PlayerControlParameters p) {
 
     synchronized (ownParams) {
@@ -150,13 +149,13 @@ public class TimeMachine {
     Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
     int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
     Bullet b;
-    int dir;
+//    int dir;
 
     for (int k=0; k < bullets.size(); ++k) {
       b = bullets.get(k);
 
       bulPos = SimulationUtils.nextBulletPosition(b);
-      dir = b.direction;
+//      dir = b.direction;
 
       for (int j=1; j < time - last.time; ++j) {
         bulPos = SimulationUtils.nextBulletPosition(new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));

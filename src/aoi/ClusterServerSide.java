@@ -1,7 +1,6 @@
 package aoi;
 
 import java.util.*;
-import java.io.FileNotFoundException;
 
 /**
  *  Extends the cluster class in order to store

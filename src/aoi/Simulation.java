@@ -1,15 +1,10 @@
 package aoi;
 
 import java.io.*;
-import java.net.*;
 import java.util.Vector;
 import java.awt.Polygon;
 import java.awt.Rectangle;
-import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.awt.geom.Path2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Area;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -91,7 +86,6 @@ public class Simulation {
                            (game == null) ? 0 : game.time, score, false); 
   }
 
-  @SuppressWarnings("unchecked")
     public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
 
     PlayerState[] states = (PlayerState[]) (game.states.clone());
@@ -209,7 +203,7 @@ public class Simulation {
             // but this is fine because in the i!=j case all we really need out of this function
             // is a boolean and loop==null is that boolean)
             // Note this is not symmetric in i and j.
-            Path2D loop = playerStatesInt[i].tail.intersects(playerStatesInt[j].tail.getLastSegment());
+            Path2D loop = playerStatesInt[i].tail.intersects(playerStatesInt[j].tail);
 
             if (loop != null) {  // if an intersection occurred
               erasePath = true;

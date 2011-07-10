@@ -65,7 +65,7 @@ public class HigherBeing implements Intelligence {
   private static int MINSIMULATEDSTEPS = 200/SimulationUtils.TIMESTEP;
 
   // Maximum number of turns to predict into the future.
-  private static int MAXSIMULATEDSTEPS = 1000/SimulationUtils.TIMESTEP;
+//  private static int MAXSIMULATEDSTEPS = 1000/SimulationUtils.TIMESTEP;
 
   // The timer in charge of updating the GUI.
   private Timer renderTimer;

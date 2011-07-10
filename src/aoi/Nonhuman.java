@@ -182,8 +182,6 @@ public class Nonhuman implements Intelligence {
     V += Math.exp((Math.abs(x) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
     V += Math.exp((Math.abs(y) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
 
-    // Attractive terms for four points around the clusters
-    double dist;
     for (Cluster clust : arena.clusters) {
 
       V += -truncatedLog(loc.distance(clust.centerX(), clust.centerY() + clust.height()/2), range);
@@ -196,11 +194,11 @@ public class Nonhuman implements Intelligence {
     return V;
   }
 
-  private double truncatedExp(double x, double range) {
-    if (Math.abs(x) > 3*range) return 0.0;
-
-    return Math.exp(-Math.abs(x/range));
-  }
+//  private double truncatedExp(double x, double range) {
+//    if (Math.abs(x) > 3*range) return 0.0;
+//
+//    return Math.exp(-Math.abs(x/range));
+//  }
 
   private double truncatedLog(double x, double range) {
     if (Math.abs(x) > range) return 0.0;

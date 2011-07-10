@@ -1,19 +1,11 @@
 package aoi;
 
-import java.awt.KeyboardFocusManager;
-import java.awt.KeyEventDispatcher;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
-import java.awt.Point;
-import java.awt.Shape;
-import java.awt.Image;
-import java.awt.Paint;
-import java.awt.Stroke;
-import java.awt.Color;
+import java.awt.*;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.io.*;
 
 /**
  *  A class for interacting with a human, i.e. for
@@ -54,9 +46,7 @@ public class GUI implements Runnable {
   // Used to highlight a loop that scored a point:
   private int[] lastScore;
   private int[] lastScoringTime;
-  private Vector<Point2D>[] lastScoringLoop;
-
-
+  
   @SuppressWarnings("unchecked")
   public GUI(Arena arena, ClientConfiguration config) {
 
@@ -69,8 +59,6 @@ public class GUI implements Runnable {
 
     lastScore = new int[SimulationUtils.NUMPLAYERS];
     lastScoringTime = new int[SimulationUtils.NUMPLAYERS];
-    lastScoringLoop = new Vector[SimulationUtils.NUMPLAYERS];
-
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
       currentLoopStarted[j] = -999;
       loop[j] = new Vector<Point2D>();
@@ -188,7 +176,6 @@ public class GUI implements Runnable {
     drawables.add(d);
   }
 
-  @SuppressWarnings("unchecked")
   private void drawGameState(Arena m, GameState g) {
 
     DrawUtils.clear(Color.BLACK);

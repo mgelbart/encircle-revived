@@ -1,7 +1,5 @@
 package aoi;
 
-import java.io.*;
-import java.net.*;
 import javax.swing.*;
 
 /**
@@ -9,6 +7,7 @@ import javax.swing.*;
  */
 public class App extends JApplet {
 
+  private static final long serialVersionUID = -36103157688567383L;
   Client client;
   Thread clientThread;
 

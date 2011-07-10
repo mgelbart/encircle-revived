@@ -41,15 +41,10 @@ package aoi;
   
  */
 
-
-import java.io.*;
-import java.net.*;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.event.*;
 import java.awt.image.*;
 import javax.swing.*;
-import javax.imageio.ImageIO;
 
 
 public class DrawUtils {
@@ -70,10 +65,8 @@ public class DrawUtils {
   private static int canvasHeight;
 
 
-  // The Paint and Stroke objects currently in use.
+  // The Paint object currently in use.
   private static Paint paint;
-  private static Stroke stroke;
-
 
   // Double buffered graphics
   // Offscreen stores the currently buffered image that
@@ -165,7 +158,6 @@ public class DrawUtils {
    * Set the Stroke object used to draw the outlines of Shapes.
    */
   public static void setStroke(Stroke s) {
-    stroke = s;
     offscreen.setStroke(s);
   }
 
