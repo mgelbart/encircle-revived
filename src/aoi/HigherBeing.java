@@ -33,9 +33,6 @@ public class HigherBeing implements Intelligence {
   // The control parameters to be sent to the server.
   private Vector<PlayerControlParameters> ctrl = new Vector<PlayerControlParameters>();
 
-  // Last time ctrl was changed.
-  private int lastAction = -999999;
-
   // The GUI is ran in a separate thread so that drawing
   // doesn't block thinking.
   private GUI gui = null;
