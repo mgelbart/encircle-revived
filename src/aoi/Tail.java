@@ -28,7 +28,6 @@ public class Tail {
     trajectory.addPoint(x0, y0);
     times = new Vector<Integer>();
     times.add(time);
-    System.err.println(nPoints() + " " + times.size());
   }
   
   public double pathLength() { return trajectory.length(); }
@@ -53,9 +52,7 @@ public class Tail {
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
       if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
-        System.err.println("*" + nPoints() + " " + trajectory.length());
         trajectory.removeLast();
-        System.err.println("*" + nPoints() + " " + trajectory.length());
         if (times.size() > 1) times.removeElementAt(times.size()-1);
         newPoint = prevPrevPoint;
       } else {
