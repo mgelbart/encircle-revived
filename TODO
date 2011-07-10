@@ -11,6 +11,6 @@ Code documentation
 Better hit-checking algorithm for bullets.
 Set up Bugzilla
 Refactor: get rid of drawable path and have the path around cluster by part of cluster drawing. Playerstate will own a Ship.
-
+Make colors around boxes when players have the same score
 
 

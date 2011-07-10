@@ -3,8 +3,7 @@ package aoi;
 import java.io.*;
 
 /** 
- * A "read-only" class that describes a player's
- * position in phase space.
+ * A "read-only" class that describes a player's state.
  *
  * Note that ints are used although floats might be
  * more natural. This is because ints don't need
@@ -14,7 +13,7 @@ import java.io.*;
 public class PlayerState {
 
   public static final int SHIPLENGTH = SimulationUtils.ARENASIZE * 7/200;
-  public static final int SHIPWIDTH = SimulationUtils.ARENASIZE * 4/200;
+  public static final int SHIPWIDTH  = SimulationUtils.ARENASIZE * 4/200;
 
   /* Values transmitted to the clients. */
   public final int playerNo;
