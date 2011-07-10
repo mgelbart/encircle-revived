@@ -56,10 +56,7 @@ public class HigherBeing implements Intelligence {
   // towards MINSIMULATEDTIME.
   private int frametime = MINFRAMETIME;
 
-  private static int MINFRAMETIME = SimulationUtils.TIMESTEP + 1;
-	
-  // Minimum number of turns to predict into the future.
-  private static int MINSIMULATEDSTEPS = 200/SimulationUtils.TIMESTEP;
+  private static final int MINFRAMETIME = SimulationUtils.TIMESTEP + 1;
 
   // Maximum number of turns to predict into the future.
 //  private static int MAXSIMULATEDSTEPS = 1000/SimulationUtils.TIMESTEP;
@@ -74,7 +71,7 @@ public class HigherBeing implements Intelligence {
 
     this.config = config;
     this.arena = arena;
-
+    
     System.out.println("HigherBeing for player " + config.playerNo + " created.");
 
     gui = new GUI(arena, config);
@@ -213,34 +210,43 @@ public class HigherBeing implements Intelligence {
       // This can happen before the game actually starts.
       if (renderedAuthorativeState == null) return;
 
-      // This simply skips frames if the rendered states is less than
-      // MINSIMULATEDSTEPS ahead of the authorative state.
-      // The opposite should never happen as long as
-      // frametime > SimulationUtils.TIMESTEP.
-      int newRenderedTime = (renderedState != null) ? renderedState.time + 1 : 0;
-      if (newRenderedTime - renderedAuthorativeState.time < MINSIMULATEDSTEPS) {
-
-        /*
-        System.err.println("Skipped "
-                           + (renderedAuthorativeState.time
-                              + MINSIMULATEDSTEPS
-                              - newRenderedTime)
-                           + " frames.");
-
-        System.err.println("Authorative time: " + renderedAuthorativeState.time);
-        if (renderedState != null) {
-          System.err.println("Rendered time: " + renderedState.time);
+      if (config.predictFuture > 0) {
+        
+        final int simulatedSteps = config.predictFuture/SimulationUtils.TIMESTEP;
+      
+        // This simply skips frames if the rendered states is less than
+        // MINSIMULATEDSTEPS ahead of the authorative state.
+        // The opposite should never happen as long as
+        // frametime > SimulationUtils.TIMESTEP.
+        int newRenderedTime = (renderedState != null) ? renderedState.time + 1 : 0;
+        if (newRenderedTime - renderedAuthorativeState.time < simulatedSteps) {
+  
+          /*
+          System.err.println("Skipped "
+                             + (renderedAuthorativeState.time
+                                + MINSIMULATEDSTEPS
+                                - newRenderedTime)
+                             + " frames.");
+  
+          System.err.println("Authorative time: " + renderedAuthorativeState.time);
+          if (renderedState != null) {
+            System.err.println("Rendered time: " + renderedState.time);
+          }
+          */
+          
+          newRenderedTime = renderedAuthorativeState.time + simulatedSteps;
+  		
         }
-        */
-
-        newRenderedTime = renderedAuthorativeState.time
-          + MINSIMULATEDSTEPS;
-
-		
-      }
-
-      renderedState = timemachine.getState(newRenderedTime, mindreader);
+  
+        renderedState = timemachine.getState(newRenderedTime, mindreader);
 	    
+      } else {
+        
+        renderedState = renderedAuthorativeState;
+        
+      }
+      
+      
       assert(renderedState != null);
 
       gui.setGameState(renderedState);
