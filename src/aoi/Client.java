@@ -110,9 +110,12 @@ public class Client implements Runnable {
 
       while (true) {
         game = parseGameState(stateStream);
+      
         intel.processGameStateUpdate(game);
-
-        sendControlParameters(controlStream, intel.getNewControlParameters());
+      
+        PlayerControlParameters pcp = intel.getNewControlParameters(); 
+      
+        sendControlParameters(controlStream, pcp);
         bufferedControlStream.flush();
       }
 

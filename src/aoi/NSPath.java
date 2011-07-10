@@ -73,7 +73,6 @@ public class NSPath {
    */
   public Path2D intersects(NSPath that) {
     Path2D loop;
-    System.err.println(nPoints());
     Line2D last = that.getLastElement();
     
     for (int k=0; k < nPoints()-2; ++k) {
