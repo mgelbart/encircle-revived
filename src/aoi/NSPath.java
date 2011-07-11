@@ -17,6 +17,7 @@ import java.util.Vector;
  */
 public class NSPath implements Iterable<Line2D> {
   
+  private Point start;
   private Vector<Line2D> lines;
   private double length;  // Cache the trajectory length
   
@@ -29,49 +30,52 @@ public class NSPath implements Iterable<Line2D> {
   
   // Returns the number of points (not the number of line segments)
   public int nPoints() {
-    if (length == 0 && lines.size() == 1)
-      return 1;
-    return lines.size() + 1;
+    if (start == null) return 0;
+    else if (length == 0 && lines.size() == 0) return 1;
+    else return lines.size() + 1;
   }
-  
-  public void clear() {
-    lines.clear();
-    length = 0;
-  }
+
   
   public Point2D firstPoint() {
-    return lines.firstElement().getP1();
+    return start;
   }
   
   public Point2D lastPoint() {
+    if (lines.isEmpty()) return start;
     return lines.lastElement().getP2();
   }
   
   public Point2D lastlastPoint() {
+    if (lines.isEmpty()) return null;
     return lines.lastElement().getP1();
   }
   
   public void removeLast() {
+    if (lines.isEmpty()) return;
+    
     length -= lastlastPoint().distance(lastPoint());
     lines.remove(lines.size()-1);
   }
    
   public void addLine(Line2D l) {
-    lines.add(l);
     length += l.getP1().distance(l.getP2());
+    lines.add(l);
   }
   
   public void addPoint(int x, int y) {
-    if (lines.size() == 0) {
-      lines.add(new Line2D.Double(x, y, x, y));
-      return;
-    }
-    
     Point newPoint = new Point(x, y);
     
-    lines.add(new Line2D.Double(lastPoint(), newPoint));
-    length += lastPoint().distance(newPoint);
-
+    if (start == null) {
+      start = newPoint;
+    }
+    else if (lines.isEmpty()) {
+      length += start.distance(newPoint);
+      lines.add(new Line2D.Double(start, newPoint));
+    }
+    else {
+      length += lastPoint().distance(newPoint);
+      lines.add(new Line2D.Double(lastPoint(), newPoint));
+    }
   }
   
   public boolean intersects(Line2D l) {
@@ -95,6 +99,8 @@ public class NSPath implements Iterable<Line2D> {
    */
   public Path2D intersectsLastElement(NSPath that) {
 
+    if (that.lines.isEmpty()) return null;
+    
     Path2D loop;  
     Line2D last = that.lines.lastElement();
     

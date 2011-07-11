@@ -47,11 +47,17 @@ public class Tail {
     Point2D prevPrevPoint = trajectory.lastlastPoint();
     Point2D newPoint;
 
+    assert(prevPoint != null);
+    
+    // if the new point is sufficiently far from the current such that
+    // you even care enough to do something about it
+    // oh, because of integer resolution
     if (prevPoint.distance(curPoint) > 0.9) {
 
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
-      if (curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
+      if (prevPrevPoint != null &&
+            curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
         trajectory.removeLast();
         if (times.size() > 1) times.removeElementAt(times.size()-1);
         newPoint = prevPrevPoint;
