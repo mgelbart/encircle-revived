@@ -9,6 +9,7 @@ STARTTIME=$(date +%s);
 
 
 make run_serv > out/serv.out 2> out/serv.err &
+sleep 3
 make run_client1 > out/client1.out 2> out/client1.err &
 make run_client0 2>&1 | tee out/client0.out
 
@@ -18,6 +19,13 @@ make run_client0 2>&1 | tee out/client0.out
 ENDTIME=$(date +%s);
 LIFETIME=$((ENDTIME-STARTTIME+2));
 
-killall -y"$LIFETIME"s java
-killall -y"$LIFETIME"s make
+if [[ "$(uname)" =~ Darwin ]]
+then
+	OPTS=;
+else
+	OPTS=-y"$LIFETIME"s;
+fi
+
+killall "$OPTS" java
+killall "$OPTS" make
 echo "Killed all java and make processes younger than $LIFETIME seconds.";
