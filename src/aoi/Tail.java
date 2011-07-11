@@ -1,6 +1,7 @@
 package aoi;
 
 import java.awt.Point;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.Vector;
@@ -36,7 +37,7 @@ public class Tail {
     
     assert(trajectory.nPoints() == times.size());
   }
-  
+    
   public double pathLength() { return trajectory.length(); }
   
   public Path2D toPath2D() { return trajectory.toPath2D(); }
@@ -45,12 +46,48 @@ public class Tail {
   
   public int startTime() {
     if (times.isEmpty()) return -1;
-    return times.get(0);
+    return times.firstElement();
   }
   
-  public Path2D intersects(Tail that) {
-    return trajectory.intersectsLastElement(that.trajectory);
+  /**
+   * Does this Tail intersect with another Tail?
+   * If so, return the loop that is formed as a Tail. If not, return null.
+   */
+  public Tail intersects(Tail that) {
+    if (that.trajectory.nLines() == 0) return null; 
+    
+    for (int k=0; k < trajectory.nLines()-2; ++k) {
+      // for every line in this tail, check if it intersects with the last
+      // line of that tail
+      if (that.trajectory.lastLine().intersectsLine(trajectory.getLine(k))) {
+
+        // Construct an NSPath for the loop
+        // In reality, this is only used if this == that
+        NSPath loop = new NSPath();
+        Vector<Integer> loopTimes = new Vector<Integer>();
+
+        Point2D point = trajectory.getLine(k).getP2();
+//        loop.moveTo(point.getX(), point.getY());
+        loop.addPoint(point);
+        loopTimes.add(times.elementAt(k+1));  // omg so messy
+        // NSPath really needs refactoring to suck less
+
+        for (int l=k+1; l < trajectory.nLines(); ++l) {
+          point = trajectory.getLine(l).getP2();
+//          loop.lineTo(point.getX(), point.getY());
+          loop.addPoint(point);
+          loopTimes.add(times.elementAt(l+1));
+        }
+//        return loop;
+        return new Tail(loop, loopTimes);
+      }
+    }
+    return null;
+    
+    
   }
+  
+  
   
   
   // Create a copy of the Tail with an added point.
@@ -104,8 +141,9 @@ public class Tail {
   
   
 
-  // Create a copy of the Tail with an added point.
-  public Tail cropLoop(int from, int to) {
+  // Crops part of a tail given the times "from" and "to".
+  // Removes "from" but not "to"
+  public Tail crop(int from, int to) {
     assert(nPoints() == times.size());
     
     // Fields for new Tail
@@ -113,7 +151,7 @@ public class Tail {
     Vector<Integer> newTimes = new Vector<Integer>();
 
     for (int i = 0; i < nPoints(); i++) {
-      if (times.elementAt(i) < from && times.elementAt(i) > to) {
+      if (times.elementAt(i) - from < 0 || times.elementAt(i) - to >= 0) {
         // If the point is not cropped, at it
         newPath.addPoint(trajectory.getPoint(i));
         newTimes.add(times.elementAt(i));

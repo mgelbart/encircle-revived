@@ -228,12 +228,22 @@ public class PlayerState {
 
     // Add the latest player location to the tail unless
     // the transmitted loop started parameter indicates that a
-    // new tail was started.
+    // new tail was started. also crop loop if indicated by
+    // cropfrom/to parameters.
     Tail newTail;
-    if (prevState == null || prevState.tail.startTime() - tailStarted < 0)
+    if (prevState == null || prevState.tail.startTime() - tailStarted < 0) {
+      // you died or got shot, etc. so just re-init. tail
       newTail = new Tail(x, y, time);
-    else
-      newTail = prevState.tail.addPoint(x, y, time);
+    } else {
+      newTail = prevState.tail;
+      if (prevState.cropTailTo - cropTailTo < 0) {
+        // you made a loop, so crop the tail
+        newTail = newTail.crop(cropTailFrom, cropTailTo);
+      }
+      // regardless of whether you made a loop, add the latest point
+      newTail = newTail.addPoint(x, y, time);
+    }
+    
     
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
         energy, tailStarted, cropTailFrom, cropTailTo, 
