@@ -39,8 +39,8 @@ public class Tail {
   }
   
   
-
-  public void addPoint(int x, int y, int time) {
+  // Create a copy of the Tail with 
+  public Tail addPoint(int x, int y, int time) {
 
     Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
@@ -68,8 +68,6 @@ public class Tail {
       times.add(time);
     }  
     
-    System.err.println(nPoints());
-    System.err.println(times.size());
     assert(trajectory.nPoints() == times.size());
   }
   
