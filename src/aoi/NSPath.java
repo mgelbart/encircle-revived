@@ -17,7 +17,7 @@ import java.util.Vector;
 public class NSPath implements Iterable<Line2D> {
   
   private Point2D start;
-  private Vector<Line2D> lines;
+  private Vector<Line2D> lines; // stores every point twice
   private double length;  // Cache the trajectory length
   
   public NSPath() {
@@ -31,6 +31,18 @@ public class NSPath implements Iterable<Line2D> {
     this.length = length;
   }
 
+  // this is pretty ugly- this Class should probably extend
+  // Path2D like NSPolygon.
+  public Path2D toPath2D() {
+    if (start == null) return null;
+    Path2D path = new Path2D.Double();
+    path.moveTo(start.getX(), start.getX());
+    for (Line2D line : lines)
+      path.lineTo(line.getX1(), line.getY1());
+    path.lineTo(lastPoint().getX(), lastPoint().getY());
+    return path;
+  }
+  
   public double length() { return length; }
   
   // Returns the number of points (not the number of line segments)
