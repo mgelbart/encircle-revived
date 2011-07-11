@@ -142,7 +142,7 @@ public class TimeMachine {
                                    last.states[k].loopStarted,
                                    last.states[k].score,
                                    last.states[k].respawning,
-                                   last.states[k].tail.addPoint(ship[k].x(), ship[k].x(), time)); // TODO: should actually do addPoints() with all the intermediate points
+                                   last.states[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
 	    
     }
 
