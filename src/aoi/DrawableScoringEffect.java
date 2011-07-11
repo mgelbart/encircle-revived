@@ -2,7 +2,6 @@ package aoi;
 
 import java.awt.geom.Path2D;
 import java.awt.Shape;
-import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
 
@@ -16,12 +15,12 @@ public class DrawableScoringEffect extends DrawablePlayerComponent {
 
   // Counter for scoring effects.
   private int scored = 0;
-  private Path2D scoringLoop = null;
+  private Tail scoringTail = null;
 
   // Time duration of the scoring effect in turns.
   private final int SCORINGTIME = 1500 / SimulationUtils.TIMESTEP;
   // The number of pixels the loop is fattened to when scoring.
-  private final float SCORINGWIDTH = (float) 10.;
+  private final float SCORINGWIDTH = 10.f;
 
 
   public DrawableScoringEffect(int playerNo, Stroke stroke) {
@@ -31,18 +30,21 @@ public class DrawableScoringEffect extends DrawablePlayerComponent {
   // Return the path to be drawn.
   public Shape[] shapes(GameState game) {
     final PlayerState s = game.states[playerNo];
-
-    if (s.score > lastScore) {
+    
+    if (s.score > lastScore) {  // you just scored
       scored = SCORINGTIME;
-      scoringLoop = s.tail.toPath2D();
-    }
-    lastScore = s.score;
-
-    if (scored > 0)
-      return new Shape[]{scoringLoop};
-    else
+      lastScore = s.score;
+      return new Shape[]{scoringTail.toPath2D()};
+    } else if (scored == 0) {    // normal time
+      scoringTail = s.tail;
+      lastScore = s.score;
       return null;
-
+    } else {                  // while the effect is showing
+      lastScore = s.score;
+      return new Shape[]{scoringTail.toPath2D()};
+    }
+    
+ 
   }
 
   // Return the pen stroke used to draw the shape.
