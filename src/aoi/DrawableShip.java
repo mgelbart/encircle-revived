@@ -9,9 +9,7 @@ import java.awt.Stroke;
 /**
  *  A GUI element for a ship.
  */
-public class DrawableShip extends DrawablePath {
-
-  private int playerNo;
+public class DrawableShip extends DrawablePlayerComponent {
 
   // Last known score.
   private int lastScore = 0;
@@ -29,11 +27,10 @@ public class DrawableShip extends DrawablePath {
   // The color of the outline of the ship.
   private Color color;
 
-  public DrawableShip(int playerNo, Color color, Stroke stroke) {
-    super(null, color, stroke);
-
-    this.playerNo = playerNo;
-    this.color = color;
+  public DrawableShip(int playerNo, Stroke stroke) {
+    super(playerNo, stroke);
+    
+    color = DrawablePlayerComponent.getColor(playerNo);
   }
 
   // Return the polygon to be drawn.
