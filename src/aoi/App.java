@@ -34,7 +34,7 @@ public class App extends JApplet {
     }
     */
 
-    client = new Client(null, gui);
+    client = new Client(gui);
   }
 
   public void start() {

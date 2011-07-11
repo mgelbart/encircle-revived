@@ -17,9 +17,6 @@ import java.util.Vector;
  */
 public class HigherBeing implements Intelligence {
 
-  // The input options received from Client.
-  private ClientConfiguration config;
-
   private Arena arena;
 
   // Stores a (limited) history of the the game states
@@ -67,20 +64,19 @@ public class HigherBeing implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
 
-  public HigherBeing(ClientConfiguration config, Arena arena) {
+  public HigherBeing(Arena arena) {
 
-    this.config = config;
     this.arena = arena;
     
-    System.out.println("HigherBeing for player " + config.playerNo + " created.");
+    System.out.println("HigherBeing for player " + ClientConfiguration.playerNo + " created.");
 
-    gui = new GUI(arena, config);
+    gui = new GUI(arena);
     guiThread = new Thread(gui);
     guiThread.start();
 
-    timemachine = new TimeMachine(config);
+    timemachine = new TimeMachine();
 
-    mindreader = new MindReader(config);
+    mindreader = new MindReader();
 
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -178,16 +174,16 @@ public class HigherBeing implements Intelligence {
         }
 
         if (keysPressed.contains(KeyEvent.VK_LEFT)) {
-          dir = renderedState.states[config.playerNo].ship.dir()
+          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir()
             + SimulationUtils.INTMAX/2;
           update = true;
         } else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
-          dir = renderedState.states[config.playerNo].ship.dir()
+          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir()
             - SimulationUtils.INTMAX/2;
           update = true;
-        } else if (Math.abs(dir - renderedState.states[config.playerNo].ship.dir()) > 
+        } else if (Math.abs(dir - renderedState.states[ClientConfiguration.playerNo].ship.dir()) > 
         SimulationUtils.INTMAX/5) {
-          dir = renderedState.states[config.playerNo].ship.dir();
+          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir();
           update = true;
         }		    
 
@@ -212,9 +208,9 @@ public class HigherBeing implements Intelligence {
       // This can happen before the game actually starts.
       if (renderedAuthorativeState == null) return;
 
-      if (config.predictFuture > 0) {
+      if (ClientConfiguration.predictFuture > 0) {
         
-        final int simulatedSteps = config.predictFuture/SimulationUtils.TIMESTEP;
+        final int simulatedSteps = ClientConfiguration.predictFuture/SimulationUtils.TIMESTEP;
       
         // This simply skips frames if the rendered states is less than
         // MINSIMULATEDSTEPS ahead of the authorative state.

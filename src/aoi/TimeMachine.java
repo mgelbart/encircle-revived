@@ -8,8 +8,6 @@ import java.util.Vector;
  */ 
 public class TimeMachine {
 
-  private final ClientConfiguration config;
-
   // Definitive game states that have been received from the server.
   private final Vector<GameState> states;
 
@@ -19,8 +17,7 @@ public class TimeMachine {
   // Number of game states to store in history.
   private final static int STATESSIZE = 5;
 
-  public TimeMachine(ClientConfiguration config) {
-    this.config = config;
+  public TimeMachine() {
     states = new Vector<GameState>(STATESSIZE + 1);
     ownParams = new Vector<PlayerControlParameters>();
   }
@@ -175,7 +172,7 @@ public class TimeMachine {
   private PlayerControlParameters getParamsAt(int playerNo,
                                               int time,
                                               MindReader reader) {
-    if (playerNo == config.playerNo) return getOwnParamsAt(time);
+    if (playerNo == ClientConfiguration.playerNo) return getOwnParamsAt(time);
 
     PlayerControlParameters params = null;
     if (reader != null) params = reader.paramsAt(time, playerNo);
@@ -185,7 +182,7 @@ public class TimeMachine {
 
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
-    PlayerState last = states.lastElement().states[config.playerNo];
+    PlayerState last = states.lastElement().states[ClientConfiguration.playerNo];
     if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
       return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), 0, 0);
     else
@@ -216,7 +213,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       //System.err.println("Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[config.playerNo].ship.dir(), 0, 0);
+      return new PlayerControlParameters(time, 0, states.lastElement().states[ClientConfiguration.playerNo].ship.dir(), 0, 0);
 
     }
   }

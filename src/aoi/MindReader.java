@@ -11,16 +11,13 @@ import java.util.Vector;
  */
 public class MindReader {
 
-  private ClientConfiguration config;
-
   // Definitive game states that have been received from the server.
   private final Vector<GameState> states;
 
   // Number of game states to store in history.
   private final static int STATESSIZE = 3;
 
-  public MindReader(ClientConfiguration config) {
-    this.config = config;
+  public MindReader() {
     states = new Vector<GameState>(STATESSIZE + 1);
   }
 
@@ -56,7 +53,7 @@ public class MindReader {
   */
   public PlayerControlParameters paramsAt(int time, int playerNo) {
 
-    assert(playerNo != config.playerNo); // You don't need to guess your own parameters.
+    assert(playerNo != ClientConfiguration.playerNo); // You don't need to guess your own parameters.
 
     final int P = playerNo;
 

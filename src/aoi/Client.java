@@ -14,9 +14,6 @@ public class Client implements Runnable {
   // Path to the default configuration file.
   private static final String DEFAULTCONFIGPATH = "client.conf";
 
-  // The actual configuration:
-  private ClientConfiguration config;
-
   // The JLabel for the GUI.
   private JLabel gui;
 
@@ -27,13 +24,13 @@ public class Client implements Runnable {
    * If config is null, the default configuration file
    * is used.
    */
-  public Client(ClientConfiguration config, JLabel gui) {
+  public Client(JLabel gui) {
     this.gui = gui;
-    this.config = config;
 
-    if (config == null) {
+    // Load the default config file if none has been loaded so far. Used in the Applet.
+    if (!ClientConfiguration.isLoaded()) {
       InputStream stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
-      this.config = ClientConfiguration.parse(stream);
+      ClientConfiguration.parse(stream);
     }
 
   }
@@ -45,7 +42,7 @@ public class Client implements Runnable {
     try {
 
       // Read input options from stdin.
-      socket = new Socket(config.serverUrl, config.serverPort);
+      socket = new Socket(ClientConfiguration.serverUrl, ClientConfiguration.serverPort);
 
       // Don't buffer data before sending TCP packets.
       socket.setTcpNoDelay(true);
@@ -56,7 +53,7 @@ public class Client implements Runnable {
     } 
 
     // Initialize the GUI for human players
-    if (!config.nonhuman) {
+    if (!ClientConfiguration.nonhuman) {
       DrawUtils.initialize(gui);
     }
 
@@ -73,7 +70,7 @@ public class Client implements Runnable {
       // Read the player number assigned to self.
       Byte cmd = stateStream.readByte();
       assert(cmd == 'p');
-      config.setPlayerNo(stateStream.readInt());
+      ClientConfiguration.setPlayerNo(stateStream.readInt());
 
 
       // Parse the arena
@@ -93,16 +90,16 @@ public class Client implements Runnable {
       /* End of handshake. */
 
 	    
-      System.out.println(config);
+      System.out.println(ClientConfiguration.asString());
 
 
       /* Run the intelligence in a separate thread so that parsing/serializing
          doesn't block thinking. */
       Intelligence intel;
-      if (config.nonhuman)
-        intel = new Nonhuman(config, arena);
+      if (ClientConfiguration.nonhuman)
+        intel = new Nonhuman(arena);
       else
-        intel = new HigherBeing(config, arena);
+        intel = new HigherBeing(arena);
 
       System.out.println("Ready...");
       
@@ -150,11 +147,11 @@ public class Client implements Runnable {
    */
   public static void main(String argv[]) throws Exception {
 
-    ClientConfiguration config = ClientConfiguration.parse(System.in);
+    ClientConfiguration.parse(System.in);
 
     Client client;
 
-    if (!config.nonhuman) {
+    if (!ClientConfiguration.nonhuman) {
 
       // The main application window
       JFrame frame = new JFrame();
@@ -176,10 +173,10 @@ public class Client implements Runnable {
       frame.setVisible(true);
 
 
-      client = new Client(config, gui);
+      client = new Client(gui);
 
     } else {
-      client = new Client(config, null);
+      client = new Client(null);
     }
 
     client.run(); // Can just run this from the main() thread.

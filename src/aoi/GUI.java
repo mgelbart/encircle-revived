@@ -19,9 +19,6 @@ import java.util.Vector;
 */
 public class GUI implements Runnable {
 
-  // The input options received from Client.
-  ClientConfiguration config;
-
   /* Most recent game state. Updated by the Intelligence. */
   private GameState game;
 
@@ -48,10 +45,9 @@ public class GUI implements Runnable {
   private int[] lastScoringTime;
   
   @SuppressWarnings("unchecked")
-  public GUI(Arena arena, ClientConfiguration config) {
+  public GUI(Arena arena) {
 
     this.arena = arena;
-    this.config = config;
     game = null;
 
     currentLoopStarted = new int[SimulationUtils.NUMPLAYERS];
@@ -83,7 +79,7 @@ public class GUI implements Runnable {
 
     Color[] colors = new Color[2];
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      colors[j] = (j == config.playerNo) ? Color.RED : Color.BLUE;
+      colors[j] = (j == ClientConfiguration.playerNo) ? Color.RED : Color.BLUE;
 	
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
@@ -182,8 +178,8 @@ public class GUI implements Runnable {
 
     // Set the zoom level
     final double r = Math.max(SimulationUtils.ARENASIZE/2,
-                              Math.max(Math.abs(g.states[config.playerNo].ship.x() * 1.05),
-                                       Math.abs(g.states[config.playerNo].ship.y() * 1.05)));
+                              Math.max(Math.abs(g.states[ClientConfiguration.playerNo].ship.x() * 1.05),
+                                       Math.abs(g.states[ClientConfiguration.playerNo].ship.y() * 1.05)));
 
     DrawUtils.setRenderedGameCoords(0, 0, (int) (2*r), (int) (2*r));
 

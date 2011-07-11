@@ -6,46 +6,33 @@ import java.io.*;
  *  A class used for storing client options, like
  * server address, enabled modules, etc.
  */
-public class ClientConfiguration {
+public abstract class ClientConfiguration {
 
   // The server address, without port information.
-  public final String serverUrl;
+  public static String serverUrl = null;
 
   // The server port for receiving the game state and sending
   // the control parameters.
-  public final int serverPort;
+  public static int serverPort;
 
   // Player number in the game.
-  public int playerNo;
+  public static int playerNo;
 
   // True if the player is controlled entirely by the computer.
-  public final boolean nonhuman;
+  public static boolean nonhuman;
 
   // The number of milliseconds to predict the game into the future,
   // a.k.a. client-side-prediction.
   // Set to zero to disable prediction.
-  public final int predictFuture;
+  public static int predictFuture;
 
-  public ClientConfiguration(String serverUrl, int serverPort,
-                             int playerNo, boolean nonhuman,
-                             int predictFuture) {
-    this.serverUrl = serverUrl;
-    this.serverPort = serverPort;
-    this.playerNo = playerNo;
-    this.nonhuman = nonhuman;
-    this.predictFuture = predictFuture;
-
-    assert(serverPort > 1023);
-    assert(serverPort < 65536);
+  
+  public static void setPlayerNo(int p) {
+    playerNo = p;
   }
 
 
-  public void setPlayerNo(int p) {
-    this.playerNo = p;
-  }
-
-
-  public String toString() {
+  public static String asString() {
     return "server:\n" + serverUrl
       + "\nport:\n" + serverPort
       + "\nplayer no:\n" + playerNo
@@ -54,12 +41,8 @@ public class ClientConfiguration {
   }
 
 
-  public static ClientConfiguration parse(InputStream in) {
+  public static void parse(InputStream in) {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
-    String serverUrl;
-    int serverPort, predict;
-    boolean nonhuman;
 
     try {
 
@@ -73,18 +56,22 @@ public class ClientConfiguration {
       nonhuman = Boolean.parseBoolean(reader.readLine());
 
       reader.readLine();
-      predict = Integer.parseInt(reader.readLine());
+      predictFuture = Integer.parseInt(reader.readLine());
 
     } catch (Exception e) {
 
       System.err.println(e.toString());
       assert(false);
-      return null;
 
     }
-
-    return new ClientConfiguration(serverUrl, serverPort,
-                                   -1, nonhuman, predict);
+  
+    assert(serverPort > 1023);
+    assert(serverPort < 65536);
+    
   }
 
+  public static boolean isLoaded() {
+    return serverUrl != null;
+  }
+  
 }
