@@ -40,7 +40,7 @@ public class Tail {
   
   
   // Create a copy of the Tail with 
-  public Tail addPoint(int x, int y, int time) {
+  public void addPoint(int x, int y, int time) {
 
     Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
