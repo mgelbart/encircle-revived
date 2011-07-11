@@ -68,7 +68,7 @@ public class Arena {
       o.writeBytes(this.toString());
 
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
     }
 
@@ -85,7 +85,7 @@ public class Arena {
       return new Arena(arena.clusters, arena.sequence);
 
     } catch (Exception e) {
-      System.out.println(e.toString());
+      Logger.println(Logger.RepetitionRate.FEW, e.toString());
       assert(false);
       return null;
     }
@@ -96,8 +96,8 @@ public class Arena {
   public static void main(String argv[]) throws Exception {
     FileInputStream file = new FileInputStream(ARENA_METADATA_FILENAME);
     Arena arena = Arena.parse(file);
-    System.out.println("Parsed arena:");
-    System.out.println(arena.toString());
+    Logger.println(Logger.RepetitionRate.FEW, "Parsed arena:");
+    Logger.println(Logger.RepetitionRate.FEW, arena.toString());
   }
 
 

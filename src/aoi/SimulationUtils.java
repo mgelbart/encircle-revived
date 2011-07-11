@@ -79,7 +79,7 @@ public abstract class SimulationUtils {
   // the larger this is, the crazier the effect will be 
     double PERSISTENCE_FACTOR = 1.0;
     double drag = Simulation.DRAG * (0.6 + Math.pow(angleDifference(angleFacing, Math.atan2(vy, vx)), PERSISTENCE_FACTOR));  // * scaled by this angle!
-    System.out.println("drag factor: " + drag/Simulation.DRAG);
+    Logger.println(Logger.RepetitionRate.FREQUENT, "drag factor: " + drag/Simulation.DRAG);
 */
 // I ultimately decided the above is stupid because I realized that the special ability to 
 // speed boost will create exactly this effect that I want, since it will add some
@@ -130,7 +130,7 @@ public abstract class SimulationUtils {
 
   // Returns the angle between three points (0-1-2). Angle in [0 pi)
   public static double angle(double x0, double y0, double x1, double y1, double x2, double y2) {
-    // System.out.println("** " + x0 + " " + y0 + " " + x1 + " " + y1 + " " + x2 + " " + y2); 
+    // Logger.println(Logger.RepetitionRate.FREQUENT, "** " + x0 + " " + y0 + " " + x1 + " " + y1 + " " + x2 + " " + y2); 
     // Set (x1, y1) to origin
     x0 -= x1;
     y0 -= y1;

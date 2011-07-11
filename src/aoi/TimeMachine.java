@@ -41,7 +41,7 @@ public class TimeMachine {
 
       states.insertElementAt(g, i);
 
-      //System.err.println("New state for t=" + g.time + " inserted at i=" + i);
+      //Logger.println(Logger.RepetitionRate.FREQUENT, "New state for t=" + g.time + " inserted at i=" + i);
 
       if (N+1 > STATESSIZE)
         states.removeElementAt(0);
@@ -180,7 +180,7 @@ public class TimeMachine {
     if (reader != null) params = reader.paramsAt(time, playerNo);
     if (params != null) return params;
 
-    //System.err.println("Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");
+    //Logger.println(Logger.RepetitionRate.FEW, "Couldn't get prediction from MindReader for player " + playerNo + " at t=" + time + ".");
 
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
@@ -203,8 +203,8 @@ public class TimeMachine {
 
       /*
         if (i>0 && ownParams.get(i-1).effectiveOn - time < -2) {
-        System.err.println("getOwnParamsAt(" + time + ")");
-        System.err.println("effectiveOn: " + ownParams.get(i-1).effectiveOn);
+        Logger.println(Logger.RepetitionRate.FREQUENT, "getOwnParamsAt(" + time + ")");
+        Logger.println(Logger.RepetitionRate.FREQUENT, "effectiveOn: " + ownParams.get(i-1).effectiveOn);
         }
       */
 

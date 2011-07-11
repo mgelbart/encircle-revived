@@ -1,6 +1,5 @@
 package aoi;
 
-import java.awt.geom.Path2D;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.BasicStroke;

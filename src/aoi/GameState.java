@@ -71,7 +71,7 @@ public class GameState implements Comparable<GameState> {
         bullets.get(j).serialize(b);
 
     } catch (IOException ioe) {
-      System.err.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
     }
 
@@ -105,7 +105,7 @@ public class GameState implements Comparable<GameState> {
 	    
 
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
       return null;
     }

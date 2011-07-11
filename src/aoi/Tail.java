@@ -91,7 +91,7 @@ public class Tail {
       thatTrajectory.addPoint(curPoint);
       thatTimes.add(time);
       
-      //System.err.println(thatTrajectory.nPoints() + " " + thatTimes.size());
+      //Logger.println(Logger.RepetitionRate.FREQUENT, thatTrajectory.nPoints() + " " + thatTimes.size());
       assert(thatTrajectory.nPoints() == thatTimes.size());
       
       return new Tail(thatTrajectory, thatTimes);

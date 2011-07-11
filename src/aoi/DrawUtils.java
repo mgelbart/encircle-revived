@@ -197,7 +197,7 @@ public class DrawUtils {
     else
       ss = fromOverlayCoords.createTransformedShape(s);
 
-    //System.err.println("Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + "). gameCoordinates: " + gameCoordinates);
+    //Logger.println(Logger.RepetitionRate.FREQUENT, "Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + "). gameCoordinates: " + gameCoordinates);
     if (fill)
       offscreen.fill(ss);
     else
@@ -232,7 +232,7 @@ public class DrawUtils {
     else
       b = fromOverlayCoords.createTransformedShape(box).getBounds2D();
 
-    //System.err.println("Picture at (" + xs + ", " + ys + ")");
+    //Logger.println(Logger.RepetitionRate.FREQUENT, "Picture at (" + xs + ", " + ys + ")");
     offscreen.drawImage(image,
                         (int) Math.round((b.getX())),
                         (int) Math.round((b.getY())),

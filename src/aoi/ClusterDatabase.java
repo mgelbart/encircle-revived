@@ -91,7 +91,7 @@ public class ClusterDatabase {
         b = imgStream.read(); // Returns -1 at end of stream.
       }
     } catch (Exception e) {
-      System.err.println(e);
+      Logger.println(Logger.RepetitionRate.FEW, e.toString());
       assert(false);
     }
 
@@ -180,11 +180,11 @@ public class ClusterDatabase {
   // Construct a ClusterServerSide corresponding to a Cluster
   public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
     ClusterServerSide css = parseCluster(c.imgName());
-    // System.err.println(c.imgName());
-    // System.err.println(c.contour());
-    // System.err.println(c.imgMetaData());
-    // System.err.println(css.nsLikelihoods);
-    // System.err.println("--");
+    Logger.println(Logger.RepetitionRate.INFREQUENT, c.imgName());
+    //Logger.println(Logger.RepetitionRate.FREQUENT, c.contour().toString());
+    //Logger.println(Logger.RepetitionRate.FREQUENT, c.imgMetaData().toString());
+    //Logger.println(Logger.RepetitionRate.FREQUENT, css.nsLikelihoods.toString());
+    //Logger.println(Logger.RepetitionRate.FREQUENT, "--");
     return new ClusterServerSide(c.contour(), c.imgMetaData(), css.nsLikelihoods);
   }
   
@@ -221,7 +221,7 @@ public class ClusterDatabase {
             css = null;
       	}
         
-        if (css == null) System.err.println("Error: database does not have enough clusters with " + nSegments + " segments.");
+        if (css == null) Logger.println(Logger.RepetitionRate.FEW, "Error: database does not have enough clusters with " + nSegments + " segments.");
         assert(css != null);
         
         // keep searching for a random location until finding one that does not

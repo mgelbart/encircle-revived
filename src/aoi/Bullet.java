@@ -84,7 +84,7 @@ public class Bullet implements Cloneable {
       o.writeInt(direction);
 
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
     }
 
@@ -110,7 +110,7 @@ public class Bullet implements Cloneable {
       d = i.readInt();
 	    
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
       return null;
     }

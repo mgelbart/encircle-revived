@@ -60,7 +60,7 @@ public abstract class ClientConfiguration {
 
     } catch (Exception e) {
 
-      System.err.println(e.toString());
+      Logger.println(Logger.RepetitionRate.FEW, e.toString());
       assert(false);
 
     }

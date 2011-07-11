@@ -93,7 +93,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
       b.writeInt(boostsToTake);
 
     } catch (IOException ioe) {
-      System.err.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
     }
 
@@ -130,7 +130,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
       b = i.readInt();
 	    
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
       return null;
     }

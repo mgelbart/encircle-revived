@@ -153,7 +153,7 @@ public class PlayerState {
       o.writeBoolean(respawning);
 
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
     }
 
@@ -221,7 +221,7 @@ public class PlayerState {
 
 	    
     } catch (IOException ioe) {
-      System.out.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
       assert(false);
       return null;
     }

@@ -48,7 +48,7 @@ public class Client implements Runnable {
       socket.setTcpNoDelay(true);
 
     } catch (Exception e) {
-      System.err.println(e);
+      Logger.println(Logger.RepetitionRate.FEW, e.toString());
       assert(false);
     } 
 
@@ -90,7 +90,7 @@ public class Client implements Runnable {
       /* End of handshake. */
 
 	    
-      System.out.println(ClientConfiguration.asString());
+      Logger.println(Logger.RepetitionRate.FEW, ClientConfiguration.asString());
 
 
       /* Run the intelligence in a separate thread so that parsing/serializing
@@ -101,7 +101,7 @@ public class Client implements Runnable {
       else
         intel = new HigherBeing(arena);
 
-      System.out.println("Ready...");
+      Logger.println(Logger.RepetitionRate.FEW, "Ready...");
       
       GameState game = null;
 
@@ -123,7 +123,7 @@ public class Client implements Runnable {
       } catch (Exception ee) {
       }
 
-      System.err.println(e);
+      Logger.println(Logger.RepetitionRate.FEW, e.toString());
       assert(false);
     }
 

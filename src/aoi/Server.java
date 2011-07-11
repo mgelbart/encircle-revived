@@ -58,7 +58,7 @@ public abstract class Server {
           buf.write(simulation.arena.toString());
           buf.close();
         } catch (Exception e) {
-          System.out.println(e.toString());
+          Logger.println(Logger.RepetitionRate.FEW, e.toString());
           assert(false);
         }
 
@@ -72,13 +72,13 @@ public abstract class Server {
 		      }
 
         } catch (Exception e) {
-          System.out.println(e.toString());
+          Logger.println(Logger.RepetitionRate.FEW, e.toString());
           assert(false);
         }
 
       }
 	    
-      System.out.println("Arena generated.");
+      Logger.println(Logger.RepetitionRate.FEW, "Arena generated.");
 
 
       simulation.initGameState();
@@ -101,10 +101,10 @@ public abstract class Server {
 
       // Wait for two clients to connect:
 
-      System.out.println("Waiting for clients to connect...");
+      Logger.println(Logger.RepetitionRate.FEW, "Waiting for clients to connect...");
       for (int j=0; j<2; ++j) {
         sockets[j] = servSocket.accept();
-        System.out.println("Player " + j + " connected.");
+        Logger.println(Logger.RepetitionRate.FEW, "Player " + j + " connected.");
 
         // Don't buffer data before sending TCP packets.
         sockets[j].setTcpNoDelay(true);

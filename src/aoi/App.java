@@ -30,7 +30,7 @@ public class App extends JApplet {
           }
         });
     } catch (Exception e) {
-      System.err.println("createGUI didn't complete successfully");
+      Logger.println(Logger.RepetitionRate.FEW, "createGUI didn't complete successfully");
     }
     */
 

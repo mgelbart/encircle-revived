@@ -68,7 +68,7 @@ public class HigherBeing implements Intelligence {
 
     this.arena = arena;
     
-    System.out.println("HigherBeing for player " + ClientConfiguration.playerNo + " created.");
+    Logger.println(Logger.RepetitionRate.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
 
     gui = new GUI(arena);
     guiThread = new Thread(gui);
@@ -106,7 +106,7 @@ public class HigherBeing implements Intelligence {
       }
 
       assert(ctrl.size() < 20); // Something is wrong if they get piled up.
-      //System.err.println("ctrl " + ctrl.size());
+      //Logger.println(Logger.RepetitionRate.FREQUENT, "ctrl " + ctrl.size());
     }
 
     return null;
@@ -220,15 +220,15 @@ public class HigherBeing implements Intelligence {
         if (newRenderedTime - renderedAuthorativeState.time < simulatedSteps) {
   
           /*
-          System.err.println("Skipped "
+          Logger.println(Logger.RepetitionRate.FREQUENT, "Skipped "
                              + (renderedAuthorativeState.time
                                 + MINSIMULATEDSTEPS
                                 - newRenderedTime)
                              + " frames.");
   
-          System.err.println("Authorative time: " + renderedAuthorativeState.time);
+          Logger.println(Logger.RepetitionRate.FREQUENT, "Authorative time: " + renderedAuthorativeState.time);
           if (renderedState != null) {
-            System.err.println("Rendered time: " + renderedState.time);
+            Logger.println(Logger.RepetitionRate.FREQUENT, "Rendered time: " + renderedState.time);
           }
           */
           

@@ -111,7 +111,7 @@ public class Simulation {
     timer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
 
 
-    System.out.println("Game starting.");
+    Logger.println(Logger.RepetitionRate.FEW, "Game starting.");
 
     while (true) {
 
@@ -121,7 +121,7 @@ public class Simulation {
       } catch (InterruptedException e) {
 
         if (game.time % 100 == 0)
-          System.out.println("Current local time: " + game.time);
+          Logger.println(Logger.RepetitionRate.INFREQUENT, "Current local time: " + game.time);
 
         // Check if one of the players won.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
@@ -218,7 +218,7 @@ public class Simulation {
                 // Check for scoring
                 for (ClusterServerSide c : clusters) {
                   if (c.acceptable(arena.sequence()[score]) && loop.contains(c.centerX(), c.centerY())) {
-                    System.out.println("Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
+                    Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
 

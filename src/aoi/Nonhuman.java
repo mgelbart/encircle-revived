@@ -32,7 +32,7 @@ public class Nonhuman implements Intelligence {
 
     this.arena = arena;
 
-    System.out.println("Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
+    Logger.println(Logger.RepetitionRate.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
 
     games = new GameState[1];
 
@@ -94,7 +94,7 @@ public class Nonhuman implements Intelligence {
                   games[0].states[ClientConfiguration.playerNo].ship.y(), 
                   ComparedSayWithPET.x(), ComparedSayWithPET.y());
               
-              // System.out.println(theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
+              // Logger.println(Logger.RepetitionRate.FREQUENT, theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
               if (theangle < MAX_ANGLE_TO_SHOOT) {
                 shots = 1;
               }
@@ -155,10 +155,10 @@ public class Nonhuman implements Intelligence {
         else {
           acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
                        * SimulationUtils.INTMAX);
-          //System.out.println(bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
+          //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
         }
         // if (Math.random() < .9) acc=0;
-        //System.out.println("acc: " + acc);
+        //Logger.println(Logger.RepetitionRate.FREQUENT, "acc: " + acc);
 
         lastAction = games[0].time;
 

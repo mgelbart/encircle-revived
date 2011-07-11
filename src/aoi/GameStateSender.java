@@ -53,7 +53,7 @@ public class GameStateSender implements Runnable {
       stream.flush();
 
     } catch (IOException ioe) {
-      System.err.println(ioe.toString());
+      Logger.println(Logger.RepetitionRate.INFREQUENT, ioe.toString());
       assert(false);
     }
 
@@ -78,7 +78,7 @@ public class GameStateSender implements Runnable {
           previousTime = g.time;
 
           try { stream.flush(); }
-          catch (Exception ex) { System.err.println(ex); assert(false); }
+          catch (Exception ex) { Logger.println(Logger.RepetitionRate.INFREQUENT, ex.toString()); assert(false); }
         }
 
       }
