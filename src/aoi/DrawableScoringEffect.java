@@ -9,12 +9,7 @@ import java.awt.BasicStroke;
 /**
  *  A GUI element for the special FX shown when you score.
  */
-public class DrawableScoringEffect extends DrawablePath {
-
-  private int playerNo;
-
-  // Time when the current loop was started.
-  private int currentLoopStarted = 0;
+public class DrawableScoringEffect extends DrawablePlayerComponent {
 
   // Last known score.
   private int lastScore = 0;
@@ -29,10 +24,8 @@ public class DrawableScoringEffect extends DrawablePath {
   private final float SCORINGWIDTH = (float) 10.;
 
 
-  public DrawableScoringEffect(int playerNo, Paint paint, Stroke stroke) {
-    super(new Path2D.Double(), paint, stroke);
-
-    this.playerNo = playerNo;
+  public DrawableScoringEffect(int playerNo, Stroke stroke) {
+    super(playerNo, stroke);
   }
 
   // Return the path to be drawn.
@@ -41,20 +34,9 @@ public class DrawableScoringEffect extends DrawablePath {
 
     if (s.score > lastScore) {
       scored = SCORINGTIME;
-      scoringLoop = path;
+      scoringLoop = s.tail.toPath2D();
     }
     lastScore = s.score;
-
-    if (currentLoopStarted != s.loopStarted) {
-      path = new Path2D.Double();
-      currentLoopStarted = s.loopStarted;
-    }
-
-    if (path.getCurrentPoint() == null) {
-      path.moveTo(s.ship.x(), s.ship.y());
-    } else {
-      path.lineTo(s.ship.x(), s.ship.y());
-    }
 
     if (scored > 0)
       return new Shape[]{scoringLoop};

@@ -1,6 +1,5 @@
 package aoi;
 
-import java.awt.geom.Path2D;
 import java.awt.*;
 
 /**
@@ -8,44 +7,31 @@ import java.awt.*;
  *  to be connected by lines. Can be used to render polygons
  *  or open paths.
  */
-public class DrawablePath implements Drawable {
+public class DrawablePlayerComponent implements Drawable {
 
   private boolean removed = false;
 
-  protected Path2D path;
-  protected Paint paint;
+  private Paint paint;
   protected Stroke stroke;
-
+  protected int playerNo;
+  
   // Connect the pts[npoints][2] with lines.
   // If close is true, the first and last points are connected.
-  public DrawablePath(int[][] pts, boolean close, Paint paint, Stroke stroke) {
-    this.paint = paint;
+  public DrawablePlayerComponent(int playerNo, Stroke stroke) {
     this.stroke = stroke;
+    this.playerNo = playerNo;
 
-    Path2D p = new Path2D.Double(Path2D.WIND_NON_ZERO, pts.length);
-
-    if (pts.length > 0) {
-      p.moveTo(pts[0][0], pts[0][1]);
-      for (int j=1; j<pts.length; ++j) {
-        p.lineTo(pts[j][0], pts[j][1]);
-      }
-      if (close)
-        p.closePath();
-    }
-
-    this.path = p;
   }
 
-  public DrawablePath(Path2D path, Paint paint, Stroke stroke) {
-    this.path = path;
-    this.paint = paint;
-    this.stroke = stroke;
+  // TODO should depend on your color
+  public static Color getColor(int playerNo) { 
+    return (playerNo == 0) ? Color.RED : Color.BLUE;
   }
-
+  
   // Returns the shape to be drawn, if any.
   // May depend on the current game state.
   public Shape[] shapes(GameState state) {
-    return new Shape[]{path};
+    return new Shape[0];
   }
 
   // Returns the image to be drawn, if any.

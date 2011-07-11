@@ -77,8 +77,8 @@ public class GUI implements Runnable {
     for (Cluster c : arena.clusters) {
       // The cluster image
       drawables.add(new DrawableCluster(c));
-      // The cluster contour
-      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, Color.GREEN, DrawUtils.DEFAULTSTROKE));
+      // The cluster contour TODO
+//      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, Color.GREEN, DrawUtils.DEFAULTSTROKE));
     }
 
     Color[] colors = new Color[2];
@@ -87,15 +87,15 @@ public class GUI implements Runnable {
 	
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableTail(j, colors[j], DrawUtils.DEFAULTSTROKE));
+      drawables.add(new DrawableTail(j, DrawUtils.DEFAULTSTROKE));
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableShip(j, colors[j], DrawUtils.DEFAULTSTROKE));
+      drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableBullets());
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableScoringEffect(j, colors[j], DrawUtils.DEFAULTSTROKE));
+      drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScore(Color.GRAY, colors, arena.sequence()));
 
