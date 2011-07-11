@@ -1,5 +1,7 @@
 package aoi;
 
+import java.awt.Point;
+import java.awt.geom.Line2D;
 import java.io.*;
 
 /** A "read-only" class used to represent a bullet in
@@ -35,6 +37,11 @@ public class Bullet implements Cloneable {
     this.playerNo = playerNo;
   }
 
+  public Line2D getLine() {
+    int[] nextPos = SimulationUtils.nextBulletPosition(this);
+    return new Line2D.Double(new Point(x, y), new Point(nextPos[2], nextPos[1]));
+  }
+  
   public Bullet clone() {
     try {
       return (Bullet) super.clone();
