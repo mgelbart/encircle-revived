@@ -43,6 +43,11 @@ public class Tail {
   
   private int nPoints() { return trajectory.nPoints(); }
   
+  public int startTime() {
+    if (times.isEmpty()) return -1;
+    return times.get(0);
+  }
+  
   public Path2D intersects(Tail that) {
     return trajectory.intersectsLastElement(that.trajectory);
   }

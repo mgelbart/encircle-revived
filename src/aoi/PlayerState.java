@@ -201,8 +201,14 @@ public class PlayerState {
       return null;
     }
 
-    final Tail newTail = (prevState == null) ?
-        new Tail(x, y, time) : prevState.tail.addPoint(x, y, time);
+    // Add the latest player location to the tail unless
+    // the transmitted loop started parameter indicates that a
+    // new tail was started.
+    Tail newTail;
+    if (prevState == null || prevState.tail.startTime() < l)
+      newTail = new Tail(x, y, time);
+    else
+      newTail = prevState.tail.addPoint(x, y, time);
     
     return new PlayerState(p, x, y, vx, vy, d, e, l, s, r, newTail);
   }
