@@ -8,7 +8,6 @@ Fix CSP! Your own ship now responds instanteneously as expected. Still some issu
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
-Better hit-checking algorithm for bullets.
 Set up Bugzilla
 Refactor: get rid of drawable path and have the path around cluster by part of cluster drawing. Playerstate will own a Ship.
 Make colors around boxes when players have the same score

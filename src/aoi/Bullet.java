@@ -39,7 +39,7 @@ public class Bullet implements Cloneable {
 
   public Line2D getLine() {
     int[] nextPos = SimulationUtils.nextBulletPosition(this);
-    return new Line2D.Double(new Point(x, y), new Point(nextPos[2], nextPos[1]));
+    return new Line2D.Double(new Point(x, y), new Point(nextPos[0], nextPos[1]));
   }
   
   public Bullet clone() {

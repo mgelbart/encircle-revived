@@ -44,7 +44,7 @@ public class Cluster {
 	}
 	
 	public boolean intersects(Bullet b) {
-	  return contour.intersects(b.getLine());
+	  return contour.intersects(b.getLine()) || contains(b.x, b.y);
 	}
 	
 	// move the cluster by (deltaX, deltaY)

@@ -2,7 +2,6 @@ package aoi;
 
 import java.io.*;
 import java.util.Vector;
-import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.geom.Path2D;
 import java.util.Timer;
@@ -272,19 +271,14 @@ public class Simulation {
           int x = bulletPos[0];
           int y = bulletPos[1];
 
-          // TODO: This isn't an accurate way of doing this if
-          //   the bullets/players move fast.
           for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
 
             // if player j is currently dead 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
-            int[][] xy = states[j].ship.shape();
-            Polygon p = new Polygon(xy[0], xy[1], xy[0].length);
-
             // if b does not belong to player j and the players ship contains b
-            if (b.playerNo != j && p.contains(b.x, b.y)) {
-
+            if (b.playerNo != j && states[j].ship.intersects(b)) {
+            
               remove = true;
 
               playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
@@ -297,10 +291,10 @@ public class Simulation {
           if (!mapedges.contains(x, y))
             remove = true;
 
-          for (Cluster c : clusters) {
-            if (c.contains(x, y))
+          for (Cluster c : clusters)
+            if (c.intersects(b))
               remove = true;
-          } 
+          
 
           // Update the bullet position unless it hit something.
           if (!remove)
