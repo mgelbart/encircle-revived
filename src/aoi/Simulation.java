@@ -24,7 +24,7 @@ public class Simulation {
 
   // Private information we want to store about the players
   // but not communicate to the clients.
-  private final PlayerStateInternal[] playerStatesInt = new PlayerStateInternal[2];
+  private final PlayerStateExtraInfo[] playerStatesInt = new PlayerStateExtraInfo[2];
 
   // Static information about the game state.
   public Arena arena;
@@ -79,7 +79,7 @@ public class Simulation {
 
     int dir = (int) (SimulationUtils.INTMAX  * (1 - 2*Math.random()));
 
-    playerStatesInt[playerNo] = new PlayerStateInternal(x, y, time);
+    playerStatesInt[playerNo] = new PlayerStateExtraInfo();
 
     int loopStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
@@ -188,13 +188,14 @@ public class Simulation {
           Ship ship = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
 
           // Add the new position to the player's tail
-          playerStatesInt[j].tail = playerStatesInt[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
+          Tail tail = states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
 
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
           // Also checks if players scored.
           int score = states[j].score;
-
+          Tail loop = null;
+          
           // Check if any player (including j) is crossing j's path
           for (int i=0; i<SimulationUtils.NUMPLAYERS; ++i) {
             //   if (i != j) continue;   // uncomment this to disable path-killing            
@@ -204,20 +205,25 @@ public class Simulation {
             // but this is fine because in the i!=j case all we really need out of this function
             // is a boolean and loop==null is that boolean)
             // Note this is not symmetric in i and j.
-            Path2D loop = playerStatesInt[i].tail.intersects(playerStatesInt[j].tail);
+            Tail intersection = states[i].tail.intersects(tail);
 
-            if (loop != null) {  // if an intersection occurred
-              erasePath = true;
+            if (intersection != null) {  // if an intersection occurred
 
-              if (i == j) {   
-
+              if (i != j) {
+                erasePath = true;
+              } else {
+                
+                loop = intersection;
+                
                 boolean scored = false;
 
                 assert(score < arena.sequence().length);
 
                 // Check for scoring
                 for (ClusterServerSide c : clusters) {
-                  if (c.acceptable(arena.sequence()[score]) && loop.contains(c.centerX(), c.centerY())) {
+                  
+                  // check if the center of the cluster is in the loop just made
+                  if (c.acceptable(arena.sequence()[score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
                     Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
@@ -239,7 +245,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (loop.contains(states[k].ship.x(), states[k].ship.y())) {
+                  if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
 
                     states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
 
@@ -249,15 +255,32 @@ public class Simulation {
             }
           }
 
-          int loopStarted;
+          int tailStarted, cropFrom, cropTo;
           if (erasePath) {
-            playerStatesInt[j].tail = new Tail(ship.x(), ship.y(), game.time + 1);
-            loopStarted = game.time;
+            // if your path needs to be erased (you got shot, for ex.)
+            tail = new Tail(ship.x(), ship.y(), game.time + 1);
+            tailStarted = game.time;
+            cropFrom = tailStarted;
+            cropTo = tailStarted;
+          } else if (loop != null) {
+            // if you completed a loop
+            tailStarted = states[j].tailStarted;
+            cropFrom = loop.startTime();
+            cropTo = game.time;
+            System.err.print(tail.pathLength());
+            tail = tail.crop(cropFrom, cropTo);
+            System.err.println(" -> " + tail.pathLength());
+            System.err.println(cropFrom + ":" + cropTo);
           } else {
-            loopStarted = states[j].tailStarted;
+            // normal time step --
+            tailStarted = states[j].tailStarted;
+            cropFrom = states[j].cropTailFrom;
+            cropTo = states[j].cropTailTo;
           }
 
-          states[j] = new PlayerState(j, ship, 0, loopStarted, loopStarted, loopStarted, score, states[j].respawning, playerStatesInt[j].tail);
+          states[j] = new PlayerState(j, ship, 0, 
+              tailStarted, cropFrom, cropTo, 
+              score, states[j].respawning, tail);
 
         }
 
@@ -282,8 +305,8 @@ public class Simulation {
             if (b.playerNo != j && states[j].ship.intersects(b)) {
             
               remove = true;
-
-              playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
+               // if you get shot then you lose your tail
+//              playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
 
               states[j] = states[j].clone("loopStarted", game.time);
 
@@ -342,24 +365,17 @@ public class Simulation {
 
 
 
-  private class PlayerStateInternal {
+  private class PlayerStateExtraInfo {
     /* Values used internally by the simulation. */
     public int shotsTaken = 0;
     public int reloadTimeLeft = 0;
 
     public int respawnTimeLeft = 0;
 
-    // The path traced by the ship since the last loop completion.
-    public Tail tail;
-
     // The last two control parameters.
     public PlayerControlParameters params = null;
     public PlayerControlParameters prevParams = null;
-
-
-    public PlayerStateInternal(int xInitial, int yInitial, int time) {
-      tail = new Tail(xInitial, yInitial, time);
-    }
+    
   }
 
 

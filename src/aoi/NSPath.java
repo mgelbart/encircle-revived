@@ -31,6 +31,7 @@ public class NSPath implements Iterable<Line2D> {
 
   // this is pretty ugly- this Class should probably extend
   // Path2D like NSPolygon.
+  // or else at least store points instead of lines
   public Path2D toPath2D() {
     if (start == null) return null;
     Path2D path = new Path2D.Double();
@@ -47,12 +48,18 @@ public class NSPath implements Iterable<Line2D> {
     else return lines.elementAt(i-1).getP2(); 
   }
   
+//  public Vector<Line2D> getLines() { return lines; }
+  
   public double length() { return length; }
   
   // Returns the number of points (not the number of line segments)
   public int nPoints() {
     if (start == null) return 0;
     else return lines.size() + 1;
+  }
+  
+  public int nLines() {
+    return lines.size();
   }
 
   
@@ -68,6 +75,14 @@ public class NSPath implements Iterable<Line2D> {
   public Point2D lastlastPoint() {
     if (lines.isEmpty()) return null;
     return lines.lastElement().getP1();
+  }
+  
+  public Line2D lastLine() {
+    if (lines.isEmpty()) return null;
+    return lines.lastElement();
+  }
+  public Line2D getLine(int i) {
+    return lines.elementAt(i);
   }
   
   public void removeLast() {
@@ -119,42 +134,6 @@ public class NSPath implements Iterable<Line2D> {
   }
   
   
-  /**
-   * Does this Tail intersect with the input Line2D?
-   * If so, return the loop that is formed. If not, return null.
-   */
-  public Path2D intersectsLastElement(NSPath that) {
-
-    if (that.lines.isEmpty()) return null;
-    
-    Path2D loop;  
-    Line2D last = that.lines.lastElement();
-    
-    for (int k=0; k < lines.size()-2; ++k) {
-
-      // Check if i's last step crossed any line segment of player
-      // j's path, O(N).
-      if (last.intersectsLine(lines.get(k))) {
-
-        // Construct a Path2D for the loop only.
-        loop = new Path2D.Double();
-
-        Point2D point = lines.get(k).getP2();
-        loop.moveTo(point.getX(), point.getY());
-
-
-        for (int l=k+1; l < lines.size(); ++l) {
-          point = lines.get(l).getP2();
-          loop.lineTo(point.getX(), point.getY());
-        }
-        return loop;
-        
-      }
-    }
-    return null;
-    
-    
-  }
 
 
   public Iterator<Line2D> iterator()  {
