@@ -136,7 +136,9 @@ public class TimeMachine {
 
       players[k] = new PlayerState(k, ship[k],
                                    last.states[k].energy,
-                                   last.states[k].loopStarted,
+                                   last.states[k].tailStarted,
+                                   last.states[k].tailStarted,
+                                   last.states[k].tailStarted,
                                    last.states[k].score,
                                    last.states[k].respawning,
                                    last.states[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points

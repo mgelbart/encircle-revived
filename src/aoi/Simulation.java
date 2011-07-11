@@ -81,8 +81,9 @@ public class Simulation {
 
     playerStatesInt[playerNo] = new PlayerStateInternal(x, y, time);
 
+    int loopStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
-                           (game == null) ? 0 : game.time, score, false,
+                           loopStarted, loopStarted,loopStarted, score, false,
                            new Tail(x, y, time)); 
   }
 
@@ -253,10 +254,10 @@ public class Simulation {
             playerStatesInt[j].tail = new Tail(ship.x(), ship.y(), game.time + 1);
             loopStarted = game.time;
           } else {
-            loopStarted = states[j].loopStarted;
+            loopStarted = states[j].tailStarted;
           }
 
-          states[j] = new PlayerState(j, ship, 0, loopStarted, score, states[j].respawning, playerStatesInt[j].tail);
+          states[j] = new PlayerState(j, ship, 0, loopStarted, loopStarted, loopStarted, score, states[j].respawning, playerStatesInt[j].tail);
 
         }
 

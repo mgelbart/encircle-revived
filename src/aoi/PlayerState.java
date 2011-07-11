@@ -22,12 +22,11 @@ public class PlayerState {
   public final Tail tail;
 
   // The time at which the last loop was completed/current one started.
-  public final int loopStarted;
+  public final int tailStarted;
   
-  // original path started
-  // last path ended
-  // current path started
-
+  
+  public final int cropTailFrom, cropTailTo;
+  
   // How many clusters the player has collected already
   public final int score;
 
@@ -35,11 +34,15 @@ public class PlayerState {
   public final boolean respawning;
 
 
-  public PlayerState(int playerNo, Ship ship, int energy, int loopStarted, int score, boolean respawning, Tail tail) {
+  public PlayerState(int playerNo, Ship ship, int energy, 
+      int tailStarted, int cropTailFrom, int cropTailTo, 
+      int score, boolean respawning, Tail tail) {
     this.playerNo = playerNo;
     this.ship = new Ship(ship);
     this.energy = energy;                     // NOT USED
-    this.loopStarted = loopStarted;
+    this.tailStarted = tailStarted;
+    this.cropTailFrom = cropTailFrom;
+    this.cropTailTo = cropTailTo;
     this.score = score;
     this.respawning = respawning;
     this.tail = tail;
@@ -48,8 +51,12 @@ public class PlayerState {
     assert(playerNo >= 0);
   }	
 
-  public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, int energy, int loopStarted, int score, boolean respawning, Tail tail) {
-    this(playerNo, new Ship(x, y, vx, vy, direction), energy, loopStarted, score, respawning, tail);
+  public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, 
+      int energy, int tailStarted, int cropTailFrom, int cropTailTo, 
+      int score, boolean respawning, Tail tail) {
+    this(playerNo, new Ship(x, y, vx, vy, direction), 
+        energy, tailStarted, cropTailFrom, cropTailTo,
+        score, respawning, tail);
   }	
 
 
@@ -58,7 +65,7 @@ public class PlayerState {
 
     int playerNo = this.playerNo;
     int energy = this.energy;
-    int loopStarted = this.loopStarted;
+    int tailStarted = this.tailStarted;
     int score = this.score;
     boolean respawning = this.respawning;
 
@@ -66,18 +73,22 @@ public class PlayerState {
     if (key.equals("score"))
       score = value;
     else if (key.equals("loopStarted"))
-      loopStarted = value;
+      tailStarted = value;
     else if (key.equals("respawning"))
       respawning = value != 0;
     else 
       assert(false);  // lol
 
-    return new PlayerState(playerNo, ship, energy, loopStarted, score, respawning, tail);
+    return new PlayerState(playerNo, ship, 
+        energy, tailStarted, cropTailFrom, cropTailTo, 
+        score, respawning, tail);
   }
 
   // Make a deep copy but set new ship
   public PlayerState clone(Ship newShip) {
-    return new PlayerState(playerNo, newShip, energy, loopStarted, score, respawning, tail);
+    return new PlayerState(playerNo, newShip, 
+        energy, tailStarted, cropTailFrom, cropTailTo,
+        score, respawning, tail);
   }
 
 
@@ -127,8 +138,14 @@ public class PlayerState {
       o.writeInt(energy);
 
       o.writeBytes("l");
-      o.writeInt(loopStarted);
+      o.writeInt(tailStarted);
 
+      o.writeBytes("m");
+      o.writeInt(cropTailFrom);
+
+      o.writeBytes("n");
+      o.writeInt(cropTailTo);
+      
       o.writeBytes("s");
       o.writeInt(score);
 
@@ -147,16 +164,16 @@ public class PlayerState {
   public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) {
 
     Byte cmd;
-    int p, x, y, vx, vy, d, e, l, s;
-    boolean r;
+    int playerNo, x, y, vx, vy, dir, energy, tailStarted, cropTailFrom, cropTailTo, score;
+    boolean respawning;
 
     try {
 
       cmd = i.readByte();
       assert(cmd == '#');
 
-      p = i.readInt();
-      assert(p == 0 || p == 1);
+      playerNo = i.readInt();
+      assert(playerNo == 0 || playerNo == 1);
 
       cmd = i.readByte();
       assert(cmd == 'x');
@@ -176,23 +193,31 @@ public class PlayerState {
 
       cmd = i.readByte();
       assert(cmd == 'd');
-      d = i.readInt();
+      dir = i.readInt();
 
       cmd = i.readByte();
       assert(cmd == 'e');
-      e = i.readInt();
+      energy = i.readInt();
 
       cmd = i.readByte();
       assert(cmd == 'l');
-      l = i.readInt();
+      tailStarted = i.readInt();
+
+      cmd = i.readByte();
+      assert(cmd == 'm');
+      cropTailFrom = i.readInt();
+
+      cmd = i.readByte();
+      assert(cmd == 'n');
+      cropTailTo = i.readInt();
 
       cmd = i.readByte();
       assert(cmd == 's');
-      s = i.readInt();
+      score = i.readInt();
 
       cmd = i.readByte();
       assert(cmd == 'r');
-      r = i.readBoolean();
+      respawning = i.readBoolean();
 
 	    
     } catch (IOException ioe) {
@@ -205,12 +230,14 @@ public class PlayerState {
     // the transmitted loop started parameter indicates that a
     // new tail was started.
     Tail newTail;
-    if (prevState == null || prevState.tail.startTime() < l)
+    if (prevState == null || prevState.tail.startTime() < tailStarted)
       newTail = new Tail(x, y, time);
     else
       newTail = prevState.tail.addPoint(x, y, time);
     
-    return new PlayerState(p, x, y, vx, vy, d, e, l, s, r, newTail);
+    return new PlayerState(playerNo, x, y, vx, vy, dir, 
+        energy, tailStarted, cropTailFrom, cropTailTo, 
+        score, respawning, newTail);
   }
 
   
