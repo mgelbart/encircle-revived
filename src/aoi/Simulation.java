@@ -267,10 +267,10 @@ public class Simulation {
             tailStarted = states[j].tailStarted;
             cropFrom = loop.startTime();
             cropTo = game.time;
-            System.err.print(tail.pathLength());
+            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
-            System.err.println(" -> " + tail.pathLength());
-            System.err.println(cropFrom + ":" + cropTo);
+            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
+            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else {
             // normal time step --
             tailStarted = states[j].tailStarted;
