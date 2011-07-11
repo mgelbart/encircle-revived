@@ -36,7 +36,7 @@ public class NSPath implements Iterable<Line2D> {
   public Path2D toPath2D() {
     if (start == null) return null;
     Path2D path = new Path2D.Double();
-    path.moveTo(start.getX(), start.getX());
+    path.moveTo(start.getX(), start.getY());
     for (Line2D line : lines)
       path.lineTo(line.getX1(), line.getY1());
     path.lineTo(lastPoint().getX(), lastPoint().getY());
