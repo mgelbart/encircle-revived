@@ -321,8 +321,8 @@ public class Simulation {
             crashed = true;
 
           for (Cluster c : clusters) {
-//            if (c.intersects(states[j].ship))
-              if (c.contains(states[j].ship.x(), states[j].ship.y()))
+            if (c.intersects(states[j].ship))
+//              if (c.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
           } 
 

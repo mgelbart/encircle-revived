@@ -55,6 +55,8 @@ public class DrawUtils {
   public static Paint DEFAULTPAINT = Color.BLACK;
   public static BasicStroke DEFAULTSTROKE = new BasicStroke((float) 1.);
 
+  public static int IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
+
 
   private static boolean initialized = false;
 
@@ -100,9 +102,8 @@ public class DrawUtils {
 
 
     // Initialize the buffer and the screen.
-
-    offscreenImage = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
-    onscreenImage  = new BufferedImage(canvasWidth, canvasHeight, BufferedImage.TYPE_INT_ARGB);
+    offscreenImage = new BufferedImage(canvasWidth, canvasHeight, IMAGE_TYPE);
+    onscreenImage  = new BufferedImage(canvasWidth, canvasHeight, IMAGE_TYPE);
     offscreen = offscreenImage.createGraphics();
     onscreen  = onscreenImage.createGraphics();
     setPaint(DEFAULTPAINT);
