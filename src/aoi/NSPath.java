@@ -16,7 +16,7 @@ import java.util.Vector;
  */
 public class NSPath implements Iterable<Line2D> {
   
-  private Point start;
+  private Point2D start;
   private Vector<Line2D> lines;
   private double length;  // Cache the trajectory length
   
@@ -25,12 +25,17 @@ public class NSPath implements Iterable<Line2D> {
     length = 0;    
   }
   
+  private NSPath(Point2D start, Vector<Line2D> lines, double length) {
+    this.start = start;
+    this.lines = lines;
+    this.length = length;
+  }
+
   public double length() { return length; }
   
   // Returns the number of points (not the number of line segments)
   public int nPoints() {
     if (start == null) return 0;
-    else if (length == 0 && lines.size() == 0) return 1;
     else return lines.size() + 1;
   }
 
@@ -50,20 +55,26 @@ public class NSPath implements Iterable<Line2D> {
   }
   
   public void removeLast() {
-    if (lines.isEmpty()) return;
+    if (lines.isEmpty()) {
+      start = null;
+      return;
+    }
     
     length -= lastlastPoint().distance(lastPoint());
     lines.remove(lines.size()-1);
   }
    
-  public void addLine(Line2D l) {
-    length += l.getP1().distance(l.getP2());
-    lines.add(l);
-  }
+//  public void addLine(Line2D l) {
+//    length += l.getP1().distance(l.getP2());
+//    lines.add(l);
+//  }
   
   public void addPoint(int x, int y) {
-    Point newPoint = new Point(x, y);
-    
+    addPoint(new Point(x, y));
+  }
+  
+  public void addPoint(Point2D newPoint) {
+  
     if (start == null) {
       start = newPoint;
     }
@@ -138,15 +149,14 @@ public class NSPath implements Iterable<Line2D> {
   public synchronized NSPath clone() {
     Vector<Line2D> ls = new Vector<Line2D>(lines.size()+1);
     
-    final int N = lines.size();
-    for (int i = 0; i<N; i++) {
-      ls.set(i, (Line2D) (lines.get(i).clone()));
-    }
-
-    NSPath that = new NSPath();
-    that.lines = ls;
-    that.length = length;
+    for (Line2D l : lines)
+      ls.add((Line2D) (l.clone()));
     
-    return that;
+//    final int N = lines.size();
+//    for (int i = 0; i<N; i++) {
+//      ls.set(i, (Line2D) (lines.get(i).clone()));
+//    }
+
+    return new NSPath(start, ls, length);
   }
 }

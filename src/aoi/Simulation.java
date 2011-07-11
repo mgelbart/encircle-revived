@@ -82,7 +82,8 @@ public class Simulation {
     playerStatesInt[playerNo] = new PlayerStateInternal(x, y, time);
 
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
-                           (game == null) ? 0 : game.time, score, false); 
+                           (game == null) ? 0 : game.time, score, false,
+                           new Tail(x, y, time)); 
   }
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
@@ -186,7 +187,7 @@ public class Simulation {
           Ship ship = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
 
           // Add the new position to the player's tail
-          playerStatesInt[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
+          playerStatesInt[j].tail = playerStatesInt[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
 
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
@@ -255,7 +256,7 @@ public class Simulation {
             loopStarted = states[j].loopStarted;
           }
 
-          states[j] = new PlayerState(j, ship, 0, loopStarted, score, states[j].respawning);
+          states[j] = new PlayerState(j, ship, 0, loopStarted, score, states[j].respawning, playerStatesInt[j].tail);
 
         }
 

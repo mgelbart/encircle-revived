@@ -77,7 +77,9 @@ public class GameState implements Comparable<GameState> {
 
   }
 
-  public static GameState parse(DataInputStream i) {
+  // Construct the new GameState using the state data received from the server
+  // and the previous state (needed to construct things like Tails that are sent incrementally).
+  public static GameState parse(DataInputStream i, GameState prevState) {
 
     Byte cmd;
     int t, bCount;
@@ -91,7 +93,7 @@ public class GameState implements Comparable<GameState> {
       t = i.readInt();
 
       for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-        states[j] = PlayerState.parse(i);
+        states[j] = PlayerState.parse(i, (prevState == null) ? null : prevState.states[j], t);
 	    
       cmd = i.readByte();
       assert(cmd == 'b');

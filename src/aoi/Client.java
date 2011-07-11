@@ -104,12 +104,12 @@ public class Client implements Runnable {
       else
         intel = new HigherBeing(config, arena);
 
-      GameState game;
-
       System.out.println("Ready...");
+      
+      GameState game = null;
 
       while (true) {
-        game = parseGameState(stateStream);
+        game = parseGameState(stateStream, game);
       
         intel.processGameStateUpdate(game);
       
@@ -133,8 +133,8 @@ public class Client implements Runnable {
     //socket.close();
   }
 
-  private static GameState parseGameState(DataInputStream i) {
-    return GameState.parse(i);
+  private static GameState parseGameState(DataInputStream i, GameState prevState) {
+    return GameState.parse(i, prevState);
   }
 
   private static void sendControlParameters(DataOutputStream o, PlayerControlParameters params) {
@@ -186,3 +186,4 @@ public class Client implements Runnable {
   }
 
 }
+

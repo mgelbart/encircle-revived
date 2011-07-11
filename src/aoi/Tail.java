@@ -28,6 +28,15 @@ public class Tail {
     trajectory.addPoint(x0, y0);
     times = new Vector<Integer>();
     times.add(time);
+    
+    assert(trajectory.nPoints() == times.size());
+  }
+  
+  private Tail(NSPath trajectory, Vector<Integer> times) {
+    this.trajectory = trajectory;
+    this.times = times;
+    
+    assert(trajectory.nPoints() == times.size());
   }
   
   public double pathLength() { return trajectory.length(); }
@@ -39,13 +48,20 @@ public class Tail {
   }
   
   
-  // Create a copy of the Tail with 
-  public void addPoint(int x, int y, int time) {
+  // Create a copy of the Tail with an added point.
+  @SuppressWarnings("unchecked")
+  public Tail addPoint(int x, int y, int time) {
 
+    // trajectory and times for the new tail
+    NSPath thatTrajectory = trajectory.clone();
+    Vector<Integer> thatTimes = (Vector<Integer>) (times.clone());
+    
+    assert(thatTrajectory.nPoints() == trajectory.nPoints());
+    assert(thatTimes.size() == times.size());
+    
     Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
     Point2D prevPrevPoint = trajectory.lastlastPoint();
-    Point2D newPoint;
 
     assert(prevPoint != null);
     
@@ -58,17 +74,27 @@ public class Tail {
       // but combine it with the previous segment if both are short.
       if (prevPrevPoint != null &&
             curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
-        trajectory.removeLast();
-        if (times.size() > 1) times.removeElementAt(times.size()-1);
-        newPoint = prevPrevPoint;
-      } else {
-        newPoint = prevPoint;
+
+        assert(thatTimes.size() > 1);
+        assert(thatTrajectory.nPoints() == thatTimes.size());
+        
+        thatTrajectory.removeLast();
+        thatTimes.removeElementAt(thatTimes.size()-1);
+        
       }
-      trajectory.addLine(new Line2D.Double(newPoint, curPoint));
-      times.add(time);
-    }  
-    
-    assert(trajectory.nPoints() == times.size());
+
+      thatTrajectory.addPoint(curPoint);
+      thatTimes.add(time);
+      
+      //System.err.println(thatTrajectory.nPoints() + " " + thatTimes.size());
+      assert(thatTrajectory.nPoints() == thatTimes.size());
+      
+      return new Tail(thatTrajectory, thatTimes);
+      
+    } else {
+      return this;
+    }
+
   }
   
   
