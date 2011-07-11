@@ -70,17 +70,8 @@ public class GUI implements Runnable {
      *   the rendering order
      */
 
-    for (Cluster c : arena.clusters) {
-      // The cluster image
+    for (Cluster c : arena.clusters)
       drawables.add(new DrawableCluster(c));
-      // The cluster contour TODO
-//      drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, Color.GREEN, DrawUtils.DEFAULTSTROKE));
-    }
-
-    Color[] colors = new Color[2];
-    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      colors[j] = (j == ClientConfiguration.playerNo) ? Color.RED : Color.BLUE;
-	
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableTail(j, DrawUtils.DEFAULTSTROKE));
@@ -93,7 +84,7 @@ public class GUI implements Runnable {
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
 
-    drawables.add(new DrawableScore(Color.GRAY, colors, arena.sequence()));
+    drawables.add(new DrawableScore(Color.GRAY, arena.sequence()));
 
 
     /* Canvas parameters: */
@@ -165,6 +156,7 @@ public class GUI implements Runnable {
   }
 
   // Add a Drawable object to the GUI.
+  // If a Drawable contains both images and shapes, the images are drawn first.
   public void addDrawable(Drawable d) {
     // Note: prepending not thread safe with the
     //       current mechanism of removing items
@@ -191,6 +183,11 @@ public class GUI implements Runnable {
         Shape[] s = d.shapes(g);
         Image img = d.img(g);
 
+        if (img != null) {
+          int[] loc = d.imgLocation();
+          DrawUtils.picture(loc[0], loc[1], loc[2], loc[3], img, true);
+        }
+        
         if (s != null) {
           boolean[] fill = d.fill();
           Paint[] colors = d.paint();
@@ -200,11 +197,6 @@ public class GUI implements Runnable {
             DrawUtils.setStroke(strokes[k]);
             DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
           }
-        }
-
-        if (img != null) {
-          int[] loc = d.imgLocation();
-          DrawUtils.picture(loc[0], loc[1], loc[2], loc[3], img, true);
         }
 
       } else {

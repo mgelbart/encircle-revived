@@ -1,19 +1,9 @@
 package aoi;
 
-import java.awt.Shape;
-import java.awt.Color;
-import java.awt.Image;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.Font;
+import java.awt.*;
+import java.awt.geom.*;
 import java.awt.font.GlyphVector;
-import java.awt.geom.AffineTransform;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.Paint;
-import java.awt.Stroke;
-import java.awt.BasicStroke;
 
 /**
  *  A GUI element for drawing the score.
@@ -34,9 +24,7 @@ public class DrawableScore implements Drawable {
 
   private AffineTransform at;
 
-  public DrawableScore(Color neutralColor, Color[] playerColors, int[] sequence) {
-    assert(playerColors.length == SimulationUtils.NUMPLAYERS);
-
+  public DrawableScore(Color neutralColor, int[] sequence) {
 
     fill = new boolean[1+SimulationUtils.NUMPLAYERS];
     fill[0] = true;
@@ -46,8 +34,8 @@ public class DrawableScore implements Drawable {
 
     colors = new Color[1+SimulationUtils.NUMPLAYERS];
     colors[0] = neutralColor;
-    for (int j=1; j<colors.length; ++j)
-      colors[j] = playerColors[j-1];
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+      colors[j+1] = DrawablePlayerComponent.getColor(j);
 
 
     strokes = new Stroke[1+SimulationUtils.NUMPLAYERS];

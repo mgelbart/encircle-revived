@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Color;
 import java.awt.Image;
 import java.awt.Shape;
 import java.awt.Paint;
@@ -8,6 +9,7 @@ import java.awt.Stroke;
 /**
  *  A GUI element for rendering a cluster.
  */
+
 public class DrawableCluster extends Cluster implements Drawable {
 
   private boolean removed = false;
@@ -49,10 +51,21 @@ public class DrawableCluster extends Cluster implements Drawable {
   }
 
 
-  public Shape[] shapes(GameState state) { return null; }
-  public boolean[] fill() { return null; }
-  public Paint[] paint() { return null; }
-  public Stroke[] stroke() { return null; }
+  public Shape[] shapes(GameState state) { 
+  //drawables.add(new DrawablePath(c.contour().coordsTranspose(), true, Color.GREEN, DrawUtils.DEFAULTSTROKE));
+    return new Shape[]{contour()}; 
+  }
+  public boolean[] fill() { 
+    return new boolean[]{false}; 
+  }
+  public Paint[] paint() { 
+    return new Paint[]{Color.GREEN}; 
+  }
+  public Stroke[] stroke() {
+    return new Stroke[]{DrawUtils.DEFAULTSTROKE}; 
+  }
+  
+  
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }
   public boolean isRemoved() { return removed; }

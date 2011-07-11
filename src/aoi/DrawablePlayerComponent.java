@@ -20,12 +20,12 @@ public class DrawablePlayerComponent implements Drawable {
   public DrawablePlayerComponent(int playerNo, Stroke stroke) {
     this.stroke = stroke;
     this.playerNo = playerNo;
-
+    paint = getColor(playerNo);
   }
 
   // TODO should depend on your color
   public static Color getColor(int playerNo) { 
-    return (playerNo == 0) ? Color.RED : Color.BLUE;
+    return (playerNo == ClientConfiguration.playerNo) ? Color.RED : Color.BLUE;
   }
   
   // Returns the shape to be drawn, if any.
@@ -46,7 +46,9 @@ public class DrawablePlayerComponent implements Drawable {
     return null;
   }
 
-  public boolean[] fill() { return new boolean[]{false}; }
+  public boolean[] fill() { 
+    return new boolean[]{false}; 
+  }
 
   // Return the Paint object used to draw the shape.
   public Paint[] paint() {
