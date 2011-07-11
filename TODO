@@ -1,15 +1,15 @@
 JOONAS:
 Java applet in browser (or whatever makes it easy for us to play with people)
 Fix CSP! Your own ship now responds instanteneously as expected. Still some issues smaller issues to fix though:
-    --- The DrawablePath should correct itself according to the latest Authorative state.
+    --- The DrawablePath should reconstruct the path accurately
     --- Get rid of the jittering when hitting a cluster/after respawning.
-    --- Make it disable-able
+
 
 MIKE:
 Keep part of tail not in loop (requires some client-side stuff)
 Code documentation
 Set up Bugzilla
-Refactor: get rid of drawable path and have the path around cluster by part of cluster drawing. Playerstate will own a Ship.
-Make colors around boxes when players have the same score
+get rid of drawable path
+
 
 

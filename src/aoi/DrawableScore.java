@@ -3,6 +3,8 @@ package aoi;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Image;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Font;
 import java.awt.font.GlyphVector;
@@ -94,12 +96,43 @@ public class DrawableScore implements Drawable {
       Rectangle2D box = scoreboard.getGlyphOutline(2*game.states[j].score).getBounds2D();
 
       double margin = box.getWidth() * 0.35;
-      box = new Rectangle2D.Double(box.getX()-margin,
-                                   box.getY()-margin,
-                                   box.getWidth()+2*margin,
-                                   box.getHeight()+2*margin);
-	    
-      shapes[1+j] = at.createTransformedShape(box);
+      
+      double xL = box.getX()-margin;
+      double yT = box.getY()-margin;
+ 
+      if (game.states[0].score != game.states[1].score) {
+        double xR = box.getWidth()+2*margin;
+        double yB = box.getHeight()+2*margin;
+        
+        box = new Rectangle2D.Double(xL, yT, xR, yB);
+        shapes[j+1] = at.createTransformedShape(box); 
+      }
+      else {  // make these lines instead of rectangles
+        
+        double xR = box.getX()+box.getWidth()+margin;
+        double yB = box.getY()+box.getHeight()+margin;
+        
+        Path2D scorePath = new Path2D.Double();
+        if (j == 0) {
+          // top and left
+          scorePath.moveTo(xR, yT);
+          scorePath.lineTo(xL, yT);
+          scorePath.lineTo(xL, yB);
+//  	      scoreLine0 = new Line2D.Double(xL, yT, xR, yT);
+//          scoreLine1 = new Line2D.Double(xL, yT, xL, yB);
+        }
+        else if (j == 1) { 
+          // bottom and right
+          scorePath.moveTo(xR, yT);
+          scorePath.lineTo(xR, yB);
+          scorePath.lineTo(xL, yB);
+//          scoreLine0 = new Line2D.Double(xL, yB, xR, yB);
+//          scoreLine1 = new Line2D.Double(xR, yT, xR, yB);
+        }
+        shapes[j+1] = at.createTransformedShape(scorePath);
+//        shapes[shapeCount++] = at.createTransformedShape(scoreLine0);
+//        shapes[shapeCount++] = at.createTransformedShape(scoreLine1);
+      }
     }
 	
     return shapes;

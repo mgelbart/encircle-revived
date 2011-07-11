@@ -41,7 +41,9 @@ public class Tail {
   
   public double pathLength() { return trajectory.length(); }
   
-  private int nPoints() { return trajectory.nPoints(); }
+  public Path2D toPath2D() { return trajectory.toPath2D(); }
+  
+//  private int nPoints() { return trajectory.nPoints(); }
   
   public int startTime() {
     if (times.isEmpty()) return -1;

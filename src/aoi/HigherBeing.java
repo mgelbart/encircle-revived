@@ -110,6 +110,7 @@ public class HigherBeing implements Intelligence {
       }
 
       assert(ctrl.size() < 20); // Something is wrong if they get piled up.
+      //System.err.println("ctrl " + ctrl.size());
     }
 
     return null;

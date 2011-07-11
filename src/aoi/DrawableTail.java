@@ -11,7 +11,7 @@ public class DrawableTail extends DrawablePath {
   private int playerNo;
 
   // Time when the current loop was started.
-  private int currentLoopStarted = 0;
+//  private int currentLoopStarted = 0;
 
 
   public DrawableTail(int playerNo, Paint paint, Stroke stroke) {
@@ -22,20 +22,22 @@ public class DrawableTail extends DrawablePath {
 
   // Return the path to be drawn.
   public Shape[] shapes(GameState game) {
-    final PlayerState s = game.states[playerNo];
-
-    if (currentLoopStarted != s.loopStarted) {
-      path = new Path2D.Double();
-      currentLoopStarted = s.loopStarted;
-    }
-
-    if (path.getCurrentPoint() == null) {
-      path.moveTo(s.ship.x(), s.ship.y());
-    } else {
-      path.lineTo(s.ship.x(), s.ship.y());
-    }
-
-    return new Shape[]{path};
+//    final PlayerState s = game.states[playerNo];
+//
+//    if (currentLoopStarted != s.loopStarted) {
+//      path = new Path2D.Double();
+//      currentLoopStarted = s.loopStarted;
+//    }
+//
+//    if (path.getCurrentPoint() == null) {
+//      path.moveTo(s.ship.x(), s.ship.y());
+//    } else {
+//      path.lineTo(s.ship.x(), s.ship.y());
+//    }
+//
+//    return new Shape[]{path};
+    
+    return new Shape[]{game.states[playerNo].tail.toPath2D()};
   }
 
 }
