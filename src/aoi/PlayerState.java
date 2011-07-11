@@ -230,7 +230,7 @@ public class PlayerState {
     // the transmitted loop started parameter indicates that a
     // new tail was started.
     Tail newTail;
-    if (prevState == null || prevState.tail.startTime() < tailStarted)
+    if (prevState == null || prevState.tail.startTime() - tailStarted < 0)
       newTail = new Tail(x, y, time);
     else
       newTail = prevState.tail.addPoint(x, y, time);

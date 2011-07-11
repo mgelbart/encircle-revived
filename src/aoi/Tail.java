@@ -15,7 +15,6 @@ public class Tail {
   public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
 
-  
   // The trajectory in the two space coordinates
   private NSPath trajectory;
   
@@ -42,7 +41,7 @@ public class Tail {
   
   public Path2D toPath2D() { return trajectory.toPath2D(); }
   
-//  private int nPoints() { return trajectory.nPoints(); }
+  private int nPoints() { return trajectory.nPoints(); }
   
   public int startTime() {
     if (times.isEmpty()) return -1;
@@ -102,6 +101,28 @@ public class Tail {
     }
 
   }
+  
+  
+
+  // Create a copy of the Tail with an added point.
+  public Tail cropLoop(int from, int to) {
+    assert(nPoints() == times.size());
+    
+    // Fields for new Tail
+    NSPath newPath = new NSPath();
+    Vector<Integer> newTimes = new Vector<Integer>();
+
+    for (int i = 0; i < nPoints(); i++) {
+      if (times.elementAt(i) < from && times.elementAt(i) > to) {
+        // If the point is not cropped, at it
+        newPath.addPoint(trajectory.getPoint(i));
+        newTimes.add(times.elementAt(i));
+      }
+    }
+
+    return new Tail(newPath, newTimes);  
+  }
+  
   
   
 }

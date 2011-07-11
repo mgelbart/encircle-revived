@@ -8,8 +8,6 @@ import java.util.Iterator;
 import java.util.Vector;
 
 /**
- * 
- * @author mgelbart
  *
  * Not Stupid Path. Like a Path2D object but gives access to the lines.
  * Cousin of NSPolygon.
@@ -41,6 +39,12 @@ public class NSPath implements Iterable<Line2D> {
       path.lineTo(line.getX1(), line.getY1());
     path.lineTo(lastPoint().getX(), lastPoint().getY());
     return path;
+  }
+  
+  public Point2D getPoint(int i) {
+    if (i == 0) return start;
+    else if (i > lines.size()) return null;
+    else return lines.elementAt(i-1).getP2(); 
   }
   
   public double length() { return length; }

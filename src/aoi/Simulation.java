@@ -83,7 +83,7 @@ public class Simulation {
 
     int loopStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
-                           loopStarted, loopStarted,loopStarted, score, false,
+                           loopStarted, loopStarted, loopStarted, score, false,
                            new Tail(x, y, time)); 
   }
 
