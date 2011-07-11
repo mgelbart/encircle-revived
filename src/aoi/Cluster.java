@@ -43,6 +43,10 @@ public class Cluster {
 	  return contour.intersects(s.getNSPath());
 	}
 	
+	public boolean intersects(Bullet b) {
+	  return contour.intersects(b.getLine());
+	}
+	
 	// move the cluster by (deltaX, deltaY)
 	public void move(int deltaX, int deltaY) {
 	  contour.move(deltaX, deltaY);
