@@ -52,13 +52,13 @@ public class Nonhuman implements Intelligence {
   }
 
 
-  public PlayerControlParameters getNewControlParameters() {
+  public PlayerControlParameters[] getNewControlParameters() {
     if (ctrl != prevCtrl) {
       prevCtrl = ctrl;
-      return ctrl;
+      return new PlayerControlParameters[]{ctrl};
     }
 
-    return null;
+    return new PlayerControlParameters[]{};
   }
 
   public void think() {

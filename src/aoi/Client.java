@@ -2,6 +2,8 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.awt.*;
 import javax.swing.*;
 
@@ -101,19 +103,21 @@ public class Client implements Runnable {
       else
         intel = new HigherBeing(arena);
 
+      // This times task keeps asking the intelligence for new parameters
+      // and sends them to the server.
+      TimerTask sendTask = new SendParamsTask(intel, bufferedControlStream);
+      Timer sendTimer = new Timer();
+      sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
+
       Logger.println(Logger.RepetitionRate.FEW, "Ready...");
       
       GameState game = null;
 
       while (true) {
+        // This keeps parsing and passing on new
+        // game states to the Intelligence.
         game = parseGameState(stateStream, game);
-      
         intel.processGameStateUpdate(game);
-      
-        PlayerControlParameters pcp = intel.getNewControlParameters(); 
-      
-        sendControlParameters(controlStream, pcp);
-        bufferedControlStream.flush();
       }
 
     } catch (Exception e) {
@@ -132,14 +136,6 @@ public class Client implements Runnable {
 
   private static GameState parseGameState(DataInputStream i, GameState prevState) {
     return GameState.parse(i, prevState);
-  }
-
-  private static void sendControlParameters(DataOutputStream o, PlayerControlParameters params) {
-
-    if (params == null) return;
-
-    params.serialize(o);
-
   }
 
   /**
@@ -182,5 +178,48 @@ public class Client implements Runnable {
     client.run(); // Can just run this from the main() thread.
   }
 
+  
+  private class SendParamsTask extends TimerTask {
+
+    Intelligence intelligence;
+    BufferedOutputStream out;
+    
+    PlayerControlParameters last;
+    
+    public SendParamsTask(Intelligence intelligence, BufferedOutputStream out) {
+      this.intelligence = intelligence;
+      this.out = out;
+    }
+    
+    public void run() {
+      
+      // Send all queued control parameters.
+      PlayerControlParameters[] pcp = intelligence.getNewControlParameters();
+      
+      if (pcp.length == 0) {
+ 
+        if (last == null) return; // the game didn't start yet.
+        last.serialize(out); // keep sending the same command if there's nothing new
+
+      } else {
+
+        // Otherwise send all new parameters.
+        for (PlayerControlParameters p : pcp)
+          p.serialize(out);
+
+        last = pcp[pcp.length-1];
+      }
+      
+      try {
+        out.flush();
+      } catch (IOException e) {
+        e.printStackTrace();
+        assert(false);
+      }
+      
+    }
+
+  }
+  
 }
 
