@@ -97,25 +97,20 @@ public class HigherBeing implements Intelligence {
   }
 
 
-  public PlayerControlParameters getNewControlParameters() {
-    PlayerControlParameters p = null;
+  public PlayerControlParameters[] getNewControlParameters() {
+    PlayerControlParameters[] p;
     
     synchronized (ctrl) {
       final int N = ctrl.size();
       if (N > 0) {
-        
-        // It's better to send the _last_ buffered command
-        // first. The older ones only get sent when there
-        // is extra time.
-        
-        p = ctrl.lastElement();
-        ctrl.removeElementAt(N-1);
+        p = ctrl.toArray(new PlayerControlParameters[]{});
+        ctrl.clear();
 
-        if (N > 2) {
+        if (N > 2)
           Logger.println(Logger.RepetitionRate.INFREQUENT, "Too many ctrls buffered: " + N);
-          ctrl.clear();      
-        }
-      }
+
+      } else
+        p = new PlayerControlParameters[]{};
     }
 
     return p;

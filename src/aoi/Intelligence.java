@@ -1,6 +1,11 @@
 package aoi;
 
 public interface Intelligence extends Runnable {
+  
+  // The client calls this whenever it receives a game state update from the server.
   public void processGameStateUpdate(GameState game);
-  public PlayerControlParameters getNewControlParameters();
+  
+  // The client sends all control parameters returned by this function to the server.
+  public PlayerControlParameters[] getNewControlParameters();
+  
 }
