@@ -63,6 +63,8 @@ public abstract class Logger {
       line = -1;
     }
     
+    out.print(System.currentTimeMillis() % 1000000);
+    out.print(' ');
     out.print(classname);
     out.print('.');
     out.print(method);
