@@ -123,11 +123,10 @@ public class Simulation {
         if (game.time % 100 == 0)
           Logger.println(Logger.RepetitionRate.INFREQUENT, "Current local time: " + game.time);
 
+        // --- Stuff that you do first
         // Check if one of the players won.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-
           assert(states[j].score <= pointsPerRound);
-
           if (states[j].score == pointsPerRound) {
             for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
               playerStatesInt[k].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
@@ -135,25 +134,23 @@ public class Simulation {
               states[k] = states[k].clone("respawning", 1);
             }
           }
-
         }
-
         // Check for players waiting to be respawn:
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           if (playerStatesInt[j].respawnTimeLeft == 1)
             states[j] = initPlayerState(j, states[j].score, false, game.time);
         }
-
-
         // First copy the parameters to minimize the time difference
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           playerStatesInt[j].params = listeners[j].getCtrlParams(game.time);
-
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-
+        // --- end
+        
+        
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { //"main" 
+          
           // Freeze before respawning.
           if (playerStatesInt[j].respawnTimeLeft > 0) {
             playerStatesInt[j].respawnTimeLeft--;
@@ -254,19 +251,19 @@ public class Simulation {
               }
             }
           }
-
+          
           int tailStarted, cropFrom, cropTo;
           if (erasePath) {
             // if your path needs to be erased (you got shot, for ex.)
             tail = new Tail(ship.x(), ship.y(), game.time + 1);
-            tailStarted = game.time;
+            tailStarted = game.time + 1;
             cropFrom = tailStarted;
             cropTo = tailStarted;
           } else if (loop != null) {
             // if you completed a loop
             tailStarted = states[j].tailStarted;
             cropFrom = loop.startTime();
-            cropTo = game.time;
+            cropTo = game.time; // probably not game.time + 1, but i didn't think hard
             Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
             Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
@@ -277,60 +274,53 @@ public class Simulation {
             cropFrom = states[j].cropTailFrom;
             cropTo = states[j].cropTailTo;
           }
+          // end dealing with moving around and loops and stuff
+          
+          
+          
+          // Calculate the new positions for the bullets and figure out
+          // if anyone got hit BY A BULLET.
+          for (int k = bullets.size() - 1; k >= 0; --k) {
+            Bullet b = bullets.get(k);
 
-          states[j] = new PlayerState(j, ship, 0, 
-              tailStarted, cropFrom, cropTo, 
-              score, states[j].respawning, tail);
+            // Whether the bullet hit something.
+            boolean remove = false;
 
-        }
-
-        // Calculate the new positions for the bullets and figure out
-        // if anyone got hit.
-        for (int k = bullets.size() - 1; k >= 0; --k) {
-          Bullet b = bullets.get(k);
-
-          // Whether the bullet hit something.
-          boolean remove = false;
-
-          int[] bulletPos = SimulationUtils.nextBulletPosition(b);
-          int x = bulletPos[0];
-          int y = bulletPos[1];
-
-          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+            int[] bulletPos = SimulationUtils.nextBulletPosition(b);
+            int x = bulletPos[0];
+            int y = bulletPos[1];
 
             // if player j is currently dead 
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
             // if b does not belong to player j and the players ship contains b
             if (b.playerNo != j && states[j].ship.intersects(b)) {
-            
               remove = true;
                // if you get shot then you lose your tail
-//              playerStatesInt[j].tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
+              tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
+              tailStarted = game.time + 1;
+              cropFrom = tailStarted;
+              cropTo = tailStarted;
+              
+            }  // end if
 
-              states[j] = states[j].clone("loopStarted", game.time);
-
-            }
-          }
-
-          if (!mapedges.contains(x, y))
-            remove = true;
-
-          for (Cluster c : clusters)
-            if (c.intersects(b))
+            if (!mapedges.contains(x, y))
               remove = true;
+
+            for (Cluster c : clusters)
+              if (c.intersects(b))
+                remove = true;
+
+            // Update the bullet position unless it hit something.
+            if (!remove)
+              bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
+            else
+              bullets.remove(k);
+
+          }  // end loop through bullets
           
-
-          // Update the bullet position unless it hit something.
-          if (!remove)
-            bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
-          else
-            bullets.remove(k);
-
-        }
-
-        // Check if anyone went out of bounds or hit a cluster:
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+        
+          // Check if anyone went out of bounds or hit a cluster:
 
           if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
@@ -339,29 +329,32 @@ public class Simulation {
           if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
             crashed = true;
 
-          for (Cluster c : clusters) {
+          for (Cluster c : clusters)
             if (c.intersects(states[j].ship))
-//              if (c.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
-          } 
+          
 
           if (crashed) {
-
             playerStatesInt[j].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
             states[j] = states[j].clone("respawning", 1);
-
           }
+ 
+          //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
+          //  RESULTING FROM THIS TIME STEP
+          states[j] = new PlayerState(j, ship, 0, 
+              tailStarted, cropFrom, cropTo, 
+              score, states[j].respawning, tail);
 
-        }
+        } // end of "main" loop for each player
+        
 
-
-        // Update the game state.
+        // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         // Note: don't need locking since updating a reference is atomic.
         this.game = new GameState(game.time + 1, states, bullets);
 
-      }
-    }
-  }
+      }  // end catch
+    }  // end infinite while loop
+  }  // end this function
 
 
 
