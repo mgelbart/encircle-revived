@@ -238,30 +238,28 @@ public class PlayerState {
     if (prevState == null) {
       // first time step
       newTail = new Tail();
-      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
     } else if (prevState.tail.startTime() - tailStarted < 0 &&
         prevState.tailStarted != cropTailFrom) {
       // you died or got shot, etc. so just re-initialize tail
       newTail = new Tail();
-      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "dead or shot - tail init");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "dead or shot - tail init");
     } else if (prevState.tail.startTime() - tailStarted < 0 &&
         prevState.tailStarted == cropTailFrom) {
       // you spent part of your tail on something like shooting
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, ""+prevState.tail.pathLength());
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + newTail.pathLength());
-      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "SHOT - shorted tain");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "SHOT - shorted tain");
     } else if (prevState.cropTailTo != cropTailTo) {
       // you made a loop
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop - crop tail");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop - crop tail");
     } else {
       // normal step
       newTail = prevState.tail.clone();
