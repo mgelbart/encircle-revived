@@ -98,18 +98,27 @@ public class HigherBeing implements Intelligence {
 
 
   public PlayerControlParameters getNewControlParameters() {
+    PlayerControlParameters p = null;
+    
     synchronized (ctrl) {
-      if (ctrl.size() > 0) {
-        PlayerControlParameters p = ctrl.firstElement();
-        ctrl.removeElementAt(0);
-        return p;
-      }
+      final int N = ctrl.size();
+      if (N > 0) {
+        
+        // It's better to send the _last_ buffered command
+        // first. The older ones only get sent when there
+        // is extra time.
+        
+        p = ctrl.lastElement();
+        ctrl.removeElementAt(N-1);
 
-      assert(ctrl.size() < 20); // Something is wrong if they get piled up.
-      //Logger.println(Logger.RepetitionRate.FREQUENT, "ctrl " + ctrl.size());
+        if (N > 2) {
+          Logger.println(Logger.RepetitionRate.INFREQUENT, "Too many ctrls buffered: " + N);
+          ctrl.clear();      
+        }
+      }
     }
 
-    return null;
+    return p;
 
   }
 
@@ -118,7 +127,7 @@ public class HigherBeing implements Intelligence {
     synchronized (ctrl) {
       ctrl.add(params);
     }
-
+    
     timemachine.processParamsUpdate(params);
 
   }
