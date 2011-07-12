@@ -21,13 +21,39 @@ public abstract class Logger {
     
     if (rate.compareTo(verbosity) > 0) return;
     
+    printHeader();
+    
+    out.println(msg);
+  }
+  
+  public static void println(RepetitionRate rate, int msg) {
+    if (DISABLE) return;
+    
+    if (rate.compareTo(verbosity) > 0) return;
+    
+    printHeader();
+    
+    out.println(msg);
+  }
+  
+  public static void println(RepetitionRate rate, double msg) {
+    if (DISABLE) return;
+    
+    if (rate.compareTo(verbosity) > 0) return;
+    
+    printHeader();
+    
+    out.println(msg);
+  }
+  
+  private static void printHeader() {
     String classname, method;
     int line;
     
     StackTraceElement[] frames = Thread.currentThread().getStackTrace();
     
-    if (frames.length >= 3) {
-      StackTraceElement from = frames[2];
+    if (frames.length > 3) {
+      StackTraceElement from = frames[3];
       classname = from.getClassName();
       method = from.getMethodName();
       line = from.getLineNumber();
@@ -43,8 +69,6 @@ public abstract class Logger {
     out.print(':');
     out.print(line);
     out.print(' ');
-    
-    out.println(msg);
   }
   
 }
