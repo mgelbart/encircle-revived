@@ -46,8 +46,10 @@ public class PlayerListener implements Runnable {
       while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0)
         ctrls.remove(0);
 
-      //Logger.println(Logger.RepetitionRate.FREQUENT, "Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
-      //Logger.println(Logger.RepetitionRate.FREQUENT, "#" + playerNo + " Requested - retrieved time: " + (ctrls.get(0).effectiveOn - time));
+//      if (ctrls.get(0).effectiveOn - time < -5) {
+//        Logger.println(Logger.RepetitionRate.INFREQUENT, "#" + playerNo + " Requested - retrieved time: " + (ctrls.get(0).effectiveOn - time));
+//        Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
+//      }
 
       return ctrls.get(0);
     }
@@ -73,14 +75,14 @@ public class PlayerListener implements Runnable {
         java.util.Collections.sort(ctrls);
       }
 
-      /*
-      Logger.println(Logger.RepetitionRate.FREQUENT, "Received from #");
-      Logger.println(Logger.RepetitionRate.FREQUENT, playerNo);
-      Logger.println(Logger.RepetitionRate.FREQUENT, " (queue size: ");
-      Logger.println(Logger.RepetitionRate.FREQUENT, ctrls.size());
-      Logger.println(Logger.RepetitionRate.FREQUENT, ")");
-      Logger.println(Logger.RepetitionRate.FREQUENT, ctrl.toString());
-      */
+
+      //Logger.println(Logger.RepetitionRate.FREQUENT, "Received from #");
+      //Logger.println(Logger.RepetitionRate.FREQUENT, playerNo);
+      //Logger.println(Logger.RepetitionRate.FREQUENT, " (queue size: ");
+      //Logger.println(Logger.RepetitionRate.FREQUENT, ctrls.size());
+      //Logger.println(Logger.RepetitionRate.FREQUENT, ")");
+      //Logger.println(Logger.RepetitionRate.FREQUENT, ctrl.toString());
+
 
     }
 
