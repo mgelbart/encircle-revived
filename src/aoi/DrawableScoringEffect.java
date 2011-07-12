@@ -7,7 +7,7 @@ import java.awt.BasicStroke;
 /**
  *  A GUI element for the special FX shown when you score.
  */
-public class DrawableScoringEffect extends DrawablePlayerComponent {
+public class DrawableScoringEffect extends DefaultDrawable {
 
   // Last known score.
   private int lastScore = 0;

@@ -35,7 +35,7 @@ public class DrawableScore implements Drawable {
     colors = new Color[1+SimulationUtils.NUMPLAYERS];
     colors[0] = neutralColor;
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-      colors[j+1] = DrawablePlayerComponent.getColor(j);
+      colors[j+1] = DefaultDrawable.getColor(j);
 
 
     strokes = new Stroke[1+SimulationUtils.NUMPLAYERS];

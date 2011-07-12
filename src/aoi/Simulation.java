@@ -279,10 +279,10 @@ public class Simulation {
             tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1;
             cropFrom    = states[j].tailStarted;
             cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1; // +1 because cropping excludes the "to"
-            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
-            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
-            Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropFrom + " / " + cropTo + " / " + game.time);
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropFrom + " / " + cropTo + " / " + game.time);
           } else {
             // normal time step --
             tailStarted = states[j].tailStarted;

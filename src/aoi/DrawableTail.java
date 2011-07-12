@@ -5,7 +5,7 @@ import java.awt.*;
 /**
  *  A GUI element for a tail.
  */
-public class DrawableTail extends DrawablePlayerComponent {
+public class DrawableTail extends DefaultDrawable {
 
 
   public DrawableTail(int playerNo, Stroke stroke) {

@@ -3,24 +3,22 @@ package aoi;
 import java.awt.*;
 
 /**
- *  A class used to pass a sequence of points to the GUI
- *  to be connected by lines. Can be used to render polygons
- *  or open paths.
+ *  A default Drawable implementation.
  */
-public class DrawablePlayerComponent implements Drawable {
+public class DefaultDrawable implements Drawable {
 
-  private boolean removed = false;
-
-  private Paint paint;
   protected Stroke stroke;
   protected int playerNo;
+  private Paint paint;
+  private boolean removed;
   
   // Connect the pts[npoints][2] with lines.
   // If close is true, the first and last points are connected.
-  public DrawablePlayerComponent(int playerNo, Stroke stroke) {
+  protected DefaultDrawable(int playerNo, Stroke stroke) {
     this.stroke = stroke;
     this.playerNo = playerNo;
-    paint = getColor(playerNo);
+    this.removed = false;
+    this.paint = getColor(playerNo);
   }
 
   // TODO should depend on your color

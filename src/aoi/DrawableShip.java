@@ -9,7 +9,7 @@ import java.awt.Stroke;
 /**
  *  A GUI element for a ship.
  */
-public class DrawableShip extends DrawablePlayerComponent {
+public class DrawableShip extends DefaultDrawable {
 
   // Last known score.
   private int lastScore = 0;
@@ -30,7 +30,7 @@ public class DrawableShip extends DrawablePlayerComponent {
   public DrawableShip(int playerNo, Stroke stroke) {
     super(playerNo, stroke);
     
-    color = DrawablePlayerComponent.getColor(playerNo);
+    color = DefaultDrawable.getColor(playerNo);
   }
 
   // Return the polygon to be drawn.
