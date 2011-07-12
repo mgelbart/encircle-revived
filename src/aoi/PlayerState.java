@@ -230,19 +230,47 @@ public class PlayerState {
     // the transmitted loop started parameter indicates that a
     // new tail was started. also crop loop if indicated by
     // cropfrom/to parameters.
+    
+
+    
+    
     Tail newTail;
-    if (prevState == null || prevState.tail.startTime() - tailStarted < 0) {
-      // you died or got shot, etc. so just re-init. tail
-      newTail = new Tail(x, y, time);
+    if (prevState == null) {
+      // first time step
+      newTail = new Tail();
+      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
+    } else if (prevState.tail.startTime() - tailStarted < 0 &&
+        prevState.tailStarted != cropTailFrom) {
+      // you died or got shot, etc. so just re-initialize tail
+      newTail = new Tail();
+      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "dead or shot - tail init");
+    } else if (prevState.tail.startTime() - tailStarted < 0 &&
+        prevState.tailStarted == cropTailFrom) {
+      // you spent part of your tail on something like shooting
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, ""+prevState.tail.pathLength());
+      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + newTail.pathLength());
+      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "SHOT - shorted tain");
+    } else if (prevState.cropTailTo != cropTailTo) {
+      // you made a loop
+      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop - crop tail");
     } else {
-      newTail = prevState.tail;
-      if (prevState.cropTailTo - cropTailTo < 0) {
-        // you made a loop, so crop the tail
-        newTail = newTail.crop(cropTailFrom, cropTailTo);
-      }
-      // regardless of whether you made a loop, add the latest point
-      newTail = newTail.addPoint(x, y, time);
+      // normal step
+      newTail = prevState.tail.clone();
     }
+
+    
+    
+    newTail = newTail.addPoint(x, y, time);
+
     
     
     return new PlayerState(playerNo, x, y, vx, vy, dir, 

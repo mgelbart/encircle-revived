@@ -22,12 +22,16 @@ public class Tail {
   // The time coordinate of each point
   private Vector<Integer> times;
   
-  public Tail(int x0, int y0, int time) {
+  public Tail() {
     trajectory = new NSPath();
-    trajectory.addPoint(x0, y0);
     times = new Vector<Integer>();
+  }
+  
+  public Tail(int x0, int y0, int time) {
+    this();
+    trajectory.addPoint(x0, y0);
     times.add(time);
-    
+ 
     assert(trajectory.nPoints() == times.size());
   }
   
@@ -86,20 +90,41 @@ public class Tail {
     
     
   }
-  
-  
+
+  @SuppressWarnings("unchecked")
+  public Tail clone() {
+    return new Tail(trajectory.clone(), (Vector<Integer>)times.clone());
+  }
   
   
   // Create a copy of the Tail with an added point.
   @SuppressWarnings("unchecked")
-  public Tail addPoint(int x, int y, int time) {
-
+  public Tail addPoint(int x, int y, int time) {  
     // trajectory and times for the new tail
-    NSPath thatTrajectory = trajectory.clone();
-    Vector<Integer> thatTimes = (Vector<Integer>) (times.clone());
+    NSPath newTrajectory = trajectory.clone();
+    Vector<Integer> newTimes = (Vector<Integer>) (times.clone());
     
-    assert(thatTrajectory.nPoints() == trajectory.nPoints());
-    assert(thatTimes.size() == times.size());
+    assert(newTrajectory.nPoints() == trajectory.nPoints());
+    assert(newTimes.size() == times.size());
+    
+    assert(trajectory.nPoints() == times.size());
+    
+    
+    // special cases
+    if (trajectory.nLines() == 0) {
+      if (trajectory.firstPoint() == null) {
+        // no points at all in the trajectory
+        newTrajectory.addPoint(x, y);
+        newTimes.add(time);
+      } else {
+        // just one point in the trajectory
+        newTrajectory.addPoint(x, y);
+        newTimes.add(time);
+      }
+      return new Tail(newTrajectory, newTimes);
+    }
+    
+
     
     Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
@@ -117,21 +142,21 @@ public class Tail {
       if (prevPrevPoint != null &&
             curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
 
-        assert(thatTimes.size() > 1);
-        assert(thatTrajectory.nPoints() == thatTimes.size());
+        assert(newTimes.size() > 1);
+        assert(newTrajectory.nPoints() == newTimes.size());
         
-        thatTrajectory.removeLast();
-        thatTimes.removeElementAt(thatTimes.size()-1);
+        newTrajectory.removeLast();
+        newTimes.removeElementAt(newTimes.size()-1);
         
       }
 
-      thatTrajectory.addPoint(curPoint);
-      thatTimes.add(time);
+      newTrajectory.addPoint(curPoint);
+      newTimes.add(time);
       
       //Logger.println(Logger.RepetitionRate.FREQUENT, thatTrajectory.nPoints() + " " + thatTimes.size());
-      assert(thatTrajectory.nPoints() == thatTimes.size());
+      assert(newTrajectory.nPoints() == newTimes.size());
       
-      return new Tail(thatTrajectory, thatTimes);
+      return new Tail(newTrajectory, newTimes);
       
     } else {
       return this;

@@ -149,7 +149,8 @@ public class Simulation {
         // --- end
         
         
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { //"main" 
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { 
+          //"main" loop for each player 
           
           // Freeze before respawning.
           if (playerStatesInt[j].respawnTimeLeft > 0) {
@@ -158,6 +159,7 @@ public class Simulation {
           }
 
           boolean erasePath = false;
+          boolean spendPathOnBullet = false;
 
 
           // Take shots first:
@@ -169,16 +171,21 @@ public class Simulation {
 
             playerStatesInt[j].reloadTimeLeft--;
 
+            
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
-
-            bullets.add(new Bullet(j,
-                states[j].ship.x(),
-                states[j].ship.y(),
-                states[j].ship.dir()));
-
-            playerStatesInt[j].reloadTimeLeft = Bullet.RELOADTIME;
-            erasePath = true;
-
+            // if you have reloaded
+            
+            if (game.time >= states[j].tailStarted + SimulationUtils.BULLETCOST) {
+              // and if you have enough path to spend
+              bullets.add(new Bullet(j,
+                  states[j].ship.x(),
+                  states[j].ship.y(),
+                  states[j].ship.dir()));
+  
+              playerStatesInt[j].reloadTimeLeft = SimulationUtils.RELOADTIME;
+              Logger.println(Logger.RepetitionRate.INFREQUENT, "*** "+ game.time + " " + states[j].tailStarted + " " + SimulationUtils.BULLETCOST);
+              spendPathOnBullet = true;
+            }
           }
 
           // Calculate where the player moved.
@@ -264,10 +271,19 @@ public class Simulation {
             tailStarted = states[j].tailStarted;
             cropFrom = loop.startTime();
             cropTo = game.time; // probably not game.time + 1, but i didn't think hard
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
+            tail = tail.crop(cropFrom, cropTo);
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
+//            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
+          } else if (spendPathOnBullet) {
+            // if you spend some path on a shot
+            tailStarted = states[j].tailStarted + SimulationUtils.BULLETCOST + 1;
+            cropFrom = states[j].tailStarted;
+            cropTo = states[j].tailStarted + SimulationUtils.BULLETCOST + 1; // +1 because cropping excludes the "to"
             Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
             Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
-            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
+            Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropFrom + " / " + cropTo + " / " + game.time);
           } else {
             // normal time step --
             tailStarted = states[j].tailStarted;

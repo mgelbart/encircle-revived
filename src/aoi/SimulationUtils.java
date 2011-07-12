@@ -35,6 +35,18 @@ public abstract class SimulationUtils {
   // Drag coefficient.
   public static final double DRAG = 0.0025 * TIMESTEP;
 
+  /* The bullet speed is a universal constant. */
+  public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1000 * 1;
+
+  /* Minimum time between firing two bullets. */
+  public static final int RELOADTIME = 400 / TIMESTEP;
+  
+  /* Length of path required to spend in order to shoot. */
+  // Note this is currently a time which is sketch as @@@@
+  // It would be most legit do it this in terms of length but 
+  // at least in terms of number of points would be better than this.
+  public static final int BULLETCOST = RELOADTIME * 3;
+  
   // Time to wait until respawning.
   public static final int RESPAWNTIME = 1000 / TIMESTEP;
 
@@ -122,8 +134,8 @@ public abstract class SimulationUtils {
 
     if (b == null) return new int[2];
 
-    int x = b.x + (int) (((double) Bullet.SPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
-    int y = b.y + (int) (((double) Bullet.SPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+    int x = b.x + (int) (((double) BULLETSPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
+    int y = b.y + (int) (((double) BULLETSPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
 
     return new int[]{x, y};
   }

@@ -121,6 +121,9 @@ public class Nonhuman implements Intelligence {
           dir = games[0].states[ClientConfiguration.playerNo].ship.dir()
             + j*(SimulationUtils.INTMAX/3);
 
+          // TODO  just added for debugging!!!!!!!! ***
+          shots = 0;
+          
           // The candidate set of control parameters.
           testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
                                                  shots, boosts);

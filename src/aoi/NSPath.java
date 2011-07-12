@@ -61,7 +61,6 @@ public class NSPath implements Iterable<Line2D> {
   public int nLines() {
     return lines.size();
   }
-
   
   public Point2D firstPoint() {
     return start;
@@ -94,11 +93,6 @@ public class NSPath implements Iterable<Line2D> {
     length -= lastlastPoint().distance(lastPoint());
     lines.remove(lines.size()-1);
   }
-   
-//  public void addLine(Line2D l) {
-//    length += l.getP1().distance(l.getP2());
-//    lines.add(l);
-//  }
   
   public void addPoint(int x, int y) {
     addPoint(new Point(x, y));
