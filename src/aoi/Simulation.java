@@ -183,7 +183,6 @@ public class Simulation {
                   states[j].ship.dir()));
   
               playerStatesInt[j].reloadTimeLeft = SimulationUtils.RELOADTIME;
-              Logger.println(Logger.RepetitionRate.INFREQUENT, "*** "+ game.time + " " + states[j].tailStarted + " " + SimulationUtils.BULLETCOST);
               spendPathOnBullet = true;
             }
           }

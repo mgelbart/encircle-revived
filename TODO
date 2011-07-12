@@ -4,11 +4,12 @@ Fix CSP! Your own ship now responds instanteneously as expected. Still some issu
     --- The DrawablePath should reconstruct the path accurately
     --- Get rid of the jittering when hitting a cluster/after respawning.
     --- you should see your bullets right after shooting, not way later
+Explain to Mike the difference between PlayerState.tailStarted and PlayerState.tail.startTime() as they are using in PlayerState.parse()
 
 MIKE:
 Code documentation
 Set up Bugzilla
-Gameplay: spendable tail
+
 
 
 
