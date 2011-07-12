@@ -20,7 +20,9 @@ public class Tail {
   private NSPath trajectory;
   
   // The time coordinate of each point
-  private Vector<Integer> times;
+  private Vector<Integer> times;  
+  // might be nicer to have this as a map from point to integer, 
+  // if NSPath were stored as points at least. whatever.
   
   public Tail() {
     trajectory = new NSPath();
@@ -165,6 +167,49 @@ public class Tail {
   }
   
   
+  // Crops part of a tail starting at the beginning and until it has cropped
+  // length units off of the tail. if cropping length exactly is not reasonable
+  // it will crop slightly more.
+  public Tail crop(double length) {
+    assert(nPoints() == times.size());
+    
+    // Fields for new Tail
+    NSPath newPath = new NSPath();
+    NSPath croppedPath = new NSPath();
+    Vector<Integer> newTimes = new Vector<Integer>();
+
+    int i;
+    for (i = 0; i < nPoints(); i++) {
+      croppedPath.addPoint(trajectory.getPoint(i)); 
+      if (croppedPath.length() >= length)
+        break;
+    }
+    for (; i < nPoints(); i++) {
+      newPath.addPoint(trajectory.getPoint(i));
+      newTimes.add(times.elementAt(i));
+    }
+
+    return new Tail(newPath, newTimes);  
+  }
+  
+  
+  // the first (absolute) time at which the path from start to that time 
+  // has at least the specified length
+  // note that this does NOT output the time interval length from start to this point
+  public int lengthToTime(double length) {
+    assert(nPoints() == times.size());
+    
+    NSPath subpath = new NSPath();
+
+    for (int i = 0; i < nPoints(); i++) {
+      subpath.addPoint(trajectory.getPoint(i)); 
+      if (subpath.length() >= length)
+        return times.elementAt(i);
+    }
+    return times.elementAt(0);  // entire path is not long enough
+  }
+  
+  
 
   // Crops part of a tail given the times "from" and "to".
   // Removes "from" but not "to"
@@ -177,7 +222,7 @@ public class Tail {
 
     for (int i = 0; i < nPoints(); i++) {
       if (times.elementAt(i) - from < 0 || times.elementAt(i) - to >= 0) {
-        // If the point is not cropped, at it
+        // If the point is not cropped, add it
         newPath.addPoint(trajectory.getPoint(i));
         newTimes.add(times.elementAt(i));
       }
