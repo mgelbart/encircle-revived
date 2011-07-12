@@ -33,6 +33,11 @@ public class DrawableScoringEffect extends DefaultDrawable {
     if (s.score > lastScore) {  // you just scored
       scored = SCORINGTIME;
       lastScore = s.score;
+      
+      // crop the non-loop part from the scoring effect.
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
+      scoringTail = scoringTail.crop(s.tailStarted, s.cropTailFrom);
+      
       return new Shape[]{scoringTail.toPath2D()};
     } else if (scored == 0) {    // normal time
       scoringTail = s.tail;
