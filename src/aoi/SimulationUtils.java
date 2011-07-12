@@ -41,8 +41,9 @@ public abstract class SimulationUtils {
   /* Minimum time between firing two bullets. */
   public static final int RELOADTIME = 200 / TIMESTEP;
   
-  /* Length of path required to spend in order to shoot. */
-  public static final double BULLETCOST = ARENASIZE / 10.;
+  /* Length of path required to spend in order to shoot,
+   * as a fraction of your current path length. */
+  public static final double BULLETCOST = 0.20;
   
   // Time to wait until respawning.
   public static final int RESPAWNTIME = 1000 / TIMESTEP;

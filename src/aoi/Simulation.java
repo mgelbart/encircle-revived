@@ -175,7 +175,7 @@ public class Simulation {
           } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
             // if you have reloaded
             
-            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
+//            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
               // and if you have enough path to spend
               bullets.add(new Bullet(j,
                   states[j].ship.x(),
@@ -184,7 +184,7 @@ public class Simulation {
   
               playerStatesInt[j].reloadTimeLeft = SimulationUtils.RELOADTIME;
               spendPathOnBullet = true;
-            }
+//            }
           }
 
           // Calculate where the player moved.
@@ -276,9 +276,9 @@ public class Simulation {
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else if (spendPathOnBullet) {
             // if you spend some path on a shot
-            tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1;
+            tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1;
             cropFrom    = states[j].tailStarted;
-            cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
+            cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1; // +1 because cropping excludes the "to"
             Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
             Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
