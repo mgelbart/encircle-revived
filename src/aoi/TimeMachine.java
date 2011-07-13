@@ -135,7 +135,7 @@ public class TimeMachine {
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
         ctrl[k] = getParamsAt(k, last.time+j, reader);
-        ship[k] = SimulationUtils.nextPosition(ship[k], ctrl[k]);
+        ship[k] = (last.states[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
         
         boolean tookShot = false;
         // Take shots
@@ -145,19 +145,19 @@ public class TimeMachine {
         }
         
         players[k] = new PlayerState(k, ship[k],
-                                   last.states[k].energy,
-                                   last.states[k].tailStarted,
-                                   last.states[k].cropTailFrom,
-                                   last.states[k].cropTailTo,
-                                   last.states[k].score,
-                                   (tookShot)? SimulationUtils.RELOADTIME : Math.max(0, last.states[k].untilReload-1),
-                                   Math.max(0, last.states[k].untilRespawn-1),
-                                   last.states[k].sinceScoring+1,
-                                   last.states[k].sinceLooping+1,
-                                   last.states[k].sinceCrossing+1,
-                                   last.states[k].sinceHitByBullet+1,
-                                   last.states[k].sincePwned+1,
-                                   last.states[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
+                                      players[k].energy,
+                                      players[k].tailStarted,
+                                      players[k].cropTailFrom,
+                                      players[k].cropTailTo,
+                                      players[k].score,
+                                      (tookShot)? SimulationUtils.RELOADTIME : Math.max(0, players[k].untilReload-1),
+                                      Math.max(0, players[k].untilRespawn-1),
+                                      players[k].sinceScoring+1,
+                                      players[k].sinceLooping+1,
+                                      players[k].sinceCrossing+1,
+                                      players[k].sinceHitByBullet+1,
+                                      players[k].sincePwned+1,
+                                      players[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
       
       }
 
