@@ -208,7 +208,7 @@ public class Simulation {
             // but this is fine because in the i!=j case all we really need out of this function
             // is a boolean and loop==null is that boolean)
             // Note this is not symmetric in i and j.
-            Tail intersection = states[i].tail.intersects(tail);
+            Tail intersection = states[i].tail.intersects(tail, (i==j)? 2:0); // necessary to avoid spurious two segment loops
 
             if (intersection != null) {  // if an intersection occurred
 
