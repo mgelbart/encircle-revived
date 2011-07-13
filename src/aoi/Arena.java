@@ -26,7 +26,7 @@ public class Arena {
     this.clusters = clusters;
     this.sequence = sequence;
   }
-
+  
   public Arena(Cluster[] clusters, int[] sequence) {
     this.clusters = new Vector<Cluster>(Arrays.asList(clusters));
     this.sequence = sequence;

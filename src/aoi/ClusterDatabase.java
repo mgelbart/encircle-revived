@@ -12,6 +12,11 @@ import java.util.*;
  */
 public class ClusterDatabase {
 
+  // The number of clusters to collect in order to win a round.
+  public static final int SEQUENCE_LENGTH = 7;
+  
+  /* ----------------------------------------------------------------------- */
+  
   // Either '/' or '\' depending on OS. Eventually we can find the real way of doing this.
   public static final String OS_FILESEP = "/";
 
@@ -39,7 +44,7 @@ public class ClusterDatabase {
   // The format for all the text info
   public static final String TEXT_FORMAT = ".txt";
 
-
+  /* ----------------------------------------------------------------------- */
 
   // Name of the data set.
   public final String datasetName;
@@ -189,6 +194,24 @@ public class ClusterDatabase {
   }
   
 
+  // spin a roulette wheel over the un-normalized probabilities given 
+  private int rouletteWheel(int[] p) {
+    // normalize the probabilities
+    double sum = 0;
+    double[] pnorm = new double[p.length];
+    for (int d : p) sum += d;
+    for (int i = 0; i < p.length; i++) 
+      pnorm[i] = p[i] / sum;
+    
+    double r = Math.random();
+    double runningTotal = 0;
+    for (int i = 0; i < p.length; i++)
+      if (r <=  (runningTotal+=pnorm[i]))
+        return i;
+    return -1;  // this should never happen[
+  }
+  
+  
   /*
     Generates a collection of clusters that can be used to initialize an Arena.
 
@@ -196,7 +219,7 @@ public class ClusterDatabase {
     play as well as information gain about the cluster size so we probably want
     to think about how to do this more carefully.
   */
-  public Vector<ClusterServerSide> generateArena(int[] clustersPerValue) throws FileNotFoundException{
+  public Arena generateArena(int[] clustersPerValue) throws FileNotFoundException{
 
     Vector<ClusterServerSide> arenaClusters = new Vector<ClusterServerSide>();
 
@@ -204,6 +227,9 @@ public class ClusterDatabase {
     int i;
     boolean overlaps;
 
+    // Format for clustersPerValue is that if clustersPerValue[x] = y
+    // then we want y clusters with nSegments equal to x+1 in the Arena.
+    // We might want to change this to a Map<Integer, Integer> at some point
     for (int nSegments=1; nSegments <= clustersPerValue.length; nSegments++) {
 
       for (int k=0; k < clustersPerValue[nSegments-1]; ++k) {
@@ -243,7 +269,16 @@ public class ClusterDatabase {
 
     }
 
-    return arenaClusters;
+    
+    // Generate the sequence
+    int[] sequence = new int[SEQUENCE_LENGTH];
+    for (i=0; i < SEQUENCE_LENGTH; i++)
+      sequence[i] = rouletteWheel(clustersPerValue) + 1;
+      
+    // Need to make arenaClusters into an array to deal with Cluster/ClusterServerSide casting
+    ClusterServerSide[] arenaClustersArray = new ClusterServerSide[arenaClusters.size()];
+    arenaClusters.toArray(arenaClustersArray);
+    return new Arena(arenaClustersArray, sequence);
 
   }
 
