@@ -12,140 +12,136 @@ import java.util.Vector;
  * Not Stupid Path. Like a Path2D object but gives access to the lines.
  * Cousin of NSPolygon.
  */
-public class NSPath implements Iterable<Line2D> {
+public class NSPath implements Iterable<Point2D> {
   
-  private Point2D start;
-  private Vector<Line2D> lines; // stores every point twice
+  private Vector<Point2D> points;
   private double length;  // Cache the trajectory length
   
   public NSPath() {
-    lines = new Vector<Line2D>();
+    points = new Vector<Point2D>();
     length = 0;    
   }
   
-  private NSPath(Point2D start, Vector<Line2D> lines, double length) {
-    this.start = start;
-    this.lines = lines;
+  private NSPath(Vector<Point2D> points, double length) {
+    this.points = points;
     this.length = length;
   }
 
-  // this is pretty ugly- this Class should probably extend
-  // Path2D like NSPolygon.
-  // or else at least store points instead of lines
   public Path2D toPath2D() {
-    if (start == null) return null;
     Path2D path = new Path2D.Double();
-    path.moveTo(start.getX(), start.getY());
-    for (Line2D line : lines)
-      path.lineTo(line.getX1(), line.getY1());
-    path.lineTo(lastPoint().getX(), lastPoint().getY());
+    if (points.isEmpty()) return path;
+    
+    path.moveTo(firstPoint().getX(), firstPoint().getY());
+    for (int i = 1; i < nPoints(); i++)
+      path.lineTo(getPoint(i).getX(), getPoint(i).getY());
     return path;
   }
   
-  public Point2D getPoint(int i) {
-    if (i == 0) return start;
-    else if (i > lines.size()) return null;
-    else return lines.elementAt(i-1).getP2(); 
-  }
-  
-//  public Vector<Line2D> getLines() { return lines; }
-  
+    
   public double length() { return length; }
   
-  // Returns the number of points (not the number of line segments)
-  public int nPoints() {
-    if (start == null) return 0;
-    else return lines.size() + 1;
+  public boolean isEmpty()       { return points.isEmpty(); }
+  public int nPoints()           { return points.size(); }
+  public Point2D firstPoint()    { return getPoint(0); }
+  public Point2D getPoint(int i) { return points.elementAt(i); }
+  public Point2D lastPoint()     { return points.lastElement(); } 
+  public Point2D lastlastPoint() { 
+    if (nPoints() < 2) return null;
+    else return points.elementAt(nPoints()-2);
   }
   
-  public int nLines() {
-    return lines.size();
+  public Line2D[] getLines() {
+    Line2D[] lines = new Line2D[nPoints()-1];
+    for (int i = 0; i < nPoints()-1; i++)
+      lines[i] = getLine(i);
+    return lines;
   }
   
-  public Point2D firstPoint() {
-    return start;
-  }
-  
-  public Point2D lastPoint() {
-    if (lines.isEmpty()) return start;
-    return lines.lastElement().getP2();
-  }
-  
-  public Point2D lastlastPoint() {
-    if (lines.isEmpty()) return null;
-    return lines.lastElement().getP1();
+  public Line2D getLine(int i) {
+    if (i < 0 || i >= nPoints()-1) return null;
+    else return new Line2D.Double(getPoint(i), getPoint(i+1));
   }
   
   public Line2D lastLine() {
-    if (lines.isEmpty()) return null;
-    return lines.lastElement();
-  }
-  public Line2D getLine(int i) {
-    return lines.elementAt(i);
+    if (nPoints() < 2) return null;
+    else return new Line2D.Double(lastlastPoint(), lastPoint());
   }
   
   public void removeLast() {
-    if (lines.isEmpty()) {
-      start = null;
+    if (points.isEmpty())
       return;
-    }
     
     length -= lastlastPoint().distance(lastPoint());
-    lines.remove(lines.size()-1);
+    points.remove(nPoints()-1);
   }
   
+
   public void addPoint(int x, int y) {
     addPoint(new Point(x, y));
   }
-  
   public void addPoint(Point2D newPoint) {
-  
-    if (start == null) {
-      start = newPoint;
-    }
-    else if (lines.isEmpty()) {
-      length += start.distance(newPoint);
-      lines.add(new Line2D.Double(start, newPoint));
-    }
-    else {
+    if (!isEmpty()) 
       length += lastPoint().distance(newPoint);
-      lines.add(new Line2D.Double(lastPoint(), newPoint));
-    }
+    
+    points.add(newPoint);
   }
   
-  public boolean intersects(Line2D l) {
-    for (Line2D line : this)
-      if (line.intersectsLine(l))
-        return true;
-    return false;
+  public int intersects(Line2D l) {
+    if (nPoints() < 2) return -1;
+    if (l == null) return -1;
+    for (int i = 0; i < nPoints()-1; i++)
+      if (getLine(i).intersectsLine(l))
+        return i;
+    return -1;
   }
   
-  public boolean intersects(NSPath that) {
-    for (Line2D line : that)
-      if (intersects(line))
-        return true;
-    return false;
+  public int intersects(NSPath that) {
+    if (that.nPoints() < 2) return -1;
+    for (int i = 0; i < that.nPoints()-1; i++)
+      if (intersects(that.getLine(i)) >= 0)
+        return i;
+    return -1;
   }
   
+  // including from and not including to
+  public NSPath subpath(int from, int to) {
+    NSPath subpath = new NSPath();
+    for (int i = 0; i < nPoints(); i++)
+      if (i >= from && i < to)
+        subpath.addPoint(getPoint(i));
+    return subpath;
+  }
   
-
-
-  public Iterator<Line2D> iterator()  {
-      return lines.iterator();
+  // crops out from, but does not crop out to
+  public NSPath croppath(int from, int to) {
+    NSPath croppath = new NSPath();
+    for (int i = 0; i < nPoints(); i++)
+      if (i < from || i >= to)
+        croppath.addPoint(getPoint(i));
+    return croppath;
+  }
+  
+  public static String pointToString(Point2D p) {
+    return "(" + p.getX() + ", " + p.getY() + ")  "; 
+  }
+  public static String lineToString(Line2D l) {
+    return "from " + pointToString(l.getP1()) + " to " + pointToString(l.getP2());
+  }
+  
+  public String toString() {
+    String s = "";
+    for (int i = 0; i < nPoints(); i++)
+      s += pointToString(getPoint(i));
+    return s;
+  }
+  
+  public Iterator<Point2D> iterator()  {
+      return points.iterator();
   }
   
   // Make a deep copy of the path.
+  @SuppressWarnings("unchecked")
   public synchronized NSPath clone() {
-    Vector<Line2D> ls = new Vector<Line2D>(lines.size()+1);
-    
-    for (Line2D l : lines)
-      ls.add((Line2D) (l.clone()));
-    
-//    final int N = lines.size();
-//    for (int i = 0; i<N; i++) {
-//      ls.set(i, (Line2D) (lines.get(i).clone()));
-//    }
-
-    return new NSPath(start, ls, length);
+    return new NSPath((Vector<Point2D>)points.clone(), length);
   }
 }

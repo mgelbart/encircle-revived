@@ -52,7 +52,7 @@ public class Ship {
 
   
   public boolean intersects(Line2D line) {
-    return path.intersects(line);
+    return path.intersects(line) >= 0;
   }
   public boolean intersects(Bullet b) {
     return intersects(b.getLine());
