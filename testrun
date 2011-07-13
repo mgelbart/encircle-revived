@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mkdir -p out bin segmentation/game_output/fly
-
 rm -f out/*
 
 # get the current time so we can limit the processes we kill in the end by their age

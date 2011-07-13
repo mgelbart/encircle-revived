@@ -18,17 +18,19 @@ commonFiles := $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerContr
 
 default: server client
 
-server:
-	javac $(compileopts) $(serverFiles) $(commonFiles)
+dirs:
+	mkdir -p out bin segmentation/game_output/fly
 
-client:
-	javac $(compileopts) $(clientFiles) $(commonFiles)
+server: common
+	javac $(compileopts) $(serverFiles)
 
-common:
+client: common
+	javac $(compileopts) $(clientFiles)
+
+common: dirs
 	javac $(compileopts) $(commonFiles)
 
-all:
-	javac $(compileopts) $(serverFiles) $(clientFiles) $(commonFiles)
+all:	common server client
 
 doc:
 	javadoc -d doc aoi
@@ -56,7 +58,7 @@ jar:
 	jar cfm aoi.jar Manifest.txt client.conf -C bin/ aoi
 
 push_jar: jar
-	scp aoi.jar redacted@example.com:public_html/
+	scp aoi.jar aoiserv@vps6609.inmotionhosting.com:public_html/
 
 push_bin:
-	scp -r bin redacted@example.com:aoirun/
+	scp -r bin aoiserv@vps6609.inmotionhosting.com:aoirun/
