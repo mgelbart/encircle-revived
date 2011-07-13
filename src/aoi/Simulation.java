@@ -81,9 +81,11 @@ public class Simulation {
 
     playerStatesInt[playerNo] = new PlayerStateExtraInfo();
 
-    int loopStarted = (game == null) ? 0 : game.time;
+    int tailStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
-                           loopStarted, loopStarted, loopStarted, score, false,
+                           tailStarted, tailStarted, tailStarted, score,
+                           0, 0, // untilReload, untilRespawn
+                           255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
                            new Tail(x, y, time)); 
   }
 
@@ -129,15 +131,14 @@ public class Simulation {
           assert(states[j].score <= pointsPerRound);
           if (states[j].score == pointsPerRound) {
             for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              playerStatesInt[k].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
               states[k] = states[k].clone("score", 0);
-              states[k] = states[k].clone("respawning", 1);
+              states[k] = states[k].clone("untilRespawn", SimulationUtils.RESPAWNTIME);
             }
           }
         }
         // Check for players waiting to be respawn:
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          if (playerStatesInt[j].respawnTimeLeft == 1)
+          if (states[j].untilRespawn == 1)
             states[j] = initPlayerState(j, states[j].score, false, game.time);
         }
         // First copy the parameters to minimize the time difference
@@ -153,27 +154,19 @@ public class Simulation {
           //"main" loop for each player 
           
           // Freeze before respawning.
-          if (playerStatesInt[j].respawnTimeLeft > 0) {
-            playerStatesInt[j].respawnTimeLeft--;
-            continue;
-          }
+          if (states[j].untilRespawn > 0) continue;
 
+          
           boolean erasePath = false;
           boolean spendPathOnBullet = false;
-
 
           // Take shots first:
           if (playerStatesInt[j].prevParams != playerStatesInt[j].params)
             playerStatesInt[j].shotsTaken = 0;
 
-          // if players have not yet taken enough time to reload
-          if (playerStatesInt[j].reloadTimeLeft > 0) {
-
-            playerStatesInt[j].reloadTimeLeft--;
-
-            
-          } else if (playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
-            // if you have reloaded
+          // if players have had enough time to reload
+          if (states[j].untilReload == 0
+              && playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
             
 //            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
               // and if you have enough path to spend
@@ -182,7 +175,6 @@ public class Simulation {
                   states[j].ship.y(),
                   states[j].ship.dir()));
   
-              playerStatesInt[j].reloadTimeLeft = SimulationUtils.RELOADTIME;
               spendPathOnBullet = true;
 //            }
           }
@@ -196,6 +188,10 @@ public class Simulation {
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
           // Also checks if players scored.
+          boolean scored = false;
+          boolean crossedOtherPath = false;
+          boolean formedLoop = false;
+          boolean gotPwned = false;
           int score = states[j].score;
           Tail loop = null;
           
@@ -216,9 +212,8 @@ public class Simulation {
                 erasePath = true;
               } else {
                 
+                formedLoop = true;
                 loop = intersection;
-                
-                boolean scored = false;
 
                 assert(score < arena.sequence().length);
 
@@ -250,7 +245,7 @@ public class Simulation {
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
 
-                    states[k] = states[k].clone("score", 0);   // set score to 0 if you are enclosed by the other player!!!!
+                    gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
 
                   }
                 }
@@ -292,9 +287,10 @@ public class Simulation {
           // end dealing with moving around and loops and stuff
           
           
-          
+
           // Calculate the new positions for the bullets and figure out
           // if anyone got hit BY A BULLET.
+          boolean gotShot = false;
           for (int k = bullets.size() - 1; k >= 0; --k) {
             Bullet b = bullets.get(k);
 
@@ -305,12 +301,10 @@ public class Simulation {
             int x = bulletPos[0];
             int y = bulletPos[1];
 
-            // if player j is currently dead 
-            if (playerStatesInt[j].respawnTimeLeft > 0) continue;
-
             // if b does not belong to player j and the players ship contains b
             if (SimulationUtils.gotShot(states[j], b)) {
               remove = true;
+              gotShot = true;
                // if you get shot then you lose your tail
               tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
               tailStarted = game.time + 1;
@@ -336,9 +330,6 @@ public class Simulation {
           
         
           // Check if anyone went out of bounds or hit a cluster:
-
-          if (playerStatesInt[j].respawnTimeLeft > 0) continue;
-
           boolean crashed = false;
 
           if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
@@ -349,16 +340,19 @@ public class Simulation {
               crashed = true;
           
 
-          if (crashed) {
-            playerStatesInt[j].respawnTimeLeft = SimulationUtils.RESPAWNTIME;
-            states[j] = states[j].clone("respawning", 1);
-          }
- 
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           states[j] = new PlayerState(j, ship, 0, 
               tailStarted, cropFrom, cropTo, 
-              score, states[j].respawning, tail);
+              (gotPwned)? 0 : score,
+              (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
+              (crashed)? SimulationUtils.RESPAWNTIME : Math.max(0, states[j].untilRespawn-1),
+              (scored && !gotPwned)? 0 : states[j].sinceScoring+1,
+              (formedLoop)? 0 : states[j].sinceLooping+1,
+              (crossedOtherPath)? 0 : states[j].sinceCrossing+1,
+              (gotShot)? 0 : states[j].sinceHitByBullet+1,
+              (gotPwned)? 0 : states[j].sincePwned+1,
+              tail);
 
         } // end of "main" loop for each player
         
@@ -376,9 +370,6 @@ public class Simulation {
   private class PlayerStateExtraInfo {
     /* Values used internally by the simulation. */
     public int shotsTaken = 0;
-    public int reloadTimeLeft = 0;
-
-    public int respawnTimeLeft = 0;
 
     // The last two control parameters.
     public PlayerControlParameters params = null;

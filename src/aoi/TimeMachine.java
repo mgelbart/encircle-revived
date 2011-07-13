@@ -122,6 +122,7 @@ public class TimeMachine {
 
     // Start from the last known values.
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
+      players[k] = last.states[k];
       ship[k] = last.states[k].ship;
     }
     
@@ -132,18 +133,29 @@ public class TimeMachine {
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         ctrl[k] = getParamsAt(k, last.time+j, reader);
         ship[k] = SimulationUtils.nextPosition(ship[k], ctrl[k]);
+        
+        boolean tookShot = false;
+        // Take shots
+        if (ctrl[k].shotsToTake > 0 && players[k].untilReload == 0) {
+          bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
+          tookShot = true;
+        }
+        
         players[k] = new PlayerState(k, ship[k],
                                    last.states[k].energy,
                                    last.states[k].tailStarted,
                                    last.states[k].cropTailFrom,
                                    last.states[k].cropTailTo,
                                    last.states[k].score,
-                                   last.states[k].respawning,
+                                   (tookShot)? SimulationUtils.RELOADTIME : Math.max(0, last.states[k].untilReload-1),
+                                   Math.max(0, last.states[k].untilRespawn-1),
+                                   last.states[k].sinceScoring+1,
+                                   last.states[k].sinceLooping+1,
+                                   last.states[k].sinceCrossing+1,
+                                   last.states[k].sinceHitByBullet+1,
+                                   last.states[k].sincePwned+1,
                                    last.states[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
       
-        // Take shots
-        if (ctrl[k].shotsToTake > 0) // TODO need to check reload time!!
-          bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
       }
 
 
