@@ -67,9 +67,6 @@ public abstract class Server {
         try {
 
           simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
-          for (Cluster c : simulation.arena.clusters) {
-            simulation.clusters.add(clusterDbSayWithPET.copyFromCluster(c));
-		      }
 
         } catch (Exception e) {
           Logger.println(Logger.RepetitionRate.FEW, e.toString());

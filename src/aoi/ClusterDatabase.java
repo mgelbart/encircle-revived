@@ -208,7 +208,7 @@ public class ClusterDatabase {
     for (int i = 0; i < p.length; i++)
       if (r <=  (runningTotal+=pnorm[i]))
         return i;
-    return -1;  // this should never happen[
+    return -1;  // this should never happen
   }
   
   

@@ -3,7 +3,6 @@ package aoi;
 import java.io.*;
 import java.util.Vector;
 import java.awt.Rectangle;
-import java.awt.geom.Path2D;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,10 +29,6 @@ public class Simulation {
 
   // Static information about the game state.
   public Arena arena;
-
-  // This information is redundant because it's already in arena but it's more
-  // convenient to check whether something hit a cluster with these rectangles...
-  public Vector<ClusterServerSide> clusters = new Vector<ClusterServerSide>();
 
   // References to the senders/listeners threads so we can interrupt them.
   public final Thread[] senderThreads = new Thread[SimulationUtils.NUMPLAYERS];
@@ -218,7 +213,9 @@ public class Simulation {
                 assert(score < arena.sequence().length);
 
                 // Check for scoring
-                for (ClusterServerSide c : clusters) {
+                for (Cluster cNotSS : arena.clusters) {
+                  // (below): ugly cast
+                  ClusterServerSide c = (ClusterServerSide) cNotSS;
                   
                   // check if the center of the cluster is in the loop just made
                   if (c.acceptable(arena.sequence()[score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
@@ -316,7 +313,7 @@ public class Simulation {
             if (!mapedges.contains(x, y))
               remove = true;
 
-            for (Cluster c : clusters)
+            for (Cluster c : arena.clusters)
               if (c.intersects(b))
                 remove = true;
 
@@ -336,7 +333,7 @@ public class Simulation {
             if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
   
-            for (Cluster c : clusters)
+            for (Cluster c : arena.clusters)
               if (c.intersects(states[j].ship))
                 crashed = true;
           }
