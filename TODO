@@ -9,8 +9,6 @@ Explain to Mike the difference between PlayerState.tailStarted and PlayerState.t
 MIKE:
 Code documentation
 Set up Bugzilla
-probably want to get rid of NSPath, put it into tail, and have it store points instead of lines
 More than 2 players
-
-
+new features: speed, etc.
 

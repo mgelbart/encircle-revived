@@ -117,6 +117,10 @@ public abstract class SimulationUtils {
     return new Ship(x, y, vx, vy, dir);
   }
 
+  public static boolean gotShot(PlayerState p, Bullet b) {
+    return b.playerNo != p.playerNo && p.ship.intersects(b);
+  }
+  
 
   /* Returns an array of {x, y} after a single time step
      given an initial bullet state.

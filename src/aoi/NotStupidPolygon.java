@@ -110,7 +110,7 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
   }
   
   public boolean intersects(NSPath path) {
-   for (Line2D l : path) {
+   for (Line2D l : path.getLines()) {
 //      Logger.println(Logger.RepetitionRate.FREQUENT, l);
       if (intersects(l))
         return true;

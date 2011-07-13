@@ -309,7 +309,7 @@ public class Simulation {
             if (playerStatesInt[j].respawnTimeLeft > 0) continue;
 
             // if b does not belong to player j and the players ship contains b
-            if (b.playerNo != j && states[j].ship.intersects(b)) {
+            if (SimulationUtils.gotShot(states[j], b)) {
               remove = true;
                // if you get shot then you lose your tail
               tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);

@@ -1,7 +1,6 @@
 package aoi;
 
 import java.awt.Point;
-import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.util.Vector;
@@ -12,7 +11,7 @@ import java.util.Vector;
 public class Tail {
   
   // Roughly the minimum distance between adjacent points in the trajectory for
-  // encircling clusters. See the algorithm to see why this is only 'roughly' so.
+  // encircling clusters. See the addPoint() to see why this is only 'roughly' so.
   public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
 
@@ -21,8 +20,6 @@ public class Tail {
   
   // The time coordinate of each point
   private Vector<Integer> times;  
-  // might be nicer to have this as a map from point to integer, 
-  // if NSPath were stored as points at least. whatever.
   
   public Tail() {
     trajectory = new NSPath();
@@ -32,15 +29,13 @@ public class Tail {
   public Tail(int x0, int y0, int time) {
     this();
     trajectory.addPoint(x0, y0);
-    times.add(time);
- 
+    times.add(time); 
     assert(trajectory.nPoints() == times.size());
   }
   
   private Tail(NSPath trajectory, Vector<Integer> times) {
     this.trajectory = trajectory;
     this.times = times;
-    
     assert(trajectory.nPoints() == times.size());
   }
     
@@ -56,41 +51,25 @@ public class Tail {
   }
   
   /**
-   * Does this Tail intersect with another Tail?
+   * Does this Tail intersect with *the last line of* another Tail?
    * If so, return the loop that is formed as a Tail. If not, return null.
    */
   public Tail intersects(Tail that) {
-    if (that.trajectory.nLines() == 0) return null; 
-    
-    for (int k=0; k < trajectory.nLines()-2; ++k) {
-      // for every line in this tail, check if it intersects with the last
-      // line of that tail
-      if (that.trajectory.lastLine().intersectsLine(trajectory.getLine(k))) {
-
-        // Construct an NSPath for the loop
-        // In reality, this is only used if this == that
-        NSPath loop = new NSPath();
-        Vector<Integer> loopTimes = new Vector<Integer>();
-
-        Point2D point = trajectory.getLine(k).getP2();
-//        loop.moveTo(point.getX(), point.getY());
-        loop.addPoint(point);
-        loopTimes.add(times.elementAt(k+1));  // omg so messy
-        // NSPath really needs refactoring to suck less
-
-        for (int l=k+1; l < trajectory.nLines(); ++l) {
-          point = trajectory.getLine(l).getP2();
-//          loop.lineTo(point.getX(), point.getY());
-          loop.addPoint(point);
-          loopTimes.add(times.elementAt(l+1));
-        }
-//        return loop;
-        return new Tail(loop, loopTimes);
-      }
-    }
-    return null;
-    
-    
+    if (that.trajectory.lastLine() == null) return null; 
+        
+    // need the -1 because when this==that, you will have an intersection
+    // between the the last line of this (which is the 2nd last line of that)
+    // and the last line of that, since they share a point
+    int k = trajectory.subpath(0, trajectory.nPoints()-1).intersects(that.trajectory.lastLine());
+    if (k < 0) return null; // no intersection
+    // Construct an NSPath for the loop (in reality, this is only used if this == that)
+    NSPath loop = trajectory.subpath(k, nPoints());
+    // Construct the times vector
+    Vector<Integer> loopTimes = new Vector<Integer>();
+    for (; k < nPoints(); k++)
+      loopTimes.add(times.get(k));
+  
+    return new Tail(loop, loopTimes);
   }
 
   @SuppressWarnings("unchecked")
@@ -112,22 +91,14 @@ public class Tail {
     assert(trajectory.nPoints() == times.size());
     
     
-    // special cases
-    if (trajectory.nLines() == 0) {
-      if (trajectory.firstPoint() == null) {
-        // no points at all in the trajectory
-        newTrajectory.addPoint(x, y);
-        newTimes.add(time);
-      } else {
-        // just one point in the trajectory
-        newTrajectory.addPoint(x, y);
-        newTimes.add(time);
-      }
+    // special case: empty
+    if (trajectory.isEmpty()) {
+      newTrajectory.addPoint(x, y);
+      newTimes.add(time);
       return new Tail(newTrajectory, newTimes);
     }
     
 
-    
     Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
     Point2D prevPrevPoint = trajectory.lastlastPoint();
