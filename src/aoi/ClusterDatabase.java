@@ -195,11 +195,11 @@ public class ClusterDatabase {
   
 
   // spin a roulette wheel over the un-normalized probabilities given 
-  private int rouletteWheel(int[] p) {
+  private int rouletteWheel(double[] p) {
     // normalize the probabilities
     double sum = 0;
     double[] pnorm = new double[p.length];
-    for (int d : p) sum += d;
+    for (double d : p) sum += d;
     for (int i = 0; i < p.length; i++) 
       pnorm[i] = p[i] / sum;
     
@@ -209,7 +209,29 @@ public class ClusterDatabase {
       if (r <=  (runningTotal+=pnorm[i]))
         return i;
     return -1;  // this should never happen
+  }  
+  
+  private int sqrtRouletteWheel(int[] p) {
+    return rouletteWheel(sqrtArray(int2double(p)));
   }
+  
+  private double[] int2double(int[] p) {
+    double[] d = new double[p.length];
+    for (int i = 0; i < p.length; i++)
+      d[i] = p[i];
+    return d;
+  }
+  
+  private double[] sqrtArray(double[] d) {
+    for (int i = 0; i < d.length; i++)
+      d[i] = Math.sqrt(d[i]);
+    return d;
+  }
+  
+  private int uniform(int[] p) {
+    return (int)Math.floor(Math.random()*p.length);
+  }
+  
   
   
   /*
@@ -272,9 +294,13 @@ public class ClusterDatabase {
     
     // Generate the sequence
     int[] sequence = new int[SEQUENCE_LENGTH];
-    for (i=0; i < SEQUENCE_LENGTH; i++)
-      sequence[i] = rouletteWheel(clustersPerValue) + 1;
-      
+    for (i=0; i < SEQUENCE_LENGTH; i++) {
+      int r = sqrtRouletteWheel(clustersPerValue) + 1;
+      while (i>0 && r == sequence[i-1]) 
+        r = sqrtRouletteWheel(clustersPerValue) + 1;
+      sequence[i] = r;  
+    }
+    
     // Need to make arenaClusters into an array to deal with Cluster/ClusterServerSide casting
     ClusterServerSide[] arenaClustersArray = new ClusterServerSide[arenaClusters.size()];
     arenaClusters.toArray(arenaClustersArray);
