@@ -12,14 +12,21 @@ import java.awt.Stroke;
 public class DrawableShip extends DefaultDrawable {
 
   // Last known score.
-  private int lastScore = 0;
-
+//  private int lastScore = 0;
+  private PlayerState lastState;
+  
   // Counter for pwnage effects.
-  // pwnage == score decreased.
-  private int pwned = 0;
+  private int pwnedCounter = 0;
+  
+  // If you were shot
+  private int shotCounter = 0;
 
   // Time duration of the pwnage effect in turns.
   private final int PWNAGETIME = 1500 / SimulationUtils.TIMESTEP;
+  
+  // Time duration of the getting shot effect in turns.
+  private final int SHOTPWNTIME = 800 / SimulationUtils.TIMESTEP;
+  
   // The color of the ship during the effect.
   private final Color PWNAGECOLOR = Color.GREEN;
 
@@ -35,29 +42,38 @@ public class DrawableShip extends DefaultDrawable {
 
   // Return the polygon to be drawn.
   public Shape[] shapes(GameState game) {
+    PlayerState currentState = game.states[playerNo];
+    
+    if (lastState != null) {
+      if (currentState.score < lastState.score)
+        pwnedCounter = PWNAGETIME;
+      if (PlayerState.deadOrShot(lastState, currentState.tailStarted, 
+          currentState.cropTailFrom, currentState.cropTailTo))
+        shotCounter = shotCounter==0?SHOTPWNTIME:shotCounter;
+    }
+    lastState = currentState;
 
-    if (game.states[playerNo].score < lastScore)
-      pwned = PWNAGETIME;
-    lastScore = game.states[playerNo].score;
-
-    int[][] xy = game.states[playerNo].ship.shape();
+    int[][] xy = currentState.ship.shape();
     Polygon pol = new Polygon(xy[0], xy[1], xy[0].length);
-
     return new Shape[]{pol, pol};
   }
 
   // Return the pen color used to draw the shape.
   public Paint[] paint() {
 
-    assert(pwned >= 0);
+    assert(pwnedCounter >= 0);
+    assert(shotCounter >= 0);
 
-    if (pwned == 0)
+    if (shotCounter == 0 && pwnedCounter == 0) {
       return new Paint[]{color.darker().darker().darker(), color};
-    else {
-      pwned--;
+    }  else if (pwnedCounter > 0) {
+      shotCounter = 0;
+      pwnedCounter--;
+      return new Paint[]{PWNAGECOLOR, PWNAGECOLOR};
+    } else { // if you were shot (but not pwned)
+      shotCounter--;
       return new Paint[]{PWNAGECOLOR, PWNAGECOLOR};
     }
-
   }
 
   public boolean[] fill() { return new boolean[]{true, false}; }

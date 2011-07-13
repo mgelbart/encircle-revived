@@ -240,21 +240,19 @@ public class PlayerState {
       newTail = new Tail();
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
-    } else if (prevState.tail.startTime() - tailStarted < 0 &&
-        prevState.tailStarted != cropTailFrom) {
+    } else if (deadOrShot(prevState, tailStarted, cropTailFrom, cropTailTo)) {
       // you died or got shot, etc. so just re-initialize tail
       newTail = new Tail();
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "dead or shot - tail init");
-    } else if (prevState.tail.startTime() - tailStarted < 0 &&
-        prevState.tailStarted == cropTailFrom) {
+    } else if (spentTail(prevState, tailStarted, cropTailFrom, cropTailTo)) {
       // you spent part of your tail on something like shooting
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "SHOT - shorted tain");
-    } else if (prevState.cropTailTo != cropTailTo) {
+    } else if (madeLoop(prevState, tailStarted, cropTailFrom, cropTailTo)) {
       // you made a loop
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
@@ -275,7 +273,23 @@ public class PlayerState {
         energy, tailStarted, cropTailFrom, cropTailTo, 
         score, respawning, newTail);
   }
-
+  
+  public static boolean deadOrShot(PlayerState prevState, 
+                                   int tailStarted, int cropTailFrom, int cropTailTo) {
+    return prevState.tailStarted - tailStarted < 0 &&
+           prevState.tailStarted != cropTailFrom;
+  }
+  public static boolean spentTail(PlayerState prevState, 
+                                  int tailStarted, int cropTailFrom, int cropTailTo) {
+    return prevState.tailStarted - tailStarted < 0 &&
+           prevState.tailStarted == cropTailFrom;
+  }
+  public static boolean madeLoop(PlayerState prevState, 
+      int tailStarted, int cropTailFrom, int cropTailTo) {
+    return prevState.tailStarted == tailStarted &&
+           prevState.cropTailTo != cropTailTo;
+  }
+  
   
   
 
