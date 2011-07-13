@@ -114,27 +114,25 @@ public class TimeMachine {
 
 
 
-    // The extrapolated states for each player.
+    // The extrapolated states for each player and bullet.
     Ship[] ship = new Ship[SimulationUtils.NUMPLAYERS];
     PlayerState[] players = new PlayerState[SimulationUtils.NUMPLAYERS];
+    Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
+    PlayerControlParameters[] ctrl = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
 
-
-    // Need to predict the future.
-    // Note: this _only_ extrapolates position. Doesn't check for crashing
-    //       into stuff or scoring. If we want those, we should include
-    //       them in SimulationUtils.
+    // Start from the last known values.
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
-
-      // Start from the last known state.
       ship[k] = last.states[k].ship;
-
-      // Extrapolate (time-last.time) steps.
-      for (int j=0; j < time - last.time; ++j) {
-        ship[k] = SimulationUtils.nextPosition(ship[k],
-                                              getParamsAt(k, last.time+j, reader));
-      }
-
-      players[k] = new PlayerState(k, ship[k],
+    }
+    
+    // Predict how the states will evolve during each remaining (time-last.time) time step
+    for (int j=0; j < time - last.time; ++j) {
+      
+      // Player states
+      for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
+        ctrl[k] = getParamsAt(k, last.time+j, reader);
+        ship[k] = SimulationUtils.nextPosition(ship[k], ctrl[k]);
+        players[k] = new PlayerState(k, ship[k],
                                    last.states[k].energy,
                                    last.states[k].tailStarted,
                                    last.states[k].cropTailFrom,
@@ -142,26 +140,22 @@ public class TimeMachine {
                                    last.states[k].score,
                                    last.states[k].respawning,
                                    last.states[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
-	    
-    }
-
-
-    Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
-    int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
-    Bullet b;
-//    int dir;
-
-    for (int k=0; k < bullets.size(); ++k) {
-      b = bullets.get(k);
-
-      bulPos = SimulationUtils.nextBulletPosition(b);
-//      dir = b.direction;
-
-      for (int j=1; j < time - last.time; ++j) {
-        bulPos = SimulationUtils.nextBulletPosition(new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+      
+        // Take shots
+        if (ctrl[k].shotsToTake > 0) // TODO need to check reload time!!
+          bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
       }
 
-      bullets.set(k, new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+
+      int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
+      Bullet b;
+
+      for (int k=0; k < bullets.size(); ++k) {
+        b = bullets.get(k);
+        bulPos = SimulationUtils.nextBulletPosition(b);
+        bullets.set(k, new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+        
+      }
     }
 
 
