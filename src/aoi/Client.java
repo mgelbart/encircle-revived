@@ -63,8 +63,7 @@ public class Client implements Runnable {
     try {
 
       DataInputStream stateStream = new DataInputStream(socket.getInputStream());
-      BufferedOutputStream bufferedControlStream = new BufferedOutputStream(socket.getOutputStream());
-      DataOutputStream controlStream = new DataOutputStream(bufferedControlStream);
+      BufferedOutputStream controlStream = new BufferedOutputStream(socket.getOutputStream());
 
 
       /* Process the handshake */
@@ -105,7 +104,7 @@ public class Client implements Runnable {
 
       // This times task keeps asking the intelligence for new parameters
       // and sends them to the server.
-      TimerTask sendTask = new SendParamsTask(intel, bufferedControlStream);
+      TimerTask sendTask = new SendParamsTask(intel, controlStream);
       Timer sendTimer = new Timer();
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
