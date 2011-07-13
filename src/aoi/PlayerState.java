@@ -94,7 +94,8 @@ public class PlayerState {
     int tailStarted = this.tailStarted;
     int score = this.score;
     int untilRespawn = this.untilRespawn;
-    int untilReload= this.untilReload;
+    int untilReload = this.untilReload;
+    int sincePwned = this.sincePwned;
 
     // TODO: use an enum for these.
     if (key.equals("score"))
@@ -105,6 +106,8 @@ public class PlayerState {
       untilRespawn = value;
     else if (key.equals("untilReload"))
       untilReload = value;
+    else if (key.equals("sincePwned"))
+      sincePwned = value;
     else 
       assert(false);  // lol
 

@@ -25,7 +25,7 @@ public class Simulation {
 
   // Private information we want to store about the players
   // but not communicate to the clients.
-  private final PlayerStateExtraInfo[] playerStatesInt = new PlayerStateExtraInfo[2];
+  private final PlayerStateExtraInfo[] extraInfo = new PlayerStateExtraInfo[2];
 
   // Static information about the game state.
   public Arena arena;
@@ -76,7 +76,7 @@ public class Simulation {
 
     int dir = (int) (SimulationUtils.INTMAX  * (1 - 2*Math.random()));
 
-    playerStatesInt[playerNo] = new PlayerStateExtraInfo();
+    extraInfo[playerNo] = new PlayerStateExtraInfo();
 
     int tailStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
@@ -143,9 +143,8 @@ public class Simulation {
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-          playerStatesInt[j].params = listeners[j].getCtrlParams(game.time);
+          extraInfo[j].params = listeners[j].getCtrlParams(game.time);
         // --- end
-        
         
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { 
           //"main" loop for each player 
@@ -156,12 +155,12 @@ public class Simulation {
           boolean spendPathOnBullet = false;
 
           // Take shots first:
-          if (playerStatesInt[j].prevParams != playerStatesInt[j].params)
-            playerStatesInt[j].shotsTaken = 0;
+          if (extraInfo[j].prevParams != extraInfo[j].params)
+            extraInfo[j].shotsTaken = 0;
 
           // if players have had enough time to reload
           if (states[j].untilReload == 0 && states[j].untilRespawn == 0
-              && playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
+              && extraInfo[j].shotsTaken < extraInfo[j].params.shotsToTake) {
             
 //            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
               // and if you have enough path to spend
@@ -175,7 +174,7 @@ public class Simulation {
           }
 
           // Calculate where the player moved.
-          Ship ship = (states[j].untilRespawn == 0)? SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params) : states[j].ship;
+          Ship ship = (states[j].untilRespawn == 0)? SimulationUtils.nextPosition(states[j].ship, extraInfo[j].params) : states[j].ship;
 
           // Add the new position to the player's tail
           Tail tail = (states[j].untilRespawn == 0)? states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1) : states[j].tail;
@@ -186,7 +185,7 @@ public class Simulation {
           boolean scored = false;
           boolean crossedOtherPath = false;
           boolean formedLoop = false;
-          boolean gotPwned = false;
+//          boolean gotPwned = false;
           int score = states[j].score;
           Tail loop = null;
           
@@ -241,8 +240,8 @@ public class Simulation {
                   if (k==j) continue;
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
-
-                    gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
+                    extraInfo[k].gotPwned = true;
+//                    gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
 
                   }
                 }
@@ -341,19 +340,24 @@ public class Simulation {
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           states[j] = new PlayerState(j, ship, 0, 
-              tailStarted, cropFrom, cropTo, 
-              (gotPwned)? 0 : score,
+              tailStarted, cropFrom, cropTo, score,
               (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
               (crashed)? SimulationUtils.RESPAWNTIME : Math.max(0, states[j].untilRespawn-1),
-              (scored && !gotPwned)? 0 : states[j].sinceScoring+1,
+              (scored)? 0 : states[j].sinceScoring+1,
               (formedLoop)? 0 : states[j].sinceLooping+1,
               (crossedOtherPath)? 0 : states[j].sinceCrossing+1,
               (gotShot)? 0 : states[j].sinceHitByBullet+1,
-              (gotPwned)? 0 : states[j].sincePwned+1,
+              states[j].sincePwned+1,
               tail);
 
         } // end of "main" loop for each player
         
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+          if (extraInfo[j].gotPwned) {
+            states[j] = states[j].clone("score", 0);
+            states[j] = states[j].clone("sincePwned", 0);
+          }
+        }
 
         // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         // Note: don't need locking since updating a reference is atomic.
@@ -365,9 +369,12 @@ public class Simulation {
 
 
 
-  private class PlayerStateExtraInfo {
+  private class PlayerStateExtraInfo { // STUPID
     /* Values used internally by the simulation. */
-    public int shotsTaken = 0;
+    public int shotsTaken = 0;//STUPID
+    
+    //
+    public boolean gotPwned = false;
 
     // The last two control parameters.
     public PlayerControlParameters params = null;
