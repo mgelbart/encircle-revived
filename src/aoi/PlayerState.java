@@ -16,9 +16,9 @@ public class PlayerState {
   public static final int SHIPWIDTH  = SimulationUtils.ARENASIZE * 4/200;
 
   /* Values transmitted to the clients. */
-  public final int playerNo;
+  public final int playerNo; // only least significant byte transmitted to client.
   public final Ship ship;
-  public final int energy;
+  public final int energy; // only least significant byte transmitted to client.
   public final Tail tail;
 
   // The time coordinate of the start of the current tail.
@@ -29,7 +29,7 @@ public class PlayerState {
   public final int cropTailFrom, cropTailTo;
   
   // How many clusters the player has collected already
-  public final int score;
+  public final int score; // only least significant byte transmitted to client.
 
   /* The following are essentially boolean values but,
    * since they are 'singular' events (happen on a single turn)
@@ -151,9 +151,10 @@ public class PlayerState {
   public void serialize(DataOutputStream o) {
 
     try {
-
+      
+      assert(playerNo <= 0xFF);
       o.writeBytes("#");
-      o.writeInt(playerNo);
+      o.write(playerNo);
 
       o.writeBytes("x");
       o.writeInt(ship.x());
@@ -182,8 +183,9 @@ public class PlayerState {
       o.writeBytes("t");
       o.writeInt(cropTailTo);
       
+      assert(score <= 0xFF);
       o.writeBytes("s");
-      o.writeInt(score);
+      o.write(score);
 
       o.writeBytes("l");
       o.write((untilReload > 0xFF)? 0xFF:untilReload); // 255 = 0xFF (as an unsigned byte)
@@ -227,7 +229,7 @@ public class PlayerState {
 
       cmd = i.readByte();
       assert(cmd == '#');
-      playerNo = i.readInt();
+      playerNo = i.read();
       assert(playerNo == 0 || playerNo == 1);
 
       cmd = i.readByte();
@@ -268,7 +270,7 @@ public class PlayerState {
 
       cmd = i.readByte();
       assert(cmd == 's');
-      score = i.readInt();
+      score = i.read();
 
       cmd = i.readByte();
       assert(cmd == 'l');
