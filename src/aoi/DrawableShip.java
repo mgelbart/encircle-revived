@@ -25,7 +25,7 @@ public class DrawableShip extends DefaultDrawable {
   private final int PWNAGETIME = 1500 / SimulationUtils.TIMESTEP;
   
   // Time duration of the getting shot effect in turns.
-  private final int SHOTPWNTIME = 800 / SimulationUtils.TIMESTEP;
+  private final int SHOTPWNTIME = 400 / SimulationUtils.TIMESTEP;
   
   // The color of the ship during the effect.
   private final Color PWNAGECOLOR = Color.GREEN;
