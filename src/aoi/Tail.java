@@ -56,11 +56,12 @@ public class Tail {
    */
   public Tail intersects(Tail that) {
     if (that.trajectory.lastLine() == null) return null; 
-        
+
     // need the -1 because when this==that, you will have an intersection
     // between the the last line of this (which is the 2nd last line of that)
-    // and the last line of that, since they share a point
-    int k = trajectory.subpath(0, trajectory.nPoints()-1).intersects(that.trajectory.lastLine());
+    // and the last line of that, since they share a point.
+    // in fact, need -2 when the player is standing still.
+    int k = trajectory.subpath(0, trajectory.nPoints()-2).intersects(that.trajectory.lastLine());
     if (k < 0) return null; // no intersection
     // Construct an NSPath for the loop (in reality, this is only used if this == that)
     NSPath loop = trajectory.subpath(k, nPoints());
