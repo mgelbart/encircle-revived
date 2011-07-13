@@ -4,11 +4,10 @@ Java applet in browser (or whatever makes it easy for us to play with people)
 Fix CSP! Your own ship now responds instanteneously as expected. Still some issues smaller issues to fix though:
     --- Get rid of the jittering when hitting a cluster/after respawning.
     --- you should see your bullets right after shooting, not way later
-Explain to Mike the difference between PlayerState.tailStarted and PlayerState.tail.startTime() as they are using in PlayerState.parse()
 
 MIKE:
 Code documentation
 Set up Bugzilla
 More than 2 players
 new features: speed, etc.
-
+uncoil when you crash
