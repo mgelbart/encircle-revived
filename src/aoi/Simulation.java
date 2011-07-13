@@ -7,6 +7,8 @@ import java.awt.geom.Path2D;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import aoi.Logger.RepetitionRate;
+
 /**
  *  The main class ran by the server that carries on the
  *  game step by step by calculating new positions for
@@ -152,10 +154,8 @@ public class Simulation {
         
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { 
           //"main" loop for each player 
-          
-          // Freeze before respawning.
-          if (states[j].untilRespawn > 0) continue;
 
+          if (states[j].untilRespawn > 0) Logger.println(RepetitionRate.INFREQUENT, states[j].untilRespawn);
           
           boolean erasePath = false;
           boolean spendPathOnBullet = false;
@@ -165,7 +165,7 @@ public class Simulation {
             playerStatesInt[j].shotsTaken = 0;
 
           // if players have had enough time to reload
-          if (states[j].untilReload == 0
+          if (states[j].untilReload == 0 && states[j].untilRespawn == 0
               && playerStatesInt[j].shotsTaken < playerStatesInt[j].params.shotsToTake) {
             
 //            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
@@ -180,10 +180,10 @@ public class Simulation {
           }
 
           // Calculate where the player moved.
-          Ship ship = SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params);
+          Ship ship = (states[j].untilRespawn == 0)? SimulationUtils.nextPosition(states[j].ship, playerStatesInt[j].params) : states[j].ship;
 
           // Add the new position to the player's tail
-          Tail tail = states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
+          Tail tail = (states[j].untilRespawn == 0)? states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1) : states[j].tail;
 
           // Check if the paths cross eachother, O(N).
           // Remove all paths that are crossed.
@@ -302,7 +302,7 @@ public class Simulation {
             int y = bulletPos[1];
 
             // if b does not belong to player j and the players ship contains b
-            if (SimulationUtils.gotShot(states[j], b)) {
+            if (SimulationUtils.gotShot(states[j], b) && states[j].untilRespawn == 0) {
               remove = true;
               gotShot = true;
                // if you get shot then you lose your tail
@@ -332,13 +332,14 @@ public class Simulation {
           // Check if anyone went out of bounds or hit a cluster:
           boolean crashed = false;
 
-          if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
-            crashed = true;
-
-          for (Cluster c : clusters)
-            if (c.intersects(states[j].ship))
+          if (states[j].untilRespawn == 0) {
+            if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
               crashed = true;
-          
+  
+            for (Cluster c : clusters)
+              if (c.intersects(states[j].ship))
+                crashed = true;
+          }
 
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
