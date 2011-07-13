@@ -16,27 +16,11 @@ public abstract class Logger {
   private static final boolean DISABLE = false;
   
   
-  public static void println(RepetitionRate rate, String msg) {
-    if (DISABLE) return;
-    
-    if (rate.compareTo(verbosity) > 0) return;
-    
-    printHeader();
-    
-    out.println(msg);
+  public static void test() {
+    println(RepetitionRate.FEW, true);
   }
   
-  public static void println(RepetitionRate rate, int msg) {
-    if (DISABLE) return;
-    
-    if (rate.compareTo(verbosity) > 0) return;
-    
-    printHeader();
-    
-    out.println(msg);
-  }
-  
-  public static void println(RepetitionRate rate, double msg) {
+  public static void println(RepetitionRate rate, Object msg) {
     if (DISABLE) return;
     
     if (rate.compareTo(verbosity) > 0) return;
