@@ -152,6 +152,7 @@ public class PlayerState {
 
     try {
       
+      assert(playerNo >= 0);
       assert(playerNo <= 0xFF);
       o.writeBytes("#");
       o.write(playerNo);
@@ -170,9 +171,11 @@ public class PlayerState {
 
       o.writeBytes("d");
       o.writeInt(ship.dir());
-
+      
+      assert(energy >= 0);
+      assert(energy <= 0xFF);
       o.writeBytes("e");
-      o.writeInt(energy);
+      o.write(energy);
 
       o.writeBytes("l");
       o.writeInt(tailStarted);
@@ -183,6 +186,7 @@ public class PlayerState {
       o.writeBytes("t");
       o.writeInt(cropTailTo);
       
+      assert(score >= 0);
       assert(score <= 0xFF);
       o.writeBytes("s");
       o.write(score);
@@ -254,7 +258,7 @@ public class PlayerState {
 
       cmd = i.readByte();
       assert(cmd == 'e');
-      energy = i.readInt();
+      energy = i.read();
 
       cmd = i.readByte();
       assert(cmd == 'l');
