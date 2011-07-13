@@ -142,8 +142,10 @@ public class Simulation {
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+          extraInfo[j].prevParams = extraInfo[j].params;
           extraInfo[j].params = listeners[j].getCtrlParams(game.time);
+        }
         // --- end
         
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { 
@@ -155,12 +157,10 @@ public class Simulation {
           boolean spendPathOnBullet = false;
 
           // Take shots first:
-          if (extraInfo[j].prevParams != extraInfo[j].params)
-            extraInfo[j].shotsTaken = 0;
-
-          // if players have had enough time to reload
-          if (states[j].untilReload == 0 && states[j].untilRespawn == 0
-              && extraInfo[j].shotsTaken < extraInfo[j].params.shotsToTake) {
+          
+          // if players had enough time to reload
+          if (states[j].untilReload == 0 && states[j].untilRespawn == 0 && extraInfo[j].prevParams != null
+              && extraInfo[j].prevParams.shoot != extraInfo[j].params.shoot) {
             
 //            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
               // and if you have enough path to spend
@@ -185,7 +185,6 @@ public class Simulation {
           boolean scored = false;
           boolean crossedOtherPath = false;
           boolean formedLoop = false;
-//          boolean gotPwned = false;
           int score = states[j].score;
           Tail loop = null;
           
@@ -240,8 +239,7 @@ public class Simulation {
                   if (k==j) continue;
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
-                    extraInfo[k].gotPwned = true;
-//                    gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
+                    extraInfo[k].gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
 
                   }
                 }
@@ -371,12 +369,10 @@ public class Simulation {
 
   private class PlayerStateExtraInfo { // STUPID
     /* Values used internally by the simulation. */
-    public int shotsTaken = 0;//STUPID
-    
-    //
+
     public boolean gotPwned = false;
 
-    // The last two control parameters.
+    // The current and previous control parameters.
     public PlayerControlParameters params = null;
     public PlayerControlParameters prevParams = null;
     

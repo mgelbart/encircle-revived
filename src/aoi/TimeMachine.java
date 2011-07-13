@@ -119,11 +119,13 @@ public class TimeMachine {
     PlayerState[] players = new PlayerState[SimulationUtils.NUMPLAYERS];
     Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
     PlayerControlParameters[] ctrl = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
+    PlayerControlParameters[] prevCtrl = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
 
     // Start from the last known values.
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
       players[k] = last.states[k];
       ship[k] = last.states[k].ship;
+      ctrl[k] = getParamsAt(k, last.time-1, reader);
     }
     
     // Predict how the states will evolve during each remaining (time-last.time) time step
@@ -131,12 +133,13 @@ public class TimeMachine {
       
       // Player states
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
+        prevCtrl[k] = ctrl[k];
         ctrl[k] = getParamsAt(k, last.time+j, reader);
         ship[k] = SimulationUtils.nextPosition(ship[k], ctrl[k]);
         
         boolean tookShot = false;
         // Take shots
-        if (ctrl[k].shotsToTake > 0 && players[k].untilReload == 0) {
+        if (ctrl[k].shoot != prevCtrl[k].shoot && players[k].untilReload == 0) {
           bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
           tookShot = true;
         }
@@ -219,7 +222,7 @@ public class TimeMachine {
       // This should never happen under normal circumstances except when
       // the game is just starting and the player hasn't sent any commands.
       // Fall back to assuming motion in current direction.
-      //System.err.println("Couldn't get own parameters at t=" + time + ".");
+      Logger.println(Logger.RepetitionRate.FEW, "Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
       return new PlayerControlParameters(time, 0, states.lastElement().states[ClientConfiguration.playerNo].ship.dir(), 0, 0);
 

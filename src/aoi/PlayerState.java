@@ -48,6 +48,11 @@ public class PlayerState {
   public final int sincePwned; // Lost all points.
 
 
+  // Whether to transmit marker bytes before each transmitted value.
+  // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
+  private static final boolean CHECKBYTES = true;
+
+
   public PlayerState(int playerNo, Ship ship, int energy, 
       int tailStarted, int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
@@ -154,62 +159,62 @@ public class PlayerState {
       
       assert(playerNo >= 0);
       assert(playerNo <= 0xFF);
-      o.writeBytes("#");
+      if (CHECKBYTES) o.writeBytes("#");
       o.write(playerNo);
 
-      o.writeBytes("x");
+      if (CHECKBYTES) o.writeBytes("x");
       o.writeInt(ship.x());
 
-      o.writeBytes("y");
+      if (CHECKBYTES) o.writeBytes("y");
       o.writeInt(ship.y());
 
-      o.writeBytes("u");
+      if (CHECKBYTES) o.writeBytes("u");
       o.writeInt(ship.vx());
 
-      o.writeBytes("v");
+      if (CHECKBYTES) o.writeBytes("v");
       o.writeInt(ship.vy());
 
-      o.writeBytes("d");
+      if (CHECKBYTES) o.writeBytes("d");
       o.writeInt(ship.dir());
       
       assert(energy >= 0);
       assert(energy <= 0xFF);
-      o.writeBytes("e");
+      if (CHECKBYTES) o.writeBytes("e");
       o.write(energy);
 
-      o.writeBytes("l");
+      if (CHECKBYTES) o.writeBytes("l");
       o.writeInt(tailStarted);
 
-      o.writeBytes("f");
+      if (CHECKBYTES) o.writeBytes("f");
       o.writeInt(cropTailFrom);
 
-      o.writeBytes("t");
+      if (CHECKBYTES) o.writeBytes("t");
       o.writeInt(cropTailTo);
       
       assert(score >= 0);
       assert(score <= 0xFF);
-      o.writeBytes("s");
+      if (CHECKBYTES) o.writeBytes("s");
       o.write(score);
 
-      o.writeBytes("l");
+      if (CHECKBYTES) o.writeBytes("l");
       o.write((untilReload > 0xFF)? 0xFF:untilReload); // 255 = 0xFF (as an unsigned byte)
       
-      o.writeBytes("r");
+      if (CHECKBYTES) o.writeBytes("r");
       o.write((untilRespawn > 0xFF)? 0xFF:untilRespawn);
       
-      o.writeBytes("s");
+      if (CHECKBYTES) o.writeBytes("s");
       o.write((sinceScoring > 0xFF)? 0xFF:sinceScoring);
       
-      o.writeBytes("l");
+      if (CHECKBYTES) o.writeBytes("l");
       o.write((sinceLooping > 0xFF)? 0xFF:sinceLooping);
       
-      o.writeBytes("c");
+      if (CHECKBYTES) o.writeBytes("c");
       o.write((sinceCrossing > 0xFF)? 0xFF:sinceCrossing);
       
-      o.writeBytes("b");
+      if (CHECKBYTES) o.writeBytes("b");
       o.write((sinceHitByBullet > 0xFF)? 0xFF:sinceHitByBullet);
       
-      o.writeBytes("p");
+      if (CHECKBYTES) o.writeBytes("p");
       o.write((sincePwned > 0xFF)? 0xFF:sincePwned);
       
 
@@ -231,77 +236,59 @@ public class PlayerState {
 
     try {
 
-      cmd = i.readByte();
-      assert(cmd == '#');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == '#'); }
       playerNo = i.read();
       assert(playerNo == 0 || playerNo == 1);
 
-      cmd = i.readByte();
-      assert(cmd == 'x');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'x'); }
       x = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'y');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'y'); }
       y = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'u');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'u'); }
       vx = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'v');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'v'); }
       vy = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'd');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
       dir = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'e');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
       energy = i.read();
 
-      cmd = i.readByte();
-      assert(cmd == 'l');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
       tailStarted = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'f');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'f'); }
       cropTailFrom = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 't');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 't'); }
       cropTailTo = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 's');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
       score = i.read();
 
-      cmd = i.readByte();
-      assert(cmd == 'l');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
       untilReload = i.read();
       
-      cmd = i.readByte();
-      assert(cmd == 'r');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'r'); }
       untilRespawn = i.read();
         
-      cmd = i.readByte();
-      assert(cmd == 's');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
       sinceScoring = i.read();
       
-      cmd = i.readByte();
-      assert(cmd == 'l');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
       sinceLooping = i.read();
       
-      cmd = i.readByte();
-      assert(cmd == 'c');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'c'); }
       sinceCrossing = i.read();
       
-      cmd = i.readByte();
-      assert(cmd == 'b');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
       sinceHitByBullet = i.read();
       
-      cmd = i.readByte();
-      assert(cmd == 'p');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
       sincePwned = i.read();
       
 

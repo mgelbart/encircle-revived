@@ -77,7 +77,10 @@ public class HigherBeing implements Intelligence {
     timemachine = new TimeMachine();
 
     mindreader = new MindReader();
-
+ 
+    // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
+    queueParams(new PlayerControlParameters(0, 0, 0, 0, 0));
+    
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
     renderTimer.scheduleAtFixedRate(renderTask, 0, frametime);
@@ -132,8 +135,8 @@ public class HigherBeing implements Intelligence {
     boolean update;
     int acc = 0;
     int dir = 0;
-    int shots = 0;
-    int boosts = 0;
+    int shoot = 0;
+    int boost = 0;
 
     Set<Integer> keysPressed;
 
@@ -145,9 +148,9 @@ public class HigherBeing implements Intelligence {
 
         // Don't do anything before the game starts.
         if (renderedState == null) continue;
-
+      
         update = false;
-
+        
         keysPressed = gui.pressedKeys();
 
         if (keysPressed.contains(KeyEvent.VK_UP)) {
@@ -161,19 +164,13 @@ public class HigherBeing implements Intelligence {
         }
 
         if (keysPressed.contains(KeyEvent.VK_DOWN)) {
-          boosts = 10;
-          update = true;
-        } else if (boosts > 0) {
-          boosts = 0;
+          boost++;
           update = true;
         }
 
 
         if (keysPressed.contains(KeyEvent.VK_SPACE)) {
-          shots = 10;
-          update = true;
-        } else if (shots > 0) {
-          shots = 0;
+          shoot++;
           update = true;
         }
 
@@ -189,11 +186,11 @@ public class HigherBeing implements Intelligence {
         SimulationUtils.INTMAX/5) {
           dir = renderedState.states[ClientConfiguration.playerNo].ship.dir();
           update = true;
-        }		    
+        }
 
 
         if (update)
-          queueParams(new PlayerControlParameters(renderedState.time, acc, dir, shots, boosts));
+          queueParams(new PlayerControlParameters(renderedState.time, acc, dir, shoot, boost));
 
       }
 

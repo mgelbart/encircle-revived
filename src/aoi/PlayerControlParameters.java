@@ -22,18 +22,23 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   public final int acceleration;
   public final int targetDirection;
 
-  // Number of shots/boosts to take ASAP.
-  // Decremented by the simulator when actually taken.
-  public final int shotsToTake;
-  public final int boostsToTake;
+  // The client tells the server it wants to shoot/boost by changing these variables from their values
+  // in the previous control parameters.
+  // This is a packet loss tolerant way of transmitting these commands.
+  public final int shoot; // only the least significant byte is transmitted to the server.
+  public final int boost; // only the least significant byte is transmitted to the server.
 
+  // Whether to transmit marker bytes before each transmitted value.
+  // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
+  private static final boolean CHECKBYTES = true;
+  
   public PlayerControlParameters(int effectiveOn, int acceleration, int targetDirection,
-                                 int shotsToTake, int boostsToTake) {
+                                 int shoot, int boost) {
     this.effectiveOn = effectiveOn;
     this.acceleration = acceleration;
     this.targetDirection = targetDirection;
-    this.shotsToTake = shotsToTake;
-    this.boostsToTake = boostsToTake;
+    this.shoot = shoot;
+    this.boost = boost;
   }
 
   /** The 'natural' order is time ordering.
@@ -75,22 +80,20 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
     try {
 
       // Signal start of a new command:
-      b.writeBytes("$");
-
-      b.writeBytes("e");
+      if (CHECKBYTES) b.writeBytes("e");
       b.writeInt(effectiveOn);
 
-      b.writeBytes("a");
+      if (CHECKBYTES) b.writeBytes("a");
       b.writeInt(acceleration);
 
-      b.writeBytes("d");
+      if (CHECKBYTES) b.writeBytes("d");
       b.writeInt(targetDirection);
 
-      b.writeBytes("s");
-      b.writeInt(shotsToTake);
+      if (CHECKBYTES) b.writeBytes("s");
+      b.write(shoot);
 
-      b.writeBytes("b");
-      b.writeInt(boostsToTake);
+      if (CHECKBYTES) b.writeBytes("b");
+      b.write(boost);
 
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -106,28 +109,20 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
 
     try {
 	    
-      cmd = i.readByte();
-      assert(cmd == '$');
-		
-      cmd = i.readByte();
-      assert(cmd == 'e');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
       e = i.readInt();
 		
-      cmd = i.readByte();
-      assert(cmd == 'a');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'a'); }
       a = i.readInt();
 	    
-      cmd = i.readByte();
-      assert(cmd == 'd');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
       d = i.readInt();
 	    
-      cmd = i.readByte();
-      assert(cmd == 's');
-      s = i.readInt();
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
+      s = i.read();
 	    
-      cmd = i.readByte();
-      assert(cmd == 'b');
-      b = i.readInt();
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
+      b = i.read();
 	    
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
