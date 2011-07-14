@@ -137,6 +137,7 @@ public class Simulation {
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           extraInfo[j].prevParams = extraInfo[j].params;
           extraInfo[j].params = listeners[j].getCtrlParams(game.time);
+          extraInfo[j].gotPwned = false;
         }
         // --- end
         
@@ -150,7 +151,6 @@ public class Simulation {
           boolean scored = false;
           boolean crossedOtherPath = false;
           boolean formedLoop = false;
-          int score = states[j].score;
           
           // Check for players waiting to respawn:
 //          if (states[j].untilRespawn == 1) {  // time to respawn
@@ -189,7 +189,7 @@ public class Simulation {
 //            Logger.println(RepetitionRate.INFREQUENT, "-------------");
             
             states[j] = new PlayerState(j, ship, 0, 
-                tailStarted, cropFrom, cropTo, score,
+                tailStarted, cropFrom, cropTo, states[j].score,
                 Math.max(0, states[j].untilReload-1),
                 untilRespawn,
                 states[j].sinceScoring+1,
@@ -238,14 +238,14 @@ public class Simulation {
                 formedLoop = true;
                 loop = intersection;
 
-                assert(score < arena.sequence().length);
+                assert(states[j].score < arena.sequence().length);
 
                 // Check for scoring
                 for (Cluster cNotSS : arena.clusters) {
                   ClusterServerSide c = (ClusterServerSide) cNotSS;
                   
                   // Check if the center of the cluster is in the loop just made
-                  if (c.acceptable(arena.sequence()[score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(arena.sequence()[states[j].score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
                     Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
@@ -254,10 +254,9 @@ public class Simulation {
                     // Currently stores the vote for all clusters in the loop that
                     // *could* have been accepted, since we don't know which cluster in particular
                     // the player was going for.
-                    clusterDB.writeData(c.imgName(), score+1, "Mike R");
+                    clusterDB.writeData(c.imgName(), states[j].score+1, "Mike R");
                   }
                 }
-                if (scored) score++;
 
                 // Check if the other player got pwned.
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
@@ -265,7 +264,6 @@ public class Simulation {
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
                     extraInfo[k].gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
-
                   }
                 }
               }
@@ -344,7 +342,8 @@ public class Simulation {
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           states[j] = new PlayerState(j, ship, 0, 
-              tailStarted, cropFrom, cropTo, score,
+              tailStarted, cropFrom, cropTo,
+              states[j].score + ((scored)? 1:0),
               (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
               (crashed)? SimulationUtils.timeUntilRespawn(tail) : 0,
               (scored)? 0 : states[j].sinceScoring+1,
