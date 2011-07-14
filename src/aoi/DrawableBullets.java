@@ -30,12 +30,12 @@ public class DrawableBullets implements Drawable {
   private final Path2D bulletTail;
   
   public DrawableBullets() {
-    endOfTail = new Point(-SimulationUtils.ARENASIZE/8, 0);
+    endOfTail = new Point(-SimulationUtils.ARENASIZE/15, 0);
     
     bulletTail = new Path2D.Double();
     bulletTail.moveTo(0., 0.);
-    bulletTail.lineTo(endOfTail.getX(), 0. - 2*BULLETSIZE);
-    bulletTail.lineTo(endOfTail.getX(), 0. + 2*BULLETSIZE);
+    bulletTail.lineTo(endOfTail.getX(), 0. - BULLETSIZE);
+    bulletTail.lineTo(endOfTail.getX(), 0. + BULLETSIZE);
     bulletTail.closePath();
   }
   
