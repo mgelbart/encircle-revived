@@ -162,9 +162,9 @@ public class Simulation {
               cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
               Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
               if (newLocation == null) newLocation = states[j].ship.location();
-              double newDir = states[j].tail.tangentAngle();
-              if (newDir == Double.NaN) newDir = states[j].ship.dir().toDouble();
-              ship = new Ship(newLocation, 0, 0, new Angle(newDir));
+              Angle newDir = states[j].tail.tangentAngle();
+              if (newDir == null) newDir = states[j].ship.dir();
+              ship = new Ship(newLocation, 0, 0, newDir);
             } else {  // this should never actually happen, but want to guard against weird corner case
               cropFrom = tailStarted;
               cropTo   = tailStarted;

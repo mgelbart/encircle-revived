@@ -105,13 +105,13 @@ public class Tail {
     return null;
   }
   
-  // Finds the angle (in standard coordinates) of the  
+  // Finds the angle of the  
   // head (end) of the tail, using the last two points
-  public double tangentAngle() {
-    if (nPoints() < 2) return Double.NaN;
-      return Math.atan2(
+  public Angle tangentAngle() {
+    if (nPoints() < 2) return null;
+    return new Angle(Math.atan2(
           trajectory.getPoint(nPoints()-1).getY() - trajectory.getPoint(nPoints()-2).getY(), 
-          trajectory.getPoint(nPoints()-1).getX() - trajectory.getPoint(nPoints()-2).getX()); 
+          trajectory.getPoint(nPoints()-1).getX() - trajectory.getPoint(nPoints()-2).getX())); 
   }
   
   // Create a copy of the Tail with an added point.
