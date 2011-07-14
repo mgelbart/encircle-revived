@@ -3,13 +3,15 @@ package aoi;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Line2D;
+import java.awt.geom.Line2D.Double;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.xml.sax.Attributes;
 
 /**
- * The same as java.awt.Polygon except you can get the list of points out. 
+ * The same as java.awt.Polygon except you can get the list of points out.
+ * The list of points does not wrap around, i.e. x[0] not equal x[end]. 
  */
 @SuppressWarnings("serial")
 public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
@@ -93,12 +95,25 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
     return coords;
   }
 	
+  private Line2D getLine(int i) {
+    if (i < 0 || i >= n) return null;
+    else if (i == n-1) return new Line2D.Double(x[n-1], y[n-1], x[0], y[0]); 
+    else return new Line2D.Double(x[i], y[i], x[i+1], y[i+1]);
+  }
+  
+  public boolean intersects(Line2D l) {
+    for (int i = 0; i < n(); i++) 
+      if (getLine(i).intersectsLine(l))
+        return true;
+    return false;
+  }
+  
   // Actually intersects or contains.
   // If I just wanted intersects, I would use XOR below
-  public boolean intersects(Line2D line) {
-//    Logger.println(Logger.RepetitionRate.FREQUENT, line.getP1() + " " + line.getP2());
-    return contains(line.getP1()) || contains(line.getP2());
-  }
+//  public boolean intersects(Line2D line) {
+////    Logger.println(Logger.RepetitionRate.FREQUENT, line.getP1() + " " + line.getP2());
+//    return contains(line.getP1()) || contains(line.getP2());
+//  }
   
   public boolean intersects(NotStupidPolygon that) {
     // To speed up, first check the bounding box of that
