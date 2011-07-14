@@ -21,19 +21,27 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
 
   public final int acceleration;
   public final int targetDirection;
-
-  // The client tells the server it wants to shoot/boost by changing these variables from their values
-  // in the previous control parameters.
+  
+  // Whether to shoot/boost if possible.
+  public final boolean shoot;
+  public final boolean boost;
+  
+  // Internally the client tells the server it wants to shoot/boost by changing these variables from their values
+  // in the previous control parameters, i.e by incrementing them.
   // This is a packet loss tolerant way of transmitting these commands.
-  public final int shoot; // only the least significant byte is transmitted to the server.
-  public final int boost; // only the least significant byte is transmitted to the server.
+  private static int shootCtr = 0; // only the least significant byte is transmitted to the server.
+  private static int boostCtr = 0; // only the least significant byte is transmitted to the server.
 
+  // These values are used only on the server side to compare whether the counter values have changed.
+  private int parsedShootCtr = -1;
+  private int parsedBoostCtr = -1;
+  
   // Whether to transmit marker bytes before each transmitted value.
   // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
   private static final boolean CHECKBYTES = true;
   
   public PlayerControlParameters(int effectiveOn, int acceleration, int targetDirection,
-                                 int shoot, int boost) {
+                                 boolean shoot, boolean boost) {
     this.effectiveOn = effectiveOn;
     this.acceleration = acceleration;
     this.targetDirection = targetDirection;
@@ -90,10 +98,12 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
       b.writeInt(targetDirection);
 
       if (CHECKBYTES) b.writeBytes("s");
-      b.write(shoot);
+      if (shoot) ++shootCtr;
+      b.write(shootCtr);
 
       if (CHECKBYTES) b.writeBytes("b");
-      b.write(boost);
+      if (boost) ++boostCtr;
+      b.write(boostCtr);
 
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -102,7 +112,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
 
   }
 
-  public static PlayerControlParameters parse(DataInputStream i) {
+  public static PlayerControlParameters parse(DataInputStream i, PlayerControlParameters prev) {
 
     Byte cmd;
     int e, a, d, s, b;
@@ -130,8 +140,12 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
       return null;
     }
 
-
-    return new PlayerControlParameters(e, a, d, s, b);
+    PlayerControlParameters params = new PlayerControlParameters(e, a, d,
+                                                                  (s != prev.parsedShootCtr),
+                                                                  (b != prev.parsedBoostCtr));
+    params.parsedShootCtr = s;
+    params.parsedBoostCtr = b;
+    return params;
 
   }
 }

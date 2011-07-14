@@ -139,8 +139,7 @@ public class TimeMachine {
         
         boolean tookShot = false;
         // Take shots
-        if (ctrl[k].shoot != prevCtrl[k].shoot && players[k].untilReload == 0 &&
-            players[k].tail.pathLength() > SimulationUtils.BULLETCOST) {
+        if (ctrl[k].shoot && SimulationUtils.canShoot(players[k])) {
           bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
           tookShot = true;
         }
@@ -194,9 +193,9 @@ public class TimeMachine {
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[ClientConfiguration.playerNo];
     if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), 0, 0);
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), false, false);
     else
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), 0, 0);
+      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), false, false);
   }
 
 
@@ -223,7 +222,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       Logger.println(Logger.RepetitionRate.FEW, "Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[ClientConfiguration.playerNo].ship.dir(), 0, 0);
+      return new PlayerControlParameters(time, 0, states.lastElement().states[ClientConfiguration.playerNo].ship.dir(), false, false);
 
     }
   }

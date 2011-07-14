@@ -1,13 +1,10 @@
 package aoi;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.Vector;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import aoi.Logger.RepetitionRate;
 
 /**
  *  The main class ran by the server that carries on the
@@ -135,7 +132,6 @@ public class Simulation {
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          extraInfo[j].prevParams = extraInfo[j].params;
           extraInfo[j].params = listeners[j].getCtrlParams(game.time);
           extraInfo[j].gotPwned = false;
         }
@@ -206,9 +202,7 @@ public class Simulation {
           
           
           // Take shots first:          
-          if (states[j].untilReload == 0 && extraInfo[j].prevParams != null &&
-              extraInfo[j].prevParams.shoot != extraInfo[j].params.shoot && 
-              states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
+          if (extraInfo[j].params.shoot && SimulationUtils.canShoot(states[j])) {
             // if players had enough time to reload and enough path to spend
             bullets.add(new Bullet(j, states[j].ship.x(), states[j].ship.y(), states[j].ship.dir()));
             spendPathOnBullet = true;
@@ -382,8 +376,6 @@ public class Simulation {
 
     // The current and previous control parameters.
     public PlayerControlParameters params = null;
-    public PlayerControlParameters prevParams = null;
-    
   }
 
 

@@ -27,7 +27,7 @@ public class PlayerListener implements Runnable {
     this.client = new DataInputStream(in);
 
     // Never let the buffer be empty.
-    ctrls.add(new PlayerControlParameters(0, 0, 0, 0, 0));
+    ctrls.add(new PlayerControlParameters(0, 0, 0, false, false));
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);
@@ -59,17 +59,14 @@ public class PlayerListener implements Runnable {
 
   public void run() {
 
-//    Byte cmd = 0;
-//    int j;
-    PlayerControlParameters ctrl;
-
     while (true) {
 
-      ctrl = PlayerControlParameters.parse(client);
+      PlayerControlParameters prev;
+      synchronized (ctrls) { prev = ctrls.lastElement(); }
+      PlayerControlParameters ctrl = PlayerControlParameters.parse(client, prev);
       if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) continue;
 
       // Keep ctrls ordered by effectiveOn.
-//      j = 0;
       synchronized (ctrls) {
         ctrls.add(ctrl);
         java.util.Collections.sort(ctrls);

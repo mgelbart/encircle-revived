@@ -59,7 +59,8 @@ public class Nonhuman implements Intelligence {
 
   public void think() {
 
-    int acc, dir, shots, boosts;
+    int acc, dir;
+    boolean shoot, boost;
 
     acc = SimulationUtils.INTMAX / 2;
 
@@ -72,13 +73,13 @@ public class Nonhuman implements Intelligence {
         // Shoot if appropriate, i.e., if your path is not too long and another player is in range
         double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
         double MAX_ANGLE_TO_SHOOT = 0.1;
-        shots = 0;
+        shoot = false;
         if (Math.abs(games[0].time - games[0].states[ClientConfiguration.playerNo].tailStarted) < MAX_LOOP_TO_SHOOT) { 
           if (prevCtrl != null) {
             Ship ComparedSayWithPET = SimulationUtils.nextPosition(
                 games[0].states[ClientConfiguration.playerNo].ship,
                 new PlayerControlParameters(prevCtrl.effectiveOn, 
-                    SimulationUtils.INTMAX/10, prevCtrl.targetDirection, 0, 0));
+                    SimulationUtils.INTMAX/10, prevCtrl.targetDirection, false, false));
             
             for (int playerNos = 0; playerNos < SimulationUtils.NUMPLAYERS; playerNos++) {
               if (playerNos == ClientConfiguration.playerNo) continue; // Skip yourself
@@ -92,12 +93,12 @@ public class Nonhuman implements Intelligence {
               
               // Logger.println(Logger.RepetitionRate.FREQUENT, theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
               if (theangle < MAX_ANGLE_TO_SHOOT) {
-                shots = 1;
+                shoot = true;
               }
             }
           }
         }
-        boosts = 0;
+        boost = false;
 
 
         // define a potential function V for decision making
@@ -119,7 +120,7 @@ public class Nonhuman implements Intelligence {
         
           // The candidate set of control parameters.
           testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
-                                                 shots, boosts);
+                                                 shoot, boost);
 
           Ship intPos = SimulationUtils.nextPosition(
               games[0].states[ClientConfiguration.playerNo].ship, testCtrl);

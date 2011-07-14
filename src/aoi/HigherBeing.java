@@ -75,7 +75,7 @@ public class HigherBeing implements Intelligence {
     mindreader = new MindReader();
  
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
-    queueParams(new PlayerControlParameters(0, 0, 0, 0, 0));
+    queueParams(new PlayerControlParameters(0, 0, 0, false, false));
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -131,8 +131,8 @@ public class HigherBeing implements Intelligence {
     boolean update;
     int acc = 0;
     int dir = 0;
-    int shoot = 0;
-    int boost = 0;
+    boolean shoot = false;
+    boolean boost = false;
 
     Set<Integer> keysPressed;
 
@@ -160,13 +160,19 @@ public class HigherBeing implements Intelligence {
         }
 
         if (keysPressed.contains(KeyEvent.VK_DOWN)) {
-          boost++;
+          boost = true;
+          update = true;
+        } else if (boost) {
+          boost = false;
           update = true;
         }
 
 
         if (keysPressed.contains(KeyEvent.VK_SPACE)) {
-          shoot++;
+          shoot = true;
+          update = true;
+        } else if (shoot) {
+          shoot = false;
           update = true;
         }
 

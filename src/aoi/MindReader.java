@@ -65,7 +65,7 @@ public class MindReader {
 
       if (N == 0) return null;
 
-      if (N < 3) return new PlayerControlParameters(time, SimulationUtils.INTMAX, states.get(N-1).states[P].ship.dir(), 0, 0);
+      if (N < 3) return new PlayerControlParameters(time, SimulationUtils.INTMAX, states.get(N-1).states[P].ship.dir(), false, false);
 
       s0 = states.get(N-2);
       s1 = states.get(N-1);
@@ -85,7 +85,7 @@ public class MindReader {
     return new PlayerControlParameters(time,
                                        (int) (Math.min(SimulationUtils.INTMAX, ((long) SimulationUtils.INTMAX) * (a / SimulationUtils.MAXACC))),
                                        s1.states[P].ship.dir(),
-                                       0, 0);
+                                       false, false);
   }
 
 }

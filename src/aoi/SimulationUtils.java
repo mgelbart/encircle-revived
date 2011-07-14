@@ -126,6 +126,10 @@ public abstract class SimulationUtils {
     return b.playerNo != p.playerNo && p.ship.intersects(b);
   }
   
+  // Whether the player is allowed to shoot given its state p.
+  public static boolean canShoot(PlayerState p) {
+    return p.untilReload == 0 && p.untilRespawn == 0 && p.tail.pathLength() > SimulationUtils.BULLETCOST;
+  }
 
   /* Returns the next bullet position after a single time step
      given an initial bullet state.
