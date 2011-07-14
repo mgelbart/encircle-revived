@@ -36,20 +36,20 @@ public abstract class SimulationUtils {
   public static final double DRAG = 0.0025 * TIMESTEP;
 
   /* The bullet speed is a universal constant. */
-  public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1000 * 1;
+  public static final int BULLETSPEED = (ARENASIZE * TIMESTEP) / 1000 * 1;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = 200 / TIMESTEP;
+  public static final int RELOADTIME = 300 / TIMESTEP;
   
   /* Length of path required to spend in order to shoot.  */
   public static final double BULLETCOST = ARENASIZE / 20.;
-  
-  // Time to wait until respawning.
-  public static final int RESPAWNTIME = 1000 / TIMESTEP;
-
+ 
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
 
+  // The rate at which you recoil backwards after crashing
+  public static final int UNCOILSPEED = (ARENASIZE * TIMESTEP) / 4000; 
+  
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
 
@@ -59,7 +59,13 @@ public abstract class SimulationUtils {
    *       Server instead of using all these public fields.
    */
  
- 
+// may want to say > 2*UNCOILSPEED or something to catch crazy bugs
+  public static int timeUntilRespawn(Tail t) {
+    if (t.pathLength() > UNCOILSPEED) return (int) (t.pathLength() / UNCOILSPEED);
+    else return 1;
+  }
+  
+  
   /* Returns an array of {x, y, vx, vy, direction} after
      a single time step given an initial state and
      control parameters.

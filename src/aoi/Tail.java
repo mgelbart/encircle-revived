@@ -15,6 +15,11 @@ public class Tail {
   public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
 
+  
+  // This data should actually be best implemented as a 
+  // Map<Integer, Point>
+  // this totally undermines NSPath though...
+  
   // The trajectory in the two space coordinates
   private NSPath trajectory;
   
@@ -43,7 +48,9 @@ public class Tail {
   
   public Path2D toPath2D() { return trajectory.toPath2D(); }
   
-  private int nPoints() { return trajectory.nPoints(); }
+  public int nPoints() { return trajectory.nPoints(); }
+  
+  public boolean isEmpty() { return nPoints() == 0; }
   
   public int startTime() {
     if (times.isEmpty()) return -1;
@@ -56,6 +63,15 @@ public class Tail {
    * 
    * @param excludePoints Number of points to exclude from the end of 'this'.
    *                      Useful is you want to check for loops (this==that).
+   *                      
+   *   // Check if the last step of player j intersects with the path of player i
+   *   // and if so, return the loop of player j that is now complete
+   *   // (note: the behavior is not really defined when there is an intersection and i!=j,
+   *   // but this is fine because in the i!=j case all we really need out of this function
+   *   // is a boolean and loop==null is that boolean)
+   *   // Note this is not symmetric in i and j.
+   *                       
+   *  The excludePoints is necessary to avoid spurious two segment loops                       
    */
   public Tail intersects(Tail that, int excludePoints) {
     if (that.trajectory.lastLine() == null) return null; 
@@ -81,6 +97,22 @@ public class Tail {
     return new Tail(trajectory.clone(), (Vector<Integer>)times.clone());
   }
   
+  
+  public Point2D getPointFromTime(int time) {
+    for (int i = 0; i < nPoints(); i++)
+      if (times.elementAt(i) == time)
+        return trajectory.getPoint(i);
+    return null;
+  }
+  
+  // Finds the angle (in standard coordinates) of the  
+  // head (end) of the tail, using the last two points
+  public double tangentAngle() {
+    if (nPoints() < 2) return Double.NaN;
+      return SimulationUtils.INTMAX / Math.PI * Math.atan2(
+          trajectory.getPoint(nPoints()-1).getY() - trajectory.getPoint(nPoints()-2).getY(), 
+          trajectory.getPoint(nPoints()-1).getX() - trajectory.getPoint(nPoints()-2).getX()); 
+  }
   
   // Create a copy of the Tail with an added point.
   @SuppressWarnings("unchecked")
@@ -109,9 +141,8 @@ public class Tail {
 
     assert(prevPoint != null);
     
-    // if the new point is sufficiently far from the current such that
-    // you even care enough to do something about it
-    // oh, because of integer resolution
+    // if the current point is not equal to the previous point
+    // but == is sketchy for double so we use this
     if (prevPoint.distance(curPoint) > 0.9) {
 
       // Always add the latest position to the trajectory
@@ -167,12 +198,17 @@ public class Tail {
     return new Tail(newPath, newTimes);  
   }
   
+  // The time of the head, i.e. the last time. Kind of confusing naming, sorry.
+  public int headTime() {
+    return times.lastElement();
+  }
   
-  // the first (absolute) time at which the path from start to that time 
+  // the first (absolute) time at which the path from base to that time 
   // has at least the specified length
-  // note that this does NOT output the time interval length from start to this point
+  // note that this does NOT output the time interval length from base to this point
   public int lengthToTime(double length) {
     assert(nPoints() == times.size());
+    assert(nPoints() > 0);
     
     NSPath subpath = new NSPath();
 
@@ -181,9 +217,14 @@ public class Tail {
       if (subpath.length() >= length)
         return times.elementAt(i);
     }
-    return times.elementAt(0);  // entire path is not long enough
+    
+    // what to do if the entire path is not long enough
+    // must be very careful with what you return in this case
+    // here we use lastElement()+1 so that if the whole path
+    // is not long enough, you don't crop anything
+    // when the output of this function is used as cropTailFrom
+    return times.lastElement() + 1;  
   }
-  
   
 
   // Crops part of a tail given the times "from" and "to".
@@ -206,6 +247,8 @@ public class Tail {
     return new Tail(newPath, newTimes);  
   }
   
-  
+  public String toString() {
+    return trajectory.toString();
+  }
   
 }

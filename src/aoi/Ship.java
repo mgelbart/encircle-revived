@@ -1,6 +1,8 @@
 package aoi;
 
+import java.awt.Point;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 
 /** 
  * A "read-only" class that describes a player's
@@ -20,7 +22,7 @@ public class Ship {
   private final int y;
   private final int vx;
   private final int vy;
-  private final int direction;
+  private final int direction;  // after dividing by INTMAX and multiplying by pi, on [-pi, pi]
   
   private final NSPath path;  // cache the path for intersection checking
   
@@ -29,11 +31,16 @@ public class Ship {
   public int vx() { return vx; }
   public int vy() { return vy; }
   public int dir() { return direction; }
+  public Point location() { return new Point(x, y); }
   
   public final NSPath getNSPath() { return path; }
   
   public Ship(Ship that) {
     this(that.x, that.y, that.vx, that.vy, that.direction);
+  }
+  
+  public Ship(Point2D p, int vx, int vy, int direction) {
+    this((int)p.getX(), (int)p.getY(), vx, vy, direction);
   }
   
   public Ship(int x, int y, int vx, int vy, int direction) {

@@ -311,6 +311,8 @@ public class PlayerState {
       newTail = new Tail();
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
+    } else if (untilRespawn > 0) { 
+      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
     } else if (deadOrShot(prevState, tailStarted, cropTailFrom, cropTailTo)) {
       // you died or got shot, etc. so just re-initialize tail
       newTail = new Tail();
@@ -334,9 +336,8 @@ public class PlayerState {
       newTail = prevState.tail.clone();
     }
 
-
-    newTail = newTail.addPoint(x, y, time);
-
+    if (untilRespawn == 0)
+      newTail = newTail.addPoint(x, y, time);
 
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
         energy, tailStarted, cropTailFrom, cropTailTo, 
