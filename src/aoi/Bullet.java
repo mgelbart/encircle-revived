@@ -1,6 +1,5 @@
 package aoi;
 
-import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.io.*;
 
@@ -12,7 +11,7 @@ import java.io.*;
  * any special serialization/parsing to be transmitted
  * over the network.
  */ 
-public class Bullet implements Cloneable {
+public class Bullet {
 
  
   /* Values transmitted to the clients. */
@@ -35,15 +34,6 @@ public class Bullet implements Cloneable {
   public Line2D getLine() {
     Bullet nextPos = SimulationUtils.nextBulletPosition(this);
     return new Line2D.Double(x, y, 2*x-nextPos.x, 2*y-nextPos.y);
-  }
-  
-  public Bullet clone() {
-    try {
-      return (Bullet) super.clone();
-    }
-    catch (CloneNotSupportedException e) {
-      return null;
-    }
   }
 
   public String toString() {
