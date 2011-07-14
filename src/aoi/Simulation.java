@@ -157,7 +157,11 @@ public class Simulation {
           if (states[j].untilReload == 0 && states[j].untilRespawn == 0 && extraInfo[j].prevParams != null
               && extraInfo[j].prevParams.shoot != extraInfo[j].params.shoot) {
             
-//            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
+            Logger.println(Logger.RepetitionRate.INFREQUENT, states[j].tail.pathLength());
+            Logger.println(Logger.RepetitionRate.INFREQUENT, SimulationUtils.BULLETCOST);
+            Logger.println(Logger.RepetitionRate.INFREQUENT, states[j].tail.pathLength() > SimulationUtils.BULLETCOST);
+            
+            if (states[j].tail.pathLength() > SimulationUtils.BULLETCOST) {
               // and if you have enough path to spend
               bullets.add(new Bullet(j,
                   states[j].ship.x(),
@@ -165,7 +169,7 @@ public class Simulation {
                   states[j].ship.dir()));
   
               spendPathOnBullet = true;
-//            }
+            }
           }
 
           // Calculate where the player moved.
@@ -260,9 +264,9 @@ public class Simulation {
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else if (spendPathOnBullet) {
             // if you spend some path on a shot
-            tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1;
+            tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1;
             cropFrom    = states[j].tailStarted;
-            cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST*states[j].tail.pathLength()) + 1; // +1 because cropping excludes the "to"
+            cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());

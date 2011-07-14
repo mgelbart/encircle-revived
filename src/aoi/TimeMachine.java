@@ -139,7 +139,8 @@ public class TimeMachine {
         
         boolean tookShot = false;
         // Take shots
-        if (ctrl[k].shoot != prevCtrl[k].shoot && players[k].untilReload == 0) {
+        if (ctrl[k].shoot != prevCtrl[k].shoot && players[k].untilReload == 0 &&
+            players[k].tail.pathLength() > SimulationUtils.BULLETCOST) {
           bullets.add(new Bullet(k, ship[k].x(), ship[k].y(), ship[k].dir()));
           tookShot = true;
         }
