@@ -71,13 +71,13 @@ public class GUI implements Runnable {
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableTail(j, DrawUtils.DEFAULTSTROKE));
 
-    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
-
     drawables.add(new DrawableBullets());
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
+    
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
+      drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScore(Color.GRAY, Arena.current().sequence()));
 
