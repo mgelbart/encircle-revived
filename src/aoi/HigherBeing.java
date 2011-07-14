@@ -17,8 +17,6 @@ import java.util.Vector;
  */
 public class HigherBeing implements Intelligence {
 
-  private Arena arena;
-
   // Stores a (limited) history of the the game states
   // and predicts future states.
   private TimeMachine timemachine;
@@ -64,13 +62,11 @@ public class HigherBeing implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
 
-  public HigherBeing(Arena arena) {
-
-    this.arena = arena;
+  public HigherBeing() {
     
     Logger.println(Logger.RepetitionRate.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
 
-    gui = new GUI(arena);
+    gui = new GUI();
     guiThread = new Thread(gui);
     guiThread.start();
 

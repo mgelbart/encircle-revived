@@ -22,6 +22,9 @@ public class Arena {
   // The sequence in which the objects are to be collected.
   private final int[] sequence;
 
+  // The current arena.
+  private static Arena current = null;
+
   public Arena(Vector<Cluster> clusters, int[] sequence) {
     this.clusters = clusters;
     this.sequence = sequence;
@@ -41,6 +44,10 @@ public class Arena {
     return s;
   }
 
+  // Static convenience methods for accessing the Arena from various classes in the client.
+  public static void setCurrent(Arena a) {assert(current==null);current = a; }
+  public static Arena current() { assert(current!= null); return current; }
+  
   public String toString() {
     StringBuilder s = new StringBuilder();
 

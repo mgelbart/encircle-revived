@@ -161,15 +161,13 @@ public class TimeMachine {
       
       }
 
-
-      int[] bulPos = new int[SimulationUtils.nextBulletPosition(null).length];
-      Bullet b;
-
-      for (int k=0; k < bullets.size(); ++k) {
-        b = bullets.get(k);
-        bulPos = SimulationUtils.nextBulletPosition(b);
-        bullets.set(k, new Bullet(b.playerNo, bulPos[0], bulPos[1], b.direction));
+      for (int k=bullets.size()-1; k >= 0; --k) {
+        Bullet b = bullets.get(k);
         
+        if (SimulationUtils.isInArena(b, Arena.current()))
+          bullets.set(k, SimulationUtils.nextBulletPosition(b));
+        else
+          bullets.remove(k);  
       }
     }
 

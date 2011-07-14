@@ -13,8 +13,6 @@ import java.awt.geom.Point2D;
  */
 public class Nonhuman implements Intelligence {
 
-  Arena arena;
-
   // A queue of latest game states.
   GameState[] games;
 
@@ -28,9 +26,7 @@ public class Nonhuman implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   Thread intelThread;
 
-  public Nonhuman(Arena arena) {
-
-    this.arena = arena;
+  public Nonhuman() {
 
     Logger.println(Logger.RepetitionRate.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
 
@@ -187,7 +183,7 @@ public class Nonhuman implements Intelligence {
     V += Math.exp((Math.abs(x) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
     V += Math.exp((Math.abs(y) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
 
-    for (Cluster clust : arena.clusters) {
+    for (Cluster clust : Arena.current().clusters) {
 
       V += -truncatedLog(loc.distance(clust.centerX(), clust.centerY() + clust.height()/2), range);
       V += -truncatedLog(loc.distance(clust.centerX(), clust.centerY() - clust.height()/2), range);

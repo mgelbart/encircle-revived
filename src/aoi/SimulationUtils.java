@@ -122,26 +122,58 @@ public abstract class SimulationUtils {
   }
   
 
-  /* Returns an array of {x, y} after a single time step
+  /* Returns the next bullet position after a single time step
      given an initial bullet state.
 
      Note that this in particular does not tell you
      if the bullet hit something (a boundary, cluster).
-
-     If b is null this return an empty
-     int[] of the correct size.
-
   */
-  public static int[] nextBulletPosition(Bullet b) {
-
-    if (b == null) return new int[2];
+  public static Bullet nextBulletPosition(Bullet b) {
 
     int x = b.x + (int) (((double) BULLETSPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
     int y = b.y + (int) (((double) BULLETSPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
 
-    return new int[]{x, y};
+    return new Bullet(b.playerNo, x, y, b.direction);
   }
 
+  public static boolean isInArena(Bullet b, Arena a) {
+    if (isOutOfBounds(b.x, b.y)) return false;
+
+    // hit a cluster
+    for (Cluster c : a.clusters)
+      if (c.intersects(b))
+        return false;
+    
+    return true;
+  }
+
+  public static boolean isInArena(Ship s, Arena a) {
+    if (isOutOfBounds(s.x(), s.y())) return false;
+
+    // hit a cluster
+    for (Cluster c : a.clusters)
+      if (c.intersects(s))
+        return false;
+    
+    return true;
+  }
+
+  public static boolean isInArena(int x, int y, Arena a) { 
+    if (isOutOfBounds(x, y)) return false;
+
+    // hit a cluster
+    for (Cluster c : a.clusters)
+      if (c.contains(x, y))
+        return false;
+
+    return true;
+  }
+
+  //outside the map edges
+  private static boolean isOutOfBounds(int x, int y) {
+    return (Math.abs(x) > 2*SimulationUtils.ARENASIZE || Math.abs(y) > 2*SimulationUtils.ARENASIZE);
+  }
+  
   // Returns the angle between three points (0-1-2). Angle in [0 pi)
   public static double angle(double x0, double y0, double x1, double y1, double x2, double y2) {
     // Logger.println(Logger.RepetitionRate.FREQUENT, "** " + x0 + " " + y0 + " " + x1 + " " + y1 + " " + x2 + " " + y2); 

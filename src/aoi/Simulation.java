@@ -2,7 +2,6 @@ package aoi;
 
 import java.io.*;
 import java.util.Vector;
-import java.awt.Rectangle;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -90,10 +89,6 @@ public class Simulation {
 
     PlayerState[] states = (PlayerState[]) (game.states.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
-
-
-    Rectangle mapedges = new Rectangle(-2*SimulationUtils.ARENASIZE, -2*SimulationUtils.ARENASIZE,
-        4*SimulationUtils.ARENASIZE, 4*SimulationUtils.ARENASIZE);
 
 
     // Set up a timer that wakes up the simulation thread every TIMESTEP
@@ -286,14 +281,10 @@ public class Simulation {
           // if anyone got hit BY A BULLET.
           boolean gotShot = false;
           for (int k = bullets.size() - 1; k >= 0; --k) {
-            Bullet b = bullets.get(k);
+            Bullet b = SimulationUtils.nextBulletPosition(bullets.get(k));
 
             // Whether the bullet hit something.
-            boolean remove = false;
-
-            int[] bulletPos = SimulationUtils.nextBulletPosition(b);
-            int x = bulletPos[0];
-            int y = bulletPos[1];
+            boolean remove = !SimulationUtils.isInArena(b, arena);
 
             // if b does not belong to player j and the players ship contains b
             if (SimulationUtils.gotShot(states[j], b) && states[j].untilRespawn == 0) {
@@ -307,16 +298,10 @@ public class Simulation {
               
             }  // end if
 
-            if (!mapedges.contains(x, y))
-              remove = true;
-
-            for (Cluster c : arena.clusters)
-              if (c.intersects(b))
-                remove = true;
 
             // Update the bullet position unless it hit something.
             if (!remove)
-              bullets.set(k, new Bullet(b.playerNo, x, y, b.direction));
+              bullets.set(k, b);
             else
               bullets.remove(k);
 
@@ -324,16 +309,7 @@ public class Simulation {
           
         
           // Check if anyone went out of bounds or hit a cluster:
-          boolean crashed = false;
-
-          if (states[j].untilRespawn == 0) {
-            if (!mapedges.contains(states[j].ship.x(), states[j].ship.y()))
-              crashed = true;
-  
-            for (Cluster c : arena.clusters)
-              if (c.intersects(states[j].ship))
-                crashed = true;
-          }
+          boolean crashed = states[j].untilRespawn == 0 && !SimulationUtils.isInArena(states[j].ship, arena);
 
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP

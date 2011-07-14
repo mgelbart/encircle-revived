@@ -22,9 +22,6 @@ public class GUI implements Runnable {
   /* Most recent game state. Updated by the Intelligence. */
   private GameState game;
 
-  /* The arena containing the clusters. */
-  private Arena arena;
-
   /* Booleans that describe which of the control
      keys is currently pressed down.
        
@@ -45,9 +42,7 @@ public class GUI implements Runnable {
   private int[] lastScoringTime;
   
   @SuppressWarnings("unchecked")
-  public GUI(Arena arena) {
-
-    this.arena = arena;
+  public GUI() {
     game = null;
 
     currentLoopStarted = new int[SimulationUtils.NUMPLAYERS];
@@ -70,7 +65,7 @@ public class GUI implements Runnable {
      *   the rendering order
      */
 
-    for (Cluster c : arena.clusters)
+    for (Cluster c : Arena.current().clusters)
       drawables.add(new DrawableCluster(c));
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
@@ -84,7 +79,7 @@ public class GUI implements Runnable {
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
 
-    drawables.add(new DrawableScore(Color.GRAY, arena.sequence()));
+    drawables.add(new DrawableScore(Color.GRAY, Arena.current().sequence()));
 
 
     /* Canvas parameters: */
@@ -127,7 +122,7 @@ public class GUI implements Runnable {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
 
-        drawGameState(arena, game);
+        drawGameState(game);
 
       }
 
@@ -164,7 +159,7 @@ public class GUI implements Runnable {
     drawables.add(d);
   }
 
-  private void drawGameState(Arena m, GameState g) {
+  private void drawGameState(GameState g) {
 
     DrawUtils.clear(Color.BLACK);
 

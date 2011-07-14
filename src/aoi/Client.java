@@ -86,7 +86,7 @@ public class Client implements Runnable {
 
       // Now parse from the buffer.
       Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf));
-      
+      Arena.setCurrent(arena);
 
       /* End of handshake. */
 
@@ -98,9 +98,9 @@ public class Client implements Runnable {
          doesn't block thinking. */
       Intelligence intel;
       if (ClientConfiguration.nonhuman)
-        intel = new Nonhuman(arena);
+        intel = new Nonhuman();
       else
-        intel = new HigherBeing(arena);
+        intel = new HigherBeing();
 
       // This times task keeps asking the intelligence for new parameters
       // and sends them to the server.
