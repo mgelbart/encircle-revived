@@ -39,10 +39,10 @@ public abstract class SimulationUtils {
   public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1500;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = 300 / TIMESTEP;
+  public static final int RELOADTIME = 400 / TIMESTEP;
   
   /* Length of path required to spend in order to shoot.  */
-  public static final double BULLETCOST = ARENASIZE / 20.;
+  public static final double BULLETCOST = ARENASIZE / 60.;
  
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
