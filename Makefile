@@ -14,7 +14,7 @@ serverFiles := $(srcdir)GameStateSender.java $(srcdir)PlayerListener.java $(srcd
 
 clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DefaultDrawable.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)DrawableScoringEffect.java $(srcdir)DrawableScore.java $(srcdir)DrawableBullets.java $(srcdir)App.java
 
-commonFiles := $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)NSPath.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawUtils.java $(srcdir)DrawableCluster.java $(srcdir)NotStupidPolygon.java $(srcdir)ImageMetaData.java $(srcdir)Logger.java
+commonFiles := $(srcdir)Angle.java $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)NSPath.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawUtils.java $(srcdir)DrawableCluster.java $(srcdir)NotStupidPolygon.java $(srcdir)ImageMetaData.java $(srcdir)Logger.java
 
 default: server client
 

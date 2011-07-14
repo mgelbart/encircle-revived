@@ -27,7 +27,7 @@ public class PlayerListener implements Runnable {
     this.client = new DataInputStream(in);
 
     // Never let the buffer be empty.
-    ctrls.add(new PlayerControlParameters(0, 0, 0, false, false));
+    ctrls.add(new PlayerControlParameters(0, 0, new Angle(0.), false, false)); // TODO: the direction should match the initial direction.
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);

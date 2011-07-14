@@ -22,7 +22,7 @@ public class Ship {
   private final int y;
   private final int vx;
   private final int vy;
-  private final int direction;  // after dividing by INTMAX and multiplying by pi, on [-pi, pi]
+  private final Angle direction;
   
   private final NSPath path;  // cache the path for intersection checking
   
@@ -30,7 +30,7 @@ public class Ship {
   public int y() { return y; }
   public int vx() { return vx; }
   public int vy() { return vy; }
-  public int dir() { return direction; }
+  public Angle dir() { return direction; }
   public Point location() { return new Point(x, y); }
   
   public final NSPath getNSPath() { return path; }
@@ -39,11 +39,11 @@ public class Ship {
     this(that.x, that.y, that.vx, that.vy, that.direction);
   }
   
-  public Ship(Point2D p, int vx, int vy, int direction) {
+  public Ship(Point2D p, int vx, int vy, Angle direction) {
     this((int)p.getX(), (int)p.getY(), vx, vy, direction);
   }
   
-  public Ship(int x, int y, int vx, int vy, int direction) {
+  public Ship(int x, int y, int vx, int vy, Angle direction) {
     this.x = x;
     this.y = y;
     this.vx = vx;
@@ -67,8 +67,8 @@ public class Ship {
 
 
   public int[][] shape() {
-    double cos = Math.cos(Math.PI * (direction / (double) SimulationUtils.INTMAX));
-    double sin = Math.sin(Math.PI * (direction / (double) SimulationUtils.INTMAX));
+    double cos = Math.cos(direction.toDouble());
+    double sin = Math.sin(direction.toDouble());
 
     int deltaX, deltaY;
 

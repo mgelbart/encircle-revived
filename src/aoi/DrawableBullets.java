@@ -63,7 +63,7 @@ public class DrawableBullets implements Drawable {
       
       // add a tail to each bullet.
       AffineTransform at = AffineTransform.getTranslateInstance(b.x, b.y);
-      at.rotate(Math.PI * b.direction / (double) SimulationUtils.INTMAX);
+      at.rotate(b.direction.toDouble());
       shapes[2*j+1] = at.createTransformedShape(bulletTail);
       
       Point2D start = DrawUtils.fromGameToJavaUserSpaceCoordinates(new Point(b.x, b.y));

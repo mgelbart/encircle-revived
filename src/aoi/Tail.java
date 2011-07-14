@@ -109,7 +109,7 @@ public class Tail {
   // head (end) of the tail, using the last two points
   public double tangentAngle() {
     if (nPoints() < 2) return Double.NaN;
-      return SimulationUtils.INTMAX / Math.PI * Math.atan2(
+      return Math.atan2(
           trajectory.getPoint(nPoints()-1).getY() - trajectory.getPoint(nPoints()-2).getY(), 
           trajectory.getPoint(nPoints()-1).getX() - trajectory.getPoint(nPoints()-2).getX()); 
   }

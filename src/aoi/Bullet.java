@@ -17,14 +17,17 @@ public class Bullet {
   /* Values transmitted to the clients. */
   public final int x;
   public final int y;
-  public final int direction;
+  public final Angle direction;
 
-  /* Player who shot the bullet. Used internally
-     by the simulator to make sure the bullet doesn't
+  /* Player who shot the bullet. Used to make sure the bullet doesn't
      kill the player as it gets fired! */
-  public final int playerNo;
+  public final int playerNo; // only least significant byte transmitted.
 
-  public Bullet(int playerNo, int x, int y, int direction) {
+  // Whether to transmit marker bytes before each transmitted value.
+  // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
+  private static final boolean CHECKBYTES = true;
+  
+  public Bullet(int playerNo, int x, int y, Angle direction) {
     this.x = x;
     this.y = y;
     this.direction = direction;
@@ -40,7 +43,7 @@ public class Bullet {
     StringBuilder s = new StringBuilder();
 
     s.append("Bullet");
-
+    
     s.append("\nx: ");
     s.append(x);
 
@@ -59,14 +62,17 @@ public class Bullet {
 
     try {
 
-      o.writeBytes("x");
-      o.writeInt(x);
+      if (CHECKBYTES) o.writeBytes("p");
+      o.write(playerNo);
 
-      o.writeBytes("y");
+      if (CHECKBYTES) o.writeBytes("x");
+      o.writeInt(x);
+      
+      if (CHECKBYTES) o.writeBytes("y");
       o.writeInt(y);
 
-      o.writeBytes("d");
-      o.writeInt(direction);
+      if (CHECKBYTES) o.writeBytes("d");
+      direction.serialize(o);
 
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -78,21 +84,22 @@ public class Bullet {
   public static Bullet parse(DataInputStream i) {
 
     Byte cmd;
-    int x, y, d;
+    int p, x, y;
+    Angle d;
 
     try {
 
-      cmd = i.readByte();
-      assert(cmd == 'x');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
+      p = i.read(); 
+      
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'x'); }
       x = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'y');
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'y'); }
       y = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 'd');
-      d = i.readInt();
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
+      d = Angle.parse(i);
 	    
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -100,6 +107,6 @@ public class Bullet {
       return null;
     }
 
-    return new Bullet(-1, x, y, d);
+    return new Bullet(p, x, y, d);
   }
 }

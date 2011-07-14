@@ -26,8 +26,7 @@ public abstract class SimulationUtils {
   public static final int ARENASIZE = 100000;
 
   // Maximum angular turning rate (i.e. domega/dt).
-  // Angle is measured in units of 2*pi / (|INTMAX| + |INTMIN|).
-  public static final int OMEGA = (INTMAX/1000) * TIMESTEP;
+  public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
   public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
@@ -53,11 +52,6 @@ public abstract class SimulationUtils {
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
 
-  /*
-   * TODO: Should write a proper constructor and/or accessor
-   *       method for Simulation that can be called from
-   *       Server instead of using all these public fields.
-   */
  
 // may want to say > 2*UNCOILSPEED or something to catch crazy bugs
   public static int timeUntilRespawn(Tail t) {
@@ -79,13 +73,10 @@ public abstract class SimulationUtils {
 
     // Acceleration
     double a = Math.max(0.0, MAXACC * (params.acceleration / (double) INTMAX));
-    
-    // Angle the ship is currently pointing, in [-PI, +PI]
-    double angleFacing = Math.PI * (ship.dir() / (double) INTMAX);
 
     // Currently, turning does not "slow you down". This might not be good
-    int vx = ship.vx() + (int) (a * Math.cos(angleFacing));
-    int vy = ship.vy() + (int) (a * Math.sin(angleFacing));
+    int vx = ship.vx() + (int) (a * Math.cos(ship.dir().toDouble()));
+    int vy = ship.vy() + (int) (a * Math.sin(ship.dir().toDouble()));
 /*
     // Drag increases with the angle between your current direction and the direction you're facing,
     // to represent the fact that you are more aerodynamic facing forwards. This also helps to slow 
@@ -100,23 +91,25 @@ public abstract class SimulationUtils {
 // speed boost will create exactly this effect that I want, since it will add some
 // fixed factor to your speed. Thus I just need to make the drag bigger to get the effect
 // I want. 
-    double drag = DRAG;
+    final double drag = DRAG;
     
     
     vx -= drag * vx;
     vy -= drag * vy;
     
-    int x = ship.x() + vx;
-    int y = ship.y() + vy;
+    final int x = ship.x() + vx;
+    final int y = ship.y() + vy;
 
     // Figure out whether to turn clockwise or counterclockwise.
-    boolean turnCcw =   Math.abs(ship.dir() + OMEGA - params.targetDirection)
-      < Math.abs(ship.dir() - OMEGA - params.targetDirection);
-    int dir = ship.dir() + ((turnCcw)? 1:-1)*OMEGA;
+    final boolean turnCcw =   Math.abs(ship.dir().add(OMEGA).dtheta(params.targetDirection))
+      < Math.abs(ship.dir().add(-OMEGA).dtheta(params.targetDirection));
+    final double dtheta = ((turnCcw)? 1:-1)*OMEGA;
+    
+    Angle dir = ship.dir().add(dtheta);;
 
     // Don't go past the target direction.
-    if (Integer.signum(ship.dir() - params.targetDirection)
-        != Integer.signum(dir - params.targetDirection))
+    final double oldDist = Math.abs(ship.dir().dtheta(params.targetDirection));
+    if (oldDist <= OMEGA && Math.abs(dir.dtheta(params.targetDirection)) >= oldDist)
       dir = params.targetDirection;
 
     return new Ship(x, y, vx, vy, dir);
@@ -139,8 +132,8 @@ public abstract class SimulationUtils {
   */
   public static Bullet nextBulletPosition(Bullet b) {
 
-    int x = b.x + (int) (((double) BULLETSPEED) * Math.cos(Math.PI * (b.direction / (double) INTMAX)));
-    int y = b.y + (int) (((double) BULLETSPEED) * Math.sin(Math.PI * (b.direction / (double) INTMAX)));
+    int x = b.x + (int) (((double) BULLETSPEED) * Math.cos(b.direction.toDouble()));
+    int y = b.y + (int) (((double) BULLETSPEED) * Math.sin(b.direction.toDouble()));
 
     return new Bullet(b.playerNo, x, y, b.direction);
   }

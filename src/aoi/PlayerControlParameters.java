@@ -20,7 +20,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   public final int effectiveOn;
 
   public final int acceleration;
-  public final int targetDirection;
+  public final Angle targetDirection;
   
   // Whether to shoot/boost if possible.
   public final boolean shoot;
@@ -40,7 +40,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
   private static final boolean CHECKBYTES = true;
   
-  public PlayerControlParameters(int effectiveOn, int acceleration, int targetDirection,
+  public PlayerControlParameters(int effectiveOn, int acceleration, Angle targetDirection,
                                  boolean shoot, boolean boost) {
     this.effectiveOn = effectiveOn;
     this.acceleration = acceleration;
@@ -81,29 +81,27 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
     return s.toString();
   }
 
-  public void serialize(OutputStream o) {
-
-    DataOutputStream b = new DataOutputStream(o);
+  public void serialize(DataOutputStream o) {
 
     try {
 
       // Signal start of a new command:
-      if (CHECKBYTES) b.writeBytes("e");
-      b.writeInt(effectiveOn);
+      if (CHECKBYTES) o.writeBytes("e");
+      o.writeInt(effectiveOn);
 
-      if (CHECKBYTES) b.writeBytes("a");
-      b.writeInt(acceleration);
+      if (CHECKBYTES) o.writeBytes("a");
+      o.writeInt(acceleration);
 
-      if (CHECKBYTES) b.writeBytes("d");
-      b.writeInt(targetDirection);
+      if (CHECKBYTES) o.writeBytes("d");
+      targetDirection.serialize(o);
 
-      if (CHECKBYTES) b.writeBytes("s");
+      if (CHECKBYTES) o.writeBytes("s");
       if (shoot) ++shootCtr;
-      b.write(shootCtr);
+      o.write(shootCtr);
 
-      if (CHECKBYTES) b.writeBytes("b");
+      if (CHECKBYTES) o.writeBytes("b");
       if (boost) ++boostCtr;
-      b.write(boostCtr);
+      o.write(boostCtr);
 
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -115,7 +113,8 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   public static PlayerControlParameters parse(DataInputStream i, PlayerControlParameters prev) {
 
     Byte cmd;
-    int e, a, d, s, b;
+    int e, a, s, b;
+    Angle d;
 
     try {
 	    
@@ -126,7 +125,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
       a = i.readInt();
 	    
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
-      d = i.readInt();
+      d = Angle.parse(i);
 	    
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
       s = i.read();

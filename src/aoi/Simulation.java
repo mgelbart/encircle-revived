@@ -70,7 +70,7 @@ public class Simulation {
     final int x = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
     final int y = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
 
-    int dir = (int) (SimulationUtils.INTMAX  * (1 - 2*Math.random()));
+    Angle dir = new Angle((Math.PI * (1 - 2*Math.random())));
 
     extraInfo[playerNo] = new PlayerStateExtraInfo();
 
@@ -163,8 +163,8 @@ public class Simulation {
               Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
               if (newLocation == null) newLocation = states[j].ship.location();
               double newDir = states[j].tail.tangentAngle();
-              if (newDir == Double.NaN) newDir = states[j].ship.dir();
-              ship = new Ship(newLocation, 0, 0, (int)newDir);
+              if (newDir == Double.NaN) newDir = states[j].ship.dir().toDouble();
+              ship = new Ship(newLocation, 0, 0, new Angle(newDir));
             } else {  // this should never actually happen, but want to guard against weird corner case
               cropFrom = tailStarted;
               cropTo   = tailStarted;

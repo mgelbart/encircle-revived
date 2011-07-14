@@ -75,7 +75,7 @@ public class HigherBeing implements Intelligence {
     mindreader = new MindReader();
  
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
-    queueParams(new PlayerControlParameters(0, 0, 0, false, false));
+    queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -130,7 +130,7 @@ public class HigherBeing implements Intelligence {
 
     boolean update;
     int acc = 0;
-    int dir = 0;
+    Angle dir = new Angle(0.);
     boolean shoot = false;
     boolean boost = false;
 
@@ -177,22 +177,24 @@ public class HigherBeing implements Intelligence {
         }
 
         if (keysPressed.contains(KeyEvent.VK_LEFT)) {
-          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir()
-            + SimulationUtils.INTMAX/2;
+          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir().add(Math.PI/2);
           update = true;
+//          Logger.println(Logger.RepetitionRate.FREQUENT, "left");
         } else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
-          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir()
-            - SimulationUtils.INTMAX/2;
+          dir = renderedState.states[ClientConfiguration.playerNo].ship.dir().add(-Math.PI/2);
           update = true;
-        } else if (Math.abs(dir - renderedState.states[ClientConfiguration.playerNo].ship.dir()) > 
-        SimulationUtils.INTMAX/5) {
+//          Logger.println(Logger.RepetitionRate.FREQUENT, "right");
+        } else if (Math.abs(dir.dtheta(renderedState.states[ClientConfiguration.playerNo].ship.dir())) > 
+                    Math.PI/5) {
           dir = renderedState.states[ClientConfiguration.playerNo].ship.dir();
           update = true;
         }
 
 
-        if (update)
+        if (update) {
           queueParams(new PlayerControlParameters(renderedState.time, acc, dir, shoot, boost));
+//          Logger.println(Logger.RepetitionRate.FREQUENT, dir);
+        }
 
       }
 

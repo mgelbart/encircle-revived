@@ -59,7 +59,8 @@ public class Nonhuman implements Intelligence {
 
   public void think() {
 
-    int acc, dir;
+    int acc;
+    Angle dir;
     boolean shoot, boost;
 
     acc = SimulationUtils.INTMAX / 2;
@@ -115,8 +116,7 @@ public class Nonhuman implements Intelligence {
         // Try different directions.
         for (int j=-1; j<=1; ++j) {
 
-          dir = games[0].states[ClientConfiguration.playerNo].ship.dir()
-            + j*(SimulationUtils.INTMAX/3);
+          dir = games[0].states[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
         
           // The candidate set of control parameters.
           testCtrl = new PlayerControlParameters(games[0].time, acc, dir,

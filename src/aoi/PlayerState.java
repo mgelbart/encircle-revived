@@ -78,7 +78,7 @@ public class PlayerState {
     assert(playerNo >= 0);
   }	
 
-  public PlayerState(int playerNo, int x, int y, int vx, int vy, int direction, 
+  public PlayerState(int playerNo, int x, int y, int vx, int vy, Angle direction, 
       int energy, int tailStarted, int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
@@ -175,7 +175,7 @@ public class PlayerState {
       o.writeInt(ship.vy());
 
       if (CHECKBYTES) o.writeBytes("d");
-      o.writeInt(ship.dir());
+      ship.dir().serialize(o);
       
       assert(energy >= 0);
       assert(energy <= 0xFF);
@@ -230,9 +230,10 @@ public class PlayerState {
   public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) {
 
     Byte cmd;
-    int playerNo, x, y, vx, vy, dir, energy, tailStarted, cropTailFrom, cropTailTo, score,
+    int playerNo, x, y, vx, vy, energy, tailStarted, cropTailFrom, cropTailTo, score,
         untilReload, untilRespawn, sinceScoring, sinceLooping, sinceCrossing,
           sinceHitByBullet, sincePwned;
+    Angle dir;
 
     try {
 
@@ -253,7 +254,7 @@ public class PlayerState {
       vy = i.readInt();
 
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
-      dir = i.readInt();
+      dir = Angle.parse(i);
 
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
       energy = i.read();

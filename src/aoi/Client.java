@@ -181,13 +181,15 @@ public class Client implements Runnable {
   private class SendParamsTask extends TimerTask {
 
     Intelligence intelligence;
-    BufferedOutputStream out;
+    BufferedOutputStream bout;
+    DataOutputStream dout;
     
     PlayerControlParameters last;
     
     public SendParamsTask(Intelligence intelligence, BufferedOutputStream out) {
       this.intelligence = intelligence;
-      this.out = out;
+      this.bout = out;
+      this.dout = new DataOutputStream(bout);
     }
     
     public void run() {
@@ -198,19 +200,19 @@ public class Client implements Runnable {
       if (pcp.length == 0) {
  
         if (last == null) return; // the game didn't start yet.
-        last.serialize(out); // keep sending the same command if there's nothing new
+        last.serialize(dout); // keep sending the same command if there's nothing new
 
       } else {
 
         // Otherwise send all new parameters.
         for (PlayerControlParameters p : pcp)
-          p.serialize(out);
+          p.serialize(dout);
 
         last = pcp[pcp.length-1];
       }
       
       try {
-        out.flush();
+        bout.flush();
       } catch (IOException e) {
         e.printStackTrace();
         assert(false);
