@@ -9,7 +9,6 @@ import java.awt.Stroke;
 import java.awt.Rectangle;
 import java.awt.Image;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 
