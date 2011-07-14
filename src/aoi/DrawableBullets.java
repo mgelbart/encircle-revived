@@ -1,11 +1,17 @@
 package aoi;
 
+import java.awt.GradientPaint;
+import java.awt.Point;
 import java.awt.Shape;
 import java.awt.Color;
 import java.awt.Paint;
 import java.awt.Stroke;
 import java.awt.Rectangle;
 import java.awt.Image;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
 
 /**
  *  A GUI element for drawing bullets.
@@ -19,27 +25,54 @@ public class DrawableBullets implements Drawable {
 
   private final static int BULLETSIZE = SimulationUtils.ARENASIZE / 200;
   private final static Color BULLETCOLOR = Color.GREEN;
+  private final static Color BULLETTAILCOLOR = Color.BLUE;
 
-
+  private final Point2D endOfTail;
+  private final Path2D bulletTail;
+  
+  public DrawableBullets() {
+    endOfTail = new Point(-SimulationUtils.ARENASIZE/8, 0);
+    
+    bulletTail = new Path2D.Double();
+    bulletTail.moveTo(0., 0.);
+    bulletTail.lineTo(endOfTail.getX(), 0. - 2*BULLETSIZE);
+    bulletTail.lineTo(endOfTail.getX(), 0. + 2*BULLETSIZE);
+    bulletTail.closePath();
+  }
+  
   // Return the polygon to be drawn.
   public Shape[] shapes(GameState game) {
 
-    Shape[] shapes = new Shape[game.bullets.size()];
-    colors = new Paint[shapes.length];
-    fill = new boolean[shapes.length];
-    strokes = new Stroke[shapes.length];
+    Shape[] shapes = new Shape[2*game.bullets.size()];
+    colors = new Paint[2*shapes.length];
+    fill = new boolean[2*shapes.length];
+    strokes = new Stroke[2*shapes.length];
 
     for (int j=0; j < game.bullets.size(); ++j) {
 
+      // add a small rectangle for each bullet.
       Bullet b = game.bullets.get(j);
-      shapes[j] = new Rectangle(b.x - BULLETSIZE/2,
+      shapes[2*j] = new Rectangle(b.x - BULLETSIZE/2,
                                 b.y - BULLETSIZE/2,
                                 BULLETSIZE,
                                 BULLETSIZE);
-
-      colors[j] = BULLETCOLOR;
-      fill[j] = true;
-      strokes[j] = DrawUtils.DEFAULTSTROKE;
+      
+      colors[2*j] = BULLETCOLOR;
+      fill[2*j] = true;
+      strokes[2*j] = DrawUtils.DEFAULTSTROKE;
+      
+      
+      // add a tail to each bullet.
+      AffineTransform at = AffineTransform.getTranslateInstance(b.x, b.y);
+      at.rotate(Math.PI * b.direction / (double) SimulationUtils.INTMAX);
+      shapes[2*j+1] = at.createTransformedShape(bulletTail);
+      
+      Point2D start = DrawUtils.fromGameToJavaUserSpaceCoordinates(new Point(b.x, b.y));
+      Point2D end = DrawUtils.fromGameToJavaUserSpaceCoordinates(at.transform(endOfTail, null));
+      colors[2*j+1] = new GradientPaint((float) start.getX(), (float) start.getY(), BULLETTAILCOLOR,
+                                        (float) end.getX(), (float) end.getY(), Color.BLACK);
+      fill[2*j+1] = true;
+      strokes[2*j+1] = DrawUtils.DEFAULTSTROKE;
 
     }	
 

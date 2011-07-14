@@ -266,4 +266,9 @@ public class DrawUtils {
     return canvasWidth;
   }
 
+  // Transform p from game coordinates to the Java GUI coordinates.
+  public static Point2D fromGameToJavaUserSpaceCoordinates(Point2D p) {
+    return fromGameCoords.transform(p, null);
+  }
+  
 }
