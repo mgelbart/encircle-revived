@@ -63,7 +63,7 @@ public class Nonhuman implements Intelligence {
     Angle dir;
     boolean shoot, boost;
 
-    acc = SimulationUtils.INTMAX / 2;
+    acc = SimulationUtils.MAXACC / 2;
 
     while (true) {
 	    
@@ -80,7 +80,7 @@ public class Nonhuman implements Intelligence {
             Ship ComparedSayWithPET = SimulationUtils.nextPosition(
                 games[0].states[ClientConfiguration.playerNo].ship,
                 new PlayerControlParameters(prevCtrl.effectiveOn, 
-                    SimulationUtils.INTMAX/10, prevCtrl.targetDirection, false, false));
+                    SimulationUtils.MAXACC/10, prevCtrl.targetDirection, false, false));
             
             for (int playerNos = 0; playerNos < SimulationUtils.NUMPLAYERS; playerNos++) {
               if (playerNos == ClientConfiguration.playerNo) continue; // Skip yourself
@@ -148,10 +148,10 @@ public class Nonhuman implements Intelligence {
 
 
         if (bestV < currentV)
-          acc = SimulationUtils.INTMAX;
+          acc = SimulationUtils.MAXACC;
         else {
           acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
-                       * SimulationUtils.INTMAX);
+                       * SimulationUtils.MAXACC);
           //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
         }
         // if (Math.random() < .9) acc=0;

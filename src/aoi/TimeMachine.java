@@ -193,9 +193,9 @@ public class TimeMachine {
     assert(states.size() > 0);
     PlayerState last = states.lastElement().states[ClientConfiguration.playerNo];
     if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), false, false);
+      return new PlayerControlParameters(time, SimulationUtils.MAXACC, last.ship.dir(), false, false);
     else
-      return new PlayerControlParameters(time, SimulationUtils.INTMAX, last.ship.dir(), false, false);
+      return new PlayerControlParameters(time, SimulationUtils.MAXACC, last.ship.dir(), false, false);
   }
 
 

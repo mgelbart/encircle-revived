@@ -150,8 +150,8 @@ public class HigherBeing implements Intelligence {
         keysPressed = gui.pressedKeys();
 
         if (keysPressed.contains(KeyEvent.VK_UP)) {
-          if (acc != SimulationUtils.INTMAX) {
-            acc = SimulationUtils.INTMAX;
+          if (acc != SimulationUtils.MAXACC) {
+            acc = SimulationUtils.MAXACC;
             update = true;
           }
         } else if (acc > 0) {

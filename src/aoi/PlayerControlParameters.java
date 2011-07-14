@@ -19,7 +19,7 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   // active.
   public final int effectiveOn;
 
-  public final int acceleration;
+  public final int acceleration; // between 0 and SimulationUtils.MAXACC.
   public final Angle targetDirection;
   
   // Whether to shoot/boost if possible.

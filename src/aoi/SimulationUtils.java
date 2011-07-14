@@ -8,10 +8,6 @@ package aoi;
  * is no need to reverse engineer any parameters.
  */
 public abstract class SimulationUtils {
- 
-  // The range of representable integer values for various coordinates.
-  public static final int INTMAX = Integer.MAX_VALUE;
-  public static final int INTMIN = Integer.MIN_VALUE;
 
   // Advance the simulation every TIMESTEP milliseconds.
   // This will not be respected if the computation takes longer
@@ -72,7 +68,7 @@ public abstract class SimulationUtils {
     assert(params != null);
 
     // Acceleration
-    double a = Math.max(0.0, MAXACC * (params.acceleration / (double) INTMAX));
+    double a = Math.max(0.0, Math.min(MAXACC, params.acceleration));
 
     // Currently, turning does not "slow you down". This might not be good
     int vx = ship.vx() + (int) (a * Math.cos(ship.dir().toDouble()));
