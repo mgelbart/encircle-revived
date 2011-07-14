@@ -64,20 +64,19 @@ public class GUI implements Runnable {
      *   Note that the adding order determines
      *   the rendering order
      */
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
+      drawables.add(new DrawableTail(j, DrawUtils.DEFAULTSTROKE));
+
+    drawables.add(new DrawableBullets());
 
     for (Cluster c : Arena.current().clusters)
       drawables.add(new DrawableCluster(c));
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableTail(j, DrawUtils.DEFAULTSTROKE));
-
+      drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
+    
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
-
-    drawables.add(new DrawableBullets());
-
-    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScore(Color.GRAY, Arena.current().sequence()));
 
