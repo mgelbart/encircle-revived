@@ -76,6 +76,13 @@ public class PlayerState {
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
     assert(playerNo >= 0);
+    assert(untilReload >= 0);
+    assert(untilRespawn >= 0);
+    assert(sinceScoring >= 0);
+    assert(sinceLooping >= 0);
+    assert(sinceCrossing >= 0);
+    assert(sinceHitByBullet >= 0);
+    assert(sincePwned >= 0);
   }	
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, Angle direction, 
@@ -197,25 +204,25 @@ public class PlayerState {
       o.write(score);
 
       if (CHECKBYTES) o.writeBytes("l");
-      o.write((untilReload > 0xFF)? 0xFF:untilReload); // 255 = 0xFF (as an unsigned byte)
+      o.write(untilReload); // 255 = 0xFF (as an unsigned byte)
       
       if (CHECKBYTES) o.writeBytes("r");
-      o.write((untilRespawn > 0xFF)? 0xFF:untilRespawn);
+      o.write(untilRespawn);
       
       if (CHECKBYTES) o.writeBytes("s");
-      o.write((sinceScoring > 0xFF)? 0xFF:sinceScoring);
+      o.write(sinceScoring);
       
       if (CHECKBYTES) o.writeBytes("l");
-      o.write((sinceLooping > 0xFF)? 0xFF:sinceLooping);
+      o.write(sinceLooping);
       
       if (CHECKBYTES) o.writeBytes("c");
-      o.write((sinceCrossing > 0xFF)? 0xFF:sinceCrossing);
+      o.write(sinceCrossing);
       
       if (CHECKBYTES) o.writeBytes("b");
-      o.write((sinceHitByBullet > 0xFF)? 0xFF:sinceHitByBullet);
+      o.write(sinceHitByBullet);
       
       if (CHECKBYTES) o.writeBytes("p");
-      o.write((sincePwned > 0xFF)? 0xFF:sincePwned);
+      o.write(sincePwned);
       
 
     } catch (IOException ioe) {
