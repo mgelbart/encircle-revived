@@ -46,6 +46,7 @@ import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 import javax.swing.*;
+import javax.swing.event.MouseInputListener;
 
 
 public class DrawUtils {
@@ -268,6 +269,17 @@ public class DrawUtils {
     return fromGameCoords().transform(p, null);
   }
   
+  public static Point2D fromJavaUserSpaceToGameCoordinates(Point2D p) {
+    try {
+      return fromGameCoords().inverseTransform(p, null);
+    } catch (NoninvertibleTransformException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      assert(false);
+      return null;
+    }
+  }
+  
   private static AffineTransform fromGameCoords() {
     AffineTransform at = new AffineTransform();
 
@@ -290,6 +302,10 @@ public class DrawUtils {
   
   public static void addMouseListener(MouseListener l) {
     canvas.addMouseListener(l);
+  }
+  
+  public static void addMouseMotionListener(MouseMotionListener l) {
+    canvas.addMouseMotionListener(l);
   }
   
   public static void addKeyListener(KeyListener l) {
