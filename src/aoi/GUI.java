@@ -62,7 +62,7 @@ public class GUI implements Runnable {
     }
 
 
-    /* Default Drawable items:
+    /* Add Drawable/Audible items:
      *
      *   Note that the adding order determines
      *   the rendering order
@@ -75,16 +75,19 @@ public class GUI implements Runnable {
     for (Cluster c : Arena.current().clusters)
       drawables.add(new DrawableCluster(c));
 
-    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new ScoringEffect(j, DrawUtils.DEFAULTSTROKE));
+    for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j) {
+      ScoringEffect se = new ScoringEffect(j, DrawUtils.DEFAULTSTROKE);
+      drawables.add(se);
+      audibles.add(se);
+    }
     
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScoreboard(Color.GRAY, Arena.current().sequence()));
 
-    // add audibles
     audibles.add(new AudibleShot());
+    
     
     
 
@@ -200,9 +203,6 @@ public class GUI implements Runnable {
     
     // --- Process drawables and audibles ---
     for (Drawable d : drawables) {
-      
-      d.prepare(gState);
-
       Shape[] s = d.shapes(gState);
       Image img = d.img(gState);
 

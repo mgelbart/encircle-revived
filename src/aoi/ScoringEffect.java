@@ -26,11 +26,12 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
   
   
   public void prepare(GameState gState) {
-    assert(internalCounter >= 0);
+    assert(internalCounter >= 0 || internalCounter <= SCORINGTIME);
   }
   public void postpare(GameState gState) { 
+    if (internalCounter == 0 && gState.pStates[playerNo].sinceScoring - prevSinceScoring < 0) 
+      internalCounter = SCORINGTIME;
     prevSinceScoring = gState.pStates[playerNo].sinceScoring;
-    assert(internalCounter < SCORINGTIME);
   }
 
 
@@ -38,14 +39,10 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
   public Shape[] shapes(GameState gState) {
     final PlayerState s = gState.pStates[playerNo];
 
-//    Logger.println(Logger.RepetitionRate.INFREQUENT, s.sinceScoring);
-
-    
+//    Logger.println(Logger.RepetitionRate.INFREQUENT, s.sinceScoring); 
     if (s == null) {   // first call
       return null;
-    } else if (internalCounter == 0 && s.sinceScoring - prevSinceScoring < 0) {  // you just scored
-      internalCounter = SCORINGTIME;
-      
+    } else if (internalCounter == 0 && s.sinceScoring - prevSinceScoring < 0) {  // you just scored 
       // crop the non-loop part from the scoring effect.
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
       scoringTail = scoringTail.crop(s.tailStarted, s.cropTailFrom);
@@ -58,7 +55,6 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
     } else {                   // while the effect is showing
       return new Shape[]{scoringTail.toPath2D()};
     }
- 
   }
 
   // Return the pen stroke used to draw the shape.
@@ -74,8 +70,8 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
   
 
   public AudioClip clip(GameState gState) {
-    if (gState.pStates[playerNo].sinceScoring - prevSinceScoring < 0)
-      return StdAudio.takeShot;
+    if (internalCounter == 0 && gState.pStates[playerNo].sinceScoring - prevSinceScoring < 0)
+      return StdAudio.winGame;
     else return null;
   }
   
