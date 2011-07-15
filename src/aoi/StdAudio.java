@@ -21,14 +21,15 @@ import java.applet.*;
 public abstract class StdAudio {
   public static String AUDIO_DIRECTORY = File.separator + "sound" + File.separator;
 
-  public static AudioClip takeShot  = getClip(AUDIO_DIRECTORY + "Bow_Fire_Arrow-Stephan_Schutze-2133929391.wav");
-  public static AudioClip score     = getClip(AUDIO_DIRECTORY + "Metroid_Door-Brandino480-995195341.wav");
-  public static AudioClip winGame   = getClip(AUDIO_DIRECTORY + "Electrical_Sweep-Sweeper-1760111493.wav");
-  public static AudioClip crossPath = null;
-  public static AudioClip getShot   = null;
-  public static AudioClip crash     = getClip(AUDIO_DIRECTORY + "36847__EcoDTR__LaserRocket2.wav");
-
-
+  private static final boolean DISABLE = false;
+  
+  public static AudioClip takeShot  = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "Bow_Fire_Arrow-Stephan_Schutze-2133929391.wav");
+  public static AudioClip score     = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "Metroid_Door-Brandino480-995195341.wav");
+  public static AudioClip winGame   = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "Electrical_Sweep-Sweeper-1760111493.wav");
+  public static AudioClip crossPath = (DISABLE)? null:null;
+  public static AudioClip getShot   = (DISABLE)? null:null;
+  public static AudioClip crash     = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "36847__EcoDTR__LaserRocket2.wav");
+  
   // play the input array
   // 44,100 samples per second, 16-bit audio, mono, signed PCM, little Endian
   // the array values are assumed to be between -1 and 1
