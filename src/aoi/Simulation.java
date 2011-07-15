@@ -149,12 +149,11 @@ public class Simulation {
           // Check for players waiting to respawn:
           if (states[j].untilRespawn == 1) {  // time to respawn
             
-//            Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
-//            if (newLocation == null) newLocation = states[j].ship.location();
-//            Angle newDir = states[j].tail.tangentAngle();
-//            if (newDir == null) newDir = states[j].ship.dir();
-//            ship = new Ship(newLocation, 0, 0, newDir);
-       
+            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.startTime());
+            if (newLocation == null) newLocation = states[j].ship.location();
+            Angle newDir = states[j].tail.tangentAngleBase();
+            if (newDir == null) newDir = states[j].ship.dir();
+            ship = new Ship(newLocation, 0, 0, newDir);
             
             states[j] = new PlayerState(j, states[j].ship, 0, 
                 game.time + 1, game.time + 1, game.time + 1, 
@@ -179,7 +178,7 @@ public class Simulation {
               cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
               Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
               if (newLocation == null) newLocation = states[j].ship.location();
-              Angle newDir = states[j].tail.tangentAngle();
+              Angle newDir = states[j].tail.tangentAngleHead();
               if (newDir == null) newDir = states[j].ship.dir();
               ship = new Ship(newLocation, 0, 0, newDir);
             } else {  // this should never actually happen, but want to guard against weird corner case

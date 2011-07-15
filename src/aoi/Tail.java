@@ -105,14 +105,20 @@ public class Tail {
     return null;
   }
   
-  // Finds the angle of the  
-  // head (end) of the tail, using the last two points
-  public Angle tangentAngle() {
-    if (nPoints() < 2) return null;
-    return new Angle(Math.atan2(
-          trajectory.getPoint(nPoints()-1).getY() - trajectory.getPoint(nPoints()-2).getY(), 
-          trajectory.getPoint(nPoints()-1).getX() - trajectory.getPoint(nPoints()-2).getX())); 
+    
+  // Finds the angle of the line from i-1 to i
+  public Angle tangentAngle(int i) {
+    if (i <= 0 || i >= nPoints() || nPoints() < 2) return null;
+    return new Angle(trajectory.getPoint(i-1), trajectory.getPoint(i)); 
   }
+  public Angle tangentAngleHead() {
+    return tangentAngle(nPoints()-1);
+  }
+  public Angle tangentAngleBase() {
+    return tangentAngle(1);
+  }
+  
+  
   
   // Create a copy of the Tail with an added point.
   @SuppressWarnings("unchecked")

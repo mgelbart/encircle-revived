@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.geom.Point2D;
 import java.io.*;
 
 /**
@@ -19,6 +20,11 @@ public class Angle {
 
   private Angle(int dir) {
     this.dir = dir;
+  }
+  
+  // the angle from points p1 to p2
+  public Angle(Point2D p1, Point2D p2) {
+    this(Math.atan2(p2.getY()-p1.getY(), p2.getX()-p1.getX())); 
   }
   
   /* 
