@@ -255,7 +255,7 @@ public class Simulation {
                   if (k==j) continue;
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
-                    gotPwned[j] = true; // set score to 0 if you are enclosed by the other player!!!!
+                    gotPwned[k] = true; // set score to 0 if you are enclosed by the other player!!!!
                   }
                 }
               }
