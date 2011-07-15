@@ -200,9 +200,6 @@ public class GUI implements Runnable {
     
     // --- Process drawables and audibles ---
     for (Drawable d : drawables) {
-      
-      d.prepare(gState);
-
       Shape[] s = d.shapes(gState);
       Image img = d.img(gState);
 
