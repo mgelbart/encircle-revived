@@ -4,7 +4,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 /**
- * A simple interface for controlling your ship based on keyboard events
+ * A simple interface for controlling your ship based on keyboard events.
  */
 public class KeyboardPilot implements KeyListener {
   private boolean updated = false;
@@ -53,7 +53,7 @@ public class KeyboardPilot implements KeyListener {
   
   @Override
   public void keyReleased(KeyEvent e) {
-    Logger.println(Logger.RepetitionRate.INFREQUENT, "released " + e.getKeyCode());
+    //Logger.println(Logger.RepetitionRate.INFREQUENT, "released " + e.getKeyCode());
     
     switch (e.getKeyCode()) {
     case (KeyEvent.VK_UP):
