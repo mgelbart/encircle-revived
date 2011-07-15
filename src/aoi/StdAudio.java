@@ -1,6 +1,8 @@
+package aoi;
+
+
 /*************************************************************************
- *  Compilation:  javac StdAudio.java
- *  Execution:    java StdAudio
+    adapted from PRINCETON COS 126, 2006
  *  
  *  Simple library for reading, writing, and manipulationg .wav files.
 
@@ -17,13 +19,15 @@ import javax.sound.sampled.*;
 import java.net.*;
 import java.applet.*;
 
-public class StdAudio {
+public abstract class StdAudio {
     private final static int FPS = 44100;   // samples per second
+
+    public String AUDIO_DIRECTORY = "sound" + File.pathSeparator;
     
-    // not-instantiable
-    private StdAudio() { }
-
-
+    public AudioClip takeShot = getClip(AUDIO_DIRECTORY + "Bow_Fire_Arrow-Stephan_Schutze-2133929391.wav");
+    public AudioClip score    = getClip(AUDIO_DIRECTORY + "Power_Up_Ray-Mike_Koenig-800933783.wav");
+    public AudioClip winGame  = getClip(AUDIO_DIRECTORY + "Electrical_Sweep-Sweeper-1760111493.wav");
+    
     // return data as a double array, with values scaled to be between -1 and 1
     public static double[] read(String filename) {
         byte[] data = readByte(filename);
