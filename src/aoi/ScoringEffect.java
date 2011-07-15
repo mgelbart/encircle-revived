@@ -71,7 +71,7 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
 
   public AudioClip clip(GameState gState) {
     if (internalCounter == 0 && gState.pStates[playerNo].sinceScoring - prevSinceScoring < 0)
-      return StdAudio.winGame;
+      return StdAudio.score;
     else return null;
   }
   

@@ -87,7 +87,7 @@ public class GUI implements Runnable {
     drawables.add(new DrawableScoreboard(Color.GRAY, Arena.current().sequence()));
 
     audibles.add(new AudibleShot());
-    
+    audibles.add(new AudibleCrash());
     
     
 
