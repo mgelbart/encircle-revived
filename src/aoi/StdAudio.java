@@ -77,10 +77,23 @@ public abstract class StdAudio {
             if(fil.canRead()) url = fil.toURL();
         }
         catch (MalformedURLException e) { e.printStackTrace(); }
-     */     URL url = StdAudio.class.getResource(filename);  //this version is used when making JAR files
-     if (url == null) throw new RuntimeException("audio " + filename + " not found");
-     AudioClip clip = Applet.newAudioClip(url);
-     return clip;
+     */     
+
+
+    URL url = StdAudio.class.getResource(filename);  //this version is used when making JAR files
+    if (url == null) throw new RuntimeException("audio " + filename + " not found");
+    AudioClip clip = Applet.newAudioClip(url);
+    return clip;
+
+//    try
+//    {
+//      Clip clickClip = AudioSystem.getClip();
+//      URL clipURL = new URL(filename);
+//      AudioInputStream ais = AudioSystem.getAudioInputStream(clipURL);
+//      clickClip.open(ais);
+//      clickClip.start();
+//    } catch(Exception e) { e.printStackTrace(); }
+
   }
 
   public static void playClip(AudioClip c) {

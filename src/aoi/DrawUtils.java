@@ -290,18 +290,14 @@ public class DrawUtils {
   
   public static class ResizeListener implements ComponentListener {
     
-    @Override
     public void componentResized(ComponentEvent e) {
       canvasResized = true;
     }
 
-    @Override
     public void componentHidden(ComponentEvent arg0) {}
 
-    @Override
     public void componentMoved(ComponentEvent arg0) {}
 
-    @Override
     public void componentShown(ComponentEvent arg0) {}
   }
 }
