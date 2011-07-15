@@ -63,19 +63,19 @@ public abstract class StdAudio {
         play(format(filename), readByte(filename));
     }*/
 
-    // play a wav or midi sound in the background
-    public static void play(String filename) {
-        URL url = null;
-        try {
-            File fil = new File(filename);
-            if(fil.canRead()) url = fil.toURL();
-        }
-        catch (MalformedURLException e) { e.printStackTrace(); }
-        // URL url = StdAudio.class.getResource(filename);
-        if (url == null) throw new RuntimeException("audio " + filename + " not found");
-        AudioClip clip = Applet.newAudioClip(url);
-        clip.play();
-    }
+//    // play a wav or midi sound in the background
+//    public static void play(String filename) {
+//        URL url = null;
+//        try {
+//            File fil = new File(filename);
+//            if(fil.canRead()) url = fil.toURL();
+//        }
+//        catch (MalformedURLException e) { e.printStackTrace(); }
+//        // URL url = StdAudio.class.getResource(filename);
+//        if (url == null) throw new RuntimeException("audio " + filename + " not found");
+//        AudioClip clip = Applet.newAudioClip(url);
+//        clip.play();
+//    }
 
     ///MINE!!
     public static void stop(AudioClip clip) {

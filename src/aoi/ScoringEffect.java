@@ -24,10 +24,16 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
   public ScoringEffect(int playerNo, Stroke stroke) {
     super(playerNo, stroke);
   }
+  
+  public void postpare(GameState gState) { 
+    prevSinceScoring = gState.pStates[playerNo].sinceScoring;
+  }
+  
+  
 
   // Return the path to be drawn.
-  public Shape[] shapes(GameState game) {
-    final PlayerState s = game.pStates[playerNo];
+  public Shape[] shapes(GameState gState) {
+    final PlayerState s = gState.pStates[playerNo];
     
     if (s.sinceScoring < prevSinceScoring) {  // you just scored
       scored = SCORINGTIME;
