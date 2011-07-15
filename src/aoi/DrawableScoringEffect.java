@@ -28,7 +28,7 @@ public class DrawableScoringEffect extends DefaultDrawable {
 
   // Return the path to be drawn.
   public Shape[] shapes(GameState game) {
-    final PlayerState s = game.states[playerNo];
+    final PlayerState s = game.pStates[playerNo];
     
     if (s.score > lastScore) {  // you just scored
       scored = SCORINGTIME;

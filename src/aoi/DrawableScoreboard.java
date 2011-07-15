@@ -81,14 +81,14 @@ public class DrawableScoreboard implements Drawable {
   public Shape[] shapes(GameState game) {
 
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-      Rectangle2D box = scoreboard.getGlyphOutline(2*game.states[j].score).getBounds2D();
+      Rectangle2D box = scoreboard.getGlyphOutline(2*game.pStates[j].score).getBounds2D();
 
       double margin = box.getWidth() * 0.35;
       
       double xL = box.getX()-margin;
       double yT = box.getY()-margin;
  
-      if (game.states[0].score != game.states[1].score) {
+      if (game.pStates[0].score != game.pStates[1].score) {
         double xR = box.getWidth()+2*margin;
         double yB = box.getHeight()+2*margin;
         

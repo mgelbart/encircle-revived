@@ -65,7 +65,7 @@ public class MindReader {
 
       if (N == 0) return null;
 
-      if (N < 3) return new PlayerControlParameters(time, SimulationUtils.MAXACC, states.get(N-1).states[P].ship.dir(), false, false);
+      if (N < 3) return new PlayerControlParameters(time, SimulationUtils.MAXACC, states.get(N-1).pStates[P].ship.dir(), false, false);
 
       s0 = states.get(N-2);
       s1 = states.get(N-1);
@@ -73,18 +73,18 @@ public class MindReader {
     }
 
     // Change in velocity PER TIME STEP.
-    double dvx = s1.states[P].ship.vx() - s0.states[P].ship.vx() / (double) (s1.time - s0.time);
-    double dvy = s1.states[P].ship.vy() - s0.states[P].ship.vy() / (double) (s1.time - s0.time);
+    double dvx = s1.pStates[P].ship.vx() - s0.pStates[P].ship.vx() / (double) (s1.time - s0.time);
+    double dvy = s1.pStates[P].ship.vy() - s0.pStates[P].ship.vy() / (double) (s1.time - s0.time);
 
     // What we'd expect with zero thrust:
-    double dragdvx = -SimulationUtils.DRAG * s1.states[P].ship.vx();
-    double dragdvy = -SimulationUtils.DRAG * s1.states[P].ship.vy();
+    double dragdvx = -SimulationUtils.DRAG * s1.pStates[P].ship.vx();
+    double dragdvy = -SimulationUtils.DRAG * s1.pStates[P].ship.vy();
 
     double a = Math.sqrt(Math.pow(dvx-dragdvx, 2) + Math.pow(dvy-dragdvy, 2));
 
     return new PlayerControlParameters(time,
                                        (int) (Math.min(SimulationUtils.MAXACC, a)),
-                                       s1.states[P].ship.dir(),
+                                       s1.pStates[P].ship.dir(),
                                        false, false);
   }
 

@@ -13,17 +13,17 @@ public class AudibleShot implements Audible {
       // Special case for the first call
       prevUntilReload = new int[SimulationUtils.NUMPLAYERS];
       for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        prevUntilReload[j] = gState.states[j].untilReload;
+        prevUntilReload[j] = gState.pStates[j].untilReload;
       return null;
     } else {
       AudioClip clip = null;
       
       for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        if (prevUntilReload[j]==0 && gState.states[j].untilReload > 0)
+        if (prevUntilReload[j]==0 && gState.pStates[j].untilReload > 0)
           clip = StdAudio.takeShot;
       
       for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        prevUntilReload[j] = gState.states[j].untilReload;
+        prevUntilReload[j] = gState.pStates[j].untilReload;
       
       return clip;
     }

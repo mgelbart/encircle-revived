@@ -123,8 +123,8 @@ public class TimeMachine {
 
     // Start from the last known values.
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
-      players[k] = last.states[k];
-      ship[k] = last.states[k].ship;
+      players[k] = last.pStates[k];
+      ship[k] = last.pStates[k].ship;
       ctrl[k] = getParamsAt(k, last.time-1, reader);
     }
     
@@ -135,7 +135,7 @@ public class TimeMachine {
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
         ctrl[k] = getParamsAt(k, last.time+j, reader);
-        ship[k] = (last.states[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
+        ship[k] = (last.pStates[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
         
         boolean tookShot = false;
         // Take shots
@@ -191,7 +191,7 @@ public class TimeMachine {
 
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
-    PlayerState last = states.lastElement().states[ClientConfiguration.playerNo];
+    PlayerState last = states.lastElement().pStates[ClientConfiguration.playerNo];
     if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
       return new PlayerControlParameters(time, SimulationUtils.MAXACC, last.ship.dir(), false, false);
     else
@@ -222,7 +222,7 @@ public class TimeMachine {
       // Fall back to assuming motion in current direction.
       Logger.println(Logger.RepetitionRate.FEW, "Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().states[ClientConfiguration.playerNo].ship.dir(), false, false);
+      return new PlayerControlParameters(time, 0, states.lastElement().pStates[ClientConfiguration.playerNo].ship.dir(), false, false);
 
     }
   }

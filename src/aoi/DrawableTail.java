@@ -14,7 +14,7 @@ public class DrawableTail extends DefaultDrawable {
 
   // Return the path to be drawn.
   public Shape[] shapes(GameState game) { 
-    return new Shape[]{game.states[playerNo].tail.toPath2D()};
+    return new Shape[]{game.pStates[playerNo].tail.toPath2D()};
   }
 
 }

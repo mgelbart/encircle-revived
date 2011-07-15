@@ -75,10 +75,10 @@ public class Nonhuman implements Intelligence {
         double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
         double MAX_ANGLE_TO_SHOOT = 0.1;
         shoot = false;
-        if (Math.abs(games[0].time - games[0].states[ClientConfiguration.playerNo].tailStarted) < MAX_LOOP_TO_SHOOT) { 
+        if (Math.abs(games[0].time - games[0].pStates[ClientConfiguration.playerNo].tailStarted) < MAX_LOOP_TO_SHOOT) { 
           if (prevCtrl != null) {
             Ship ComparedSayWithPET = SimulationUtils.nextPosition(
-                games[0].states[ClientConfiguration.playerNo].ship,
+                games[0].pStates[ClientConfiguration.playerNo].ship,
                 new PlayerControlParameters(prevCtrl.effectiveOn, 
                     SimulationUtils.MAXACC/10, prevCtrl.targetDirection, false, false));
             
@@ -86,10 +86,10 @@ public class Nonhuman implements Intelligence {
               if (playerNos == ClientConfiguration.playerNo) continue; // Skip yourself
               
               double theangle = SimulationUtils.angle(
-                  games[0].states[playerNos].ship.x(), 
-                  games[0].states[playerNos].ship.y(), 
-                  games[0].states[ClientConfiguration.playerNo].ship.x(), 
-                  games[0].states[ClientConfiguration.playerNo].ship.y(), 
+                  games[0].pStates[playerNos].ship.x(), 
+                  games[0].pStates[playerNos].ship.y(), 
+                  games[0].pStates[ClientConfiguration.playerNo].ship.x(), 
+                  games[0].pStates[ClientConfiguration.playerNo].ship.y(), 
                   ComparedSayWithPET.x(), ComparedSayWithPET.y());
               
               // Logger.println(Logger.RepetitionRate.FREQUENT, theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
@@ -107,8 +107,8 @@ public class Nonhuman implements Intelligence {
         PlayerControlParameters bestCtrl, testCtrl;
 
 
-        currentV = potentialFunction(games[0].states[ClientConfiguration.playerNo].ship.x(),
-                                     games[0].states[ClientConfiguration.playerNo].ship.y());
+        currentV = potentialFunction(games[0].pStates[ClientConfiguration.playerNo].ship.x(),
+                                     games[0].pStates[ClientConfiguration.playerNo].ship.y());
 
         bestV = Double.POSITIVE_INFINITY;
         bestCtrl = null;
@@ -116,14 +116,14 @@ public class Nonhuman implements Intelligence {
         // Try different directions.
         for (int j=-1; j<=1; ++j) {
 
-          dir = games[0].states[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
+          dir = games[0].pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
         
           // The candidate set of control parameters.
           testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
                                                  shoot, boost);
 
           Ship intPos = SimulationUtils.nextPosition(
-              games[0].states[ClientConfiguration.playerNo].ship, testCtrl);
+              games[0].pStates[ClientConfiguration.playerNo].ship, testCtrl);
 
           V = Double.NEGATIVE_INFINITY;
 
@@ -175,8 +175,8 @@ public class Nonhuman implements Intelligence {
     Point2D loc = new Point(x, y);
 
     double range = 500 / SimulationUtils.TIMESTEP
-      * Math.sqrt( Math.pow(games[0].states[ClientConfiguration.playerNo].ship.vx(), 2)
-                   + Math.pow(games[0].states[ClientConfiguration.playerNo].ship.vy(), 2));
+      * Math.sqrt( Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vx(), 2)
+                   + Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vy(), 2));
 
     range = Math.max(range, SimulationUtils.ARENASIZE/20);
 

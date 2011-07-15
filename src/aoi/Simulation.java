@@ -78,7 +78,7 @@ public class Simulation {
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
 
-    PlayerState[] states = (PlayerState[]) (game.states.clone());
+    PlayerState[] states = (PlayerState[]) (game.pStates.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
 
 

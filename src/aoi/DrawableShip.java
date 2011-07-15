@@ -42,7 +42,7 @@ public class DrawableShip extends DefaultDrawable {
 
   // Return the polygon to be drawn.
   public Shape[] shapes(GameState game) {
-    PlayerState currentState = game.states[playerNo];
+    PlayerState currentState = game.pStates[playerNo];
     
     if (lastState != null) {
       if (currentState.score < lastState.score)
