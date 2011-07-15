@@ -65,7 +65,7 @@ public class DrawableScore implements Drawable {
     double scaleFact = 15. / boardHeight;  // make the letters 15 px high
 
     at = new AffineTransform();
-    at.translate(0., 0.47 * DrawUtils.height()); // Move to the top
+    at.translate(0., 0.47 * DrawUtils.canvasHeight()); // Move to the top
     at.scale(scaleFact, scaleFact);
     at.translate(-boardWidth/2, 0.); // Center
     at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
