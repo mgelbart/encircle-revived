@@ -20,4 +20,7 @@ interface Audible {
   // objects to be drawn.
   public boolean isRemoved();
 
+  public void prepare(GameState state);
+  public void postpare(GameState state);
+  
 }

@@ -12,18 +12,13 @@ public class AudibleShot implements Audible {
     if (prevUntilReload == null) {
       // Special case for the first call
       prevUntilReload = new int[SimulationUtils.NUMPLAYERS];
-      for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        prevUntilReload[j] = gState.pStates[j].untilReload;
       return null;
     } else {
       AudioClip clip = null;
       
       for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        if (prevUntilReload[j]==0 && gState.pStates[j].untilReload > 0)
+        if (prevUntilReload[j] < gState.pStates[j].untilReload)
           clip = StdAudio.takeShot;
-      
-      for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
-        prevUntilReload[j] = gState.pStates[j].untilReload;
       
       return clip;
     }
@@ -34,5 +29,10 @@ public class AudibleShot implements Audible {
   public boolean isRemoved() { return removed; }
   public void remove()       { removed = true; }
   
+  public void prepare(GameState gState) { }
+  public void postpare(GameState gState) { 
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
+      prevUntilReload[j] = gState.pStates[j].untilReload;
+  }  
 
 }

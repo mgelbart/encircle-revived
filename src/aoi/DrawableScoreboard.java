@@ -142,4 +142,8 @@ public class DrawableScoreboard implements Drawable {
   public void remove() { removed = true; }
   public boolean isRemoved() { return removed; }
 
+  public void prepare(GameState gState) { }
+  public void postpare(GameState gState) { }
+  
+  
 }

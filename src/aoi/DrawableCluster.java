@@ -69,4 +69,9 @@ public class DrawableCluster extends Cluster implements Drawable {
   public boolean ingameCoordinates() { return true; }
   public void remove() { removed = true; }
   public boolean isRemoved() { return removed; }
+  
+  public void prepare(GameState gState) { }
+  public void postpare(GameState gState) { }
+  
+  
 }

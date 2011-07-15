@@ -76,7 +76,7 @@ public class GUI implements Runnable {
       drawables.add(new DrawableCluster(c));
 
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
-      drawables.add(new DrawableScoringEffect(j, DrawUtils.DEFAULTSTROKE));
+      drawables.add(new ScoringEffect(j, DrawUtils.DEFAULTSTROKE));
     
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
@@ -185,6 +185,8 @@ public class GUI implements Runnable {
       Drawable d = drawables.get(j);
 
       if (!d.isRemoved()) {
+        
+        d.prepare(g);
 
         Shape[] s = d.shapes(g);
         Image img = d.img(g);
@@ -204,6 +206,8 @@ public class GUI implements Runnable {
             DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
           }
         }
+        
+        d.postpare(g);
 
       } else {
         drawables.removeElementAt(j);
@@ -217,8 +221,10 @@ public class GUI implements Runnable {
    for (int j=0; j<audibles.size(); ++j) {
      Audible a = audibles.get(j);
      if (!a.isRemoved()) {
+       a.prepare(g);
        AudioClip c = a.clip(g);
        if (c != null) StdAudio.playClip(c);
+       a.postpare(g);
      }
    }
    

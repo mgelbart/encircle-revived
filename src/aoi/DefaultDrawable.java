@@ -72,4 +72,11 @@ public class DefaultDrawable implements Drawable {
     return removed;
   }
 
+  
+  // All the stuff you want to do before returning shapes, etc.
+  public void prepare(GameState state) { }
+  
+//All the stuff you want to do after returning shapes, etc.
+  public void postpare(GameState state) { }
+  
 }

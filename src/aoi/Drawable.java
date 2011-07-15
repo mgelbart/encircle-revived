@@ -44,5 +44,11 @@ interface Drawable {
   // Remove the object from the collection of
   // objects to be drawn.
   public boolean isRemoved();
+  
+  // All the stuff you want to do before returning shapes, etc.
+  public void prepare(GameState gState);
+  
+//All the stuff you want to do after returning shapes, etc.
+  public void postpare(GameState gState);
 
 }

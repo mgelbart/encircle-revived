@@ -90,4 +90,7 @@ public class DrawableBullets implements Drawable {
   public Image img(GameState game) { return null; }
   public int[] imgLocation() { return null; }
 
+  public void prepare(GameState gState) { }
+  public void postpare(GameState gState) { }
+  
 }

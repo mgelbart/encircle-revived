@@ -1,5 +1,6 @@
 package aoi;
 
+import java.applet.AudioClip;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.BasicStroke;
@@ -7,22 +8,20 @@ import java.awt.BasicStroke;
 /**
  *  A GUI element for the special FX shown when you score.
  */
-public class DrawableScoringEffect extends DefaultDrawable {
+public class ScoringEffect extends DefaultDrawable implements Audible {
 
-  // Last known score.
-  private int lastScore = 0;
-
-  // Counter for scoring effects.
-  private int scored = 0;
+  int prevSinceScoring = Integer.MIN_VALUE;
+  
   private Tail scoringTail = null;
-
+  private int scored;
+  
   // Time duration of the scoring effect in turns.
   private final int SCORINGTIME = 1500 / SimulationUtils.TIMESTEP;
   // The number of pixels the loop is fattened to when scoring.
   private final float SCORINGWIDTH = 10.f;
 
 
-  public DrawableScoringEffect(int playerNo, Stroke stroke) {
+  public ScoringEffect(int playerNo, Stroke stroke) {
     super(playerNo, stroke);
   }
 
@@ -30,9 +29,8 @@ public class DrawableScoringEffect extends DefaultDrawable {
   public Shape[] shapes(GameState game) {
     final PlayerState s = game.pStates[playerNo];
     
-    if (s.score > lastScore) {  // you just scored
+    if (s.sinceScoring < prevSinceScoring) {  // you just scored
       scored = SCORINGTIME;
-      lastScore = s.score;
       
       // crop the non-loop part from the scoring effect.
       Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
@@ -41,10 +39,8 @@ public class DrawableScoringEffect extends DefaultDrawable {
       return new Shape[]{scoringTail.toPath2D()};
     } else if (scored == 0) {    // normal time
       scoringTail = s.tail;
-      lastScore = s.score;
       return null;
     } else {                  // while the effect is showing
-      lastScore = s.score;
       return new Shape[]{scoringTail.toPath2D()};
     }
     
@@ -55,11 +51,8 @@ public class DrawableScoringEffect extends DefaultDrawable {
   public Stroke[] stroke() {
 
     assert(scored >= 0);
-
     if (scored == 0) {
-
       return new Stroke[]{stroke};
-
     } else {
       scored--;
 
@@ -70,5 +63,13 @@ public class DrawableScoringEffect extends DefaultDrawable {
     }
 
   }
+  
+
+  public AudioClip clip(GameState gState) {
+    if (gState.pStates[playerNo].sinceScoring < prevSinceScoring)
+      return StdAudio.takeShot;
+    else return null;
+  }
+  
 
 }
