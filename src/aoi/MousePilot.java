@@ -25,7 +25,7 @@ public class MousePilot implements MouseInputListener {
     Point2D tar = DrawUtils.fromJavaUserSpaceToGameCoordinates(target);
     
     // Set the acceleration based on the distance between the ship and mouse.
-    final double l = SimulationUtils.ARENASIZE / 50;
+    final double l = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
     acc = (int) (SimulationUtils.MAXACC * (1.-Math.exp(-loc.distanceSq(tar)/l)));
     
     return new PlayerControlParameters(currentGameState.time, acc, new Angle(loc, tar), shoot, boost);
