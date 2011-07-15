@@ -21,10 +21,6 @@ public class Simulation {
   // The current game state.
   public GameState game;
 
-  // Private information we want to store about the players
-  // but not communicate to the clients.
-  private final PlayerStateExtraInfo[] extraInfo = new PlayerStateExtraInfo[2];
-
   // Static information about the game state.
   public Arena arena;
 
@@ -71,8 +67,6 @@ public class Simulation {
     final int y = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
 
     Angle dir = new Angle((Math.PI * (1 - 2*Math.random())));
-
-    extraInfo[playerNo] = new PlayerStateExtraInfo();
 
     int tailStarted = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
@@ -127,14 +121,18 @@ public class Simulation {
             }
           }
         }
+        
         // First copy the parameters to minimize the time difference
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          extraInfo[j].params = listeners[j].getCtrlParams(game.time);
-          extraInfo[j].gotPwned = false;
-        }
+        PlayerControlParameters[] params = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+          params[j] = listeners[j].getCtrlParams(game.time);
+        
+        boolean[] gotPwned = new boolean[2];
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+          gotPwned[j] = false;
         // --- end
         
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { 
@@ -202,7 +200,7 @@ public class Simulation {
           
           
           // Take shots first:          
-          if (extraInfo[j].params.shoot && SimulationUtils.canShoot(states[j])) {
+          if (params[j].shoot && SimulationUtils.canShoot(states[j])) {
             // if players had enough time to reload and enough path to spend
             bullets.add(new Bullet(j, states[j].ship.x(), states[j].ship.y(), states[j].ship.dir()));
             spendPathOnBullet = true;
@@ -210,7 +208,7 @@ public class Simulation {
           }
 
           // Calculate where the player moved.
-          ship = SimulationUtils.nextPosition(states[j].ship, extraInfo[j].params);
+          ship = SimulationUtils.nextPosition(states[j].ship, params[j]);
 
           // Add the new position to the player's tail
           tail = states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
@@ -257,7 +255,7 @@ public class Simulation {
                   if (k==j) continue;
 
                   if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
-                    extraInfo[k].gotPwned = true; // set score to 0 if you are enclosed by the other player!!!!
+                    gotPwned[j] = true; // set score to 0 if you are enclosed by the other player!!!!
                   }
                 }
               }
@@ -353,7 +351,7 @@ public class Simulation {
         // Needs to be outside main loop because loop on j checks
         // if player j pwned someone else, not if player j got pwned.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          if (extraInfo[j].gotPwned) {
+          if (gotPwned[j]) {
             states[j] = states[j].clone("score", 0);
             states[j] = states[j].clone("sincePwned", 0);
           }
@@ -366,17 +364,6 @@ public class Simulation {
       }  // end catch
     }  // end infinite while loop
   }  // end this function
-
-
-
-  private class PlayerStateExtraInfo { // STUPID
-    /* Values used internally by the simulation. */
-
-    public boolean gotPwned = false;
-
-    // The current and previous control parameters.
-    public PlayerControlParameters params = null;
-  }
 
 
   private class InterruptThreadsTask extends TimerTask {
