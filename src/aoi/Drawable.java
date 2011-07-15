@@ -10,7 +10,7 @@ interface Drawable {
 
   // Returns the image to be drawn, if any.
   // May depend on the current game state.
-  public Image img(GameState state);
+  public Image img(GameState gState);
 
   // Return {centerx, centery, width, height} of
   // the image, if any.
@@ -18,7 +18,7 @@ interface Drawable {
 
   // Returns the shapes to be drawn, if any.
   // May depend on the current game state.
-  public Shape[] shapes(GameState state);
+  public Shape[] shapes(GameState gState);
 
   // Determines whether the shapes are to be filled
   // or only the outlines drawn.

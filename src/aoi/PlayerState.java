@@ -65,13 +65,13 @@ public class PlayerState {
     this.cropTailFrom = cropTailFrom;
     this.cropTailTo = cropTailTo;
     this.score = score;
-    this.untilReload = untilReload;
-    this.untilRespawn = untilRespawn;
-    this.sinceScoring = sinceScoring;
-    this.sinceLooping = sinceLooping;
-    this.sinceCrossing = sinceCrossing;
-    this.sinceHitByBullet = sinceHitByBullet;
-    this.sincePwned = sincePwned;
+    this.untilReload      = Math.min(0xFF, untilReload);
+    this.untilRespawn     = Math.min(0xFF, untilRespawn);
+    this.sinceScoring     = Math.min(0xFF, sinceScoring);
+    this.sinceLooping     = Math.min(0xFF, sinceLooping);
+    this.sinceCrossing    = Math.min(0xFF, sinceCrossing);
+    this.sinceHitByBullet = Math.min(0xFF, sinceHitByBullet);
+    this.sincePwned       = Math.min(0xFF, sincePwned);
     this.tail = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);

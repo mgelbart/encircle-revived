@@ -10,69 +10,71 @@ import java.awt.BasicStroke;
  */
 public class ScoringEffect extends DefaultDrawable implements Audible {
 
-  int prevSinceScoring = Integer.MIN_VALUE;
+  private int prevSinceScoring = -1;
   
   private Tail scoringTail = null;
-  private int scored;
+  private int internalCounter = 0;
   
   // Time duration of the scoring effect in turns.
   private final int SCORINGTIME = 1500 / SimulationUtils.TIMESTEP;
   // The number of pixels the loop is fattened to when scoring.
   private final float SCORINGWIDTH = 10.f;
 
-
   public ScoringEffect(int playerNo, Stroke stroke) {
     super(playerNo, stroke);
   }
   
+  
+  public void prepare(GameState gState) {
+    assert(internalCounter >= 0);
+  }
   public void postpare(GameState gState) { 
     prevSinceScoring = gState.pStates[playerNo].sinceScoring;
+    assert(internalCounter < SCORINGTIME);
   }
-  
-  
+
 
   // Return the path to be drawn.
   public Shape[] shapes(GameState gState) {
     final PlayerState s = gState.pStates[playerNo];
+
+//    Logger.println(Logger.RepetitionRate.INFREQUENT, s.sinceScoring);
+
     
-    if (s.sinceScoring < prevSinceScoring) {  // you just scored
-      scored = SCORINGTIME;
+    if (s == null) {   // first call
+      return null;
+    } else if (internalCounter == 0 && s.sinceScoring - prevSinceScoring < 0) {  // you just scored
+      internalCounter = SCORINGTIME;
       
       // crop the non-loop part from the scoring effect.
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
       scoringTail = scoringTail.crop(s.tailStarted, s.cropTailFrom);
+      scoringTail = scoringTail.crop(s.cropTailTo, gState.time + 1);
       
       return new Shape[]{scoringTail.toPath2D()};
-    } else if (scored == 0) {    // normal time
+    } else if (internalCounter == 0) {  // normal time
       scoringTail = s.tail;
       return null;
-    } else {                  // while the effect is showing
+    } else {                   // while the effect is showing
       return new Shape[]{scoringTail.toPath2D()};
     }
-    
  
   }
 
   // Return the pen stroke used to draw the shape.
   public Stroke[] stroke() {
-
-    assert(scored >= 0);
-    if (scored == 0) {
-      return new Stroke[]{stroke};
-    } else {
-      scored--;
-
-      assert(scored < SCORINGTIME);
-
-      return new Stroke[]
-        { new BasicStroke(SCORINGWIDTH * (SCORINGTIME - scored) / (float)SCORINGTIME) };
+    if (internalCounter == 0) return new Stroke[]{stroke};
+    else {
+      internalCounter--;
+      return new Stroke[] 
+        { new BasicStroke(SCORINGWIDTH * (SCORINGTIME - internalCounter) / (float)SCORINGTIME) };
     }
 
   }
   
 
   public AudioClip clip(GameState gState) {
-    if (gState.pStates[playerNo].sinceScoring < prevSinceScoring)
+    if (gState.pStates[playerNo].sinceScoring - prevSinceScoring < 0)
       return StdAudio.takeShot;
     else return null;
   }

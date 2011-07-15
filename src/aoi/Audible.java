@@ -10,7 +10,7 @@ interface Audible {
 
   // Returns the image to be drawn, if any.
   // May depend on the current game state.
-  public AudioClip clip(GameState state);
+  public AudioClip clip(GameState gState);
 
   // Remove the object from the collection of
   // objects to be drawn.
@@ -20,7 +20,7 @@ interface Audible {
   // objects to be drawn.
   public boolean isRemoved();
 
-  public void prepare(GameState state);
-  public void postpare(GameState state);
+  public void prepare(GameState gState);
+  public void postpare(GameState gState);
   
 }

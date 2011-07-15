@@ -169,67 +169,72 @@ public class GUI implements Runnable {
     audibles.add(a);
   }
 
-  private void drawGameState(GameState g) {
-    // Clear screen
+  private void drawGameState(GameState gState) {
+    // --- Clear screen ---
     DrawUtils.clear(Color.BLACK);
 
-    // Set the zoom level
+    // --- Set the zoom level ---
     final double r = 
       Math.max(SimulationUtils.ARENASIZE/2,
-      Math.max(Math.abs(g.pStates[ClientConfiguration.playerNo].ship.x() * 1.05),
-      Math.abs(g.pStates[ClientConfiguration.playerNo].ship.y() * 1.05)));
+      Math.max(Math.abs(gState.pStates[ClientConfiguration.playerNo].ship.x() * 1.05),
+      Math.abs(gState.pStates[ClientConfiguration.playerNo].ship.y() * 1.05)));
     DrawUtils.setRenderedGameCoords(0, 0, (int) (2*r), (int) (2*r));
 
-    // Process drawables
+    
+    // --- Prepare and remove drawables and audibles ---
     for (int j=0; j<drawables.size(); ++j) {
       Drawable d = drawables.get(j);
-
-      if (!d.isRemoved()) {
-        
-        d.prepare(g);
-
-        Shape[] s = d.shapes(g);
-        Image img = d.img(g);
-
-        if (img != null) {
-          int[] loc = d.imgLocation();
-          DrawUtils.picture(loc[0], loc[1], loc[2], loc[3], img, true);
-        }
-        
-        if (s != null) {
-          boolean[] fill = d.fill();
-          Paint[] colors = d.paint();
-          Stroke[] strokes = d.stroke();
-          for (int k=0; k<s.length; ++k) {
-            DrawUtils.setPaint(colors[k]);
-            DrawUtils.setStroke(strokes[k]);
-            DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
-          }
-        }
-        
-        d.postpare(g);
-
-      } else {
-        drawables.removeElementAt(j);
-        --j;
-      }
-
+      if (!d.isRemoved())
+        d.prepare(gState);
+      else
+        drawables.removeElementAt(j--);
     }
-    DrawUtils.show();
+    for (int j=0; j<audibles.size(); ++j) {
+      Audible a = audibles.get(j);
+      if (!a.isRemoved())
+        a.prepare(gState);
+      else
+        audibles.removeElementAt(j--);
+    }    
     
-    // Process audibles
-   for (int j=0; j<audibles.size(); ++j) {
-     Audible a = audibles.get(j);
-     if (!a.isRemoved()) {
-       a.prepare(g);
-       AudioClip c = a.clip(g);
-       if (c != null) StdAudio.playClip(c);
-       a.postpare(g);
-     }
+    
+    // --- Process drawables and audibles ---
+    for (Drawable d : drawables) {
+      
+      d.prepare(gState);
+
+      Shape[] s = d.shapes(gState);
+      Image img = d.img(gState);
+
+      if (img != null) {
+        int[] loc = d.imgLocation();
+        DrawUtils.picture(loc[0], loc[1], loc[2], loc[3], img, true);
+      }
+      
+      if (s != null) {
+        boolean[] fill = d.fill();
+        Paint[] colors = d.paint();
+        Stroke[] strokes = d.stroke();
+        for (int k=0; k<s.length; ++k) {
+          DrawUtils.setPaint(colors[k]);
+          DrawUtils.setStroke(strokes[k]);
+          DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
+        }
+      }
+    }
+   for (Audible a : audibles) {
+     AudioClip c = a.clip(gState);
+     if (c != null) StdAudio.playClip(c);
    }
    
    
+   // --- Postpare drawables and audibles ---
+   for (Drawable d : drawables)
+     d.postpare(gState);
+   for (Audible a : audibles)
+     a.postpare(gState);
 
+   DrawUtils.show();
   }
 
 }
