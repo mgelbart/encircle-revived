@@ -73,7 +73,7 @@ public class Simulation {
                            tailStarted, tailStarted, tailStarted, score,
                            0, 0, // untilReload, untilRespawn
                            255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
-                           new Tail(x, y, time)); 
+                           new Tail(new Point2D.Double(x, y), time)); 
   }
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
@@ -154,6 +154,10 @@ public class Simulation {
             Angle newDir = states[j].tail.tangentAngleBase();
             if (newDir == null) newDir = states[j].ship.dir();
             ship = new Ship(newLocation, 0, 0, newDir);
+           
+            
+            Logger.println(Logger.RepetitionRate.INFREQUENT, states[j].tail);
+            Logger.println(Logger.RepetitionRate.INFREQUENT, NSPath.pointToString(newLocation));
             
             states[j] = new PlayerState(j, states[j].ship, 0, 
                 game.time + 1, game.time + 1, game.time + 1, 
@@ -165,7 +169,7 @@ public class Simulation {
                 states[j].sinceCrossing+1,
                 states[j].sinceHitByBullet+1,
                 states[j].sincePwned+1,
-                new Tail());
+                new Tail(newLocation, game.time + 1));
             continue;
           }
           if (states[j].untilRespawn > 0) {  // still waiting
@@ -190,16 +194,7 @@ public class Simulation {
             tail = states[j].tail.crop(cropFrom, cropTo);
             
             untilRespawn = states[j].untilRespawn-1;
-            
-//            Logger.println(RepetitionRate.INFREQUENT, tail);            
-//          Logger.println(RepetitionRate.INFREQUENT, "product = " + states[j].untilRespawn*SimulationUtils.UNCOILSPEED);   
-//          Logger.println(RepetitionRate.INFREQUENT, "player = " + j);
-//          Logger.println(RepetitionRate.INFREQUENT, "head time = " + states[j].tail.headTime());
-//          Logger.println(RepetitionRate.INFREQUENT, tailStarted + " " + cropFrom + " " + cropTo);
-//            Logger.println(RepetitionRate.INFREQUENT, untilRespawn);
-//            Logger.println(RepetitionRate.INFREQUENT, tail.nPoints());    
-//            Logger.println(RepetitionRate.INFREQUENT, "-------------");
-            
+
             states[j] = new PlayerState(j, ship, 0, 
                 tailStarted, cropFrom, cropTo, states[j].score,
                 Math.max(0, states[j].untilReload-1),
@@ -283,7 +278,7 @@ public class Simulation {
           int tailStarted, cropFrom, cropTo;
           if (erasePath) {
             // if your path needs to be erased (you got shot, for ex.)
-            tail = new Tail(ship.x(), ship.y(), game.time + 1);
+            tail = new Tail(ship.location(), game.time + 1);
             tailStarted = game.time + 1;
             cropFrom = tailStarted;
             cropTo = tailStarted;
@@ -329,7 +324,7 @@ public class Simulation {
               remove = true;
               gotShot = true;
                // if you get shot then you lose your tail
-              tail = new Tail(states[j].ship.x(), states[j].ship.y(), game.time + 1);
+              tail = new Tail(states[j].ship.location(), game.time + 1);
               tailStarted = game.time + 1;
               cropFrom = tailStarted;
               cropTo = tailStarted;

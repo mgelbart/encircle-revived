@@ -31,10 +31,10 @@ public class Tail {
     times = new Vector<Integer>();
   }
   
-  public Tail(int x0, int y0, int time) {
+  public Tail(Point2D p, int time) {
     this();
-    trajectory.addPoint(x0, y0);
-    times.add(time); 
+    trajectory.addPoint(p);
+    times.add(time);
     assert(trajectory.nPoints() == times.size());
   }
   
