@@ -61,7 +61,8 @@ public class HigherBeing implements Intelligence {
   private Thread intelThread;
 
   // Call this to get new control parameters.
-  private KeyboardPilot pilot;
+//  private KeyboardPilot pilot;
+  private MousePilot pilot;
   
   public HigherBeing() {
     
@@ -78,8 +79,11 @@ public class HigherBeing implements Intelligence {
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
     
-    pilot = new KeyboardPilot();
-    DrawUtils.addKeyListener(pilot);
+//    pilot = new KeyboardPilot();
+//    DrawUtils.addKeyListener(pilot);
+    pilot = new MousePilot();
+    DrawUtils.addMouseListener(pilot);
+    DrawUtils.addMouseMotionListener(pilot);
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
