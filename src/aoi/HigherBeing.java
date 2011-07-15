@@ -60,9 +60,9 @@ public class HigherBeing implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
 
-  // Call this to get new control parameters.
-//  private KeyboardPilot pilot;
-  private MousePilot pilot;
+  // Call one of these to get new control parameters.
+  private KeyboardPilot keyboardPilot = null;
+  private MousePilot mousePilot = null;
   
   public HigherBeing() {
     
@@ -79,11 +79,14 @@ public class HigherBeing implements Intelligence {
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
     
-//    pilot = new KeyboardPilot();
-//    DrawUtils.addKeyListener(pilot);
-    pilot = new MousePilot();
-    DrawUtils.addMouseListener(pilot);
-    DrawUtils.addMouseMotionListener(pilot);
+    if (ClientConfiguration.useMouse) {
+      mousePilot = new MousePilot();
+      DrawUtils.addMouseListener(mousePilot);
+      DrawUtils.addMouseMotionListener(mousePilot);
+    } else {
+      keyboardPilot = new KeyboardPilot();
+      DrawUtils.addKeyListener(keyboardPilot);
+    }
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -145,7 +148,11 @@ public class HigherBeing implements Intelligence {
         // Don't do anything before the game starts.
         if (renderedState == null) continue;
       
-        PlayerControlParameters c = pilot.getParams(renderedState);
+        PlayerControlParameters c;
+        if (ClientConfiguration.useMouse)
+          c = mousePilot.getParams(renderedState);
+        else
+          c = keyboardPilot.getParams(renderedState);
 
         if (c != null) queueParams(c);
 

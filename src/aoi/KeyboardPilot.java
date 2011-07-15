@@ -7,7 +7,6 @@ import java.awt.event.KeyListener;
  * A simple interface for controlling your ship based on keyboard events.
  */
 public class KeyboardPilot implements KeyListener {
-  private boolean updated = false;
   private int acc = 0;
   private boolean left = false;
   private boolean right = false;
@@ -15,9 +14,6 @@ public class KeyboardPilot implements KeyListener {
   private boolean boost = false;
   
   public PlayerControlParameters getParams(GameState currentGameState) {
-    if (!updated) return null;
-    updated = false;
-    
     return new PlayerControlParameters(currentGameState.time, acc,
          currentGameState.pStates[ClientConfiguration.playerNo].ship.dir().add(Math.PI/2*( ((left)? 1:0) - ((right)? 1:0) )),
          shoot, boost);
@@ -48,7 +44,6 @@ public class KeyboardPilot implements KeyListener {
       break;
     }
 
-    updated = true;
     e.consume();
   }
   
@@ -77,8 +72,8 @@ public class KeyboardPilot implements KeyListener {
       shoot = false;
       break;
     }
-    
-    updated = true;
+
+    e.consume();
   }
   
   @Override

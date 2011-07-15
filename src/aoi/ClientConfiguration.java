@@ -26,6 +26,9 @@ public abstract class ClientConfiguration {
   // Set to zero to disable prediction.
   public static int predictFuture;
 
+  // Use mouse input.
+  public static boolean useMouse;
+  
   
   public static void setPlayerNo(int p) {
     playerNo = p;
@@ -57,6 +60,9 @@ public abstract class ClientConfiguration {
 
       reader.readLine();
       predictFuture = Integer.parseInt(reader.readLine());
+
+      reader.readLine();
+      useMouse = Boolean.parseBoolean(reader.readLine());
 
     } catch (Exception e) {
 
