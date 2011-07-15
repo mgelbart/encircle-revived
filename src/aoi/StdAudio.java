@@ -25,7 +25,7 @@ public abstract class StdAudio {
     public static String AUDIO_DIRECTORY = File.separator + "sound" + File.separator;
     
     public static AudioClip takeShot  = getClip(AUDIO_DIRECTORY + "Bow_Fire_Arrow-Stephan_Schutze-2133929391.wav");
-    public static AudioClip score     = getClip(AUDIO_DIRECTORY + "Power_Up_Ray-Mike_Koenig-800933783.wav");
+    public static AudioClip score     = getClip(AUDIO_DIRECTORY + "Metroid_Door-Brandino480-995195341.wav");
     public static AudioClip winGame   = getClip(AUDIO_DIRECTORY + "Electrical_Sweep-Sweeper-1760111493.wav");
     public static AudioClip crossPath = null;
     public static AudioClip getShot   = null;
