@@ -13,7 +13,8 @@ public class App extends JApplet {
 
   public void init() {
 
-    final JLabel gui = new JLabel();
+    final JButton gui = new JButton();
+    gui.setBorder(null);
 
     // hackz... just need something focusable for keyboard events.
     final JMenuBar menubar = new JMenuBar();

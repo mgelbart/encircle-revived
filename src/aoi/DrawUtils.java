@@ -75,13 +75,13 @@ public class DrawUtils {
   private static Graphics2D offscreen, onscreen;
 
   // The JLabel that the objects are drawn on.
-  private static JLabel canvas;
+  private static JButton canvas;
 
   // the minimal area of game coordinates that will be rendered.
   private static Rectangle renderedGameCoords;
 
   // Initialize the module to draw objects on the specified canvas.
-  public static void initialize(JLabel canv) {
+  public static void initialize(JButton canv) {
     assert(!initialized);
 
     assert(canv != null);

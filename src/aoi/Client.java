@@ -17,7 +17,7 @@ public class Client implements Runnable {
   private static final String DEFAULTCONFIGPATH = "client.conf";
 
   // The JLabel for the GUI.
-  private JLabel gui;
+  private JButton canvas;
 
   /**
    * Constructs a new Client using the given configuration
@@ -26,8 +26,8 @@ public class Client implements Runnable {
    * If config is null, the default configuration file
    * is used.
    */
-  public Client(JLabel gui) {
-    this.gui = gui;
+  public Client(JButton canvas) {
+    this.canvas = canvas;
 
     // Load the default config file if none has been loaded so far. Used in the Applet.
     if (!ClientConfiguration.isLoaded()) {
@@ -59,7 +59,7 @@ public class Client implements Runnable {
 
     // Initialize the GUI for human players
     if (!ClientConfiguration.nonhuman) {
-      DrawUtils.initialize(gui);
+      DrawUtils.initialize(canvas);
     }
 
 
@@ -156,10 +156,12 @@ public class Client implements Runnable {
       JFrame frame = new JFrame();
 
       // The JLabel on which the whole GUI is drawn.
-      JLabel gui = new JLabel();
-      gui.setPreferredSize(new Dimension(700, 700));
-
-      frame.setContentPane(gui);
+      JButton canvas = new JButton();
+      canvas.setBorder(null);
+      canvas.setPreferredSize(new Dimension(700, 700));
+//      gui.setText("Loading...");
+      
+      frame.setContentPane(canvas);
 
       frame.setResizable(true);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -172,7 +174,7 @@ public class Client implements Runnable {
       frame.setVisible(true);
 
 
-      client = new Client(gui);
+      client = new Client(canvas);
 
     } else {
       client = new Client(null);
