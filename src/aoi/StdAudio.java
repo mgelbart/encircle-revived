@@ -29,20 +29,6 @@ public abstract class StdAudio {
   public static AudioClip crash     = getClip(AUDIO_DIRECTORY + "47252__nthompson__rocketexpl.wav");
 
 
-
-  // return data as a double array, with values scaled to be between -1 and 1
-  public static double[] read(String filename) {
-    byte[] data = readByte(filename);
-    int N = data.length;
-    double[] d = new double[N/2];
-    for (int i = 0; i < N/2; i++) {
-      d[i] = ((short) (((data[2*i+1] & 0xFF) << 8) + (data[2*i] & 0xFF))) / 32768.0;
-    }
-    return d;
-  }
-
-
-
   // play the input array
   // 44,100 samples per second, 16-bit audio, mono, signed PCM, little Endian
   // the array values are assumed to be between -1 and 1
