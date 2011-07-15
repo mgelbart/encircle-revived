@@ -25,7 +25,7 @@ public abstract class SimulationUtils {
   public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((ARENASIZE / 1e7 * 5) * TIMESTEP * TIMESTEP) ;
+  public static final int MAXACC = (int) ((6. * ARENASIZE / 1e7) * TIMESTEP * TIMESTEP) ;
  
   // Drag coefficient.
   public static final double DRAG = 0.0025 * TIMESTEP;
@@ -34,16 +34,19 @@ public abstract class SimulationUtils {
   public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1500;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = 400 / TIMESTEP;
+  public static final int RELOADTIME = 240 / TIMESTEP;
   
   /* Length of path required to spend in order to shoot.  */
-  public static final double BULLETCOST = ARENASIZE / 8.;
+  public static final double BULLETCOST = ARENASIZE / 7.;
  
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
 
+  
+  private static final double MAXVELOCITY = MAXACC/DRAG;
+  
   // The rate at which you recoil backwards after crashing
-  public static final int UNCOILSPEED = (ARENASIZE * TIMESTEP) / 4000; 
+  public static final double UNCOILSPEED = MAXVELOCITY * 2.;
   
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
