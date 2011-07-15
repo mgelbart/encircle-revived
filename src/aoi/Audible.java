@@ -10,7 +10,7 @@ interface Audible {
 
   // Returns the image to be drawn, if any.
   // May depend on the current game state.
-  public AudioClip getClip(GameState state);
+  public AudioClip clip(GameState state);
 
   // Remove the object from the collection of
   // objects to be drawn.

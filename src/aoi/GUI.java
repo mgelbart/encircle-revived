@@ -1,5 +1,6 @@
 package aoi;
 
+import java.applet.AudioClip;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.*;
@@ -33,6 +34,8 @@ public class GUI implements Runnable {
   // Items to draw on the screen.
   private Vector<Drawable> drawables = new Vector<Drawable>();
 
+  private Vector<Audible> audibles = new Vector<Audible>();
+  
   private int[] currentLoopStarted;
 
   private Vector<Point2D>[] loop;
@@ -78,8 +81,12 @@ public class GUI implements Runnable {
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j)
       drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
 
-    drawables.add(new DrawableScore(Color.GRAY, Arena.current().sequence()));
+    drawables.add(new DrawableScoreboard(Color.GRAY, Arena.current().sequence()));
 
+    // add audibles
+    audibles.add(new AudibleShot());
+    
+    
 
     /* Canvas parameters: */
     DrawUtils.setRenderedGameCoords(0, 0, SimulationUtils.ARENASIZE, SimulationUtils.ARENASIZE);
@@ -157,18 +164,23 @@ public class GUI implements Runnable {
     //       in drawGameState.
     drawables.add(d);
   }
+  
+  public void addAudible(Audible a) {
+    audibles.add(a);
+  }
 
   private void drawGameState(GameState g) {
-
+    // Clear screen
     DrawUtils.clear(Color.BLACK);
 
     // Set the zoom level
-    final double r = Math.max(SimulationUtils.ARENASIZE/2,
-                              Math.max(Math.abs(g.states[ClientConfiguration.playerNo].ship.x() * 1.05),
-                                       Math.abs(g.states[ClientConfiguration.playerNo].ship.y() * 1.05)));
-
+    final double r = 
+      Math.max(SimulationUtils.ARENASIZE/2,
+      Math.max(Math.abs(g.states[ClientConfiguration.playerNo].ship.x() * 1.05),
+      Math.abs(g.states[ClientConfiguration.playerNo].ship.y() * 1.05)));
     DrawUtils.setRenderedGameCoords(0, 0, (int) (2*r), (int) (2*r));
 
+    // Process drawables
     for (int j=0; j<drawables.size(); ++j) {
       Drawable d = drawables.get(j);
 
@@ -199,8 +211,18 @@ public class GUI implements Runnable {
       }
 
     }
-
     DrawUtils.show();
+    
+    // Process audibles
+   for (int j=0; j<audibles.size(); ++j) {
+     Audible a = audibles.get(j);
+     if (!a.isRemoved()) {
+       AudioClip c = a.clip(g);
+       if (c != null) StdAudio.playClip(c);
+     }
+   }
+   
+   
 
   }
 

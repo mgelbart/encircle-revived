@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 /**
  *  A GUI element for drawing the score.
  */
-public class DrawableScore implements Drawable {
+public class DrawableScoreboard implements Drawable {
 
   private boolean removed = false;
 
@@ -24,7 +24,7 @@ public class DrawableScore implements Drawable {
 
   private AffineTransform at;
 
-  public DrawableScore(Color neutralColor, int[] sequence) {
+  public DrawableScoreboard(Color neutralColor, int[] sequence) {
 
     fill = new boolean[1+SimulationUtils.NUMPLAYERS];
     fill[0] = true;

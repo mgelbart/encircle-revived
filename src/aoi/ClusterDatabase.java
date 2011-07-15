@@ -17,9 +17,6 @@ public class ClusterDatabase {
   
   /* ----------------------------------------------------------------------- */
   
-  // Either '/' or '\' depending on OS. Eventually we can find the real way of doing this.
-  public static final String OS_FILESEP = "/";
-
   // The base directory where all segmentation stuff is stored
   public static final String SEGMENTATION_BASEDIR = "segmentation";
 
@@ -60,8 +57,8 @@ public class ClusterDatabase {
     Vector<String> vImageFilenames = new Vector<String>();
 
     Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-                                                                                                 SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_NAME_LIST + 
-                                                                                                 OS_FILESEP + datasetName + TEXT_FORMAT));
+                                                                                                 SEGMENTATION_BASEDIR + File.separator + IMAGE_NAME_LIST + 
+                                                                                                 File.separator + datasetName + TEXT_FORMAT));
     while (infoScanner.hasNext())
       vImageFilenames.add(infoScanner.nextLine());
 
@@ -75,9 +72,9 @@ public class ClusterDatabase {
 
   // Get image path from image filename
   public String imagePath(String filename) {
-    return SEGMENTATION_BASEDIR + OS_FILESEP + 
-      IMAGE_RAW_PATH + OS_FILESEP + datasetName + 
-      OS_FILESEP + filename + IMAGE_RAW_FORMAT;
+    return SEGMENTATION_BASEDIR + File.separator + 
+      IMAGE_RAW_PATH + File.separator + datasetName + 
+      File.separator + filename + IMAGE_RAW_FORMAT;
   }
   
   // Parse all the data about a particular ProtoCluster given the filename
@@ -108,9 +105,9 @@ public class ClusterDatabase {
 
     // Read the polygons [FOR NOW JUST THROW THIS INFORMATION AWAY]
     Scanner polyScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-                                                                                                 SEGMENTATION_BASEDIR + OS_FILESEP + 
-                                                                                                 IMAGE_POLY_PATH + OS_FILESEP + 
-                                                                                                 datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+        SEGMENTATION_BASEDIR + File.separator + 
+        IMAGE_POLY_PATH + File.separator + 
+        datasetName + File.separator + filename + TEXT_FORMAT));
     
     String[] imageSizeString = polyScanner.nextLine().split(",");
     int imageSizeX = Integer.parseInt(imageSizeString[0]);
@@ -148,9 +145,9 @@ public class ClusterDatabase {
 	
     // Read the segment likelihoods
     Scanner nsScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-                                                                                               SEGMENTATION_BASEDIR + OS_FILESEP + 
-                                                                                               IMAGE_LIKELIHOOD_PATH + OS_FILESEP + 
-                                                                                               datasetName + OS_FILESEP + filename + TEXT_FORMAT));
+                                                                                               SEGMENTATION_BASEDIR + File.separator + 
+                                                                                               IMAGE_LIKELIHOOD_PATH + File.separator + 
+                                                                                               datasetName + File.separator + filename + TEXT_FORMAT));
     // The likelihoods of different nSegments values.
     Map<Integer, Double> nsLikelihoods = new HashMap<Integer, Double>();
     String nsLikelihoodsLine = nsScanner.nextLine();
@@ -174,8 +171,8 @@ public class ClusterDatabase {
   // Write to file that a player voted cluster name to have a particular number of segments
   public void writeData(String name, int vote, String playerID) throws IOException {
     BufferedWriter out = new BufferedWriter(new FileWriter(
-                                                           SEGMENTATION_BASEDIR + OS_FILESEP + IMAGE_OUTPUT + 
-                                                           OS_FILESEP + datasetName + OS_FILESEP + name + TEXT_FORMAT, true));
+        SEGMENTATION_BASEDIR + File.separator + IMAGE_OUTPUT + 
+        File.separator + datasetName + File.separator + name + TEXT_FORMAT, true));
     // the "true" above causes the writer to append instead of overwrite
     out.write(vote + "::" + playerID);
     out.newLine();
