@@ -49,6 +49,7 @@ public class KeyboardPilot implements KeyListener {
     }
 
     updated = true;
+    e.consume();
   }
   
   @Override
