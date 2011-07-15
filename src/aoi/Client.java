@@ -159,6 +159,7 @@ public class Client implements Runnable {
       JButton canvas = new JButton();
       canvas.setBorder(null);
       canvas.setPreferredSize(new Dimension(700, 700));
+
 //      gui.setText("Loading...");
       
       frame.setContentPane(canvas);
@@ -169,7 +170,6 @@ public class Client implements Runnable {
       frame.setTitle("AoI");
       frame.pack();
       frame.setVisible(true);
-
 
       client = new Client(canvas);
 
