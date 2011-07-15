@@ -57,15 +57,8 @@ public class DrawUtils {
 
   public static int IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
 
-
+  // The drawing functions cannot be called before this is set to true.
   private static boolean initialized = false;
-
-  private static AffineTransform fromOverlayCoords;
-  private static AffineTransform fromGameCoords;
-
-  private static int canvasWidth;
-  private static int canvasHeight;
-
 
   // The Paint object currently in use.
   private static Paint paint;
@@ -80,6 +73,8 @@ public class DrawUtils {
   // The JLabel that the objects are drawn on.
   private static JLabel canvas;
 
+  // the minimal area of game coordinates that will be rendered.
+  private static Rectangle renderedGameCoords;
 
   // Initialize the module to draw objects on the specified canvas.
   public static void initialize(JLabel canv) {
@@ -88,22 +83,12 @@ public class DrawUtils {
     assert(canv != null);
     canvas = canv;
 
-    canvasWidth = canvas.getSize().width;
-    canvasHeight = canvas.getSize().height;
-
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
 
-    fromOverlayCoords = new AffineTransform();
-    fromOverlayCoords.translate(canvasHeight/2, canvasWidth/2);
-    // Java Graphics use a left handed coordinate
-    // system with x || East and y || South.
-    fromOverlayCoords.scale(1, -1);
-
-
     // Initialize the buffer and the screen.
-    offscreenImage = new BufferedImage(canvasWidth, canvasHeight, IMAGE_TYPE);
-    onscreenImage  = new BufferedImage(canvasWidth, canvasHeight, IMAGE_TYPE);
+    offscreenImage = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
+    onscreenImage  = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
     offscreen = offscreenImage.createGraphics();
     onscreen  = onscreenImage.createGraphics();
     setPaint(DEFAULTPAINT);
@@ -128,22 +113,17 @@ public class DrawUtils {
 
     assert(initialized);
 
-    fromOverlayCoords = null;
-    fromGameCoords = null;
-
     initialized = false;
   }
-
-
-  // Set the region of game coordinates that is rendered.
+  
+  // Set the minimal region of game coordinates that is rendered.
   public static void setRenderedGameCoords(int x, int y, int width, int height) {
-    fromGameCoords = new AffineTransform();
-
-    fromGameCoords.scale(canvasWidth / (double) width, canvasHeight / (double) height);
-    fromGameCoords.translate(-x + width/2, -y + height/2);
-    fromGameCoords.scale(1, -1); // Switch to Java's left-handed coordinate system.
+    setRenderedGameCoords(new Rectangle(x-width/2, y-height/2, width, height));
   }
 
+  public static void setRenderedGameCoords(Rectangle r) {
+    renderedGameCoords = (Rectangle) r.clone();
+  }
 
   /**
    * Set the Paint object used to draw Shapes.
@@ -178,7 +158,7 @@ public class DrawUtils {
    */
   public static void clear(Color c) {
     offscreen.setColor(c);
-    offscreen.fillRect(0, 0, canvasWidth, canvasHeight);
+    offscreen.fillRect(0, 0, canvasWidth(), canvasHeight());
     offscreen.setPaint(paint);
   }
 
@@ -193,9 +173,9 @@ public class DrawUtils {
 
     Shape ss;
     if (gameCoordinates)
-      ss = fromGameCoords.createTransformedShape(s);
+      ss = fromGameCoords().createTransformedShape(s);
     else
-      ss = fromOverlayCoords.createTransformedShape(s);
+      ss = fromOverlayCoords().createTransformedShape(s);
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + "). gameCoordinates: " + gameCoordinates);
     if (fill)
@@ -228,9 +208,9 @@ public class DrawUtils {
 
     Rectangle2D b;
     if (gameCoordinates)
-      b = fromGameCoords.createTransformedShape(box).getBounds2D();
+      b = fromGameCoords().createTransformedShape(box).getBounds2D();
     else
-      b = fromOverlayCoords.createTransformedShape(box).getBounds2D();
+      b = fromOverlayCoords().createTransformedShape(box).getBounds2D();
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Picture at (" + xs + ", " + ys + ")");
     offscreen.drawImage(image,
@@ -254,21 +234,38 @@ public class DrawUtils {
   /**
    * Return the current canvas height (in pixels).
    */
-  public static int height() {
-    return canvasHeight;
+  public static int canvasHeight() {
+    return canvas.getSize().height;
   }
 
 
   /**
    * Return the current canvas width (in pixels).
    */
-  public static int width() {
-    return canvasWidth;
+  public static int canvasWidth() {
+    return canvas.getSize().width;
   }
 
   // Transform p from game coordinates to the Java GUI coordinates.
   public static Point2D fromGameToJavaUserSpaceCoordinates(Point2D p) {
-    return fromGameCoords.transform(p, null);
+    return fromGameCoords().transform(p, null);
   }
   
+  private static AffineTransform fromGameCoords() {
+    AffineTransform at = new AffineTransform();
+
+    at.scale(canvasWidth() / (double) renderedGameCoords.width, canvasHeight() / (double) renderedGameCoords.height);
+    at.translate(-renderedGameCoords.x, -renderedGameCoords.y);
+    at.scale(1, -1); // Switch to Java's left-handed coordinate system.
+    return at;
+  }
+  
+  private static AffineTransform fromOverlayCoords() {
+    AffineTransform at = new AffineTransform();
+    at.translate(canvasWidth()/2, canvasHeight()/2);
+    // Java Graphics use a left handed coordinate
+    // system with x || East and y || South.
+    at.scale(1, -1);
+    return at;
+  }
 }
