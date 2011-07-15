@@ -39,6 +39,9 @@ public class Client implements Runnable {
 
   public void run() {
 
+    // Make sure StdAudio is initialized by playing a silent sound clip.
+    StdAudio.play(new double[]{0., 0.});
+    
     Socket socket = null;
 
     try {
@@ -157,7 +160,7 @@ public class Client implements Runnable {
 
       frame.setContentPane(gui);
 
-      frame.setResizable(false);
+      frame.setResizable(true);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
       frame.setTitle("AoI");
