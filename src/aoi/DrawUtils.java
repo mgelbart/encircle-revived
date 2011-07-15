@@ -42,6 +42,7 @@ package aoi;
  */
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 import javax.swing.*;
@@ -60,6 +61,9 @@ public class DrawUtils {
   // The drawing functions cannot be called before this is set to true.
   private static boolean initialized = false;
 
+  // Set to true if the canvas is resized[ Need to reallocate the buffer images when this happens.
+  private static boolean canvasResized = false;
+  
   // The Paint object currently in use.
   private static Paint paint;
 
@@ -83,9 +87,17 @@ public class DrawUtils {
     assert(canv != null);
     canvas = canv;
 
+    canvas.addComponentListener(new ResizeListener());
+    
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
 
+    initBuffers();
+    
+    initialized = true;
+  }
+ 
+  private static void initBuffers() {
     // Initialize the buffer and the screen.
     offscreenImage = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
     onscreenImage  = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
@@ -104,10 +116,8 @@ public class DrawUtils {
 
     ImageIcon icon = new ImageIcon(onscreenImage);
     canvas.setIcon(icon);
-
-    initialized = true;
   }
-
+  
   public static void freeResources() {
     assert(false); // Not supported yet.
 
@@ -226,6 +236,13 @@ public class DrawUtils {
    * Render the currently buffered "off-screen" image to the screen.
    */
   public static void show() {
+    if (canvasResized) {
+      // reallocate the buffer images and skip frame.
+      canvasResized = false;
+      initBuffers();
+      return;
+    }
+    
     onscreen.drawImage(offscreenImage, 0, 0, null);
     canvas.repaint();
   }
@@ -254,8 +271,10 @@ public class DrawUtils {
   private static AffineTransform fromGameCoords() {
     AffineTransform at = new AffineTransform();
 
-    at.scale(canvasWidth() / (double) renderedGameCoords.width, canvasHeight() / (double) renderedGameCoords.height);
-    at.translate(-renderedGameCoords.x, -renderedGameCoords.y);
+    final double scaleFact = Math.min(canvasWidth() / (double) renderedGameCoords.width, canvasHeight() / (double) renderedGameCoords.height);
+    
+    at.translate(canvasWidth()/2, canvasHeight()/2);
+    at.scale(scaleFact, scaleFact); // keep the aspect ratio
     at.scale(1, -1); // Switch to Java's left-handed coordinate system.
     return at;
   }
@@ -267,5 +286,22 @@ public class DrawUtils {
     // system with x || East and y || South.
     at.scale(1, -1);
     return at;
+  }
+  
+  public static class ResizeListener implements ComponentListener {
+    
+    @Override
+    public void componentResized(ComponentEvent e) {
+      canvasResized = true;
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent arg0) {}
+
+    @Override
+    public void componentMoved(ComponentEvent arg0) {}
+
+    @Override
+    public void componentShown(ComponentEvent arg0) {}
   }
 }

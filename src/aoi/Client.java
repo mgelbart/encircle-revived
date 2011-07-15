@@ -128,8 +128,9 @@ public class Client implements Runnable {
         socket.close();
       } catch (Exception ee) {
       }
-
+      
       Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      e.printStackTrace(System.err);
       assert(false);
     }
 

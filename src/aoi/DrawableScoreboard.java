@@ -22,8 +22,12 @@ public class DrawableScoreboard implements Drawable {
   private Shape[] shapes;
   private GlyphVector scoreboard;
 
+  // Translates and scales the coordinates from the glyph vector to 'overlay coordinates' used in DrawUtils.
   private AffineTransform at;
 
+  // The unscaled/translated numbers shown in the scoreboard.
+  private Shape numbers;
+  
   public DrawableScoreboard(Color neutralColor, int[] sequence) {
 
     fill = new boolean[1+SimulationUtils.NUMPLAYERS];
@@ -63,23 +67,31 @@ public class DrawableScoreboard implements Drawable {
     double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
     double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
     double scaleFact = 15. / boardHeight;  // make the letters 15 px high
-
+    
+    // Precalculate everything for the coordinate transformation except that translation.
+    // The amount of translation depends on the canvas size which may change.
     at = new AffineTransform();
-    at.translate(0., 0.47 * DrawUtils.canvasHeight()); // Move to the top
     at.scale(scaleFact, scaleFact);
     at.translate(-boardWidth/2, 0.); // Center
-    at.scale(1, -1); // Java Graphiscs use a left-handed coordinate system.
+    at.scale(1, -1); // Java Graphics use a left-handed coordinate system.
 
     shapes = new Shape[1+SimulationUtils.NUMPLAYERS];
-    shapes[0] = at.createTransformedShape(scoreboard.getOutline());
+    numbers = scoreboard.getOutline();
 
     assert(colors.length == 1+SimulationUtils.NUMPLAYERS);
     assert(strokes.length == 1+SimulationUtils.NUMPLAYERS);
     assert(shapes.length == 1+SimulationUtils.NUMPLAYERS);
   }
+  
+  private AffineTransform toOverlayCoords() {
+    AffineTransform t =  AffineTransform.getTranslateInstance(0., DrawUtils.canvasHeight()/2 - 20); // Move to the top
+    t.concatenate(at);
+    return t;
+  }
 
   public Shape[] shapes(GameState game) {
-
+    shapes[0] = toOverlayCoords().createTransformedShape(numbers);
+    
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
       Rectangle2D box = scoreboard.getGlyphOutline(2*game.pStates[j].score).getBounds2D();
 
@@ -93,7 +105,7 @@ public class DrawableScoreboard implements Drawable {
         double yB = box.getHeight()+2*margin;
         
         box = new Rectangle2D.Double(xL, yT, xR, yB);
-        shapes[j+1] = at.createTransformedShape(box); 
+        shapes[j+1] = toOverlayCoords().createTransformedShape(box); 
       }
       else {  // make these lines instead of rectangles
         
@@ -117,7 +129,7 @@ public class DrawableScoreboard implements Drawable {
 //          scoreLine0 = new Line2D.Double(xL, yB, xR, yB);
 //          scoreLine1 = new Line2D.Double(xR, yT, xR, yB);
         }
-        shapes[j+1] = at.createTransformedShape(scorePath);
+        shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);
 //        shapes[shapeCount++] = at.createTransformedShape(scoreLine0);
 //        shapes[shapeCount++] = at.createTransformedShape(scoreLine1);
       }
