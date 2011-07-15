@@ -101,13 +101,13 @@ public class PlayerState {
   // Make a deep copy but set some parameter
   public PlayerState clone(String key, int value) {
 
-    int playerNo = this.playerNo;
-    int energy = this.energy;
-    int tailStarted = this.tailStarted;
-    int score = this.score;
+    int playerNo     = this.playerNo;
+    int energy       = this.energy;
+    int tailStarted  = this.tailStarted;
+    int score        = this.score;
     int untilRespawn = this.untilRespawn;
-    int untilReload = this.untilReload;
-    int sincePwned = this.sincePwned;
+    int untilReload  = this.untilReload;
+    int sincePwned   = this.sincePwned;
 
     // TODO: use an enum for these.
     if (key.equals("score"))
@@ -119,7 +119,7 @@ public class PlayerState {
     else if (key.equals("untilReload"))
       untilReload = value;
     else if (key.equals("sincePwned"))
-      sincePwned = value;
+      sincePwned = value;    	
     else 
       assert(false);  // lol
 
@@ -138,7 +138,7 @@ public class PlayerState {
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, tail);
   }
-
+  
 
   public String toString() {
     StringBuilder s = new StringBuilder();

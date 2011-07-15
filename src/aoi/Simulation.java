@@ -147,9 +147,28 @@ public class Simulation {
           boolean formedLoop = false;
           
           // Check for players waiting to respawn:
-//          if (states[j].untilRespawn == 1) {  // time to respawn
-//            states[j] = initPlayerState(j, states[j].score, false, game.time);
-//            continue;
+          if (states[j].untilRespawn == 1) {  // time to respawn
+            
+//            Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
+//            if (newLocation == null) newLocation = states[j].ship.location();
+//            Angle newDir = states[j].tail.tangentAngle();
+//            if (newDir == null) newDir = states[j].ship.dir();
+//            ship = new Ship(newLocation, 0, 0, newDir);
+       
+            
+            states[j] = new PlayerState(j, states[j].ship, 0, 
+                game.time + 1, game.time + 1, game.time + 1, 
+                states[j].score,
+                Math.max(0, states[j].untilReload-1),
+                0,
+                states[j].sinceScoring+1,
+                states[j].sinceLooping+1,
+                states[j].sinceCrossing+1,
+                states[j].sinceHitByBullet+1,
+                states[j].sincePwned+1,
+                new Tail());
+            continue;
+          }
           if (states[j].untilRespawn > 0) {  // still waiting
             int tailStarted, cropFrom, cropTo, untilRespawn;
             
