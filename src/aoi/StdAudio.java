@@ -25,8 +25,8 @@ public abstract class StdAudio {
   public static AudioClip score     = getClip(AUDIO_DIRECTORY + "Metroid_Door-Brandino480-995195341.wav");
   public static AudioClip winGame   = getClip(AUDIO_DIRECTORY + "Electrical_Sweep-Sweeper-1760111493.wav");
   public static AudioClip crossPath = null;
-  public static AudioClip getShot   = getClip(AUDIO_DIRECTORY + "36847__EcoDTR__LaserRocket2.wav");
-  public static AudioClip crash     = getClip(AUDIO_DIRECTORY + "47252__nthompson__rocketexpl.wav");
+  public static AudioClip getShot   = null;
+  public static AudioClip crash     = getClip(AUDIO_DIRECTORY + "36847__EcoDTR__LaserRocket2.wav");
 
 
   // play the input array

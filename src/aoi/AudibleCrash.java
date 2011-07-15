@@ -18,7 +18,7 @@ public class AudibleCrash implements Audible {
       
       for (int j=0; j<SimulationUtils.NUMPLAYERS; j++)
         if (prevUntilRespawn[j] < gState.pStates[j].untilRespawn)
-          clip = StdAudio.getShot;
+          clip = StdAudio.crash;
       
       return clip;
     }
