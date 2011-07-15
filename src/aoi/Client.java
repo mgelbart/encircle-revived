@@ -167,9 +167,6 @@ public class Client implements Runnable {
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
       frame.setTitle("AoI");
-      JMenuBar menubar = new JMenuBar();
-      menubar.add(new JMenu("Press here to focus!"));
-      frame.setJMenuBar(menubar); // hackz... just need something focusable for keyboard events.
       frame.pack();
       frame.setVisible(true);
 

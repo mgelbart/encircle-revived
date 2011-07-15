@@ -1,7 +1,5 @@
 package aoi;
 
-import java.awt.event.KeyEvent;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -62,6 +60,9 @@ public class HigherBeing implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
 
+  // Call this to get new control parameters.
+  private KeyboardPilot pilot;
+  
   public HigherBeing() {
     
     Logger.println(Logger.RepetitionRate.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
@@ -73,9 +74,12 @@ public class HigherBeing implements Intelligence {
     timemachine = new TimeMachine();
 
     mindreader = new MindReader();
- 
+
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
+    
+    pilot = new KeyboardPilot();
+    DrawUtils.addKeyListener(pilot);
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -128,14 +132,6 @@ public class HigherBeing implements Intelligence {
 
   public void think() {
 
-    boolean update;
-    int acc = 0;
-    Angle dir = new Angle(0.);
-    boolean shoot = false;
-    boolean boost = false;
-
-    Set<Integer> keysPressed;
-
     while (true) {
 	    
       try {
@@ -145,56 +141,9 @@ public class HigherBeing implements Intelligence {
         // Don't do anything before the game starts.
         if (renderedState == null) continue;
       
-        update = false;
-        
-        keysPressed = gui.pressedKeys();
+        PlayerControlParameters c = pilot.getParams(renderedState);
 
-        if (keysPressed.contains(KeyEvent.VK_UP)) {
-          if (acc != SimulationUtils.MAXACC) {
-            acc = SimulationUtils.MAXACC;
-            update = true;
-          }
-        } else if (acc > 0) {
-          acc = 0;
-          update = true;
-        }
-
-        if (keysPressed.contains(KeyEvent.VK_DOWN)) {
-          boost = true;
-          update = true;
-        } else if (boost) {
-          boost = false;
-          update = true;
-        }
-
-
-        if (keysPressed.contains(KeyEvent.VK_SPACE)) {
-          shoot = true;
-          update = true;
-        } else if (shoot) {
-          shoot = false;
-          update = true;
-        }
-
-        if (keysPressed.contains(KeyEvent.VK_LEFT)) {
-          dir = renderedState.pStates[ClientConfiguration.playerNo].ship.dir().add(Math.PI/2);
-          update = true;
-//          Logger.println(Logger.RepetitionRate.FREQUENT, "left");
-        } else if (keysPressed.contains(KeyEvent.VK_RIGHT)) {
-          dir = renderedState.pStates[ClientConfiguration.playerNo].ship.dir().add(-Math.PI/2);
-          update = true;
-//          Logger.println(Logger.RepetitionRate.FREQUENT, "right");
-        } else if (Math.abs(dir.dtheta(renderedState.pStates[ClientConfiguration.playerNo].ship.dir())) > 
-                    Math.PI/5) {
-          dir = renderedState.pStates[ClientConfiguration.playerNo].ship.dir();
-          update = true;
-        }
-
-
-        if (update) {
-          queueParams(new PlayerControlParameters(renderedState.time, acc, dir, shoot, boost));
-//          Logger.println(Logger.RepetitionRate.FREQUENT, dir);
-        }
+        if (c != null) queueParams(c);
 
       }
 

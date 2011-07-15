@@ -288,6 +288,14 @@ public class DrawUtils {
     return at;
   }
   
+  public static void addMouseListener(MouseListener l) {
+    canvas.addMouseListener(l);
+  }
+  
+  public static void addKeyListener(KeyListener l) {
+    canvas.addKeyListener(l);
+  }
+  
   public static class ResizeListener implements ComponentListener {
     
     public void componentResized(ComponentEvent e) {

@@ -96,28 +96,6 @@ public class GUI implements Runnable {
     DrawUtils.clear(Color.BLACK);
     DrawUtils.show();
 
-    /* Catch keyboard events. */
-    KeyboardFocusManager.getCurrentKeyboardFocusManager()
-      .addKeyEventDispatcher(new KeyEventDispatcher() {
-          public boolean dispatchKeyEvent(KeyEvent e) {
-            int key = e.getKeyCode();
-
-            if (e.getID() == KeyEvent.KEY_PRESSED) {
-              synchronized (keysPressed) {
-                keysPressed.add(key);
-              }
-            } else if (e.getID() == KeyEvent.KEY_RELEASED) {
-              synchronized (keysPressed) {
-                keysPressed.remove(key);
-              }
-            }
-
-            e.consume();
-
-            return false;
-          }
-        });
-
   }
 
   public void run() {

@@ -15,12 +15,6 @@ public class App extends JApplet {
 
     final JButton gui = new JButton();
     gui.setBorder(null);
-
-    // hackz... just need something focusable for keyboard events.
-    final JMenuBar menubar = new JMenuBar();
-    menubar.add(new JMenu("Press here to focus!"));
-
-    setJMenuBar(menubar); 
     setContentPane(gui);
     
     /*
