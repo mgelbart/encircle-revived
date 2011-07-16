@@ -34,13 +34,13 @@ public abstract class SimulationUtils {
   public static final double BULLETSPEED = ARENASIZE / 1000 * TIMESTEP * 0.7;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = (1/TIMESTEP) * 200;
+  public static final int RELOADTIME = (int) ((1./TIMESTEP) * 200);
   
   /* Length of path required to spend in order to shoot.  */
   public static final double BULLETCOST = ARENASIZE * 0.15;
  
   // Energy recharge period (i.e. how many turns to gain one point).
-  public static final int RECHARGEPERIOD = (1/TIMESTEP) * 1000;
+  public static final int RECHARGEPERIOD = (int) ((1./TIMESTEP) * 1000);
 
   // The maximum velocity. Special thank you to the laws of physics.
   private static final double MAXVELOCITY = MAXACC/DRAG;
