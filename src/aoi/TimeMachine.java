@@ -157,7 +157,8 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].tail.addPoint(ship[k].x(), ship[k].y(), time)); // TODO: should actually do addPoints() with all the intermediate points
+                                      players[k].tail.addPoint(ship[k].x(), ship[k].y(), time, false)); 
+                // TODO: should actually do addPoints() with all the intermediate points
       
       }
 

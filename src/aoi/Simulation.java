@@ -224,7 +224,7 @@ public class Simulation {
           ship = SimulationUtils.nextPosition(states[j].ship, params[j]);
 
           // Add the new position to the player's tail
-          tail = states[j].tail.addPoint(ship.x(), ship.y(), game.time + 1);
+          tail = states[j].tail.addPoint(ship.location(), game.time + 1, false);
 
           // Check if the paths cross each other, O(N).
           // Remove all paths that are crossed. Also checks if players scored.          

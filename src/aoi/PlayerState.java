@@ -345,7 +345,7 @@ public class PlayerState {
     }
 
     if (untilRespawn == 0)
-      newTail = newTail.addPoint(x, y, time);
+      newTail = newTail.addPoint(x, y, time, false);
 
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
         energy, tailStarted, cropTailFrom, cropTailTo, 
