@@ -34,7 +34,7 @@ public abstract class SimulationUtils {
   public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1500;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = 240 / TIMESTEP;
+  public static final int RELOADTIME = 200 / TIMESTEP;
   
   /* Length of path required to spend in order to shoot.  */
   public static final double BULLETCOST = ARENASIZE / 7.;
