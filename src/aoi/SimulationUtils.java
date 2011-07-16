@@ -25,10 +25,10 @@ public abstract class SimulationUtils {
   public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((6. * ARENASIZE / 1e7) * TIMESTEP * TIMESTEP) ;
+  public static final int MAXACC = (int) ((5. * ARENASIZE / 1e7) * TIMESTEP * TIMESTEP) ;
  
   // Drag coefficient.
-  public static final double DRAG = 0.0025 * TIMESTEP;
+  public static final double DRAG = TIMESTEP * 0.0020;
 
   /* The bullet speed is a universal constant. */
   public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1500;
@@ -37,7 +37,7 @@ public abstract class SimulationUtils {
   public static final int RELOADTIME = 200 / TIMESTEP;
   
   /* Length of path required to spend in order to shoot.  */
-  public static final double BULLETCOST = ARENASIZE / 7.;
+  public static final double BULLETCOST = ARENASIZE * 0.15;
  
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
