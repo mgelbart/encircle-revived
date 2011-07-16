@@ -213,5 +213,7 @@ public class GUI implements Runnable {
 
    DrawUtils.show();
   }
+  
+  public String toString() { return "balls".hashCode()+""; }
 
 }
