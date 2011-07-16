@@ -25,27 +25,27 @@ public abstract class SimulationUtils {
   public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) ((5. * ARENASIZE / 1e7) * TIMESTEP * TIMESTEP) ;
+  public static final int MAXACC = (int) (ARENASIZE / 1e7 * TIMESTEP * TIMESTEP * 5.) ;
  
   // Drag coefficient.
   public static final double DRAG = TIMESTEP * 0.0020;
 
   /* The bullet speed is a universal constant. */
-  public static final int BULLETSPEED = ARENASIZE * TIMESTEP / 1500;
+  public static final double BULLETSPEED = ARENASIZE / 1000 * TIMESTEP * 0.7;
 
   /* Minimum time between firing two bullets. */
-  public static final int RELOADTIME = 200 / TIMESTEP;
+  public static final int RELOADTIME = (1/TIMESTEP) * 200;
   
   /* Length of path required to spend in order to shoot.  */
   public static final double BULLETCOST = ARENASIZE * 0.15;
  
   // Energy recharge period (i.e. how many turns to gain one point).
-  public static final int RECHARGEPERIOD = 1000 / TIMESTEP;
+  public static final int RECHARGEPERIOD = (1/TIMESTEP) * 1000;
 
-  
+  // The maximum velocity. Special thank you to the laws of physics.
   private static final double MAXVELOCITY = MAXACC/DRAG;
   
-  // The rate at which you recoil backwards after crashing
+  // The rate at which you recoil backwards after crashing.
   public static final double UNCOILSPEED = MAXVELOCITY * 2.;
   
   // The number of players in the game. Currently not adjustable.
@@ -54,7 +54,7 @@ public abstract class SimulationUtils {
  
 // may want to say > 2*UNCOILSPEED or something to catch crazy bugs
   public static int timeUntilRespawn(Tail t) {
-    if (t.pathLength() > UNCOILSPEED) return (int) (t.pathLength() / UNCOILSPEED);
+    if (t.length() > UNCOILSPEED) return (int) (t.length() / UNCOILSPEED);
     else return 1;
   }
   
@@ -120,7 +120,7 @@ public abstract class SimulationUtils {
   
   // Whether the player is allowed to shoot given its state p.
   public static boolean canShoot(PlayerState p) {
-    return p.untilReload == 0 && p.untilRespawn == 0 && p.tail.pathLength() > SimulationUtils.BULLETCOST;
+    return p.untilReload == 0 && p.untilRespawn == 0 && p.tail.length() > SimulationUtils.BULLETCOST;
   }
 
   /* Returns the next bullet position after a single time step

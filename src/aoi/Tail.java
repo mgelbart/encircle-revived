@@ -30,6 +30,10 @@ public class Tail {
   // so for example getPoint(knotInds.get(1)) gives the
   // location of knot 1
   private Vector<Integer> knotInds;
+  // Doesn't explicity store the base as a knot, 
+  // (this would amount to just having 0 always be in knotInds)
+  // but this is implied in that the lastKnot() function
+  // returns baseTime() if no other knots exist
   
   // ---------------------- start constructors ----------------------- //
   public Tail() {
@@ -56,18 +60,11 @@ public class Tail {
     return Math.random()<0.5?trajectory.nPoints():times.size();
   }
   
-  public int nKnots() { return knotInds.size(); }
-  
-  public double pathLength() { return trajectory.length(); }
-  public Path2D toPath2D()   { return trajectory.toPath2D(); }
-  public boolean isEmpty() { return nPoints() == 0; }
-  
-  public int startTime() {
-    if (times.isEmpty()) return -1;
-    return times.firstElement();
-  }
-  
-  public int getTime(int i) { return times.elementAt(i); }
+  public int     nKnots  ()      { return knotInds.size();        }
+  public double  length  ()      { return trajectory.length();    }
+  public Path2D  toPath2D()      { return trajectory.toPath2D();  }
+  public boolean isEmpty ()      { return nPoints() == 0;         }
+  public int     getTime (int i) { return times.elementAt(i);     }
   public Point2D getPoint(int i) { return trajectory.getPoint(i); }
   
   public Point2D getPointFromTime(int time) {
@@ -79,7 +76,19 @@ public class Tail {
   
   // The time of the head, i.e. the last time. Kind of confusing naming, sorry.
   public int headTime() {
+    assert(!isEmpty());
     return getTime(nPoints()-1);
+  }
+  public int baseTime() {
+    assert(!isEmpty());
+    return getTime(0);
+  }
+  
+  // The *time* of the last (closest to head) knot
+  public int lastKnot() {
+    assert(!isEmpty());
+    if (nKnots() == 0) return baseTime();
+    else return getTime(knotInds.lastElement());
   }
   
   // the first (absolute) time at which the path from base to that time 

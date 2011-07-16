@@ -149,16 +149,12 @@ public class Simulation {
           // Check for players waiting to respawn:
           if (states[j].untilRespawn == 1) {  // time to respawn
             
-            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.startTime());
+            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.baseTime());
             if (newLocation == null) newLocation = states[j].ship.location();
             Angle newDir = states[j].tail.tangentAngleBase();
             if (newDir == null) newDir = states[j].ship.dir();
             ship = new Ship(newLocation, 0, 0, newDir);
            
-            
-            Logger.println(Logger.RepetitionRate.INFREQUENT, states[j].tail);
-            Logger.println(Logger.RepetitionRate.INFREQUENT, NSPath.pointToString(newLocation));
-            
             states[j] = new PlayerState(j, states[j].ship, 0, 
                 game.time + 1, game.time + 1, game.time + 1, 
                 states[j].score,
@@ -285,7 +281,7 @@ public class Simulation {
           } else if (loop != null) {
             // if you completed a loop
             tailStarted = states[j].tailStarted;
-            cropFrom = loop.startTime();
+            cropFrom = loop.baseTime();
             cropTo = game.time; // probably not game.time + 1, but i didn't think hard
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
