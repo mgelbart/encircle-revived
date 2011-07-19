@@ -40,6 +40,7 @@ public class Simulation {
     this.arena = arena;
     if (VISUALIZE) {
       // init GUI
+      ClientConfiguration.setPlayerNo(1);  // sketch-ball
       Arena.setCurrent(arena);
       DrawUtils.initialize(DrawUtils.createDefaultCanvas());
       gui = new GUI();
@@ -163,52 +164,31 @@ public class Simulation {
           boolean crossedOtherPath = false;
           boolean formedLoop = false;
           
-          // Check for players waiting to respawn:
-          if (states[j].untilRespawn == 1) {  // time to respawn
-            
-            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.lastKnotTime());
-            if (newLocation == null) newLocation = states[j].ship.location();
-            Angle newDir = states[j].tail.tangentAngleHead();
-            if (newDir == null) newDir = states[j].ship.dir();
-            ship = new Ship(newLocation, 0, 0, newDir);
-           
-            states[j] = new PlayerState(j, states[j].ship, 0, 
-                game.time + 1, game.time + 1, game.time + 1, 
-                states[j].score,
-                Math.max(0, states[j].untilReload-1),
-                0,
-                states[j].sinceScoring+1,
-                states[j].sinceLooping+1,
-                states[j].sinceCrossing+1,
-                states[j].sinceHitByBullet+1,
-                states[j].sincePwned+1,
-                states[j].sinceKnot+1,
-                states[j].tail.useLastKnot());
-            continue;
-          }
           if (states[j].untilRespawn > 0) {  // still waiting
             int tailStarted, cropFrom, cropTo, untilRespawn;
             
             tailStarted = states[j].tailStarted;
             
-            if (!states[j].tail.isEmpty()) { 
-              cropFrom = states[j].tail.lengthFromLastKnotToTime(states[j].untilRespawn*SimulationUtils.UNCOILSPEED);
-              cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
-              Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
-              if (newLocation == null) newLocation = states[j].ship.location();
+            // (below) added -1 because respawning ends at 1
+            cropFrom = states[j].tail.lengthFromLastKnotToTime((states[j].untilRespawn-1)*SimulationUtils.UNCOILSPEED);
+            cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
+            Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
+            if (newLocation == null) newLocation = states[j].ship.location();
               Angle newDir = states[j].tail.tangentAngleHead();
-              if (newDir == null) newDir = states[j].ship.dir();
+            if (newDir == null) newDir = states[j].ship.dir();
               ship = new Ship(newLocation, 0, 0, newDir);
-            } else {  // this should never actually happen, but want to guard against weird corner case
-              cropFrom = tailStarted;
-              cropTo   = tailStarted;
-              ship = states[j].ship;
-            }
-       
+
+            if (states[j].tail.isEmpty())
+              assert(false);
+      
             tail = states[j].tail.crop(cropFrom, cropTo);
             
             untilRespawn = states[j].untilRespawn-1;
 
+            if (untilRespawn == 0) // already decremented
+              tail.addPoint(ship.location(), game.time + 1);
+           
+            
             states[j] = new PlayerState(j, ship, 0, 
                 tailStarted, cropFrom, cropTo, states[j].score,
                 Math.max(0, states[j].untilReload-1),
@@ -309,9 +289,9 @@ public class Simulation {
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else if (spendPathOnBullet) {
             // if you spend some path on a shot
-            tailStarted = states[j].tail.lengthFromLastKnotToTime(SimulationUtils.BULLETCOST) + 1;
+            tailStarted = states[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1;
             cropFrom    = states[j].tailStarted;
-            cropTo      = states[j].tail.lengthFromLastKnotToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
+            cropTo      = states[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());

@@ -16,11 +16,15 @@ public class DrawableTail extends DefaultDrawable {
 
 
   public void prepare(GameState gState) {
-    nShapes = 1+2*gState.pStates[playerNo].tail.nKnots();
+    if (gState.pStates[playerNo].tail.isEmpty())
+      nShapes = 0;
+    else
+      nShapes = 1+2*gState.pStates[playerNo].tail.nKnots();
   }
   
   // Return the path to be drawn.
   public Shape[] shapes(GameState gState) {
+    if (nShapes == 0) return null;
     Tail tail = gState.pStates[playerNo].tail;
     Shape[] shapes = new Shape[nShapes];
     int j = 0;

@@ -30,4 +30,9 @@ public class Knot {
   public int       lives() { return lives;    }
   public boolean isIndes() { return lives==-1;}
   
+  
+  public String toString() {
+    return ind+"";
+  }
+  
 }

@@ -340,7 +340,7 @@ public class PlayerState {
       Logger.println(Logger.RepetitionRate.INFREQUENT, "-> "+newTail.nKnots());
       Logger.println(Logger.RepetitionRate.INFREQUENT, "finished respawning");
     }
-    if (untilRespawn > 0) {  // you are resawning
+    else if (untilRespawn > 0) {  // you are resawning
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
       Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning...");
     } 
@@ -369,9 +369,14 @@ public class PlayerState {
     }
     
     
-    if (sinceKnot - prevState.sinceKnot < 0)
+    if (sinceKnot - prevState.sinceKnot < 0) { 
       newTail.addKnotAtHead();
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
+    }
           
+    
+
+    
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
         energy, tailStarted, cropTailFrom, cropTailTo, 
         score, untilReload, untilRespawn,

@@ -125,6 +125,13 @@ public class Tail {
     return getTime(knots.lastElement());
   }
   
+  public int firstKnotTime() {
+    assert(!isEmpty());
+    assert(!knots.isEmpty());
+    return getTime(knots.firstElement());
+  }
+  
+  
   public Iterable<Knot> getKnots() { return knots; }
   
   public Point2D getKnotPoint(Knot k) {
@@ -135,6 +142,30 @@ public class Tail {
     assert(containsKnot(k));
     return getTime(k);
   }
+  
+  // the first (absolute) time at which the path from 
+  // the last knot to that time 
+  // has at least the specified length
+  // note that this does NOT output the time interval length from base to this point
+  public int lengthFromBaseToTime(double length) {
+    assert(nPoints() > 0);
+    
+    NSPath subpath = new NSPath();
+
+    for (int i = 0; i < nPoints(); i++) {
+      subpath.addPoint(getPoint(i)); 
+      if (subpath.length() >= length)
+        return getTime(i);
+    }
+    
+    // what to do if the entire path is not long enough
+    // must be very careful with what you return in this case
+    // here we use lastElement()+1 so that if the whole path
+    // is not long enough, you don't crop anything
+    // when the output of this function is used as cropTailFrom
+    return headTime() + 1;  
+  }
+  
   
   // the first (absolute) time at which the path from 
   // the last knot to that time 
@@ -158,6 +189,8 @@ public class Tail {
     // when the output of this function is used as cropTailFrom
     return headTime() + 1;  
   }
+  
+  
   
   public double lengthFromLastKnotToHead() {
     assert(nKnots() > 0);
@@ -255,32 +288,32 @@ public class Tail {
   }
   
   
-  // Crops part of a tail starting at the beginning and until it has cropped
-  // length units off of the tail. if cropping length exactly is not reasonable
-  // it will crop slightly more.
-  public Tail crop(double length) {
-    // Fields for new Tail
-    NSPath newPath = new NSPath();
-    Vector<Integer> newTimes = new Vector<Integer>();
-    Vector<Knot> newKnots = new Vector<Knot>();
-
-    // just for keeping track of the length
-    NSPath croppedPath = new NSPath();
-    
-    int i;
-    for (i = 0; i < nPoints(); i++) {
-      croppedPath.addPoint(getPoint(i)); 
-      if (croppedPath.length() >= length)
-        break;
-    }
-    for (; i < nPoints(); i++) {
-      newPath.addPoint(getPoint(i));
-      newTimes.add(getTime(i));
-      if (containsKnotInd(i)) newKnots.add(new Knot(newTimes.size()-1, getKnotInd(i).lives()));
-    }
-       
-    return new Tail(newPath, newTimes, newKnots);
-  }
+//  // Crops part of a tail starting at the beginning and until it has cropped
+//  // length units off of the tail. if cropping length exactly is not reasonable
+//  // it will crop slightly more.
+//  public Tail crop(double length) {
+//    // Fields for new Tail
+//    NSPath newPath = new NSPath();
+//    Vector<Integer> newTimes = new Vector<Integer>();
+//    Vector<Knot> newKnots = new Vector<Knot>();
+//
+//    // just for keeping track of the length
+//    NSPath croppedPath = new NSPath();
+//    
+//    int i;
+//    for (i = 0; i < nPoints(); i++) {
+//      croppedPath.addPoint(getPoint(i)); 
+//      if (croppedPath.length() >= length)
+//        break;
+//    }
+//    for (; i < nPoints(); i++) {
+//      newPath.addPoint(getPoint(i));
+//      newTimes.add(getTime(i));
+//      if (containsKnotInd(i)) newKnots.add(new Knot(newTimes.size()-1, getKnotInd(i).lives()));
+//    }
+//       
+//    return new Tail(newPath, newTimes, newKnots);
+//  }
 
   // Crops part of a tail given the times "from" and "to".
   // Removes "from" but not "to"
@@ -351,5 +384,14 @@ public class Tail {
   }
   
   public String toString() { return trajectory.toString(); }
+  
+  public String knotsToString() {
+    String s = "";
+    for (Knot k : knots)
+      s += (", " + k);
+    return s;
+  }
+
+  
   
 }

@@ -55,6 +55,7 @@ public abstract class SimulationUtils {
 // may want to say > 2*UNCOILSPEED or something to catch crazy bugs
   public static int timeUntilRespawn(Tail t) {
     if (t.length() > UNCOILSPEED) return (int) (t.lengthFromLastKnotToHead() / UNCOILSPEED);
+    // the +1 is because we actually respawn at time 1, not 0
     else return 1;
   }
   
