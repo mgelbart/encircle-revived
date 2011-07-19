@@ -19,17 +19,35 @@ import java.util.TimerTask;
 public class Simulation {
 
   // The current game state.
-  public GameState game;
+  private GameState game;
 
   // Static information about the game state.
-  public Arena arena;
+  private Arena arena;
 
   // References to the senders/listeners threads so we can interrupt them.
+  // TODO: these should be private
   public final Thread[] senderThreads = new Thread[SimulationUtils.NUMPLAYERS];
   public final Thread[] listenerThreads = new Thread[SimulationUtils.NUMPLAYERS];
   public final GameStateSender[] senders = new GameStateSender[SimulationUtils.NUMPLAYERS];
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
 
+  //for debugging
+  private static final boolean VISUALIZE = true;
+  private GUI gui = null;
+  private Thread guiThread = null;
+  
+  public Simulation(Arena arena) {
+    this.arena = arena;
+    if (VISUALIZE) {
+      // init GUI
+      Arena.setCurrent(arena);
+      DrawUtils.initialize(DrawUtils.createDefaultCanvas());
+      gui = new GUI();
+      guiThread = new Thread(gui);
+      guiThread.start();
+    }
+  }
+  
   // Return the current state of the game.
   // Called by GameStateSender.
   public GameState gameState() {
@@ -375,6 +393,11 @@ public class Simulation {
         // Note: don't need locking since updating a reference is atomic.
         this.game = new GameState(game.time + 1, states, bullets);
 
+        if (VISUALIZE) {
+          // for debugging
+          gui.setGameState(this.game);
+          guiThread.interrupt();
+        }
       }  // end catch
     }  // end infinite while loop
   }  // end this function
@@ -395,3 +418,4 @@ public class Simulation {
   }
 
 }
+

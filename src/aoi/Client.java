@@ -151,28 +151,7 @@ public class Client implements Runnable {
     Client client;
 
     if (!ClientConfiguration.nonhuman) {
-
-      // The main application window
-      JFrame frame = new JFrame();
-
-      // The JLabel on which the whole GUI is drawn.
-      JButton canvas = new JButton();
-      canvas.setBorder(null);
-      canvas.setPreferredSize(new Dimension(700, 700));
-
-//      gui.setText("Loading...");
-      
-      frame.setContentPane(canvas);
-
-      frame.setResizable(true);
-      frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-      frame.setTitle("AoI");
-      frame.pack();
-      frame.setVisible(true);
-
-      client = new Client(canvas);
-
+      client = new Client(DrawUtils.createDefaultCanvas());
     } else {
       client = new Client(null);
     }

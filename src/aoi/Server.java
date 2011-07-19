@@ -15,7 +15,6 @@ public abstract class Server {
 
   private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
 
-
   public static void main(String argv[]) throws Exception {
 
     // Parse input options:
@@ -38,11 +37,9 @@ public abstract class Server {
 	  // (This can be moved later) Initialize ClusterDatabase;
 	  ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
-
     while (true) {
 
-      Simulation simulation = new Simulation();
-
+      Arena arena;
 
       // Generate/load the arena:
       if (generateNewMap) {
@@ -50,12 +47,12 @@ public abstract class Server {
         // For now, two of each nSegments from 1 to 7
 //        simulation.clusters = clusterDbSayWithPET.generateArenaClusters(numPerNum);
         
-        simulation.arena = clusterDbSayWithPET.generateArena(numPerNum);
+        arena = clusterDbSayWithPET.generateArena(numPerNum);
 
         try {
           FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
           BufferedWriter buf = new BufferedWriter(writer);
-          buf.write(simulation.arena.toString());
+          buf.write(arena.toString());
           buf.close();
         } catch (Exception e) {
           Logger.println(Logger.RepetitionRate.FEW, e.toString());
@@ -66,17 +63,19 @@ public abstract class Server {
 
         try {
 
-          simulation.arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
+          arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
 
         } catch (Exception e) {
           Logger.println(Logger.RepetitionRate.FEW, e.toString());
           assert(false);
+          arena = null;
         }
 
       }
 	    
       Logger.println(Logger.RepetitionRate.FEW, "Arena generated.");
 
+      Simulation simulation = new Simulation(arena);
 
       simulation.initGameState();
 

@@ -312,6 +312,29 @@ public class DrawUtils {
     canvas.addKeyListener(l);
   }
   
+  public static JButton createDefaultCanvas() {
+    // The main application window
+    JFrame frame = new JFrame();
+
+    // The JLabel on which the whole GUI is drawn.
+    JButton canvas = new JButton();
+    canvas.setBorder(null);
+    canvas.setPreferredSize(new Dimension(700, 700));
+
+//    gui.setText("Loading...");
+    
+    frame.setContentPane(canvas);
+
+    frame.setResizable(true);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+    frame.setTitle("AoI");
+    frame.pack();
+    frame.setVisible(true);
+    
+    return canvas;
+  }
+  
   public static class ResizeListener implements ComponentListener {
     
     public void componentResized(ComponentEvent e) {
