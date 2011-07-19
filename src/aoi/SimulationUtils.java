@@ -37,7 +37,7 @@ public abstract class SimulationUtils {
   public static final int RELOADTIME = (int) ((1./TIMESTEP) * 200);
   
   /* Length of path required to spend in order to shoot.  */
-  public static final double BULLETCOST = ARENASIZE * 0.15;
+  public static final double BULLETCOST = ARENASIZE * 0.12;
  
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = (int) ((1./TIMESTEP) * 1000);
