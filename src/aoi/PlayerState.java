@@ -336,6 +336,8 @@ public class PlayerState {
  
     if (untilRespawn == 0 && prevState.untilRespawn > 0) {  // if you finished respawning
       Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tail.nKnots());
+//      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
+      // (above) not sure if should have this...
       newTail = prevState.tail.useLastKnot();
       Logger.println(Logger.RepetitionRate.INFREQUENT, "-> "+newTail.nKnots());
       Logger.println(Logger.RepetitionRate.INFREQUENT, "finished respawning");
@@ -344,25 +346,27 @@ public class PlayerState {
       newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
       Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning...");
     } 
-    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
-      newTail = new Tail(p, time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
-    } 
+//    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
+//      newTail = new Tail(p, time);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
+//    } 
     else if (sinceCrossing - prevState.sinceCrossing < 0) { 
-      newTail = new Tail(p, time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
+      newTail = prevState.tail;
+      newTail = newTail.addPoint(p, time);
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
     }
     else if (untilReload - prevState.untilReload > 0) {  // you shot
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
     } 
     else if (sinceLooping - prevState.sinceLooping < 0) {  // you made a loop
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
     } 
     else {    // normal step
       newTail = prevState.tail.addPoint(p, time);
@@ -371,7 +375,7 @@ public class PlayerState {
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
       newTail.addKnotAtHead();
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
+//      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
     }
           
     

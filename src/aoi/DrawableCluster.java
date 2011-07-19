@@ -33,7 +33,7 @@ public class DrawableCluster extends Cluster implements Drawable {
 
     this.img = imgMetaData.img();
 
-    Logger.println(Logger.RepetitionRate.FEW, "loaded.");
+    Logger.println(Logger.RepetitionRate.FREQUENT, "loaded.");
   }
 
   public DrawableCluster(Cluster c) {

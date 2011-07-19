@@ -274,10 +274,14 @@ public class Simulation {
           int tailStarted, cropFrom, cropTo;
           if (crossedOtherPath) {
             // if your crossed another player's path
-            tail = new Tail(ship.location(), game.time + 1);
-            tailStarted = game.time + 1;
-            cropFrom = tailStarted;
-            cropTo = tailStarted;
+//            tail = new Tail(ship.location(), game.time + 1);
+//            tailStarted = game.time + 1;
+//            cropFrom = tailStarted;
+//            cropTo = tailStarted;
+            tailStarted = tail.firstKnotTime() + 1;
+            cropFrom = states[j].tailStarted;
+            cropTo = tailStarted + 1;
+            tail = tail.crop(cropFrom, cropTo);
           } else if (loop != null) {
             // if you completed a loop
             tailStarted = states[j].tailStarted;
@@ -321,11 +325,11 @@ public class Simulation {
             if (SimulationUtils.gotShot(states[j], b)) {
               remove = true;
               gotShot = true;
-              // if you get shot then you lose your tail
-              tail = new Tail(states[j].ship.location(), game.time + 1);
-              tailStarted = game.time + 1;
-              cropFrom = tailStarted;
-              cropTo = tailStarted;
+              // if you get shot then it's as if you crashed
+//              tail = new Tail(states[j].ship.location(), game.time + 1);
+//              tailStarted = game.time + 1;
+//              cropFrom = tailStarted;
+//              cropTo = tailStarted;
               
             }  // end if
 
@@ -348,7 +352,7 @@ public class Simulation {
               tailStarted, cropFrom, cropTo,
               (scored)? states[j].score+1 : states[j].score,
               (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
-              (crashed)? SimulationUtils.timeUntilRespawn(tail) : 0,
+              (crashed||gotShot)? SimulationUtils.timeUntilRespawn(tail) : 0,
               (scored)? 0 : states[j].sinceScoring+1,
               (formedLoop)? 0 : states[j].sinceLooping+1,
               (crossedOtherPath)? 0 : states[j].sinceCrossing+1,

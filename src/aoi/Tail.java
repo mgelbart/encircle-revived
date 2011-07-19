@@ -105,6 +105,13 @@ public class Tail {
   }
   
   public boolean containsKnot(Knot k) { return knots.contains(k); }
+  
+  // assumes the knots are ordered!
+  // must be careful with this versus getKnotInd!
+  public Knot getKnot(int i) {
+    return knots.elementAt(i);
+  }
+  
   public Knot getKnotInd(int i) {
     for (Knot k : knots)
       if (k.ind == i) return k;
@@ -125,10 +132,15 @@ public class Tail {
     return getTime(knots.lastElement());
   }
   
+  // the time of the first (closest to base)
+  // knot NOT INCLUDING THE KNOT AT BAE
+  // Returns the head time if the knot
+  // at the base is the only knot
   public int firstKnotTime() {
     assert(!isEmpty());
     assert(!knots.isEmpty());
-    return getTime(knots.firstElement());
+    if (nKnots() == 1) return headTime();
+    else return getTime(knots.get(1).ind);
   }
   
   
