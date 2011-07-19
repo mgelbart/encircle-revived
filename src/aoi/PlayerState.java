@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Point;
 import java.io.*;
 
 /** 
@@ -46,6 +47,7 @@ public class PlayerState {
   public final int sinceCrossing; // the other player's path.
   public final int sinceHitByBullet;
   public final int sincePwned; // Lost all points.
+  public final int sinceKnot;  // Since the placement of the last knot.
 
 
   // Whether to transmit marker bytes before each transmitted value.
@@ -57,7 +59,7 @@ public class PlayerState {
       int tailStarted, int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
-      int sinceHitByBullet, int sincePwned, Tail tail) {
+      int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
     this.playerNo = playerNo;
     this.ship = new Ship(ship);
     this.energy = energy;                     // NOT USED
@@ -72,6 +74,8 @@ public class PlayerState {
     this.sinceCrossing    = Math.min(0xFF, sinceCrossing);
     this.sinceHitByBullet = Math.min(0xFF, sinceHitByBullet);
     this.sincePwned       = Math.min(0xFF, sincePwned);
+    this.sinceKnot        = Math.min(0xFF, sinceKnot);
+    
     this.tail = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
@@ -83,21 +87,24 @@ public class PlayerState {
     assert(sinceCrossing >= 0);
     assert(sinceHitByBullet >= 0);
     assert(sincePwned >= 0);
+    assert(sinceKnot >= 0);
   }	
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, Angle direction, 
       int energy, int tailStarted, int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
-      int sinceHitByBullet, int sincePwned, Tail tail) {
+      int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
     this(playerNo, new Ship(x, y, vx, vy, direction), 
         energy, tailStarted, cropTailFrom, cropTailTo,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
   }	
 
 
+  
+  
   // Make a deep copy but set some parameter
   public PlayerState clone(String key, int value) {
 
@@ -108,7 +115,8 @@ public class PlayerState {
     int untilRespawn = this.untilRespawn;
     int untilReload  = this.untilReload;
     int sincePwned   = this.sincePwned;
-
+    int sinceKnot    = this.sinceKnot;
+    
     // TODO: use an enum for these.
     if (key.equals("score"))
       score = value;
@@ -127,7 +135,7 @@ public class PlayerState {
         energy, tailStarted, cropTailFrom, cropTailTo, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
   }
 
   // Make a deep copy but set new ship
@@ -136,7 +144,7 @@ public class PlayerState {
         energy, tailStarted, cropTailFrom, cropTailTo,
         score,  untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
   }
   
 
@@ -223,7 +231,9 @@ public class PlayerState {
       
       if (CHECKBYTES) o.writeBytes("p");
       o.write(sincePwned);
-      
+
+      if (CHECKBYTES) o.writeBytes("k");
+      o.write(sinceKnot);
 
     } catch (IOException ioe) {
       Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
@@ -239,7 +249,7 @@ public class PlayerState {
     Byte cmd;
     int playerNo, x, y, vx, vy, energy, tailStarted, cropTailFrom, cropTailTo, score,
         untilReload, untilRespawn, sinceScoring, sinceLooping, sinceCrossing,
-          sinceHitByBullet, sincePwned;
+          sinceHitByBullet, sincePwned, sinceKnot;
     Angle dir;
 
     try {
@@ -298,7 +308,9 @@ public class PlayerState {
       
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
       sincePwned = i.read();
-      
+
+      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'k'); }
+      sinceKnot = i.read();
 
 	    
     } catch (IOException ioe) {
@@ -306,52 +318,65 @@ public class PlayerState {
       assert(false);
       return null;
     }
+    Point p = new Point(x, y);
 
-    // Add the latest player location to the tail unless
-    // the transmitted loop started parameter indicates that a
-    // new tail was started. also crop loop if indicated by
-    // cropfrom/to parameters.
+
     
-
+    if (prevState == null)  // first time step
+      return new PlayerState(playerNo, x, y, vx, vy, dir, 
+          energy, tailStarted, cropTailFrom, cropTailTo, 
+          score, untilReload, untilRespawn,
+          sinceScoring, sinceLooping, sinceCrossing,
+          sinceHitByBullet, sincePwned, sinceKnot, 
+          new Tail(p, time));     
+   
+    
+    
     Tail newTail;
-    if (prevState == null) {
-      // first time step
-      newTail = new Tail();
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "first tail init");
-    } else if (untilRespawn > 0) { 
-      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-    } else if (deadOrShot(prevState, tailStarted, cropTailFrom, cropTailTo)) {
-      // you died or got shot, etc. so just re-initialize tail
-      newTail = new Tail();
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "dead or shot - tail init");
-    } else if (spentTail(prevState, tailStarted, cropTailFrom, cropTailTo)) {
-      // you spent part of your tail on something like shooting
-      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "SHOT - shorted tain");
-    } else if (madeLoop(prevState, tailStarted, cropTailFrom, cropTailTo)) {
-      // you made a loop
-      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tailStarted + " / " + prevState.cropTailFrom + " / " + prevState.cropTailTo + " / ");
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropTailFrom + " / " + cropTailTo + " / " + time);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop - crop tail");
-    } else {
-      // normal step
-      newTail = prevState.tail.clone();
+ 
+    if (untilRespawn == 0 && prevState.untilRespawn > 0) {  // if you finished respawning
+      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tail.nKnots());
+      newTail = prevState.tail.useLastKnot();
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "-> "+newTail.nKnots());
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "finished respawning");
     }
-
-    if (untilRespawn == 0)
-      newTail = newTail.addPoint(x, y, time, false);
-
+    if (untilRespawn > 0) {  // you are resawning
+      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning...");
+    } 
+    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
+      newTail = new Tail(p, time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
+    } 
+    else if (sinceCrossing - prevState.sinceCrossing < 0) { 
+      newTail = new Tail(p, time);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
+    }
+    else if (untilReload - prevState.untilReload > 0) {  // you shot
+      newTail = prevState.tail;
+      newTail = newTail.addPoint(p, time);
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
+    } 
+    else if (sinceLooping - prevState.sinceLooping < 0) {  // you made a loop
+      newTail = prevState.tail;
+      newTail = newTail.addPoint(p, time);
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
+    } 
+    else {    // normal step
+      newTail = prevState.tail.addPoint(p, time);
+    }
+    
+    
+    if (sinceKnot - prevState.sinceKnot < 0)
+      newTail.addKnotAtHead();
+          
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
         energy, tailStarted, cropTailFrom, cropTailTo, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, newTail);
+        sinceHitByBullet, sincePwned, sinceKnot, newTail);
   }
   
   public static boolean deadOrShot(PlayerState prevState, 

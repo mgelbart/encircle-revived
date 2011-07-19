@@ -38,17 +38,13 @@ public class NSPath implements Iterable<Point2D> {
   }
   
     
-  public double length() { return length; }
-  
+  public double length()         { return length; }
   public boolean isEmpty()       { return points.isEmpty(); }
   public int nPoints()           { return points.size(); }
   public Point2D firstPoint()    { return getPoint(0); }
   public Point2D getPoint(int i) { return points.elementAt(i); }
-  public Point2D lastPoint()     { return points.lastElement(); } 
-  public Point2D lastlastPoint() { 
-    if (nPoints() < 2) return null;
-    else return points.elementAt(nPoints()-2);
-  }
+  public Point2D lastPoint()     { return isEmpty()?null:points.lastElement(); } 
+  public Point2D lastlastPoint() { return (nPoints()<2)?null:points.elementAt(nPoints()-2); }  
   
   public Line2D[] getLines() {
     Line2D[] lines = new Line2D[nPoints()-1];

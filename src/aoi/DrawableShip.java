@@ -36,7 +36,7 @@ public class DrawableShip extends DefaultDrawable {
 
   public DrawableShip(int playerNo, Stroke stroke) {
     super(playerNo, stroke);
-    
+    nShapes = 2;
     color = DefaultDrawable.getColor(playerNo);
   }
 
@@ -78,6 +78,6 @@ public class DrawableShip extends DefaultDrawable {
 
   public boolean[] fill() { return new boolean[]{true, false}; }
 
-  public Stroke[] stroke() { return new Stroke[]{stroke, stroke}; }
+//  public Stroke[] stroke() { return new Stroke[]{stroke, stroke}; }
 
 }

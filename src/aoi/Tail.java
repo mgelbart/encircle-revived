@@ -29,28 +29,30 @@ public class Tail {
   // The indices of the knots
   // so for example getPoint(knotInds.get(1)) gives the
   // location of knot 1
-  private Vector<Integer> knotInds;
+  private Vector<Knot> knots;
   // Doesn't explicity store the base as a knot, 
   // (this would amount to just having 0 always be in knotInds)
   // but this is implied in that the lastKnot() function
   // returns baseTime() if no other knots exist
   
   // ---------------------- start constructors ----------------------- //
-  public Tail() {
+  public Tail(Point2D p, int time) {
     trajectory = new NSPath();
     times = new Vector<Integer>();
-    knotInds = new Vector<Integer>();
-  }
-  public Tail(Point2D p, int time) {
-    this();
+    knots = new Vector<Knot>();  // FOR NOW, ORDERED, BUT BE CAREFUL!!!!!   
+  
     trajectory.addPoint(p);
     times.add(time);
+    enforceKnotAtBase();
+    
     assert(trajectory.nPoints() == times.size());
   }
-  private Tail(NSPath trajectory, Vector<Integer> times, Vector<Integer> knotInds) {
+  private Tail(NSPath trajectory, Vector<Integer> times, Vector<Knot> knots) {
     this.trajectory = trajectory;
     this.times = times;
-    this.knotInds = knotInds;
+    this.knots = knots;
+    enforceKnotAtBase();  // make sure the starting knot is present
+    
     assert(trajectory.nPoints() == times.size());
   }
   // ---------------------- end constructors ----------------------- //  
@@ -60,12 +62,14 @@ public class Tail {
     return Math.random()<0.5?trajectory.nPoints():times.size();
   }
   
-  public int     nKnots  ()      { return knotInds.size();        }
+  public int     nKnots  ()      { return knots.size();        }
   public double  length  ()      { return trajectory.length();    }
   public Path2D  toPath2D()      { return trajectory.toPath2D();  }
   public boolean isEmpty ()      { return nPoints() == 0;         }
   public int     getTime (int i) { return times.elementAt(i);     }
+  public int     getTime (Knot k){ return getTime(k.ind);         }
   public Point2D getPoint(int i) { return trajectory.getPoint(i); }
+  public Point2D getPoint(Knot k){ return getPoint(k.ind);        }
   
   public Point2D getPointFromTime(int time) {
     for (int i = 0; i < nPoints(); i++)
@@ -73,6 +77,13 @@ public class Tail {
         return getPoint(i);
     return null;
   }
+  
+//  public Knot getKnotFromTime(int time) {
+//    for (int i = 0; i < nKnots(); i++)
+//      if (knots.get(i).ind == time)
+//        return knots.get(i);
+//    return null;
+//  }
   
   // The time of the head, i.e. the last time. Kind of confusing naming, sorry.
   public int headTime() {
@@ -84,22 +95,57 @@ public class Tail {
     return getTime(0);
   }
   
-  // The *time* of the last (closest to head) knot
-  public int lastKnot() {
+  public Point2D headPoint() {
     assert(!isEmpty());
-    if (nKnots() == 0) return baseTime();
-    else return getTime(knotInds.lastElement());
+    return getPoint(nPoints()-1);
+  }
+  public Point2D basePoint() {
+    assert(!isEmpty());
+    return getPoint(0);
   }
   
-  // the first (absolute) time at which the path from base to that time 
+  public boolean containsKnot(Knot k) { return knots.contains(k); }
+  public Knot getKnotInd(int i) {
+    for (Knot k : knots)
+      if (k.ind == i) return k;
+    return null;
+  }
+  
+  
+  public boolean containsKnotInd(int i) {
+    return getKnotInd(i)!=null;
+  }
+  
+  // The *time* of the last (closest to head) knot
+  // This function contains the logic that
+  // There is always a knot at the back
+  public int lastKnotTime() {
+    assert(!isEmpty());
+    assert(!knots.isEmpty());
+    return getTime(knots.lastElement());
+  }
+  
+  public Iterable<Knot> getKnots() { return knots; }
+  
+  public Point2D getKnotPoint(Knot k) {
+    assert(containsKnot(k));
+    return getPoint(k);
+  }
+  public int getKnotTime(Knot k) {
+    assert(containsKnot(k));
+    return getTime(k);
+  }
+  
+  // the first (absolute) time at which the path from 
+  // the last knot to that time 
   // has at least the specified length
   // note that this does NOT output the time interval length from base to this point
-  public int lengthToTime(double length) {
+  public int lengthFromLastKnotToTime(double length) {
     assert(nPoints() > 0);
     
     NSPath subpath = new NSPath();
 
-    for (int i = 0; i < nPoints(); i++) {
+    for (int i = knots.lastElement().ind; i < nPoints(); i++) {
       subpath.addPoint(getPoint(i)); 
       if (subpath.length() >= length)
         return getTime(i);
@@ -113,6 +159,22 @@ public class Tail {
     return headTime() + 1;  
   }
   
+  public double lengthFromLastKnotToHead() {
+    assert(nKnots() > 0);
+    double length = 0;
+    for (int i = knots.lastElement().ind; i < nPoints()-1; i++)
+      length += getPoint(i).distance(getPoint(i+1));
+    return length;
+  }
+  
+  public Tail useLastKnot() {
+    Tail newTail = clone();
+    Knot last = newTail.knots.lastElement();
+    last.use();
+    if (!last.isAlive())
+      newTail.knots.remove(last);
+    return newTail;
+  }
   
   // Finds the angle of the line from i-1 to i
   public Angle tangentAngle(int i) {
@@ -125,35 +187,37 @@ public class Tail {
   public Angle tangentAngleBase() {
     return tangentAngle(1);
   }
+  
+  public void addKnotAtHead() {  // destructable knot added
+    knots.add(new Knot(nPoints()-1, false));
+  }
+  
+  private void enforceKnotAtBase() {
+    if (!containsKnotInd(0))
+      knots.add(0, new Knot(0, true)); // at at beginning of vector!
+  }
+
   // ---------------------- end small cute functions --------------- //
   
   // ---------- start big mean complicated functions --------------- //
-  public Tail addPoint(Point p, int time, boolean isKnot) {
-    return addPoint(p.x, p.y, time, isKnot);
-  }
   // Create a copy of the Tail with an added point.
   @SuppressWarnings("unchecked")
-  public Tail addPoint(int x, int y, int time, boolean isKnot) {  
+  public Tail addPoint(Point curPoint, int time) {  
+    if (isEmpty())
+      return new Tail(curPoint, time);
+    // (above): this might happen if for example you just shot
+    // and now have absolutely no tail at all
+    
+    
     // trajectory and times for the new tail
     NSPath newTrajectory = trajectory.clone();
     Vector<Integer> newTimes = (Vector<Integer>) (times.clone());
-    Vector<Integer> newKnotInds = (Vector<Integer>) (knotInds.clone());
+    Vector<Knot> newKnots = (Vector<Knot>) (knots.clone());
     
     assert(newTrajectory.nPoints() == trajectory.nPoints());
     assert(newTimes.size() == times.size());    
     assert(trajectory.nPoints() == times.size());
     
-   
-    // special case: empty
-    if (isEmpty()) {
-      newTrajectory.addPoint(x, y);
-      newTimes.add(time);
-      if (isKnot) newKnotInds.add(newTrajectory.nPoints());
-      return new Tail(newTrajectory, newTimes, newKnotInds);
-    }
-    
-
-    Point2D curPoint = new Point(x, y);
     Point2D prevPoint = trajectory.lastPoint();
     Point2D prevPrevPoint = trajectory.lastlastPoint();
 
@@ -178,15 +242,14 @@ public class Tail {
 
       newTrajectory.addPoint(curPoint);
       newTimes.add(time);
-      if (isKnot) newKnotInds.add(newTrajectory.nPoints());
       
       //Logger.println(Logger.RepetitionRate.FREQUENT, thatTrajectory.nPoints() + " " + thatTimes.size());
       assert(newTrajectory.nPoints() == newTimes.size());
       
-      return new Tail(newTrajectory, newTimes, newKnotInds);
+      return new Tail(newTrajectory, newTimes, newKnots);
       
     } else {
-      return this;
+      return this.clone();
     }
 
   }
@@ -199,7 +262,7 @@ public class Tail {
     // Fields for new Tail
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
-    Vector<Integer> newKnotInds = new Vector<Integer>();
+    Vector<Knot> newKnots = new Vector<Knot>();
 
     // just for keeping track of the length
     NSPath croppedPath = new NSPath();
@@ -213,10 +276,10 @@ public class Tail {
     for (; i < nPoints(); i++) {
       newPath.addPoint(getPoint(i));
       newTimes.add(getTime(i));
-      if (knotInds.contains(i)) newKnotInds.add(i);
+      if (containsKnotInd(i)) newKnots.add(new Knot(newTimes.size()-1, getKnotInd(i).lives()));
     }
-
-    return new Tail(newPath, newTimes, newKnotInds);  
+       
+    return new Tail(newPath, newTimes, newKnots);
   }
 
   // Crops part of a tail given the times "from" and "to".
@@ -226,18 +289,18 @@ public class Tail {
     // Fields for new Tail
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
-    Vector<Integer> newKnotInds = new Vector<Integer>();
+    Vector<Knot> newKnots = new Vector<Knot>();
     
     for (int i = 0; i < nPoints(); i++) {
       if (getTime(i) - from < 0 || getTime(i) - to >= 0) {
         // If the point is not cropped, add it
         newPath.addPoint(getPoint(i));
         newTimes.add(getTime(i));
-        if (knotInds.contains(i)) newKnotInds.add(i);
+        if (containsKnotInd(i)) newKnots.add(new Knot(newTimes.size()-1, getKnotInd(i).lives()));
       }
     }
-
-    return new Tail(newPath, newTimes, newKnotInds);
+    
+    return new Tail(newPath, newTimes, newKnots);
   }
   
 
@@ -264,19 +327,19 @@ public class Tail {
     // between the the last line of this (which is the 2nd last line of that)
     // and the last line of that, since they share a point.
     // in fact, need -2 when the player is standing still.
-    int k = trajectory.subpath(0, nPoints()-excludePoints).intersects(that.trajectory.lastLine());
-    if (k < 0) return null; // no intersection
+    int i = trajectory.subpath(0, nPoints()-excludePoints).intersects(that.trajectory.lastLine());
+    if (i < 0) return null; // no intersection
     // Construct an NSPath for the loop (in reality, this is only used if this == that)
-    NSPath loop = trajectory.subpath(k, nPoints());
+    NSPath loop = trajectory.subpath(i, nPoints());
     // Construct the times vector
     Vector<Integer> loopTimes = new Vector<Integer>();
-    Vector<Integer> loopKnotInds = new Vector<Integer>();
-    for (; k < nPoints(); k++) {
-      loopTimes.add(getTime(k));
-      if (knotInds.contains(k)) loopKnotInds.add(k);
+    Vector<Knot> loopKnots = new Vector<Knot>();
+    for (; i < nPoints(); i++) {
+      loopTimes.add(getTime(i));
+      if (containsKnotInd(i)) loopKnots.add(new Knot(loopTimes.size()-1, getKnotInd(i).lives()));
     }
   
-    return new Tail(loop, loopTimes, loopKnotInds);
+    return new Tail(loop, loopTimes, loopKnots);
   }
   // ------------ end big mean complicated functions --------------- //
 
@@ -284,7 +347,7 @@ public class Tail {
   public Tail clone() {
     return new Tail(trajectory.clone(), 
         (Vector<Integer>)times.clone(),
-        (Vector<Integer>)knotInds.clone());
+        (Vector<Knot>)knots.clone());
   }
   
   public String toString() { return trajectory.toString(); }

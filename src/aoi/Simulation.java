@@ -72,7 +72,7 @@ public class Simulation {
     return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
                            tailStarted, tailStarted, tailStarted, score,
                            0, 0, // untilReload, untilRespawn
-                           255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
+                           255, 255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
                            new Tail(new Point2D.Double(x, y), time)); 
   }
 
@@ -130,7 +130,7 @@ public class Simulation {
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           params[j] = listeners[j].getCtrlParams(game.time);
         
-        boolean[] gotPwned = new boolean[2];
+        boolean[] gotPwned = new boolean[SimulationUtils.NUMPLAYERS];
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           gotPwned[j] = false;
         // --- end
@@ -140,7 +140,6 @@ public class Simulation {
 
           Ship ship;
           Tail tail;
-          boolean erasePath = false;
           boolean spendPathOnBullet = false;
           boolean scored = false;
           boolean crossedOtherPath = false;
@@ -149,9 +148,9 @@ public class Simulation {
           // Check for players waiting to respawn:
           if (states[j].untilRespawn == 1) {  // time to respawn
             
-            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.baseTime());
+            Point2D newLocation = states[j].tail.getPointFromTime(states[j].tail.lastKnotTime());
             if (newLocation == null) newLocation = states[j].ship.location();
-            Angle newDir = states[j].tail.tangentAngleBase();
+            Angle newDir = states[j].tail.tangentAngleHead();
             if (newDir == null) newDir = states[j].ship.dir();
             ship = new Ship(newLocation, 0, 0, newDir);
            
@@ -165,7 +164,8 @@ public class Simulation {
                 states[j].sinceCrossing+1,
                 states[j].sinceHitByBullet+1,
                 states[j].sincePwned+1,
-                new Tail(newLocation, game.time + 1));
+                states[j].sinceKnot+1,
+                states[j].tail.useLastKnot());
             continue;
           }
           if (states[j].untilRespawn > 0) {  // still waiting
@@ -174,7 +174,7 @@ public class Simulation {
             tailStarted = states[j].tailStarted;
             
             if (!states[j].tail.isEmpty()) { 
-              cropFrom = states[j].tail.lengthToTime(states[j].untilRespawn*SimulationUtils.UNCOILSPEED);
+              cropFrom = states[j].tail.lengthFromLastKnotToTime(states[j].untilRespawn*SimulationUtils.UNCOILSPEED);
               cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
               Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
               if (newLocation == null) newLocation = states[j].ship.location();
@@ -200,6 +200,7 @@ public class Simulation {
                 states[j].sinceCrossing+1,
                 states[j].sinceHitByBullet+1,
                 states[j].sincePwned+1,
+                states[j].sinceKnot+1,
                 tail);
             continue;
           }
@@ -220,7 +221,7 @@ public class Simulation {
           ship = SimulationUtils.nextPosition(states[j].ship, params[j]);
 
           // Add the new position to the player's tail
-          tail = states[j].tail.addPoint(ship.location(), game.time + 1, false);
+          tail = states[j].tail.addPoint(ship.location(), game.time + 1);
 
           // Check if the paths cross each other, O(N).
           // Remove all paths that are crossed. Also checks if players scored.          
@@ -234,7 +235,8 @@ public class Simulation {
             if (intersection != null) {  // if an intersection occurred
 
               if (i != j) {
-                erasePath = true;
+                crossedOtherPath = true;
+                
               } else {
                 formedLoop = true;
                 loop = intersection;
@@ -272,8 +274,8 @@ public class Simulation {
           }
           
           int tailStarted, cropFrom, cropTo;
-          if (erasePath) {
-            // if your path needs to be erased (you got shot, for ex.)
+          if (crossedOtherPath) {
+            // if your crossed another player's path
             tail = new Tail(ship.location(), game.time + 1);
             tailStarted = game.time + 1;
             cropFrom = tailStarted;
@@ -289,9 +291,9 @@ public class Simulation {
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else if (spendPathOnBullet) {
             // if you spend some path on a shot
-            tailStarted = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1;
+            tailStarted = states[j].tail.lengthFromLastKnotToTime(SimulationUtils.BULLETCOST) + 1;
             cropFrom    = states[j].tailStarted;
-            cropTo      = states[j].tail.lengthToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
+            cropTo      = states[j].tail.lengthFromLastKnotToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
             tail = tail.crop(cropFrom, cropTo);
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
@@ -304,6 +306,8 @@ public class Simulation {
           }
           // end dealing with moving around and loops and stuff
           
+          if (scored)
+            tail.addKnotAtHead();
           
 
           // Calculate the new positions for the bullets and figure out
@@ -319,7 +323,7 @@ public class Simulation {
             if (SimulationUtils.gotShot(states[j], b)) {
               remove = true;
               gotShot = true;
-               // if you get shot then you lose your tail
+              // if you get shot then you lose your tail
               tail = new Tail(states[j].ship.location(), game.time + 1);
               tailStarted = game.time + 1;
               cropFrom = tailStarted;
@@ -344,7 +348,7 @@ public class Simulation {
           //  RESULTING FROM THIS TIME STEP
           states[j] = new PlayerState(j, ship, 0, 
               tailStarted, cropFrom, cropTo,
-              states[j].score + ((scored)? 1:0),
+              (scored)? states[j].score+1 : states[j].score,
               (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
               (crashed)? SimulationUtils.timeUntilRespawn(tail) : 0,
               (scored)? 0 : states[j].sinceScoring+1,
@@ -352,6 +356,7 @@ public class Simulation {
               (crossedOtherPath)? 0 : states[j].sinceCrossing+1,
               (gotShot)? 0 : states[j].sinceHitByBullet+1,
               states[j].sincePwned+1,
+              (scored)? 0 : states[j].sinceKnot+1,
               tail);
 
         } 

@@ -11,6 +11,7 @@ public class DefaultDrawable implements Drawable {
   protected int playerNo;
   private Paint paint;
   private boolean removed;
+  protected int nShapes;  // the number of shapes in this drawable
   
   // Connect the pts[npoints][2] with lines.
   // If close is true, the first and last points are connected.
@@ -19,6 +20,7 @@ public class DefaultDrawable implements Drawable {
     this.playerNo = playerNo;
     this.removed = false;
     this.paint = getColor(playerNo);
+    this.nShapes = 1;
   }
 
   // TODO should depend on your color
@@ -45,17 +47,26 @@ public class DefaultDrawable implements Drawable {
   }
 
   public boolean[] fill() { 
-    return new boolean[]{false}; 
+    boolean[] fillArray = new boolean[nShapes];
+    for (int i = 0; i < nShapes; i++)
+      fillArray[i] = false;
+    return fillArray; 
   }
 
   // Return the Paint object used to draw the shape.
   public Paint[] paint() {
-    return new Paint[]{paint};
+    Paint[] paintArray = new Paint[nShapes];
+    for (int i = 0; i < nShapes; i++)
+      paintArray[i] = paint;
+    return paintArray;
   }
 
   // Return the pen width used to draw the shape.
   public Stroke[] stroke() {
-    return new Stroke[]{stroke};
+    Stroke[] strokeArray = new Stroke[nShapes];
+    for (int i = 0; i < nShapes; i++)
+      strokeArray[i] = stroke;
+    return strokeArray;
   }
 
   public boolean ingameCoordinates() { return true; }
