@@ -19,7 +19,8 @@ commonFiles := $(srcdir)Angle.java $(srcdir)PlayerState.java $(srcdir)Ship.java 
 
 UDPFiles := $(streamsrcdir)UnreliableStream.java $(streamsrcdir)UnreliableStreamServer.java
 
-default: server client
+default:
+	javac $(compileopts) $(serverFiles) $(clientFiles) $(commonFiles) $(UDPFiles)
 
 dirs:
 	mkdir -p out bin segmentation/game_output/fly
@@ -35,9 +36,6 @@ common: dirs unreliablestream
 
 unreliablestream:
 	javac $(compileopts) $(streamsrcdir)
-
-all:
-	javac $(compileopts) $(serverFiles) $(clientFiles) $(commonFiles) $(UDPFiles)
 
 doc:
 	javadoc -d doc aoi
