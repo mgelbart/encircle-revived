@@ -3,7 +3,6 @@ package aoi;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.geom.Line2D;
-import java.awt.geom.Line2D.Double;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

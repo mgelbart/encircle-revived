@@ -29,24 +29,20 @@ public class DrawableTail extends DefaultDrawable {
     Shape[] shapes = new Shape[nShapes];
     int j = 0;
     for (int k : tail.getKnots()) {
-      if (tail != null) {
-        Point2D knotPoint = tail.getPoint(k);
-        
-        AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
-        
-        Angle a = tail.tangentAngle(k + 1);
-        if (a == null) a = gState.pStates[playerNo].ship.dir();
-        
-        at.rotate(a.toDouble());
-        
-        shapes[j++] = at.createTransformedShape(
-            new Line2D.Double(KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2, KNOTSIZE/2));
-        shapes[j++] = at.createTransformedShape(
-            new Line2D.Double(KNOTSIZE/2, KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2));
-      } else {  // first step
-        shapes[j++] = null;
-        shapes[j++] = null;
-      }
+      Point2D knotPoint = tail.getPoint(k);
+      
+      AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
+      
+      Angle a = tail.tangentAngle(k + 1);
+      if (a == null) a = gState.pStates[playerNo].ship.dir();
+      
+      at.rotate(a.toDouble());
+      
+      shapes[j++] = at.createTransformedShape(
+          new Line2D.Double(KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2, KNOTSIZE/2));
+      shapes[j++] = at.createTransformedShape(
+          new Line2D.Double(KNOTSIZE/2, KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2));
+
     }
     shapes[nShapes-1] = tail.toPath2D();
     return shapes;

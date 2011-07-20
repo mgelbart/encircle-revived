@@ -261,7 +261,7 @@ public class PlayerState {
   public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) {
 
     Byte cmd;
-    int playerNo, x, y, vx, vy, energy, tailStarted, cropTailFrom, cropTailTo, score,
+    int playerNo, x, y, vx, vy, cropTailFrom, cropTailTo, score,
         untilReload, untilRespawn, sinceScoring, sinceLooping, sinceCrossing,
           sinceHitByBullet, sincePwned, sinceKnot;
     Angle dir;
@@ -384,7 +384,7 @@ public class PlayerState {
     
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
-      newTail.addKnotAtHead();
+      newTail = newTail.addKnotAtHead();
       Logger.println(Logger.RepetitionRate.FREQUENT, "added knot: " + newTail.nKnots());
     }
           

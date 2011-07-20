@@ -38,7 +38,7 @@ public class Simulation {
   private Thread guiThread = null;
   
   // for debugging
-  private static final boolean VERIFYSERIALIZATION = true;
+  private static final boolean VERIFYSERIALIZATION = false;
   
   
   public Simulation(Arena arena) {
@@ -296,7 +296,7 @@ public class Simulation {
           // end dealing with moving around and loops and stuff
           
           if (scored)
-            tail.addKnotAtHead();
+            tail = tail.addKnotAtHead();
           
 
           // Calculate the new positions for the bullets and figure out
@@ -362,9 +362,8 @@ public class Simulation {
           newGState.serialize(out);
           
           ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);
-          
-//          parsedGState.assertDeepEquals(newGState);
+          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);          
+          parsedGState.assertDeepEquals(newGState);
         }
         
         // Note: don't need locking since updating a reference is atomic.
