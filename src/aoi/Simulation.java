@@ -247,7 +247,7 @@ public class Simulation {
                   ClusterServerSide c = (ClusterServerSide) cNotSS;
                   
                   // Check if the center of the cluster is in the loop just made
-                  if (c.acceptable(arena.sequence()[pStates[j].score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(arena.sequence()[pStates[j].score]) && intersection.contains(c.centerX(), c.centerY())) {
                     Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
@@ -264,7 +264,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (intersection.toPath2D().contains(pStates[k].ship.x(), pStates[k].ship.y())) {
+                  if (intersection.contains(pStates[k].ship.x(), pStates[k].ship.y())) {
                     gotPwned[k] = true; // set score to 0 if you are enclosed by the other player!!!!
                   }
                 }

@@ -1,6 +1,7 @@
 package aoi;
 
 import java.awt.Point;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -66,10 +67,14 @@ public class Tail {
   
   public int     nKnots  ()      { return knots.size();           }
   public double  length  ()      { return trajectory.length();    }
-  public Path2D  toPath2D()      { return trajectory.toPath2D();  }
+  public Shape  pathShape()      { return trajectory.clone();     }
   public boolean isEmpty ()      { return nPoints() == 0;         }
   public Point getPoint(int i)   { return trajectory.getPoint(i); }
 
+  public boolean contains(double x, double y) {
+    return trajectory.contains(x, y);
+  }
+  
   @SuppressWarnings("unchecked")
   public Iterable<Integer> getKnots() { 
     return (Iterable<Integer>)knots.clone(); 

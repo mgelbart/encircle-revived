@@ -44,7 +44,7 @@ public class DrawableTail extends DefaultDrawable {
           new Line2D.Double(KNOTSIZE/2, KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2));
 
     }
-    shapes[nShapes-1] = tail.toPath2D();
+    shapes[nShapes-1] = tail.pathShape();
     return shapes;
   }
 
