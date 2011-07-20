@@ -32,10 +32,14 @@ public class Simulation {
   public final GameStateSender[] senders = new GameStateSender[SimulationUtils.NUMPLAYERS];
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
 
-  //for debugging
+  // for debugging
   private static final boolean VISUALIZE = true;
   private GUI gui = null;
   private Thread guiThread = null;
+  
+  // for debugging
+  private static final boolean VERIFYSERIALIZATION = true;
+  
   
   public Simulation(Arena arena) {
     this.arena = arena;
@@ -63,12 +67,12 @@ public class Simulation {
 
 
   public void initGameState() {
-    PlayerState[] states = new PlayerState[SimulationUtils.NUMPLAYERS];
+    PlayerState[] pStates = new PlayerState[SimulationUtils.NUMPLAYERS];
 
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-      states[j] = initPlayerState(j, 0, true, 0);
+      pStates[j] = initPlayerState(j, 0, true, 0);
 
-    this.game = new GameState(0, states, new Vector<Bullet>());
+    this.game = new GameState(0, pStates, new Vector<Bullet>());
   }
 
   // (Re)generate a player state at one of the corners.
@@ -88,9 +92,9 @@ public class Simulation {
 
     Angle dir = new Angle((Math.PI * (1 - 2*Math.random())));
 
-    int tailStarted = (game == null) ? 0 : game.time;
-    return new PlayerState(playerNo, x, y, 0, 0, dir, 0,
-                           tailStarted, tailStarted, tailStarted, score,
+    int crop = (game == null) ? 0 : game.time;
+    return new PlayerState(playerNo, x, y, 0, 0, dir,
+                           crop, crop, score,
                            0, 0, // untilReload, untilRespawn
                            255, 255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
                            new Tail(new Point(x, y), time)); 
@@ -98,7 +102,7 @@ public class Simulation {
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
 
-    PlayerState[] states = (PlayerState[]) (game.pStates.clone());
+    PlayerState[] pStates = (PlayerState[]) (game.pStates.clone());
     Vector<Bullet> bullets = new Vector<Bullet>();
 
 
@@ -132,12 +136,12 @@ public class Simulation {
         // Check if one of the players won.
         // (This is a temporary hack).
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          assert(states[j].score <= pointsPerRound);
-          if (states[j].score == pointsPerRound) {
+          assert(pStates[j].score <= pointsPerRound);
+          if (pStates[j].score == pointsPerRound) {
             for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              states[k] = states[k].clone("score", 0);
+              pStates[k] = pStates[k].clone("score", 0);
               int TIME_BETWEEN_ROUNDS_JUST_TEMPORARY = 1000 / SimulationUtils.TIMESTEP;
-              states[k] = states[k].clone("untilRespawn", TIME_BETWEEN_ROUNDS_JUST_TEMPORARY);
+              pStates[k] = pStates[k].clone("untilRespawn", TIME_BETWEEN_ROUNDS_JUST_TEMPORARY);
             }
           }
         }
@@ -165,21 +169,20 @@ public class Simulation {
           boolean crossedOtherPath = false;
           boolean formedLoop = false;
           
-          if (states[j].untilRespawn > 0) {  // still waiting
-            assert(!states[j].tail.isEmpty());
+          if (pStates[j].untilRespawn > 0) {  // still waiting
+            assert(!pStates[j].tail.isEmpty());
             
-            int untilRespawn = states[j].untilRespawn-1;
-            int tailStarted = states[j].tailStarted;
-            int cropFrom = states[j].tail.lengthFromLastKnotToTime(untilRespawn*SimulationUtils.UNCOILSPEED);
+            int untilRespawn = pStates[j].untilRespawn-1;
+            int cropFrom = pStates[j].tail.lengthFromLastKnotToTime(untilRespawn*SimulationUtils.UNCOILSPEED);
             int cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
             
-            Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
-            if (newLocation == null) newLocation = states[j].ship.location();
-              Angle newDir = states[j].tail.tangentAngleHead();
-            if (newDir == null) newDir = states[j].ship.dir();
+            Point2D newLocation = pStates[j].tail.getPointFromTime(cropFrom);
+            if (newLocation == null) newLocation = pStates[j].ship.location();
+              Angle newDir = pStates[j].tail.tangentAngleHead();
+            if (newDir == null) newDir = pStates[j].ship.dir();
               ship = new Ship(newLocation, 0, 0, newDir);
 
-            tail = states[j].tail.crop(cropFrom, cropTo);
+            tail = pStates[j].tail.crop(cropFrom, cropTo);
             
             
 
@@ -187,16 +190,16 @@ public class Simulation {
               tail.addPoint(ship.location(), game.time + 1);
            
             
-            states[j] = new PlayerState(j, ship, 0, 
-                tailStarted, cropFrom, cropTo, states[j].score,
-                Math.max(0, states[j].untilReload-1),
+            pStates[j] = new PlayerState(j, ship, 
+                cropFrom, cropTo, pStates[j].score,
+                Math.max(0, pStates[j].untilReload-1),
                 untilRespawn,
-                states[j].sinceScoring+1,
-                states[j].sinceLooping+1,
-                states[j].sinceCrossing+1,
-                states[j].sinceHitByBullet+1,
-                states[j].sincePwned+1,
-                states[j].sinceKnot+1,
+                pStates[j].sinceScoring+1,
+                pStates[j].sinceLooping+1,
+                pStates[j].sinceCrossing+1,
+                pStates[j].sinceHitByBullet+1,
+                pStates[j].sincePwned+1,
+                pStates[j].sinceKnot+1,
                 tail);
             continue;
           }
@@ -206,18 +209,18 @@ public class Simulation {
           
           
           // Take shots first:          
-          if (params[j].shoot && SimulationUtils.canShoot(states[j])) {
+          if (params[j].shoot && SimulationUtils.canShoot(pStates[j])) {
             // if players had enough time to reload and enough path to spend
-            bullets.add(new Bullet(j, states[j].ship.x(), states[j].ship.y(), states[j].ship.dir()));
+            bullets.add(new Bullet(j, pStates[j].ship.x(), pStates[j].ship.y(), pStates[j].ship.dir()));
             spendPathOnBullet = true;
 
           }
 
           // Calculate where the player moved.
-          ship = SimulationUtils.nextPosition(states[j].ship, params[j]);
+          ship = SimulationUtils.nextPosition(pStates[j].ship, params[j]);
 
           // Add the new position to the player's tail
-          tail = states[j].tail.addPoint(ship.location(), game.time + 1);
+          tail = pStates[j].tail.addPoint(ship.location(), game.time + 1);
 
           // Check if the paths cross each other, O(N).
           // Remove all paths that are crossed. Also checks if players scored.          
@@ -226,7 +229,7 @@ public class Simulation {
           // Check if any player (including j) is crossing j's path
           for (int i=0; i<SimulationUtils.NUMPLAYERS; ++i) {            
             // See comments in the intersects() function for more detail on this BS
-            Tail intersection = states[i].tail.intersects(tail, (i==j)?2:0);
+            Tail intersection = pStates[i].tail.intersects(tail, (i==j)?2:0);
 
             if (intersection != null) {  // if an intersection occurred
 
@@ -237,14 +240,14 @@ public class Simulation {
                 formedLoop = true;
                 loop = intersection;
 
-                assert(states[j].score < arena.sequence().length);
+                assert(pStates[j].score < arena.sequence().length);
 
                 // Check for scoring
                 for (Cluster cNotSS : arena.clusters) {
                   ClusterServerSide c = (ClusterServerSide) cNotSS;
                   
                   // Check if the center of the cluster is in the loop just made
-                  if (c.acceptable(arena.sequence()[states[j].score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(arena.sequence()[pStates[j].score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
                     Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
@@ -253,7 +256,7 @@ public class Simulation {
                     // Currently stores the vote for all clusters in the loop that
                     // *could* have been accepted, since we don't know which cluster in particular
                     // the player was going for.
-                    clusterDB.writeData(c.imgName(), states[j].score+1, "Mike R");
+                    clusterDB.writeData(c.imgName(), pStates[j].score+1, "Mike R");
                   }
                 }
 
@@ -261,7 +264,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (intersection.toPath2D().contains(states[k].ship.x(), states[k].ship.y())) {
+                  if (intersection.toPath2D().contains(pStates[k].ship.x(), pStates[k].ship.y())) {
                     gotPwned[k] = true; // set score to 0 if you are enclosed by the other player!!!!
                   }
                 }
@@ -269,40 +272,26 @@ public class Simulation {
             }
           }
           
-          int tailStarted, cropFrom, cropTo;
+          int  cropFrom, cropTo;
           if (crossedOtherPath) {
             // if your crossed another player's path
-//            tail = new Tail(ship.location(), game.time + 1);
-//            tailStarted = game.time + 1;
-//            cropFrom = tailStarted;
-//            cropTo = tailStarted;
-            tailStarted = game.time + 1;
-            cropFrom = states[j].tailStarted;
+            cropFrom = pStates[j].tail.baseTime();
             cropTo = tail.cropToForCrossing();
             tail = tail.crop(cropFrom, cropTo);
           } else if (loop != null) {
             // if you completed a loop
-            tailStarted = states[j].tailStarted;
             cropFrom = loop.baseTime();
-            cropTo = game.time; // probably not game.time + 1, but i didn't think hard
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
+            cropTo = game.time + 1; 
             tail = tail.crop(cropFrom, cropTo);
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, cropFrom + ":" + cropTo);
           } else if (spendPathOnBullet) {
             // if you spend some path on a shot
-            tailStarted = states[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1;
-            cropFrom    = states[j].tailStarted;
-            cropTo      = states[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, ""+tail.pathLength());
+            cropFrom    = pStates[j].tail.baseTime();
+            cropTo      = pStates[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
             tail = tail.crop(cropFrom, cropTo);
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
-//            Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropFrom + " / " + cropTo + " / " + game.time);
           } else {
             // normal time step -- send the previous values
-            tailStarted = states[j].tailStarted;
-            cropFrom = states[j].cropTailFrom;
-            cropTo = states[j].cropTailTo;
+            cropFrom = pStates[j].cropTailFrom;
+            cropTo = pStates[j].cropTailTo;
           }
           // end dealing with moving around and loops and stuff
           
@@ -320,15 +309,9 @@ public class Simulation {
             boolean remove = !SimulationUtils.isInArena(b, arena);
 
             // if b does not belong to player j and the players ship contains b
-            if (SimulationUtils.gotShot(states[j], b)) {
+            if (SimulationUtils.gotShot(pStates[j], b)) {
               remove = true;
-              gotShot = true;
-              // if you get shot then it's as if you crashed
-//              tail = new Tail(states[j].ship.location(), game.time + 1);
-//              tailStarted = game.time + 1;
-//              cropFrom = tailStarted;
-//              cropTo = tailStarted;
-              
+              gotShot = true;              
             }  // end if
 
 
@@ -342,23 +325,22 @@ public class Simulation {
           
         
           // Check if anyone went out of bounds or hit a cluster:
-          boolean crashed = !SimulationUtils.isInArena(states[j].ship, arena);
+          boolean crashed = !SimulationUtils.isInArena(pStates[j].ship, arena);
 
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
-          states[j] = new PlayerState(j, ship, 0, 
-              tailStarted, cropFrom, cropTo,
-              (scored)? states[j].score+1 : states[j].score,
-              (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, states[j].untilReload-1),
+          pStates[j] = new PlayerState(j, ship,
+              cropFrom, cropTo,
+              (scored)? pStates[j].score+1 : pStates[j].score,
+              (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, pStates[j].untilReload-1),
               (crashed||gotShot)? SimulationUtils.timeUntilRespawn(tail) : 0,
-              (scored)? 0 : states[j].sinceScoring+1,
-              (formedLoop)? 0 : states[j].sinceLooping+1,
-              (crossedOtherPath)? 0 : states[j].sinceCrossing+1,
-              (gotShot)? 0 : states[j].sinceHitByBullet+1,
-              states[j].sincePwned+1,
-              (scored)? 0 : states[j].sinceKnot+1,
+              (scored)? 0 : pStates[j].sinceScoring+1,
+              (formedLoop)? 0 : pStates[j].sinceLooping+1,
+              (crossedOtherPath)? 0 : pStates[j].sinceCrossing+1,
+              (gotShot)? 0 : pStates[j].sinceHitByBullet+1,
+              pStates[j].sincePwned+1,
+              (scored)? 0 : pStates[j].sinceKnot+1,
               tail);
-
         } 
 /* ----------------- end of "main" loop for each player --------------------- */
         
@@ -366,20 +348,34 @@ public class Simulation {
         // if player j pwned someone else, not if player j got pwned.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           if (gotPwned[j]) {
-            states[j] = states[j].clone("score", 0);
-            states[j] = states[j].clone("sincePwned", 0);
+            pStates[j] = pStates[j].clone("score", 0);
+            pStates[j] = pStates[j].clone("sincePwned", 0);
           }
         }
 
         // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
+        GameState newGState = new GameState(game.time + 1, pStates, bullets);
+        
+        if (VERIFYSERIALIZATION) {
+          // for debugging
+          ByteArrayOutputStream out = new ByteArrayOutputStream();
+          newGState.serialize(out);
+          
+          ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);
+          
+//          parsedGState.assertDeepEquals(newGState);
+        }
+        
         // Note: don't need locking since updating a reference is atomic.
-        this.game = new GameState(game.time + 1, states, bullets);
+        this.game = newGState;
 
         if (VISUALIZE) {
           // for debugging
           gui.setGameState(this.game);
           guiThread.interrupt();
         }
+        
       }  // end catch
     }  // end infinite while loop
   }  // end this function

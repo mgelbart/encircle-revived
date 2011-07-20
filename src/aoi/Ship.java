@@ -35,6 +35,14 @@ public class Ship {
   
   public final NSPath getNSPath() { return path; }
   
+  public void assertEquals(Ship that) {
+    assert(this.x == that.x);
+    assert(this.y == that.y);
+    assert(this.vx == that.vx);
+    assert(this.vy == that.vy);
+    assert(this.direction.equals(that.direction));
+    assert(this.path.equals(that.path));
+  }
   public boolean equals(Ship that) {
     if (this.x != that.x) return false;
     if (this.y != that.y) return false;

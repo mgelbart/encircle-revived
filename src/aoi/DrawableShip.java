@@ -19,13 +19,13 @@ public class DrawableShip extends DefaultDrawable {
   private int pwnedCounter = 0;
   
   // If you were shot
-  private int shotCounter = 0;
+//  private int shotCounter = 0;
 
   // Time duration of the pwnage effect in turns.
   private final int PWNAGETIME = 1500 / SimulationUtils.TIMESTEP;
   
   // Time duration of the getting shot effect in turns.
-  private final int SHOTPWNTIME = 400 / SimulationUtils.TIMESTEP;
+//  private final int SHOTPWNTIME = 400 / SimulationUtils.TIMESTEP;
   
   // The color of the ship during the effect.
   private final Color PWNAGECOLOR = Color.GREEN;
@@ -47,9 +47,7 @@ public class DrawableShip extends DefaultDrawable {
     if (lastState != null) {
       if (currentState.score < lastState.score)
         pwnedCounter = PWNAGETIME;
-      if (PlayerState.deadOrShot(lastState, currentState.tailStarted, 
-          currentState.cropTailFrom, currentState.cropTailTo))
-        shotCounter = shotCounter==0?SHOTPWNTIME:shotCounter;
+//        shotCounter = shotCounter==0?SHOTPWNTIME:shotCounter;
     }
     lastState = currentState;
 
@@ -62,16 +60,17 @@ public class DrawableShip extends DefaultDrawable {
   public Paint[] paint() {
 
     assert(pwnedCounter >= 0);
-    assert(shotCounter >= 0);
+//    assert(shotCounter >= 0);
 
-    if (shotCounter == 0 && pwnedCounter == 0) {
+    if (pwnedCounter == 0) {
+//      if (shotCounter == 0)
       return new Paint[]{color.darker().darker().darker(), color};
     }  else if (pwnedCounter > 0) {
-      shotCounter = 0;
+//      shotCounter = 0;
       pwnedCounter--;
       return new Paint[]{PWNAGECOLOR, PWNAGECOLOR};
     } else { // if you were shot (but not pwned)
-      shotCounter--;
+//      shotCounter--;
       return new Paint[]{PWNAGECOLOR, PWNAGECOLOR};
     }
   }

@@ -145,8 +145,6 @@ public class TimeMachine {
         }
         
         players[k] = new PlayerState(k, ship[k],
-                                      players[k].energy,
-                                      players[k].tailStarted,
                                       players[k].cropTailFrom,
                                       players[k].cropTailTo,
                                       players[k].score,

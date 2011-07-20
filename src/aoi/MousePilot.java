@@ -40,17 +40,21 @@ public class MousePilot implements MouseInputListener {
   @Override
   public void mousePressed(MouseEvent e) {
     shoot = true;
+    e.consume();
   }
 
 
   @Override
   public void mouseReleased(MouseEvent e) {
     shoot = false;
+    e.consume();
   }
   
   
   @Override
-  public void mouseClicked(MouseEvent e) { }
+  public void mouseClicked(MouseEvent e) { 
+    e.consume();
+  }
 
 
   @Override

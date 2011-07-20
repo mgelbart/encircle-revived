@@ -75,7 +75,7 @@ public class Nonhuman implements Intelligence {
         double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
         double MAX_ANGLE_TO_SHOOT = 0.1;
         shoot = false;
-        if (Math.abs(games[0].time - games[0].pStates[ClientConfiguration.playerNo].tailStarted) < MAX_LOOP_TO_SHOOT) { 
+        if (Math.abs(games[0].time - games[0].pStates[ClientConfiguration.playerNo].tail.baseTime()) < MAX_LOOP_TO_SHOOT) { 
           if (prevCtrl != null) {
             Ship ComparedSayWithPET = SimulationUtils.nextPosition(
                 games[0].pStates[ClientConfiguration.playerNo].ship,

@@ -19,12 +19,8 @@ public class PlayerState {
   /* Values transmitted to the clients. */
   public final int playerNo; // only least significant byte transmitted to client.
   public final Ship ship;
-  public final int energy; // only least significant byte transmitted to client.
   public final Tail tail;
 
-  // The time coordinate of the start of the current tail.
-  public final int tailStarted;
-  
   // The segment of the tail that the client should cut off from the tail
   // expressed as an interval in time, including from and excluding to.
   public final int cropTailFrom, cropTailTo;
@@ -55,15 +51,13 @@ public class PlayerState {
   private static final boolean CHECKBYTES = true;
 
 
-  public PlayerState(int playerNo, Ship ship, int energy, 
-      int tailStarted, int cropTailFrom, int cropTailTo, 
+  public PlayerState(int playerNo, Ship ship,
+      int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
       int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
     this.playerNo = playerNo;
     this.ship = new Ship(ship);
-    this.energy = energy;                     // NOT USED
-    this.tailStarted = tailStarted;
     this.cropTailFrom = cropTailFrom;
     this.cropTailTo = cropTailTo;
     this.score = score;
@@ -91,24 +85,37 @@ public class PlayerState {
   }	
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, Angle direction, 
-      int energy, int tailStarted, int cropTailFrom, int cropTailTo, 
+      int cropTailFrom, int cropTailTo, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
       int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
     this(playerNo, new Ship(x, y, vx, vy, direction), 
-        energy, tailStarted, cropTailFrom, cropTailTo,
+        cropTailFrom, cropTailTo,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }	
 
-
+  public void assertEquals(PlayerState that) {
+    this.ship.assertEquals(that.ship);
+    this.tail.assertEquals(that.tail);
+    assert (this.playerNo == that.playerNo);
+    assert (this.cropTailFrom == that.cropTailFrom);
+    assert (this.cropTailTo == that.cropTailTo);
+    assert (this.score == that.score);
+    assert (this.untilReload == that.untilReload);
+    assert (this.untilRespawn == that.untilRespawn);
+    assert (this.sinceCrossing == that.sinceCrossing);
+    assert (this.sinceHitByBullet == that.sinceHitByBullet);
+    assert (this.sinceKnot == that.sinceKnot);
+    assert (this.sinceLooping == that.sinceLooping);
+    assert (this.sincePwned == that.sincePwned);
+    assert (this.sinceScoring == that.sinceScoring);
+  }
   public boolean equals(PlayerState that) {
     if (this.playerNo != that.playerNo)                 return false;
     if (!this.ship.equals(that.ship))                   return false;
-    if (this.energy != that.energy)                     return false;
     if (!this.tail.equals(that.tail))                   return false;
-    if (this.tailStarted != that.tailStarted)           return false;
     if (this.cropTailFrom != that.cropTailFrom)         return false;
     if (this.cropTailTo != that.cropTailTo)             return false;
     if (this.score != that.score)                       return false;
@@ -128,8 +135,6 @@ public class PlayerState {
   public PlayerState clone(String key, int value) {
 
     int playerNo     = this.playerNo;
-    int energy       = this.energy;
-    int tailStarted  = this.tailStarted;
     int score        = this.score;
     int untilRespawn = this.untilRespawn;
     int untilReload  = this.untilReload;
@@ -139,8 +144,6 @@ public class PlayerState {
     // TODO: use an enum for these.
     if (key.equals("score"))
       score = value;
-    else if (key.equals("tailStarted"))
-      tailStarted = value;
     else if (key.equals("untilRespawn"))
       untilRespawn = value;
     else if (key.equals("untilReload"))
@@ -151,7 +154,7 @@ public class PlayerState {
       assert(false);  // lol
 
     return new PlayerState(playerNo, ship, 
-        energy, tailStarted, cropTailFrom, cropTailTo, 
+        cropTailFrom, cropTailTo, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
@@ -160,8 +163,8 @@ public class PlayerState {
   // Make a deep copy but set new ship
   public PlayerState clone(Ship newShip) {
     return new PlayerState(playerNo, newShip, 
-        energy, tailStarted, cropTailFrom, cropTailTo,
-        score,  untilReload, untilRespawn,
+        cropTailFrom, cropTailTo,
+        score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }
@@ -211,14 +214,6 @@ public class PlayerState {
       if (CHECKBYTES) o.writeBytes("d");
       ship.dir().serialize(o);
       
-      assert(energy >= 0);
-      assert(energy <= 0xFF);
-      if (CHECKBYTES) o.writeBytes("e");
-      o.write(energy);
-
-      if (CHECKBYTES) o.writeBytes("l");
-      o.writeInt(tailStarted);
-
       if (CHECKBYTES) o.writeBytes("f");
       o.writeInt(cropTailFrom);
 
@@ -292,12 +287,6 @@ public class PlayerState {
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
       dir = Angle.parse(i);
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
-      energy = i.read();
-
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
-      tailStarted = i.readInt();
-
       if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'f'); }
       cropTailFrom = i.readInt();
 
@@ -343,7 +332,7 @@ public class PlayerState {
     
     if (prevState == null)  // first time step
       return new PlayerState(playerNo, x, y, vx, vy, dir, 
-          energy, tailStarted, cropTailFrom, cropTailTo, 
+          cropTailFrom, cropTailTo, 
           score, untilReload, untilRespawn,
           sinceScoring, sinceLooping, sinceCrossing,
           sinceHitByBullet, sincePwned, sinceKnot, 
@@ -354,41 +343,40 @@ public class PlayerState {
     Tail newTail;
  
     if (untilRespawn == 0 && prevState.untilRespawn > 0) {  // if you finished respawning
-      Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tail.nKnots());
+      Logger.println(Logger.RepetitionRate.FREQUENT, prevState.tail.nKnots());
       newTail = prevState.tail;
       newTail = newTail.crop(cropTailFrom, cropTailTo);
       newTail = newTail.addPoint(p, time);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "-> "+newTail.nKnots());
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "finished respawning");
+      Logger.println(Logger.RepetitionRate.FREQUENT, "-> "+newTail.nKnots());
+      Logger.println(Logger.RepetitionRate.FREQUENT, "finished respawning");
     }
     else if (untilRespawn > 0) {  // you are resawning
       newTail = prevState.tail;
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning... " + untilRespawn);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, newTail.nPoints());
+      Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
+      Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
     } 
 //    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
 //      newTail = new Tail(p, time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
 //    } 
     else if (sinceCrossing - prevState.sinceCrossing < 0) { 
-//      newTail = new Tail(p, time);
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
+      Logger.println(Logger.RepetitionRate.FREQUENT, "crossed");
     }
     else if (untilReload - prevState.untilReload > 0) {  // you shot
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
+      Logger.println(Logger.RepetitionRate.FREQUENT, "shot");
     } 
     else if (sinceLooping - prevState.sinceLooping < 0) {  // you made a loop
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
+      Logger.println(Logger.RepetitionRate.FREQUENT, "made a loop");
     } 
     else {    // normal step
       newTail = prevState.tail.addPoint(p, time);
@@ -397,36 +385,18 @@ public class PlayerState {
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
       newTail.addKnotAtHead();
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
+      Logger.println(Logger.RepetitionRate.FREQUENT, "added knot: " + newTail.nKnots());
     }
           
     
 
     
     return new PlayerState(playerNo, x, y, vx, vy, dir, 
-        energy, tailStarted, cropTailFrom, cropTailTo, 
+        cropTailFrom, cropTailTo, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, newTail);
   }
-  
-  public static boolean deadOrShot(PlayerState prevState, 
-                                   int tailStarted, int cropTailFrom, int cropTailTo) {
-    return prevState.tailStarted - tailStarted < 0 &&
-           prevState.tailStarted != cropTailFrom;
-  }
-  public static boolean spentTail(PlayerState prevState, 
-                                  int tailStarted, int cropTailFrom, int cropTailTo) {
-    return prevState.tailStarted - tailStarted < 0 &&
-           prevState.tailStarted == cropTailFrom;
-  }
-  public static boolean madeLoop(PlayerState prevState, 
-      int tailStarted, int cropTailFrom, int cropTailTo) {
-    return prevState.tailStarted == tailStarted &&
-           prevState.cropTailTo != cropTailTo;
-  }
-  
-  
   
 
 }

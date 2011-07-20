@@ -28,13 +28,13 @@ public class DrawableTail extends DefaultDrawable {
     Tail tail = gState.pStates[playerNo].tail;
     Shape[] shapes = new Shape[nShapes];
     int j = 0;
-    for (Knot k : tail.getKnots()) {
+    for (int k : tail.getKnots()) {
       if (tail != null) {
-        Point2D knotPoint = tail.getKnotPoint(k);
+        Point2D knotPoint = tail.getPoint(k);
         
         AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
         
-        Angle a = tail.tangentAngle(k.ind + 1);
+        Angle a = tail.tangentAngle(k + 1);
         if (a == null) a = gState.pStates[playerNo].ship.dir();
         
         at.rotate(a.toDouble());

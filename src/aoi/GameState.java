@@ -37,10 +37,53 @@ public class GameState implements Comparable<GameState> {
     return this.time == that.time;
   }
   
-  public boolean deepEquals(GameState that) {
-    if (this.time != that.time) return false;
-    if (!Arrays.deepEquals(this.pStates, that.pStates)) return false;
-    if (!this.bullets.equals(that.bullets)) return false;
+  public void assertDeepEquals(GameState that) {
+    assert(this.time == that.time);
+    assert(this.pStates.length == that.pStates.length);
+    for (int i = 0; i < pStates.length; i++)
+      this.pStates[i].assertEquals(that.pStates[i]);
+    assert(this.bullets.equals(that.bullets));
+  }
+  
+  public boolean deepEquals(GameState that, boolean log) {
+    // Compare times
+    if (this.time != that.time) {
+      if (log) Logger.println(Logger.RepetitionRate.FEW, "times disagree");
+      return false;
+    }
+
+    // Compare pStates
+    if (this.pStates.length != that.pStates.length) {
+        if (log) Logger.println(Logger.RepetitionRate.FEW, 
+                 "pStates disagree: different length");
+        return false; 
+    }
+    for (int i = 0; i < pStates.length; i++) {
+      if (!this.pStates[i].equals(that.pStates[i])) {
+        if (log) Logger.println(Logger.RepetitionRate.FEW, 
+                 "pStates disagree: pState " + i + " disagrees");
+        if (this.pStates[i].tail.nPoints() != that.pStates[i].tail.nPoints()) {
+          if (log) {
+            Logger.println(Logger.RepetitionRate.FEW, "the tails disagree in number of points");
+            Logger.println(Logger.RepetitionRate.FEW, this.pStates[i].tail.nPoints());
+            Logger.println(Logger.RepetitionRate.FEW, that.pStates[i].tail.nPoints());
+          }      
+        } else if (!this.pStates[i].tail.equals(that.pStates[i].tail)) {
+          if (log) {
+            Logger.println(Logger.RepetitionRate.FEW, "the tails disagree");
+            Logger.println(Logger.RepetitionRate.FEW, this.pStates[i].tail);
+            Logger.println(Logger.RepetitionRate.FEW, that.pStates[i].tail);      
+          }
+        }
+        
+        return false;
+      }
+    }
+
+    if (!this.bullets.equals(that.bullets)) {
+      if (log) Logger.println(Logger.RepetitionRate.FEW, "bullets disagree");
+      return false;
+    }
     return true;
   }
 
