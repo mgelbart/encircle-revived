@@ -1,0 +1,327 @@
+package unreliablestream;
+
+import java.io.*;
+import java.net.*;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import aoi.Logger.RepetitionRate;
+
+/**
+ * This class provides an unreliable packet "stream" between the client and server.
+ *
+ * The stream has the following properties.
+ * 
+ *   - The delivery of packets is _not_ guaranteed.
+ *   - The packets are delivered in time order.
+ *   - The packet data size is limited to MAXDATASIZE bytes.
+ *
+ */
+public class UnreliableStream {
+  
+  // Maximum amount of data carried by a single packet, in bytes.
+  public static final int MAXDATASIZE = 1024;
+  
+  // The connection is considered dead if no packets are received in this time.
+  // Specified in milliseconds.
+  static final int TIMEOUT = 4000;
+  
+  // An empty packet is sent at least every KEEPALIVEPERIOD ms if there's
+  // nothing else to send.
+  private static final int KEEPALIVEPERIOD = 150;
+
+
+  // The socket used to communicate with the remote party.
+  private DatagramSocket socket;
+  
+  // The address and port of the remote party.
+  private InetAddress remoteHost;
+  private int remotePort;
+  
+  // The id of this connection.
+  private short id;
+  
+  // a counter for the packet id of own packets
+  private Integer lastSentSeq = 0;
+  
+  // the latest seq no received from the remote host
+  private int lastReceived;
+  // if the i'th bit is set --> lastReceivedSeq-i has been received
+  private int relativeReceived;
+  
+  
+  // The system time when the last packet was received.
+  private long lastReceivedTime;
+  private long lastSentTime;
+  
+  // A timer that sends empty packets if there's nothing else to send.
+  private Timer keepAliveTimer;
+  
+  // list of handlers for received packets
+  private Vector<Receiver> receivers = new Vector<Receiver>();
+  
+  public UnreliableStream(DatagramSocket socket, InetAddress remoteHost, int remotePort, short id) {
+    lastReceivedTime = System.currentTimeMillis();
+    lastSentTime = lastReceivedTime;
+    
+    try {
+      socket.setSoTimeout(500);
+    } catch (SocketException e) {
+      e.printStackTrace();
+      assert(false);
+    }
+    
+    this.socket = socket;
+    this.remoteHost = remoteHost;
+    this.remotePort = remotePort;
+    this.id = id;
+  }
+  
+  // Connect to the remote host and start listening for incoming packets.
+  public void connect() {
+    lastReceivedTime = System.currentTimeMillis();
+    lastSentTime = lastReceivedTime;
+    keepAliveTimer = new Timer();
+    keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
+    
+    Thread listenThread = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        byte[] buf = new byte[Packet.HEADERSIZE + UnreliableStream.MAXDATASIZE + 1];
+        DatagramPacket p = new DatagramPacket(buf, buf.length);
+        
+        try {
+          while (true) {
+
+            // wait for an incoming packet to arrive
+            try {
+              socket.receive(p);
+            } catch (SocketTimeoutException ex) {
+              if (keepAliveTimer == null) { aoi.Logger.println(RepetitionRate.INFREQUENT, "connection closed id: " + id); return; }
+              if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(RepetitionRate.INFREQUENT, "timeout on id: " + id); return; }
+              continue;
+            }
+            
+            // parse the bytes into a Packet
+            final ByteArrayInputStream in = new ByteArrayInputStream(p.getData());
+            final Packet parsed = Packet.parse(new DataInputStream(in), p.getLength());
+            
+            processReceived(parsed);
+          }
+          
+        } catch (IOException e) {
+          e.printStackTrace();
+          assert(false);
+          return;
+        }
+      }
+      
+    });
+    
+    listenThread.start();
+    
+    // send a keep alive packet.
+    send(new byte[0]);
+  }
+
+  // Send the next packet
+  public void send(byte[] data) {
+    assert(data.length <= MAXDATASIZE);
+    
+    int seq;
+    synchronized (lastSentSeq) { seq = ++lastSentSeq; }
+    
+    final byte[] all = new Packet(id, seq, lastReceived, relativeReceived, data).toBytes();
+    final DatagramPacket p = new DatagramPacket(all, all.length, remoteHost, remotePort);
+    try {
+      socket.send(p);
+      lastSentTime = System.currentTimeMillis();
+    } catch (IOException e) {
+      e.printStackTrace();
+      assert(false);
+    }
+  }
+  
+  // Register a handler for received packets.
+  public void registerReceiver(Receiver r) {
+    synchronized (receivers) {
+      receivers.add(r);
+    }
+  }
+  
+  // deal with a parsed incoming packet
+  void processReceived(Packet p) {
+    if (p.id != id) { aoi.Logger.println(RepetitionRate.INFREQUENT, "received unknown id: " + p.id); return; }
+    
+    final int diff = p.sequenceNo - lastReceived;
+    if (diff > 0) {
+      lastReceived = p.sequenceNo;
+      relativeReceived = relativeReceived<<diff; // shift all previous acks by diff
+      relativeReceived = relativeReceived | (1<<diff);  // add the previous lastReceived to the relative acks
+      
+      synchronized (receivers) {
+        for (Receiver l : receivers) {
+          // pass the packet to receivers until one of them consumes it
+          if (l.received(p.data, this)) return;
+        }
+      }
+      
+      return;
+    } else {
+      aoi.Logger.println(RepetitionRate.INFREQUENT, "out of order packet received. id: " + p.id);
+      return;
+    }
+  }
+  
+  // Returns true iff the connection is considered to be alive.
+  public boolean isAlive() {
+    return System.currentTimeMillis() - lastReceivedTime < TIMEOUT;
+  }
+
+  // Kills the connection
+  public void disconnect() {
+    assert(keepAliveTimer != null);
+    keepAliveTimer.cancel();
+    keepAliveTimer = null;
+  }
+  
+  /*
+   * Return the id of the current connection.
+   */
+  public short getId() {
+    return id;
+  }
+  
+  
+  /**
+   * You can register a class that implements this interface as
+   * a receiver of incoming data by calling registerReceiver().
+   */
+  public interface Receiver {
+    /*
+     * Called whenever a new packet is received.
+     * Return true if you want to consume the event.
+     * This method blocks the parsing of new packets so it must return quickly.
+     * 
+     * @param data the received data
+     * @param src the source stream
+     */
+    public boolean received(byte[] data, UnreliableStream src);
+  }
+  
+  
+  
+  
+  static class Packet {
+    // The size of the header in bytes.
+    static final int HEADERSIZE = 14;
+    
+    // id number of this connection
+    final short id;
+    
+    // The sequence number of this packet
+    final int sequenceNo;
+    
+    // The greatest sequence number received so far
+    final int ack;
+    
+    // Other sequence numbers received so far, relative to ack.
+    // i.e setting relativeAck[i]==true means that (ack-1-i) was
+    // received.
+    static final int ACKBITS = 32;  // size of the relativeAck field in bits
+    final int relativeAck; // used as a bit mask
+    
+    // the data to be sent/read, make sure to limit this to some reasonable
+    // size for a UDP packet.
+    final byte[] data;
+    
+    Packet(short id, int sequenceNo, int ack, int relativeAck, byte[] data) {
+      this.id = id;
+      this.sequenceNo = sequenceNo;
+      this.ack = ack;
+      this.relativeAck = relativeAck;
+      this.data = data;
+    }
+    
+    /*
+     * Whether this Packet acks the given sequence number.
+     */
+    boolean acks(int seq) {
+      if (seq > ack || seq < ack-ACKBITS) return false;
+      if (seq == ack) return true;
+      
+      final int mask = 1<<((ack-1)-seq);
+      return (relativeAck & mask) != 0;
+    }
+    
+    /*
+     * Return all the sequence numbers acked by this packet.
+     */
+    Set<Integer> allAcks() {
+      TreeSet<Integer> a = new TreeSet<Integer>();
+      
+      a.add(ack);
+      
+      for (int j=0; j<ACKBITS; ++j) {
+        final int mask = 1<<j;
+        if ((relativeAck & mask) != 0) a.add(ack-j);
+      }
+      
+      return a;
+    }
+    
+    static Packet parse(DataInputStream in, int len) throws IOException {
+      final short id = in.readShort();
+      final int sequenceNo = in.readInt();
+      final int ack = in.readInt();
+      final int relativeAck = in.readInt(); // the ack bits as int
+      
+      final int databytes = len-Packet.HEADERSIZE;
+      assert(databytes>=0);
+      final byte[] data = new byte[databytes];
+      if (databytes > 0)
+        in.readFully(data, 0, Math.min(databytes, MAXDATASIZE));
+
+      return new Packet(id, sequenceNo, ack, relativeAck, data);
+    }
+
+    byte[] toBytes() {
+      ByteArrayOutputStream out = new ByteArrayOutputStream(HEADERSIZE + data.length);
+      DataOutputStream dout = new DataOutputStream(out);
+      
+      try {
+        dout.writeShort(id);
+        dout.writeInt(sequenceNo);
+        dout.writeInt(ack);
+        dout.writeInt(relativeAck);
+        dout.write(data);
+      } catch (IOException e) {
+        e.printStackTrace();
+        assert(false);
+      }
+      
+      return out.toByteArray();
+    }
+
+  }
+  
+  private static class KeepAliveTask extends TimerTask {
+    UnreliableStream stream;
+
+    KeepAliveTask(UnreliableStream stream) {
+      this.stream = stream;
+    }
+    
+    @Override
+    public void run() {
+      if (System.currentTimeMillis() - stream.lastSentTime > KEEPALIVEPERIOD)
+        stream.send(new byte[0]);
+    }
+    
+  }
+  
+}

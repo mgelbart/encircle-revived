@@ -3,6 +3,7 @@ SHELL := /bin/bash
 package := aoi
 
 srcdir := src/$(package)/
+streamsrcdir = src/unreliablestream/
 
 classpath := .:lib/commons-codec-1.5.jar:bin/
 
@@ -27,8 +28,11 @@ server: common
 client: common
 	javac $(compileopts) $(clientFiles)
 
-common: dirs
+common: dirs unreliablestream
 	javac $(compileopts) $(commonFiles)
+
+unreliablestream:
+	javac $(compileopts) $(streamsrcdir)/UnreliableStream.java $(streamsrcdir)/UnreliableStreamServer.java 
 
 all:	common server client
 
@@ -62,3 +66,6 @@ push_jar: jar
 
 push_bin:
 	scp -r bin aoiserv@vps6609.inmotionhosting.com:aoirun/
+
+test_stream: unreliablestream
+	java $(runopts) unreliablestream/UnreliableStreamServer

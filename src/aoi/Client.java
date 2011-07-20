@@ -75,7 +75,11 @@ public class Client implements Runnable {
       Byte cmd = stateStream.readByte();
       assert(cmd == 'p');
       ClientConfiguration.setPlayerNo(stateStream.readInt());
-
+      
+      // Read the UnreliableStream id assigned to self.
+      cmd = stateStream.readByte();
+      assert(cmd == 'u');
+      ClientConfiguration.unreliableStreamId = stateStream.readShort();
 
       // Parse the arena
       cmd = stateStream.readByte();
