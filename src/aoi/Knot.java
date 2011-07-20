@@ -7,6 +7,7 @@ public class Knot {
   public final int ind;
   private int lives;  // The special value of -1 means infinitely many lines
                 // or, in other words, that the knot is indestructables
+              // currently, this functionality is not used at all
   
   public Knot(int ind, int lives) {
     this.ind = ind;
@@ -26,9 +27,9 @@ public class Knot {
     lives = Math.max(0, lives-1);
   }
   
-  public boolean isAlive() { return lives!=0; }
+//  public boolean isAlive() { return lives!=0; }
   public int       lives() { return lives;    }
-  public boolean isIndes() { return lives==-1;}
+//  public boolean isIndes() { return lives==-1;}
   
   
   public String toString() {
