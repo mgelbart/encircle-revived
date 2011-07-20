@@ -29,6 +29,10 @@ public class Angle {
     this(Math.atan2(p2.getY()-p1.getY(), p2.getX()-p1.getX())); 
   }
   
+  public boolean equals(Angle that) {
+    return this.dir == that.dir;
+  }
+  
   /* 
    * Return the angle in radians on the interval -PI...PI.
    */

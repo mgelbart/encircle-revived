@@ -103,6 +103,25 @@ public class PlayerState {
   }	
 
 
+  public boolean equals(PlayerState that) {
+    if (this.playerNo != that.playerNo)                 return false;
+    if (!this.ship.equals(that.ship))                   return false;
+    if (this.energy != that.energy)                     return false;
+    if (!this.tail.equals(that.tail))                   return false;
+    if (this.tailStarted != that.tailStarted)           return false;
+    if (this.cropTailFrom != that.cropTailFrom)         return false;
+    if (this.cropTailTo != that.cropTailTo)             return false;
+    if (this.score != that.score)                       return false;
+    if (this.untilReload != that.untilReload)           return false;
+    if (this.untilRespawn != that.untilRespawn)         return false;
+    if (this.sinceCrossing != that.sinceCrossing)       return false;
+    if (this.sinceHitByBullet != that.sinceHitByBullet) return false;
+    if (this.sinceKnot != that.sinceKnot)               return false;
+    if (this.sinceLooping != that.sinceLooping)         return false;
+    if (this.sincePwned != that.sincePwned)             return false;
+    if (this.sinceScoring != that.sinceScoring)         return false;
+    return true;
+  }
   
   
   // Make a deep copy but set some parameter

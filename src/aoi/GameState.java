@@ -1,6 +1,7 @@
 package aoi;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Vector;
 
 /**
@@ -34,6 +35,13 @@ public class GameState implements Comparable<GameState> {
 
   public boolean equals(GameState that) {
     return this.time == that.time;
+  }
+  
+  public boolean deepEquals(GameState that) {
+    if (this.time != that.time) return false;
+    if (!Arrays.deepEquals(this.pStates, that.pStates)) return false;
+    if (!this.bullets.equals(that.bullets)) return false;
+    return true;
   }
 
   public String toString() {

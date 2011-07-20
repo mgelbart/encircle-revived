@@ -35,6 +35,16 @@ public class Ship {
   
   public final NSPath getNSPath() { return path; }
   
+  public boolean equals(Ship that) {
+    if (this.x != that.x) return false;
+    if (this.y != that.y) return false;
+    if (this.vx != that.vx) return false;
+    if (this.vy != that.vy) return false;
+    if (!this.direction.equals(that.direction)) return false;
+    if (!this.path.equals(that.path)) return false;
+    return true;
+  }
+  
   public Ship(Ship that) {
     this(that.x, that.y, that.vx, that.vy, that.direction);
   }
