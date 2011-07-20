@@ -65,7 +65,6 @@ public class Tail {
   }
   
   
-  
   // --------- ---------- start small cute functions --------------- //
   public int nPoints() {
     assert(trajectory.nPoints() == times.size());
