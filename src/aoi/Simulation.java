@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.Vector;
@@ -32,7 +33,7 @@ public class Simulation {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
 
   //for debugging
-  private static final boolean VISUALIZE = false;
+  private static final boolean VISUALIZE = true;
   private GUI gui = null;
   private Thread guiThread = null;
   
@@ -92,7 +93,7 @@ public class Simulation {
                            tailStarted, tailStarted, tailStarted, score,
                            0, 0, // untilReload, untilRespawn
                            255, 255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
-                           new Tail(new Point2D.Double(x, y), time)); 
+                           new Tail(new Point(x, y), time)); 
   }
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
@@ -165,25 +166,22 @@ public class Simulation {
           boolean formedLoop = false;
           
           if (states[j].untilRespawn > 0) {  // still waiting
-            int tailStarted, cropFrom, cropTo, untilRespawn;
+            assert(!states[j].tail.isEmpty());
             
-            tailStarted = states[j].tailStarted;
+            int untilRespawn = states[j].untilRespawn-1;
+            int tailStarted = states[j].tailStarted;
+            int cropFrom = states[j].tail.lengthFromLastKnotToTime(untilRespawn*SimulationUtils.UNCOILSPEED);
+            int cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
             
-            // (below) added -1 because respawning ends at 1
-            cropFrom = states[j].tail.lengthFromLastKnotToTime((states[j].untilRespawn-1)*SimulationUtils.UNCOILSPEED);
-            cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
             Point2D newLocation = states[j].tail.getPointFromTime(cropFrom);
             if (newLocation == null) newLocation = states[j].ship.location();
               Angle newDir = states[j].tail.tangentAngleHead();
             if (newDir == null) newDir = states[j].ship.dir();
               ship = new Ship(newLocation, 0, 0, newDir);
 
-            if (states[j].tail.isEmpty())
-              assert(false);
-      
             tail = states[j].tail.crop(cropFrom, cropTo);
             
-            untilRespawn = states[j].untilRespawn-1;
+            
 
             if (untilRespawn == 0) // already decremented
               tail.addPoint(ship.location(), game.time + 1);
@@ -278,9 +276,9 @@ public class Simulation {
 //            tailStarted = game.time + 1;
 //            cropFrom = tailStarted;
 //            cropTo = tailStarted;
-            tailStarted = tail.firstKnotTime() + 1;
+            tailStarted = game.time + 1;
             cropFrom = states[j].tailStarted;
-            cropTo = tailStarted + 1;
+            cropTo = tail.cropToForCrossing();
             tail = tail.crop(cropFrom, cropTo);
           } else if (loop != null) {
             // if you completed a loop
@@ -301,7 +299,7 @@ public class Simulation {
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, " -> " + tail.pathLength());
 //            Logger.println(Logger.RepetitionRate.INFREQUENT, tailStarted + " / " + cropFrom + " / " + cropTo + " / " + game.time);
           } else {
-            // normal time step --
+            // normal time step -- send the previous values
             tailStarted = states[j].tailStarted;
             cropFrom = states[j].cropTailFrom;
             cropTo = states[j].cropTailTo;

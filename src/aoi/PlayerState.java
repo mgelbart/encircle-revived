@@ -103,6 +103,25 @@ public class PlayerState {
   }	
 
 
+  public boolean equals(PlayerState that) {
+    if (this.playerNo != that.playerNo)                 return false;
+    if (!this.ship.equals(that.ship))                   return false;
+    if (this.energy != that.energy)                     return false;
+    if (!this.tail.equals(that.tail))                   return false;
+    if (this.tailStarted != that.tailStarted)           return false;
+    if (this.cropTailFrom != that.cropTailFrom)         return false;
+    if (this.cropTailTo != that.cropTailTo)             return false;
+    if (this.score != that.score)                       return false;
+    if (this.untilReload != that.untilReload)           return false;
+    if (this.untilRespawn != that.untilRespawn)         return false;
+    if (this.sinceCrossing != that.sinceCrossing)       return false;
+    if (this.sinceHitByBullet != that.sinceHitByBullet) return false;
+    if (this.sinceKnot != that.sinceKnot)               return false;
+    if (this.sinceLooping != that.sinceLooping)         return false;
+    if (this.sincePwned != that.sincePwned)             return false;
+    if (this.sinceScoring != that.sinceScoring)         return false;
+    return true;
+  }
   
   
   // Make a deep copy but set some parameter
@@ -336,37 +355,40 @@ public class PlayerState {
  
     if (untilRespawn == 0 && prevState.untilRespawn > 0) {  // if you finished respawning
       Logger.println(Logger.RepetitionRate.INFREQUENT, prevState.tail.nKnots());
-//      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-      // (above) not sure if should have this...
-      newTail = prevState.tail.useLastKnot();
+      newTail = prevState.tail;
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+      newTail = newTail.addPoint(p, time);
       Logger.println(Logger.RepetitionRate.INFREQUENT, "-> "+newTail.nKnots());
       Logger.println(Logger.RepetitionRate.INFREQUENT, "finished respawning");
     }
     else if (untilRespawn > 0) {  // you are resawning
-      newTail = prevState.tail.crop(cropTailFrom, cropTailTo);
-      Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning...");
+      newTail = prevState.tail;
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "respawning... " + untilRespawn);
+      Logger.println(Logger.RepetitionRate.INFREQUENT, newTail.nPoints());
     } 
 //    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
 //      newTail = new Tail(p, time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
 //    } 
     else if (sinceCrossing - prevState.sinceCrossing < 0) { 
+//      newTail = new Tail(p, time);
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "crossed");
     }
     else if (untilReload - prevState.untilReload > 0) {  // you shot
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "shot");
     } 
     else if (sinceLooping - prevState.sinceLooping < 0) {  // you made a loop
       newTail = prevState.tail;
       newTail = newTail.addPoint(p, time);
       newTail = newTail.crop(cropTailFrom, cropTailTo);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "made a loop");
     } 
     else {    // normal step
       newTail = prevState.tail.addPoint(p, time);
@@ -375,7 +397,7 @@ public class PlayerState {
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
       newTail.addKnotAtHead();
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
+      Logger.println(Logger.RepetitionRate.INFREQUENT, "ADDED knot: " + newTail.nKnots());
     }
           
     

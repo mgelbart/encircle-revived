@@ -12,21 +12,27 @@ import java.util.Vector;
  * Not Stupid Path. Like a Path2D object but gives access to the lines.
  * Cousin of NSPolygon.
  */
-public class NSPath implements Iterable<Point2D> {
+public class NSPath implements Iterable<Point> {
   
-  private Vector<Point2D> points;
+  private Vector<Point> points;
   private double length;  // Cache the trajectory length
   
   public NSPath() {
-    points = new Vector<Point2D>();
+    points = new Vector<Point>();
     length = 0;    
   }
   
-  private NSPath(Vector<Point2D> points, double length) {
+  private NSPath(Vector<Point> points, double length) {
     this.points = points;
     this.length = length;
   }
 
+  public boolean equals(NSPath that) {
+    if (this.length != that.length) return false;
+    if (!this.points.equals(that.points)) return false;
+    return true;
+  }
+  
   public Path2D toPath2D() {
     Path2D path = new Path2D.Double();
     if (points.isEmpty()) return path;
@@ -41,10 +47,10 @@ public class NSPath implements Iterable<Point2D> {
   public double length()         { return length; }
   public boolean isEmpty()       { return points.isEmpty(); }
   public int nPoints()           { return points.size(); }
-  public Point2D firstPoint()    { return getPoint(0); }
-  public Point2D getPoint(int i) { return points.elementAt(i); }
-  public Point2D lastPoint()     { return isEmpty()?null:points.lastElement(); } 
-  public Point2D lastlastPoint() { return (nPoints()<2)?null:points.elementAt(nPoints()-2); }  
+  public Point firstPoint()    { return getPoint(0); }
+  public Point getPoint(int i) { return points.elementAt(i); }
+  public Point lastPoint()     { return isEmpty()?null:points.lastElement(); } 
+  public Point lastlastPoint() { return (nPoints()<2)?null:points.elementAt(nPoints()-2); }  
   
   public Line2D[] getLines() {
     Line2D[] lines = new Line2D[nPoints()-1];
@@ -75,7 +81,7 @@ public class NSPath implements Iterable<Point2D> {
   public void addPoint(int x, int y) {
     addPoint(new Point(x, y));
   }
-  public void addPoint(Point2D newPoint) {
+  public void addPoint(Point newPoint) {
     if (!isEmpty()) 
       length += lastPoint().distance(newPoint);
     
@@ -131,13 +137,13 @@ public class NSPath implements Iterable<Point2D> {
     return s;
   }
   
-  public Iterator<Point2D> iterator()  {
+  public Iterator<Point> iterator()  {
       return points.iterator();
   }
   
   // Make a deep copy of the path.
   @SuppressWarnings("unchecked")
   public synchronized NSPath clone() {
-    return new NSPath((Vector<Point2D>)points.clone(), length);
+    return new NSPath((Vector<Point>)points.clone(), length);
   }
 }

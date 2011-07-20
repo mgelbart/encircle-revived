@@ -36,7 +36,7 @@ public class Tail {
   // returns baseTime() if no other knots exist
   
   // ---------------------- start constructors ----------------------- //
-  public Tail(Point2D p, int time) {
+  public Tail(Point p, int time) {
     trajectory = new NSPath();
     times = new Vector<Integer>();
     knots = new Vector<Knot>();  // FOR NOW, ORDERED, BUT BE CAREFUL!!!!!   
@@ -56,6 +56,15 @@ public class Tail {
     assert(trajectory.nPoints() == times.size());
   }
   // ---------------------- end constructors ----------------------- //  
+ 
+  public boolean equals(Tail that) {
+    if (!this.trajectory.equals(that.trajectory)) return false;
+    if (!this.times.equals(that.times)) return false;
+    if (!this.knots.equals(that.knots)) return false;
+    return true;
+  }
+  
+  
   // --------- ---------- start small cute functions --------------- //
   public int nPoints() {
     assert(trajectory.nPoints() == times.size());
@@ -68,10 +77,10 @@ public class Tail {
   public boolean isEmpty ()      { return nPoints() == 0;         }
   public int     getTime (int i) { return times.elementAt(i);     }
   public int     getTime (Knot k){ return getTime(k.ind);         }
-  public Point2D getPoint(int i) { return trajectory.getPoint(i); }
-  public Point2D getPoint(Knot k){ return getPoint(k.ind);        }
+  public Point getPoint(int i) { return trajectory.getPoint(i); }
+  public Point getPoint(Knot k){ return getPoint(k.ind);        }
   
-  public Point2D getPointFromTime(int time) {
+  public Point getPointFromTime(int time) {
     for (int i = 0; i < nPoints(); i++)
       if (getTime(i) == time)
         return getPoint(i);
@@ -133,14 +142,16 @@ public class Tail {
   }
   
   // the time of the first (closest to base)
-  // knot NOT INCLUDING THE KNOT AT BAE
+  // knot NOT INCLUDING THE KNOT AT BASE
   // Returns the head time if the knot
   // at the base is the only knot
-  public int firstKnotTime() {
+  public int cropToForCrossing() {
     assert(!isEmpty());
     assert(!knots.isEmpty());
-    if (nKnots() == 1) return headTime();
-    else return getTime(knots.get(1).ind);
+    if (nKnots() == 1) return headTime(); 
+    // (above) only knot at baseso crop everything except the head
+    else return getTime(knots.get(1).ind)+1;
+    // (above) crop everything including this knot
   }
   
   
@@ -212,14 +223,15 @@ public class Tail {
     return length;
   }
   
-  public Tail useLastKnot() {
-    Tail newTail = clone();
-    Knot last = newTail.knots.lastElement();
-    last.use();
-    if (!last.isAlive())
-      newTail.knots.remove(last);
-    return newTail;
-  }
+  // currently don't need this because we just crop the last knot
+//  public Tail useLastKnot() {
+//    Tail newTail = clone();
+//    Knot last = newTail.knots.lastElement();
+//    last.use();
+//    if (!last.isAlive())
+//      newTail.knots.remove(last);
+//    return newTail;
+//  }
   
   // Finds the angle of the line from i-1 to i
   public Angle tangentAngle(int i) {

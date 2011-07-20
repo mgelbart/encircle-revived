@@ -38,6 +38,14 @@ public class Bullet {
     Bullet nextPos = SimulationUtils.nextBulletPosition(this);
     return new Line2D.Double(x, y, 2*x-nextPos.x, 2*y-nextPos.y);
   }
+  
+  public boolean equals(Bullet that) {
+    if (this.x != that.x) return false;
+    if (this.y != that.y) return false;
+    if (!this.direction.equals(that.direction)) return false;
+    if (this.playerNo != that.playerNo) return false;
+    return true;
+  }
 
   public String toString() {
     StringBuilder s = new StringBuilder();
