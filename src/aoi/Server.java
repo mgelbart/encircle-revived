@@ -2,6 +2,9 @@ package aoi;
 
 import java.io.*;
 import java.net.*;
+import java.util.Random;
+
+import unreliablestream.*;
 
 /**
  * The main class ran by the server that handles
@@ -32,7 +35,7 @@ public abstract class Server {
     // NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
 
     ServerSocket servSocket = new ServerSocket(TCPPORT);
-
+    UnreliableStreamServer udpServ = new UnreliableStreamServer(UDPPORT);
 
 	  // (This can be moved later) Initialize ClusterDatabase;
 	  ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
@@ -80,24 +83,38 @@ public abstract class Server {
       simulation.initGameState();
 
       // Establish client connections.
-
-
-      Socket[] sockets = new Socket[2];
+      
+      // This helper class sets the PlayerListener as a receiver of UDP packets as soon
+      // as an UnreliableStream to the client is established.
+      class SetUDPInput implements UnreliableStreamServer.ConnectionListener {
+        PlayerListener listener;
+        SetUDPInput(PlayerListener listener) { this.listener = listener; }
+        
+        @Override
+        public void established(UnreliableStream stream) { stream.registerReceiver(listener); }
+      }
 
       for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-        simulation.senders[j] = new GameStateSender(j, simulation, null);
-        simulation.listeners[j] = new PlayerListener(j, simulation, null);
+        // Assign an ID number for the UDP stream of the client.
+        short id = udpServ.expectConnection();
+        
+        simulation.senders[j] = new GameStateSender(j, simulation, null, id);
+        simulation.listeners[j] = new PlayerListener(j, simulation, null, simulation.senders[j]);
 
         // We need a reference to the sender threads to interrupt
         // them when the game sate is updated.
         simulation.senderThreads[j] = new Thread(simulation.senders[j]);
         simulation.listenerThreads[j] = new Thread(simulation.listeners[j]);
+
+        // set the PlayerListener as a receiver for UDP packets as soon as a connection is established.
+        udpServ.registerConnectionListener(id, new SetUDPInput(simulation.listeners[j]));
       }
 
 
       // Wait for two clients to connect:
-
       Logger.println(Logger.RepetitionRate.FEW, "Waiting for clients to connect...");
+      
+      Socket[] sockets = new Socket[2];
       for (int j=0; j<2; ++j) {
         sockets[j] = servSocket.accept();
         Logger.println(Logger.RepetitionRate.FEW, "Player " + j + " connected.");
@@ -105,8 +122,8 @@ public abstract class Server {
         // Don't buffer data before sending TCP packets.
         sockets[j].setTcpNoDelay(true);
 
-        simulation.senders[j].setOutput(sockets[j].getOutputStream());
-        simulation.listeners[j].setInput(sockets[j].getInputStream());
+        simulation.senders[j].setTCPOutput(sockets[j].getOutputStream());
+        simulation.listeners[j].setTCPStream(sockets[j].getInputStream());
 
         // Start sender & listener threads.
         simulation.senderThreads[j].start();
@@ -117,7 +134,7 @@ public abstract class Server {
       // Start simulating the game!
       simulation.startGame(clusterDbSayWithPET, maxSegmentNumber);
 
-      // TODO: start the while(true) loop from the beginnig
+      // TODO: start the while(true) loop from the beginning
       //       to server multiple games at a time.
       //
       //       However, should first implement a way to

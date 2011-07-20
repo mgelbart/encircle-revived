@@ -14,6 +14,9 @@ public abstract class ClientConfiguration {
   // The server port for receiving the game state and sending
   // the control parameters.
   public static int serverPort;
+  
+  // The id of the UnreliableStream used to connect to the server.
+  public static int unreliableStreamId;
 
   // Player number in the game.
   public static int playerNo;
