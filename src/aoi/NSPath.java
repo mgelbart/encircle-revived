@@ -27,10 +27,11 @@ public class NSPath implements Iterable<Point> {
     this.length = length;
   }
 
-//  public boolean equals(NSPath that) {
-//    if (this.length != that.length) return false;
-//    if (this.points.size() != that.points.size()) return false;
-//  }
+  public boolean equals(NSPath that) {
+    if (this.length != that.length) return false;
+    if (!this.points.equals(that.points)) return false;
+    return true;
+  }
   
   public Path2D toPath2D() {
     Path2D path = new Path2D.Double();

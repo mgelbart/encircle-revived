@@ -57,9 +57,12 @@ public class Tail {
   }
   // ---------------------- end constructors ----------------------- //  
  
-//  public boolean equals(Tail that) {
-//    return this.trajectory.e
-//  }
+  public boolean equals(Tail that) {
+    if (!this.trajectory.equals(that.trajectory)) return false;
+    if (!this.times.equals(that.times)) return false;
+    if (!this.knots.equals(that.knots)) return false;
+    return true;
+  }
   
   
   

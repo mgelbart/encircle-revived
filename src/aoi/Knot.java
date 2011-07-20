@@ -31,6 +31,9 @@ public class Knot {
   public int       lives() { return lives;    }
 //  public boolean isIndes() { return lives==-1;}
   
+  public boolean equals(Knot that) {
+    return this.ind == that.ind && this.lives == that.lives;
+  }
   
   public String toString() {
     return ind+"";
