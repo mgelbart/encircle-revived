@@ -3,6 +3,7 @@ package aoi;
 import java.awt.Point;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.util.TreeSet;
 import java.util.Vector;
 
 /** 
@@ -322,5 +323,19 @@ public class Tail {
   
   public String toString() { return trajectory.toString(); }
    
+  
+
+  @SuppressWarnings("serial")
+  public class KnotGroup extends TreeSet<Integer> {
+      
+    public KnotGroup() {
+      super();
+      add(0);
+    }  
+
+    public Integer firstNotBase() {
+      return higher(0);
+    }
+  }
   
 }
