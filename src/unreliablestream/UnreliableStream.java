@@ -84,11 +84,7 @@ public class UnreliableStream {
   
   // Connect to the remote host and start listening for incoming packets.
   public void connect() {
-    lastReceivedTime = System.currentTimeMillis();
-    lastSentTime = lastReceivedTime;
-    keepAliveTimer = new Timer();
-    keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
-    
+  
     Thread listenThread = new Thread(new Runnable() {
 
       @Override
@@ -126,7 +122,16 @@ public class UnreliableStream {
     
     listenThread.start();
     
-    // send a keep alive packet.
+    startToKeepAlive();
+  }
+  
+  void startToKeepAlive() {
+    keepAliveTimer = new Timer();
+    lastReceivedTime = System.currentTimeMillis();
+    lastSentTime = lastReceivedTime;
+    keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
+    
+    // send the first keep alive packet.
     send(new byte[0]);
   }
 

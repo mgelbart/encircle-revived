@@ -100,7 +100,13 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
 
     // Keep ctrls ordered by effectiveOn.
     synchronized (ctrls) {
-      ctrls.add(ctrl);
+      if (prev.effectiveOn != ctrl.effectiveOn)
+        ctrls.add(ctrl);
+      else
+        // this special case is important when
+        // the game hasn't started but a client
+        // keeps transmitting the first command.
+        ctrls.set(ctrls.indexOf(prev), ctrl);
       java.util.Collections.sort(ctrls);
     }
 
