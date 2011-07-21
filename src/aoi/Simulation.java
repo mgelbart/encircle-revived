@@ -37,7 +37,7 @@ public class Simulation {
   private Thread guiThread = null;
   
   // for debugging
-  private static final boolean VERIFYSERIALIZATION = false;
+  public static final boolean VERIFYSERIALIZATION = true;
   
   
   public Simulation(Arena arena) {
@@ -181,12 +181,9 @@ public class Simulation {
             ship = new Ship(newLocation, 0, 0, newDir);
 
             tail = pStates[j].tail.crop(cropFrom, cropTo);
-            
-            
-
+                        
             if (untilRespawn == 0) // already decremented
-              tail.addPoint(ship.location(), game.time + 1);
-           
+              tail = tail.addPoint(ship.location(), game.time + 1);
             
             pStates[j] = new PlayerState(j, ship, 
                 cropFrom, cropTo, pStates[j].score,
@@ -199,6 +196,7 @@ public class Simulation {
                 pStates[j].sincePwned+1,
                 pStates[j].sinceKnot+1,
                 tail);
+            assert(!pStates[j].tail.isEmpty());
             continue;
           }
           
@@ -358,7 +356,8 @@ public class Simulation {
           
           ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
           GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);          
-          parsedGState.assertDeepEquals(newGState);
+//          parsedGState.assertDeepEquals(newGState);
+          assert(newGState.deepEquals(parsedGState));
         }
         
         // Note: don't need locking since updating a reference is atomic.
