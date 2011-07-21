@@ -64,9 +64,9 @@ public class DrawableScoreboard implements Drawable {
     Font f = new Font("Monospaced", Font.PLAIN, 10);
     scoreboard = f.createGlyphVector(graphics.getFontMetrics(f).getFontRenderContext(), seq.toString());
 
-    double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
-    double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
-    double scaleFact = 15. / boardHeight;  // make the letters 15 px high
+    final double boardHeight = scoreboard.getOutline().getBounds2D().getHeight();
+    final double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
+    final double scaleFact = 15. / boardHeight;  // make the letters 15 px high
     
     // Precalculate everything for the coordinate transformation except that translation.
     // The amount of translation depends on the canvas size which may change.
@@ -93,7 +93,7 @@ public class DrawableScoreboard implements Drawable {
     shapes[0] = toOverlayCoords().createTransformedShape(numbers);
     
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-      Rectangle2D box = scoreboard.getGlyphOutline(2*game.pStates[j].score).getBounds2D();
+      Rectangle2D box = scoreboard.getGlyphVisualBounds(2*game.pStates[j].score).getBounds2D();
 
       double margin = box.getWidth() * 0.35;
       

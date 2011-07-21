@@ -7,9 +7,13 @@ import java.awt.*;
  */
 public class DefaultDrawable implements Drawable {
 
-  protected Stroke stroke;
   protected int playerNo;
-  private Paint paint;
+  
+  // default stroke, fill, and pain objects returned for all shapes
+  protected Stroke stroke;
+  protected Paint paint;
+  protected boolean fill;
+  
   private boolean removed;
   protected int nShapes;  // the number of shapes in this drawable
   
@@ -20,10 +24,11 @@ public class DefaultDrawable implements Drawable {
     this.playerNo = playerNo;
     this.removed = false;
     this.paint = getColor(playerNo);
+    this.fill = false;
     this.nShapes = 1;
   }
 
-  // TODO should depend on your color
+  // Returns the Color associated with the given player number.
   public static Color getColor(int playerNo) { 
     return (playerNo == ClientConfiguration.playerNo) ? Color.RED : Color.BLUE;
   }
@@ -49,7 +54,7 @@ public class DefaultDrawable implements Drawable {
   public boolean[] fill() { 
     boolean[] fillArray = new boolean[nShapes];
     for (int i = 0; i < nShapes; i++)
-      fillArray[i] = false;
+      fillArray[i] = fill;
     return fillArray; 
   }
 
