@@ -209,21 +209,35 @@ public class Tail {
   // Crops part of a tail given the times "from" and "to".
   // Removes "from" but not "to"
   public Tail crop(int from, int to) {
-   
-    // Fields for new Tail
+    return crop(new CropEvent(from, to));
+  }
+  public Tail crop(CropEvent ce) {
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
     KnotGroup newKnots = new KnotGroup();
     
     for (int i = 0; i < nPoints(); i++) {
-      if (times.get(i) - from < 0 || times.get(i) - to >= 0) {
-        // If the point is not cropped, add it
+      if (!ce.contains(times.get(i))) {
         newPath.addPoint(getPoint(i));
         newTimes.add(times.get(i));
         if (knots.contains(i)) newKnots.add(newTimes.size()-1);
       }
     }
+    return new Tail(newPath, newTimes, newKnots);
+  }
+  // (below) Keep this as a separate function for speed
+  public Tail crop(CropEventGroup ceg) {
+    NSPath newPath = new NSPath();
+    Vector<Integer> newTimes = new Vector<Integer>();
+    KnotGroup newKnots = new KnotGroup();
     
+    for (int i = 0; i < nPoints(); i++) {
+      if (!ceg.contains(times.get(i))) {
+        newPath.addPoint(getPoint(i));
+        newTimes.add(times.get(i));
+        if (knots.contains(i)) newKnots.add(newTimes.size()-1);
+      }
+    }
     return new Tail(newPath, newTimes, newKnots);
   }
   

@@ -30,7 +30,7 @@ public class Simulation {
   public final Thread[] listenerThreads = new Thread[SimulationUtils.NUMPLAYERS];
   public final GameStateSender[] senders = new GameStateSender[SimulationUtils.NUMPLAYERS];
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
-
+  
   // for debugging
   private static final boolean VISUALIZE = false;
   private GUI gui = null;
@@ -91,9 +91,9 @@ public class Simulation {
 
     Angle dir = new Angle((Math.PI * (1 - 2*Math.random())));
 
-    int crop = (game == null) ? 0 : game.time;
+//    int crop = (game == null) ? 0 : game.time;
     return new PlayerState(playerNo, x, y, 0, 0, dir,
-                           crop, crop, score,
+                           new CropEventGroup(), score,
                            0, 0, // untilReload, untilRespawn
                            255, 255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
                            new Tail(new Point(x, y), time)); 
@@ -161,6 +161,7 @@ public class Simulation {
 
           Ship ship;
           Tail tail;
+          CropEventGroup cropEvents;
           boolean spendPathOnBullet = false;
           boolean scored = false;
           boolean crossedOtherPath = false;
@@ -181,12 +182,14 @@ public class Simulation {
             ship = new Ship(newLocation, 0, 0, newDir);
 
             tail = pStates[j].tail.crop(cropFrom, cropTo);
-                        
+                  
+            cropEvents = pStates[j].cropEvents.addEvent(cropFrom, cropTo);
+            
             if (untilRespawn == 0) // already decremented
               tail = tail.addPoint(ship.location(), game.time + 1);
             
             pStates[j] = new PlayerState(j, ship, 
-                cropFrom, cropTo, pStates[j].score,
+                cropEvents, pStates[j].score,
                 Math.max(0, pStates[j].untilReload-1),
                 untilRespawn,
                 pStates[j].sinceScoring+1,
@@ -268,28 +271,32 @@ public class Simulation {
             }
           }
           
+          
+          
+          
           int  cropFrom, cropTo;
+          cropEvents = pStates[j].cropEvents.clone();
+          
           if (crossedOtherPath) {
             // if your crossed another player's path
             cropFrom = pStates[j].tail.baseTime();
             cropTo = tail.cropToForCrossing();
-            tail = tail.crop(cropFrom, cropTo);
-          } else if (loop != null) {
+            cropEvents = cropEvents.addEvent(cropFrom, cropTo);
+          } 
+          if (loop != null) {
             // if you completed a loop
             cropFrom = loop.baseTime();
             cropTo = game.time + 1; 
-            tail = tail.crop(cropFrom, cropTo);
-          } else if (spendPathOnBullet) {
+            cropEvents = cropEvents.addEvent(cropFrom, cropTo);
+          } 
+          if (spendPathOnBullet) {
             // if you spend some path on a shot
             cropFrom    = pStates[j].tail.baseTime();
             cropTo      = pStates[j].tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1; // +1 because cropping excludes the "to"
-            tail = tail.crop(cropFrom, cropTo);
-          } else {
-            // normal time step -- send the previous values
-            cropFrom = pStates[j].cropTailFrom;
-            cropTo = pStates[j].cropTailTo;
+            cropEvents = cropEvents.addEvent(cropFrom, cropTo);
           }
-          // end dealing with moving around and loops and stuff
+          tail = tail.crop(cropEvents);
+
           
           if (scored)
             tail = tail.addKnotAtHead();
@@ -326,7 +333,7 @@ public class Simulation {
           //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           pStates[j] = new PlayerState(j, ship,
-              cropFrom, cropTo,
+              cropEvents,
               (scored)? pStates[j].score+1 : pStates[j].score,
               (spendPathOnBullet)? SimulationUtils.RELOADTIME : Math.max(0, pStates[j].untilReload-1),
               (crashed||gotShot)? SimulationUtils.timeUntilRespawn(tail) : 0,

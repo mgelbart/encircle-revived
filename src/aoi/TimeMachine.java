@@ -145,8 +145,7 @@ public class TimeMachine {
         }
         
         players[k] = new PlayerState(k, ship[k],
-                                      players[k].cropTailFrom,
-                                      players[k].cropTailTo,
+                                      players[k].cropEvents,
                                       players[k].score,
                                       (tookShot)? SimulationUtils.RELOADTIME : Math.max(0, players[k].untilReload-1),
                                       Math.max(0, players[k].untilRespawn-1),

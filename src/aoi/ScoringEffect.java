@@ -45,8 +45,8 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
     } else if (internalCounter == 0 && s.sinceScoring - prevSinceScoring < 0) {  // you just scored 
       // crop the non-loop part from the scoring effect.
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
-      scoringTail = scoringTail.crop(s.tail.baseTime(), s.cropTailFrom);
-      scoringTail = scoringTail.crop(s.cropTailTo, gState.time + 1);
+      scoringTail = scoringTail.crop(s.tail.baseTime(), s.cropEvents.getEvents().lastElement().cropFrom);
+      scoringTail = scoringTail.crop(s.cropEvents.getEvents().lastElement().cropTo, gState.time + 1);
       
       return new Shape[]{scoringTail.pathShape()};
     } else if (internalCounter == 0) {  // normal time
