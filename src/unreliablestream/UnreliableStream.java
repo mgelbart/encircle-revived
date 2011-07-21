@@ -24,7 +24,7 @@ import aoi.Logger.RepetitionRate;
 public class UnreliableStream {
   
   // Maximum amount of data carried by a single packet, in bytes.
-  public static final int MAXDATASIZE = 1024;
+  public static final int MAXDATASIZE = 2048;
   
   // The connection is considered dead if no packets are received in this time.
   // Specified in milliseconds.
@@ -137,6 +137,9 @@ public class UnreliableStream {
 
   // Send the next packet
   public void send(byte[] data) {
+    if (data.length > MAXDATASIZE) {
+      Logger.println(RepetitionRate.FEW, "data size=" + data.length + " exceeds MAXDATASIZE=" + MAXDATASIZE);
+    }
     assert(data.length <= MAXDATASIZE);
     
     int seq, ack, ackRel;
@@ -181,6 +184,7 @@ public class UnreliableStream {
           relativeReceived = relativeReceived | (1<<(diff-1));  // add the previous lastReceived to the relative acks
         }
       }
+      lastReceivedTime = System.currentTimeMillis();
       
 //      Logger.println(RepetitionRate.INFREQUENT, "received " + p.data.length + " bytes. seq: " + p.sequenceNo);
       

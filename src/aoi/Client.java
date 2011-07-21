@@ -233,6 +233,14 @@ public class Client implements Runnable {
       if (!ClientConfiguration.tcpOnly) {
         byteOut = new ByteArrayOutputStream();
         dataOut = new DataOutputStream(byteOut);
+        
+        if (!udpOut.isAlive()) {
+          Logger.println(RepetitionRate.FEW, "UnreliableStream has timed out. Falling back to TCP.");
+          ClientConfiguration.tcpOnly = true;
+          assert(tcpBufOut != null);
+          dataOut = new DataOutputStream(this.tcpBufOut);
+        }
+        
       } else {
         assert(dataOut != null);
       }
@@ -301,14 +309,15 @@ public class Client implements Runnable {
       
       ByteArrayInputStream bin = new ByteArrayInputStream(data);
       
-      GameState newState = null;
+      GameState newState;
       try {
         newState = GameState.parse(new DataInputStream(bin), prev);
       } catch (IOException e) {
         Logger.println(RepetitionRate.FEW, "Failed to parse game state from server.");
         e.printStackTrace();
+        return false;
       }
-      prev = (newState != null)? newState:prev;
+      prev = newState;
       
       intelligence.processGameStateUpdate(newState);
       

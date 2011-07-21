@@ -76,13 +76,13 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
     final ByteArrayInputStream bin = new ByteArrayInputStream(data);
     final DataInputStream din = new DataInputStream(bin);
 
-    boolean success = false;
+    boolean success = true;
     while (bin.available() > 0) {
 //      Logger.println(RepetitionRate.FREQUENT, "trying to read (UDP):");
-      success = success || readFromStream(din);
+      if(!readFromStream(din)) return false;
     }
 
-    return success; // all reads succeeded if this is true.
+    return true; // all reads succeeded
   }
 
   private boolean readFromStream(DataInputStream din) {
