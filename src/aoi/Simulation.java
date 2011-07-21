@@ -68,7 +68,7 @@ public class Simulation {
     PlayerState[] pStates = new PlayerState[SimulationUtils.NUMPLAYERS];
 
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-      pStates[j] = initPlayerState(j, 0, true, 0);
+      pStates[j] = initPlayerState(j, true, 0);
 
     this.game = new GameState(0, pStates, new Vector<Bullet>());
   }
@@ -76,24 +76,24 @@ public class Simulation {
   // Generate a player state at one of the corners.
   // If homeCorner is true, the corner is deterministic.
   // Otherwise it's random.
-  private PlayerState initPlayerState(int playerNo, int score,
+  private PlayerState initPlayerState(int playerNo,
                                       boolean homeCorner, int time) {
     assert(playerNo >= 0);
     assert(playerNo < SimulationUtils.NUMPLAYERS);
-    if (score < 0) score = 0;
 
     // Always start from one of the corners of the map.
     final int corner = (homeCorner) ? 2*playerNo : (int) (4 * Math.random());
 
     final int x = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
     final int y = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
+    Point p = new Point(x, y);
     Angle dir = new Angle((Math.PI * (1 - 2*Math.random())));
 
-    return new PlayerState(playerNo, x, y, 0, 0, dir,
-                           new CropEventGroup(), score,
-                           0, 0, // untilReload, untilRespawn
-                           255, 255, 255, 255, 255, 255, // sinceScoring, sinceLooping, sinceCrossing, sinceHitByBullet, sincePwned
-                           new Tail(new Point(x, y), time)); 
+    
+    Ship ship = new Ship(p, 0, 0, dir);
+    Tail tail = new Tail(p, time);
+    
+    return new PlayerState(playerNo, ship, tail);
   }
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
@@ -155,7 +155,22 @@ public class Simulation {
         for (int playerNo=0; playerNo<SimulationUtils.NUMPLAYERS; ++playerNo) { 
  /* ----------------------  "main" loop for each player  --------------------- */ 
 
-          // COPY THE PREVIOUS STATE'S PARAMETERS AND UPDATE BYTE FLAGS
+          /* TABLE OF CONTENTS
+           * 
+           * (0) copy previous state parameters
+           * (1) take shots
+           * (2) check for tail crossings and scoring
+           * (3) move bullets and check if players are hit
+           * (4) check for crashing
+           * (5) move the Ship
+           * (6) update Tail
+           * (7) update the temporary player state
+           * (8) update the real game state
+           * Note: steps (1)-(5) skipped for respawning players
+           */
+          
+          
+          // (0) COPY THE PREVIOUS STATE'S PARAMETERS AND UPDATE BYTE FLAGS
           Ship ship                 = game.pStates[playerNo].ship;
           CropEventGroup cropEvents = game.pStates[playerNo].cropEvents;
           int score                 = game.pStates[playerNo].score;
@@ -187,7 +202,7 @@ public class Simulation {
           else {
           // Normal case when not respawning
             
-            // TAKE SHOTS
+            // (1) TAKE SHOTS
             if (params[playerNo].shoot && 
                 SimulationUtils.canShoot(pStatesTemp[playerNo])) {
               
@@ -199,7 +214,7 @@ public class Simulation {
             }
   
   
-            // CHECK FOR TAIL CROSSINGS AND SCORING          
+            // (2) CHECK FOR TAIL CROSSINGS AND SCORING          
             for (int thatPlayerNo=0; thatPlayerNo<SimulationUtils.NUMPLAYERS; ++thatPlayerNo) {            
               // (below) See comments in the intersects() function for more detail on this BS
               Tail intersection = tail.intersects(tail, (thatPlayerNo==playerNo)?2:0);
@@ -251,7 +266,7 @@ public class Simulation {
             }     // end for (otherPlayerNo)
             
             
-            // MOVE BULLETS AND CHECK IF PLAYER IS HIT BY BULLET
+            // (3) MOVE BULLETS AND CHECK IF PLAYER IS HIT BY BULLET
             boolean gotShot = false;
             for (int k = bullets.size() - 1; k >= 0; --k) {
               Bullet b = SimulationUtils.nextBulletPosition(bullets.get(k));
@@ -276,22 +291,22 @@ public class Simulation {
             }
             
             
-            // CHECK IF PLAYER CRASHED
+            // (4) CHECK IF PLAYER CRASHED
             if (!SimulationUtils.isInArena(ship, arena)) {
               untilRespawn = SimulationUtils.timeUntilRespawn(tail);
             }
             
             
-            // CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
+            // (5) CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
             ship = SimulationUtils.nextPosition(ship, params[playerNo]);
           }   // end if not respawning
           
 
-          // UPDATE TAIL BY ADDING NEW POINT AND CROPPING
+          // (6) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = tail.parse(ship.location(), game.time+1, cropEvents);
 
           
-          //  SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
+          //  (7) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           pStatesTemp[playerNo] = new PlayerState(
               playerNo, 
@@ -316,7 +331,7 @@ public class Simulation {
           if (gotPwned[j])
             pStatesTemp[j] = pStatesTemp[j].cloneAndPwn();
 
-        // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
+        // (8) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(game.time + 1, pStatesTemp, bullets);
         
         if (VERIFYSERIALIZATION) {
