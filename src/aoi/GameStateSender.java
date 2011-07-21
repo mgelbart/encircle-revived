@@ -41,7 +41,7 @@ public class GameStateSender implements Runnable {
 
   public void setUDPOutput(UnreliableStream out) {
     synchronized (sendingLock) {
-      assert(udpId == udpStream.getId());
+      assert(udpId == out.getId());
       this.udpStream = out;
     }
   }

@@ -16,7 +16,7 @@ public abstract class ClientConfiguration {
   public static int serverPort;
   
   // The id of the UnreliableStream used to connect to the server.
-  public static int unreliableStreamId;
+  public static short unreliableStreamId;
 
   // Player number in the game.
   public static int playerNo;

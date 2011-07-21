@@ -22,15 +22,13 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
   private int playerNo;
   private DataInputStream tcpStream;
   
-  private GameStateSender sender;
   private boolean udpEnabled = false;
 
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
 
-  public PlayerListener(int player, Simulation sim, InputStream in, GameStateSender sender) {
+  public PlayerListener(int player, Simulation sim, InputStream in) {
     this.playerNo = player;
     this.tcpStream = new DataInputStream(in);
-    this.sender = sender;
 
     // Never let the buffer be empty.
     ctrls.add(new PlayerControlParameters(0, 0, sim.gameState().pStates[player].ship.dir(), false, false));
@@ -66,23 +64,25 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
   public void run() {
 
     // TODO: should die gracefully
-    while (true) readFromStream(tcpStream);
+    while (true) {
+//      Logger.println(RepetitionRate.FREQUENT, "trying to read next (TCP):");
+      readFromStream(tcpStream);
+    }
 
   }
 
   /**
-   * This is called if command parameters were receive through an unreliable stream (UDP).
+   * This is called if command parameters were received through an unreliable stream (UDP).
    */
   @Override
   public boolean received(byte[] data, UnreliableStream src) {
     final ByteArrayInputStream bin = new ByteArrayInputStream(data);
     final DataInputStream din = new DataInputStream(bin);
-    
-    // Switch to sending the game state via UDP as soon as the a command is received from
-    // the client via UDP. this needs to be done only once.
-    if (!udpEnabled) { sender.setUDPOutput(src); udpEnabled = true; }
-    
-    while (bin.available() > 0) readFromStream(din);
+
+    while (bin.available() > 0) {
+//      Logger.println(RepetitionRate.FREQUENT, "trying to read (UDP):");
+      readFromStream(din);
+    }
 
     return true;
   }
@@ -92,7 +92,7 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
     
     PlayerControlParameters prev;
     synchronized (ctrls) { prev = ctrls.lastElement(); }
-    PlayerControlParameters ctrl = PlayerControlParameters.parse(tcpStream, prev);
+    PlayerControlParameters ctrl = PlayerControlParameters.parse(din, prev);
     if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) {
       Logger.println(RepetitionRate.FEW, "too many controls buffered for player " + playerNo);
       return;

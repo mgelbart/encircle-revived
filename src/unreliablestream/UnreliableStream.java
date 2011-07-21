@@ -8,6 +8,7 @@ import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import aoi.Logger;
 import aoi.Logger.RepetitionRate;
 
 /**
@@ -47,12 +48,13 @@ public class UnreliableStream {
   // a counter for the packet id of own packets
   private Integer lastSentSeq = 0;
   
-  // the latest seq no received from the remote host
-  private int lastReceived;
+  // the latest packet received from the remote host
+  private Packet lastReceived;
   // if the i'th bit is set --> lastReceivedSeq-i has been received
   private int relativeReceived;
   
   
+
   // The system time when the last packet was received.
   private long lastReceivedTime;
   private long lastSentTime;
@@ -68,7 +70,7 @@ public class UnreliableStream {
     lastSentTime = lastReceivedTime;
     
     try {
-      socket.setSoTimeout(500);
+      socket.setSoTimeout(TIMEOUT/4);
     } catch (SocketException e) {
       e.printStackTrace();
       assert(false);
@@ -132,10 +134,13 @@ public class UnreliableStream {
   public void send(byte[] data) {
     assert(data.length <= MAXDATASIZE);
     
-    int seq;
+    int seq, ack, ackRel;
     synchronized (lastSentSeq) { seq = ++lastSentSeq; }
+    if (lastReceived != null) synchronized (lastReceived) { ack = lastReceived.sequenceNo; ackRel = relativeReceived; }
+    else { ack = 0; ackRel = 0; }
+      
     
-    final byte[] all = new Packet(id, seq, lastReceived, relativeReceived, data).toBytes();
+    final byte[] all = new Packet(id, seq, ack, ackRel, data).toBytes();
     final DatagramPacket p = new DatagramPacket(all, all.length, remoteHost, remotePort);
     try {
       socket.send(p);
@@ -144,6 +149,9 @@ public class UnreliableStream {
       e.printStackTrace();
       assert(false);
     }
+    
+//    Logger.println(RepetitionRate.INFREQUENT, "sent " + data.length + " bytes. seq: " + seq);
+    
   }
   
   // Register a handler for received packets.
@@ -157,11 +165,19 @@ public class UnreliableStream {
   void processReceived(Packet p) {
     if (p.id != id) { aoi.Logger.println(RepetitionRate.INFREQUENT, "received unknown id: " + p.id); return; }
     
-    final int diff = p.sequenceNo - lastReceived;
+    final int diff = (lastReceived == null) ? 1 : p.sequenceNo - lastReceived.sequenceNo;
     if (diff > 0) {
-      lastReceived = p.sequenceNo;
-      relativeReceived = relativeReceived<<diff; // shift all previous acks by diff
-      relativeReceived = relativeReceived | (1<<diff);  // add the previous lastReceived to the relative acks
+      
+      if (lastReceived == null) { relativeReceived = 0; lastReceived = p; }
+      else {
+        synchronized (lastReceived) {
+          lastReceived = p;
+          relativeReceived = relativeReceived<<diff; // shift all previous acks by diff
+          relativeReceived = relativeReceived | (1<<(diff-1));  // add the previous lastReceived to the relative acks
+        }
+      }
+      
+//      Logger.println(RepetitionRate.INFREQUENT, "received " + p.data.length + " bytes. seq: " + p.sequenceNo);
       
       synchronized (receivers) {
         for (Receiver l : receivers) {
@@ -177,6 +193,30 @@ public class UnreliableStream {
     }
   }
   
+  // return the fraction of packets that made it to the remote party recently.
+  public double sendSuccessRate() {
+    if (lastReceived == null) return -1;
+    
+    int ones = 0;
+    final int ackRel = lastReceived.relativeAck;
+    for (int j=0; j<Packet.ACKBITS; ++j)
+      if ((ackRel & 1<<j) != 0) ++ones;
+    
+    return (1 + ones) / (double) (1 + Packet.ACKBITS);
+  }
+  
+  // return the fraction of packets that made it from the remote party recently.
+  public double receiveSuccessRate()  {
+    if (lastReceived == null) return -1;
+    
+    int ones = 0;
+    final int ackRel = relativeReceived;
+    for (int j=0; j<Packet.ACKBITS; ++j)
+      if ((ackRel & 1<<j) != 0) ++ones;
+    
+    return (1 + ones) / (double) (1 + Packet.ACKBITS);
+  }
+
   // Returns true iff the connection is considered to be alive.
   public boolean isAlive() {
     return System.currentTimeMillis() - lastReceivedTime < TIMEOUT;

@@ -7,6 +7,10 @@ import java.util.TimerTask;
 import java.awt.*;
 import javax.swing.*;
 
+import aoi.Logger.RepetitionRate;
+
+import unreliablestream.UnreliableStream;
+
 /**
  *  A class for connecting to the server and parsing the game state
  *  and sending the desired control parameters.
@@ -94,11 +98,10 @@ public class Client implements Runnable {
       // Now parse from the buffer.
       Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf));
       Arena.setCurrent(arena);
-
-      /* End of handshake. */
-
-	    
+      
       Logger.println(Logger.RepetitionRate.FEW, ClientConfiguration.asString());
+      
+      /* End of handshake. */
 
 
       /* Run the intelligence in a separate thread so that parsing/serializing
@@ -109,9 +112,21 @@ public class Client implements Runnable {
       else
         intel = new HigherBeing();
 
-      // This times task keeps asking the intelligence for new parameters
+      /* Set up the UDP connection */
+      Logger.println(Logger.RepetitionRate.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+      UnreliableStream uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
+      
+      // This passes received game states to the intelligence.
+      uStream.registerReceiver(new GameStateReceiver(intel));
+      
+      // connect and wait until we start getting some replies.
+      uStream.connect();
+      while (uStream.sendSuccessRate() < 0) { Logger.println(RepetitionRate.FEW, "waiting for reply... " + uStream.sendSuccessRate()); Thread.sleep(500); }
+
+
+      // This timer task keeps asking the intelligence for new parameters
       // and sends them to the server.
-      TimerTask sendTask = new SendParamsTask(intel, controlStream);
+      TimerTask sendTask = new SendParamsTask(intel, uStream);
       Timer sendTimer = new Timer();
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
@@ -120,10 +135,8 @@ public class Client implements Runnable {
       GameState game = null;
 
       while (true) {
-        // This keeps parsing and passing on new
-        // game states to the Intelligence.
-        game = parseGameState(stateStream, game);
-        intel.processGameStateUpdate(game);
+        // there's nothing left for this thread to do!
+        Thread.sleep(10000);
       }
 
     } catch (Exception e) {
@@ -139,10 +152,6 @@ public class Client implements Runnable {
     }
 
     //socket.close();
-  }
-
-  private static GameState parseGameState(DataInputStream i, GameState prevState) {
-    return GameState.parse(i, prevState);
   }
 
   /**
@@ -164,24 +173,25 @@ public class Client implements Runnable {
   }
 
   
-  private class SendParamsTask extends TimerTask {
+  private static class SendParamsTask extends TimerTask {
 
     Intelligence intelligence;
-    BufferedOutputStream bout;
-    DataOutputStream dout;
+    UnreliableStream out;
     
     PlayerControlParameters last;
     
-    public SendParamsTask(Intelligence intelligence, BufferedOutputStream out) {
+    public SendParamsTask(Intelligence intelligence, UnreliableStream out) {
       this.intelligence = intelligence;
-      this.bout = out;
-      this.dout = new DataOutputStream(bout);
+      this.out = out;
     }
     
     public void run() {
       
       // Send all queued control parameters.
       PlayerControlParameters[] pcp = intelligence.getNewControlParameters();
+      
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      DataOutputStream dout = new DataOutputStream(bout);
       
       if (pcp.length == 0) {
  
@@ -197,16 +207,34 @@ public class Client implements Runnable {
         last = pcp[pcp.length-1];
       }
       
-      try {
-        bout.flush();
-      } catch (IOException e) {
-        e.printStackTrace();
-        assert(false);
-      }
+      out.send(bout.toByteArray());
       
+      final double s = out.sendSuccessRate();
+      if (s < 0.999) { Logger.println(RepetitionRate.INFREQUENT, "UDP success rate: " + s); }
     }
 
   }
   
+  private static class GameStateReceiver implements UnreliableStream.Receiver {
+    GameState prev = null;
+    Intelligence intelligence;
+    
+    GameStateReceiver(Intelligence intelligence) {
+      this.intelligence = intelligence;
+    }
+
+    @Override
+    public boolean received(byte[] data, UnreliableStream src) {
+      ByteArrayInputStream bin = new ByteArrayInputStream(data);
+      
+      GameState newState = GameState.parse(new DataInputStream(bin), prev);
+      prev = newState;
+      
+      intelligence.processGameStateUpdate(newState);
+      
+      return true;
+    }
+    
+  }
 }
 

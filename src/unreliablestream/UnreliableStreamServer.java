@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,20 @@ public class UnreliableStreamServer implements Runnable {
   // kill the server asap
   private boolean kill = false;
   
+  // Wait for people to connect to the specified UDP port.
+  public UnreliableStreamServer(int port) throws SocketException {
+    socket = new DatagramSocket(port);
+    
+    try {
+      socket.setSoTimeout(UnreliableStream.TIMEOUT/4);
+    } catch (SocketException e) {
+      e.printStackTrace();
+      assert(false);
+    }
+    
+    listener = new Thread(this);
+  }
+  
   private short getFreeId() {
     Short id = null;
     while (id == null || connections.keySet().contains(id))
@@ -71,20 +86,6 @@ public class UnreliableStreamServer implements Runnable {
     connectionListeners.put(id, l);
   }
   
-  // Wait for people to connect to the specified UDP port.
-  public UnreliableStreamServer(int port) throws SocketException {
-    socket = new DatagramSocket(port);
-    
-    try {
-      socket.setSoTimeout(UnreliableStream.TIMEOUT/10);
-    } catch (SocketException e) {
-      e.printStackTrace();
-      assert(false);
-    }
-    
-    listener = new Thread(this);
-  }
-  
   // Start listening for connections.
   public void start() {
     assert(!listener.isAlive());
@@ -108,6 +109,7 @@ public class UnreliableStreamServer implements Runnable {
 
       // stop executing if the kill flag is set
       if (kill) {
+        aoi.Logger.println(RepetitionRate.FEW, "server killed.");
         synchronized (connections) {
           for (UnreliableStream s : connections.values()) {
             s.disconnect();
@@ -121,7 +123,12 @@ public class UnreliableStreamServer implements Runnable {
       // otherwise parse the packet
       try {
         
-        socket.receive(p); // TODO: consider checking for the kill flag periodically even if no packets are received.
+        try {
+          socket.receive(p);
+        } catch (SocketTimeoutException ex) {
+          continue;
+        }
+        
         final ByteArrayInputStream in = new ByteArrayInputStream(p.getData());
         final Packet parsed = Packet.parse(new DataInputStream(in), p.getLength());
         
