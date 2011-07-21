@@ -27,8 +27,8 @@ public class Ship {
   
   
  
-  public Ship(Ship that) {
-    this(that.location(), that.vx, that.vy, that.direction);
+  public Ship clone() {
+    return new Ship(location(), vx, vy, direction);
   }
   
   public Ship(Point p, int vx, int vy, Angle direction) {

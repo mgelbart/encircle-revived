@@ -66,17 +66,18 @@ public class GameState implements Comparable<GameState> {
         Logger.println(Logger.RepetitionRate.FEW, "server: \n" + server.pStates[i]);
         Logger.println(Logger.RepetitionRate.FEW, "client: \n" + client.pStates[i]);
         if (server.pStates[i].tail.nPoints() != client.pStates[i].tail.nPoints()) {
-            Logger.println(Logger.RepetitionRate.FEW, "the tails disagree in number of points");
-            Logger.println(Logger.RepetitionRate.FEW, "server: " + server.pStates[i].tail.nPoints());
-            Logger.println(Logger.RepetitionRate.FEW, "client: " + client.pStates[i].tail.nPoints());
-            Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
-            Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+          Logger.println(Logger.RepetitionRate.FEW, "the tails disagree in number of points");
+          Logger.println(Logger.RepetitionRate.FEW, "server: " + server.pStates[i].tail.nPoints());
+          Logger.println(Logger.RepetitionRate.FEW, "client: " + client.pStates[i].tail.nPoints());
+          Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
+          Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
         } else if (!server.pStates[i].tail.equals(client.pStates[i].tail)) {
-            Logger.println(Logger.RepetitionRate.FEW, "the tails disagree");
-            Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
-            Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+          Logger.println(Logger.RepetitionRate.FEW, "the tails disagree");
+          Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
+          Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+        } else if (!server.pStates[i].cropEvents.equals(client.pStates[i].cropEvents)) {
+          Logger.println(Logger.RepetitionRate.FEW, "CropEventGroups disagree");
         }
-        
         return false;
       }
     }
