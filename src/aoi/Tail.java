@@ -2,7 +2,6 @@ package aoi;
 
 import java.awt.Point;
 import java.awt.Shape;
-import java.awt.geom.Path2D;
 import java.util.TreeSet;
 import java.util.Vector;
 

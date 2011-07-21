@@ -102,6 +102,10 @@ public class NSPath implements Iterable<Point>, Shape {
     return -1;
   }
   
+  public void close() {
+    addPoint(firstPoint());
+  }
+  
   public int intersects(NSPath that) {
     if (that.nPoints() < 2) return -1;
     for (int i = 0; i < that.nPoints()-1; i++)

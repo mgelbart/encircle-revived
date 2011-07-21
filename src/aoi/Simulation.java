@@ -176,11 +176,13 @@ public class Simulation {
             int cropFrom = pStates[j].tail.lengthFromLastKnotToTime(untilRespawn*SimulationUtils.UNCOILSPEED);
             int cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
             
-            Point2D newLocation = pStates[j].tail.getPointFromTime(cropFrom);
-            if (newLocation == null) newLocation = pStates[j].ship.location();
-              Angle newDir = pStates[j].tail.tangentAngleHead();
-            if (newDir == null) newDir = pStates[j].ship.dir();
-              ship = new Ship(newLocation, 0, 0, newDir);
+            Point newLocation = pStates[j].tail.getPointFromTime(cropFrom);
+            assert(newLocation != null);
+//            if (newLocation == null) newLocation = pStates[j].ship.location();
+            Angle newDir = pStates[j].tail.tangentAngleHead();
+//            if (newDir == null) newDir = pStates[j].ship.dir();
+            assert(newDir != null);
+            ship = new Ship(newLocation, 0, 0, newDir);
 
             tail = pStates[j].tail.crop(cropFrom, cropTo);
             

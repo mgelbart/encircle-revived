@@ -89,7 +89,7 @@ public class PlayerState {
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
       int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
-    this(playerNo, new Ship(x, y, vx, vy, direction), 
+    this(playerNo, new Ship(new Point(x, y), vx, vy, direction), 
         cropTailFrom, cropTailTo,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,

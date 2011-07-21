@@ -2,7 +2,6 @@ package aoi;
 
 import java.awt.Shape;
 import java.awt.Color;
-import java.awt.Polygon;
 import java.awt.Paint;
 import java.awt.Stroke;
 
@@ -51,9 +50,8 @@ public class DrawableShip extends DefaultDrawable {
     }
     lastState = currentState;
 
-    int[][] xy = currentState.ship.shape();
-    Polygon pol = new Polygon(xy[0], xy[1], xy[0].length);
-    return new Shape[]{pol, pol};
+    NSPath p = currentState.ship.getNSPath();
+    return new Shape[]{p, p};
   }
 
   // Return the pen color used to draw the shape.

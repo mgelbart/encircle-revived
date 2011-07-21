@@ -1,5 +1,7 @@
 package aoi;
 
+import java.awt.Point;
+
 /**
  * This class contains static functions used by
  * the server to calculate certain quantities.
@@ -112,7 +114,7 @@ public abstract class SimulationUtils {
     if (oldDist <= OMEGA && Math.abs(dir.dtheta(params.targetDirection)) >= oldDist)
       dir = params.targetDirection;
 
-    return new Ship(x, y, vx, vy, dir);
+    return new Ship(new Point(x, y), vx, vy, dir);
   }
 
   public static boolean gotShot(PlayerState p, Bullet b) {
