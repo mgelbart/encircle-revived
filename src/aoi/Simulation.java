@@ -355,9 +355,13 @@ public class Simulation {
           newGState.serialize(out);
           
           ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);          
-//          parsedGState.assertDeepEquals(newGState);
-          assert(newGState.deepEquals(parsedGState));
+          GameState parsedGState = GameState.parse(
+              new DataInputStream(in), this.game);          
+          if(!newGState.deepEquals(parsedGState)) {
+            Logger.println(Logger.RepetitionRate.FEW, "Previous state:");
+            Logger.println(Logger.RepetitionRate.FEW, this.game);
+            assert(false);
+          }
         }
         
         // Note: don't need locking since updating a reference is atomic.

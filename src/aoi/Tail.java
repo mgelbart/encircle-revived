@@ -49,12 +49,32 @@ public class Tail {
     if (!this.knots.equals(that.knots)) return false;
     return true;
   }
-  public void assertEquals(Tail that) {
-    assert(this.nPoints() == that.nPoints());
-    assert(this.nKnots() == that.nKnots());
-    assert(this.knots.equals(that.knots));
-    assert(this.times.equals(that.times));
-    assert(this.trajectory.equals(that.trajectory));
+//  public void assertEquals(Tail that) {
+//    assert(this.nPoints() == that.nPoints());
+//    assert(this.nKnots() == that.nKnots());
+//    assert(this.knots.equals(that.knots));
+//    assert(this.times.equals(that.times));
+//    assert(this.trajectory.equals(that.trajectory));
+//  }
+  public boolean deepEquals(Tail client) {
+    Tail server = this;
+    if (!server.knots.equals(client.knots)) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "KnotGroup does not agree");
+      return false;
+    }
+    if (!server.times.equals(client.times)) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "times do not agree");
+      return false;
+    }
+    if (!server.trajectory.equals(client.trajectory)) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "path does not agree");
+      return false;
+    }
+    
+    return true;  
   }
   
   

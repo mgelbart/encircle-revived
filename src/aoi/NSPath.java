@@ -47,7 +47,6 @@ public class NSPath implements Iterable<Point>, Shape {
       path.lineTo(getPoint(i).getX(), getPoint(i).getY());
     return path;
   }
-  
     
   public double length()         { return length; }
   public boolean isEmpty()       { return points.isEmpty(); }

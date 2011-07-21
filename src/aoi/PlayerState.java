@@ -97,22 +97,22 @@ public class PlayerState {
   }	
   
 
-  public void assertEquals(PlayerState that) {
-    this.ship.assertEquals(that.ship);
-    this.tail.assertEquals(that.tail);
-    assert (this.playerNo == that.playerNo);
-    assert (this.cropTailFrom == that.cropTailFrom);
-    assert (this.cropTailTo == that.cropTailTo);
-    assert (this.score == that.score);
-    assert (this.untilReload == that.untilReload);
-    assert (this.untilRespawn == that.untilRespawn);
-    assert (this.sinceCrossing == that.sinceCrossing);
-    assert (this.sinceHitByBullet == that.sinceHitByBullet);
-    assert (this.sinceKnot == that.sinceKnot);
-    assert (this.sinceLooping == that.sinceLooping);
-    assert (this.sincePwned == that.sincePwned);
-    assert (this.sinceScoring == that.sinceScoring);
-  }
+//  public void assertEquals(PlayerState that) {
+//    this.ship.assertEquals(that.ship);
+//    this.tail.assertEquals(that.tail);
+//    assert (this.playerNo == that.playerNo);
+//    assert (this.cropTailFrom == that.cropTailFrom);
+//    assert (this.cropTailTo == that.cropTailTo);
+//    assert (this.score == that.score);
+//    assert (this.untilReload == that.untilReload);
+//    assert (this.untilRespawn == that.untilRespawn);
+//    assert (this.sinceCrossing == that.sinceCrossing);
+//    assert (this.sinceHitByBullet == that.sinceHitByBullet);
+//    assert (this.sinceKnot == that.sinceKnot);
+//    assert (this.sinceLooping == that.sinceLooping);
+//    assert (this.sincePwned == that.sincePwned);
+//    assert (this.sinceScoring == that.sinceScoring);
+//  }
   public boolean equals(PlayerState that) {
     if (this.playerNo != that.playerNo)                 return false;
     if (!this.ship.equals(that.ship))                   return false;

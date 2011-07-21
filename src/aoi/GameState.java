@@ -36,13 +36,13 @@ public class GameState implements Comparable<GameState> {
     return this.time == that.time;
   }
   
-  public void assertDeepEquals(GameState that) {
-    assert(this.time == that.time);
-    assert(this.pStates.length == that.pStates.length);
-    for (int i = 0; i < pStates.length; i++)
-      this.pStates[i].assertEquals(that.pStates[i]);
-    assert(this.bullets.equals(that.bullets));
-  }
+//  public void assertDeepEquals(GameState that) {
+//    assert(this.time == that.time);
+//    assert(this.pStates.length == that.pStates.length);
+//    for (int i = 0; i < pStates.length; i++)
+//      this.pStates[i].assertEquals(that.pStates[i]);
+//    assert(this.bullets.equals(that.bullets));
+//  }
   
   public boolean deepEquals(GameState client) {
     GameState server = this;
