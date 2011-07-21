@@ -60,22 +60,19 @@ public class PlayerState {
     this.ship             = new Ship(ship);
     this.cropEvents       = new CropEventGroup(cropEvents);
     this.score            = score;
-    this.untilReload      = enforceByte(untilReload);
-    this.untilRespawn     = enforceByte(untilRespawn);
-    this.sinceScoring     = enforceByte(sinceScoring);
-    this.sinceLooping     = enforceByte(sinceLooping);
-    this.sinceCrossing    = enforceByte(sinceCrossing);
-    this.sinceHitByBullet = enforceByte(sinceHitByBullet);
-    this.sincePwned       = enforceByte(sincePwned);
-    this.sinceKnot        = enforceByte(sinceKnot);    
+    this.untilReload      = SimulationUtils.enforceByte(untilReload);
+    this.untilRespawn     = SimulationUtils.enforceByte(untilRespawn);
+    this.sinceScoring     = SimulationUtils.enforceByte(sinceScoring);
+    this.sinceLooping     = SimulationUtils.enforceByte(sinceLooping);
+    this.sinceCrossing    = SimulationUtils.enforceByte(sinceCrossing);
+    this.sinceHitByBullet = SimulationUtils.enforceByte(sinceHitByBullet);
+    this.sincePwned       = SimulationUtils.enforceByte(sincePwned);
+    this.sinceKnot        = SimulationUtils.enforceByte(sinceKnot);    
     this.tail             = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
   }	
-  
-  private static int enforceByte(int i) {
-    return Math.max(Math.min(0xFF, i), 0);
-  }
+
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, 
       Angle direction, CropEventGroup cropEvents,

@@ -27,11 +27,14 @@ public class Ship {
   
   
  
-  public Ship clone() {
-    return new Ship(location(), vx, vy, direction);
+  public Ship(Ship that) {
+    this(that.location(), that.vx, that.vy, that.direction);
   }
   
   public Ship(Point p, int vx, int vy, Angle direction) {
+    assert(p != null);
+    assert(direction != null);
+    
     this.x = p.x;
     this.y = p.y;
     this.vx = vx;

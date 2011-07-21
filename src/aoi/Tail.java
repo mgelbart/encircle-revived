@@ -42,39 +42,27 @@ public class Tail {
     assert(trajectory.nPoints() == times.size());
   }
   // ---------------------- end constructors ----------------------- //  
- 
-  public boolean equals(Tail that) {
-    if (!this.trajectory.equals(that.trajectory)) return false;
-    if (!this.times.equals(that.times)) return false;
-    if (!this.knots.equals(that.knots)) return false;
-    return true;
-  }
-//  public void assertEquals(Tail that) {
-//    assert(this.nPoints() == that.nPoints());
-//    assert(this.nKnots() == that.nKnots());
-//    assert(this.knots.equals(that.knots));
-//    assert(this.times.equals(that.times));
-//    assert(this.trajectory.equals(that.trajectory));
-//  }
-  public boolean deepEquals(Tail client) {
+
+  public boolean equals(Tail client) {
+    boolean toReturn = true;
     Tail server = this;
     if (!server.knots.equals(client.knots)) {
       if (Simulation.VERIFYSERIALIZATION)
         Logger.println(Logger.RepetitionRate.INFREQUENT, "KnotGroup does not agree");
-      return false;
+      toReturn = false;
     }
     if (!server.times.equals(client.times)) {
       if (Simulation.VERIFYSERIALIZATION)
         Logger.println(Logger.RepetitionRate.INFREQUENT, "times do not agree");
-      return false;
+      toReturn = false;
     }
     if (!server.trajectory.equals(client.trajectory)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "path does not agree");
-      return false;
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "NSPaths do not agree");
+      toReturn = false;
     }
     
-    return true;  
+    return toReturn;  
   }
   
   
@@ -175,10 +163,13 @@ public class Tail {
   
   // ------ start functions that (clone and) modify tail -------- //
   public Tail addKnotAtHead() {
-    Tail newTail = clone();    
-    newTail.knots.add(nPoints()-1);
+    NSPath newPath = new NSPath();
+    Vector<Integer> newTimes = new Vector<Integer>();
+    KnotGroup newKnots = new KnotGroup();
     
-    return newTail;
+    newKnots.add(nPoints()-1);
+    
+    return new Tail(newPath, newTimes, newKnots);
   }
   
   // Create a copy of the Tail with an added point.
@@ -281,6 +272,13 @@ public class Tail {
   }
   // ------ end functions that (clone and) modify tail -------- //
 
+  // Add p, then crop with ceg. Do this all at once
+  // To avoid cloning twice per turn in PlayerState parsing
+  public Tail parse(Point p, int time, CropEventGroup ceg) {
+    return addPoint(p, time).crop(ceg);
+  }
+  
+  
   @SuppressWarnings("unchecked")
   public Tail clone() {
     return new Tail(trajectory.clone(), 
@@ -288,7 +286,11 @@ public class Tail {
         (KnotGroup) knots.clone());
   }
   
-  public String toString() { return trajectory.toString(); }
+  public String toString() { 
+    return trajectory.toString() + "\n" +
+           times.toString() + "\n" +
+           knots.toString();
+    }
    
   
 

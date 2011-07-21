@@ -13,32 +13,33 @@ public class CropEventGroup {
   public CropEventGroup() {
     events = new Vector<CropEvent>();
   }
+  
   private CropEventGroup(Vector<CropEvent> events) {
-    this.events = events;
+    this();
+    // Remove expired events by copying the non-expired
+    // events from the input Vector
+    // Thus this constructor also effectively clones.
+    for (CropEvent ce : events)
+      if (!ce.toRemove())
+        this.events.add(ce);
   }
+  public CropEventGroup(CropEventGroup that) {
+    this(that.events);
+  }
+  
   @SuppressWarnings("unchecked")
   public CropEventGroup addEvent(int cropFrom, int cropTo) {
     Vector<CropEvent> newEvents = (Vector<CropEvent>) events.clone();
     newEvents.add(new CropEvent(cropFrom, cropTo));
     return new CropEventGroup(newEvents);
   }
-  @SuppressWarnings("unchecked")
+  
   public void serialize(DataOutputStream o) throws IOException {
     if (PlayerState.CHECKBYTES) o.writeBytes("n");
     o.write(events.size());
     
-    Vector<CropEvent> eventsCopy = (Vector<CropEvent>)events.clone();
-    for (int i = 0; i < events.size(); i++)
-      if (eventsCopy.get(i).toRemove())
-        events.remove(i);
-    
     for (CropEvent ce : events)
       ce.serialize(o);
-    
-  }
-  @SuppressWarnings("unchecked")
-  public CropEventGroup clone() {
-    return new CropEventGroup((Vector<CropEvent>)events.clone());
   }
 // ----------------------- end of functions used by server -------------
   public boolean equals(CropEventGroup that) {
@@ -52,6 +53,10 @@ public class CropEventGroup {
     for (CropEvent ce : events)
       if (ce.contains(i)) return true;
     return false;
+  }
+  
+  public int nEvents() {
+    return events.size();
   }
   
 // ------------------------ start functions used by client -------------

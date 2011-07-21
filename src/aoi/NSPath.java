@@ -32,10 +32,23 @@ public class NSPath implements Iterable<Point>, Shape {
     this.length = length;
   }
 
-  public boolean equals(NSPath that) {
-    if (this.length != that.length) return false;
-    if (!this.points.equals(that.points)) return false;
-    return true;
+  public boolean equals(NSPath client) {
+    NSPath server = this;
+    boolean toReturn = true;
+    if (Math.abs(server.length - client.length) > 1e-10) {
+      if (Simulation.VERIFYSERIALIZATION) {
+        Logger.println(Logger.RepetitionRate.FEW, "path lengths don't agree to within 1e-10");
+        Logger.println(Logger.RepetitionRate.FEW, "server length = " + server.length);
+        Logger.println(Logger.RepetitionRate.FEW, "client length = " + client.length);
+      }
+      toReturn = false;
+    }
+    if (!server.points.equals(client.points)) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.FEW, "path points dont agree");
+      toReturn = false;
+    }
+    return toReturn;
   }
   
   public Path2D toPath2D() {

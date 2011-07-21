@@ -178,6 +178,10 @@ public abstract class SimulationUtils {
     return (Math.abs(x) > 2*SimulationUtils.ARENASIZE || Math.abs(y) > 2*SimulationUtils.ARENASIZE);
   }
   
+  public static int enforceByte(int i) {
+    return Math.max(Math.min(0xFF, i), 0);
+  }
+ 
   // Returns the angle between three points (0-1-2). Angle in [0 pi)
   public static double angle(double x0, double y0, double x1, double y1, double x2, double y2) {
     // Logger.println(Logger.RepetitionRate.FREQUENT, "** " + x0 + " " + y0 + " " + x1 + " " + y1 + " " + x2 + " " + y2); 
