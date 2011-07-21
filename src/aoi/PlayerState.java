@@ -307,12 +307,14 @@ public class PlayerState {
     
     Point p = new Point(x, y);
     Ship ship = new Ship(p, vx, vy, dir);
-    Tail newTail = prevState.tail;
+    Tail newTail;
     
     if (prevState == null) {
       // for the first time step
       newTail = new Tail(p, time);
     } else {
+      
+      newTail = prevState.tail;
       
       // If you made a knot, add it to the tail
       if (sinceKnot - prevState.sinceKnot < 0) 
