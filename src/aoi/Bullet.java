@@ -39,11 +39,28 @@ public class Bullet {
     return new Line2D.Double(x, y, 2*x-nextPos.x, 2*y-nextPos.y);
   }
   
-  public boolean equals(Bullet that) {
-    if (this.x != that.x) return false;
-    if (this.y != that.y) return false;
-    if (!this.direction.equals(that.direction)) return false;
-    if (this.playerNo != that.playerNo) return false;
+  public boolean equals(Object that) {
+    Bullet thatBullet = (Bullet) that;
+    if (this.x != thatBullet.x) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "x");
+      return false;
+    }
+    if (this.y != thatBullet.y) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "y");
+      return false;
+    }
+    if (!this.direction.equals(thatBullet.direction)) {
+      if (Simulation.VERIFYSERIALIZATION)
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "dir");
+      return false;
+    }
+    if (this.playerNo != thatBullet.playerNo) {
+      if (Simulation.VERIFYSERIALIZATION) 
+        Logger.println(Logger.RepetitionRate.INFREQUENT, "playerNo");
+      return false;
+    }
     return true;
   }
 

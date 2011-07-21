@@ -44,43 +44,58 @@ public class GameState implements Comparable<GameState> {
     assert(this.bullets.equals(that.bullets));
   }
   
-  public boolean deepEquals(GameState that, boolean log) {
+  public boolean deepEquals(GameState client) {
+    GameState server = this;
+    
     // Compare times
-    if (this.time != that.time) {
-      if (log) Logger.println(Logger.RepetitionRate.FEW, "times disagree");
+    if (server.time != client.time) {
+      Logger.println(Logger.RepetitionRate.FEW, "times disagree");
       return false;
     }
 
     // Compare pStates
-    if (this.pStates.length != that.pStates.length) {
-        if (log) Logger.println(Logger.RepetitionRate.FEW, 
-                 "pStates disagree: different length");
+    if (server.pStates.length != client.pStates.length) {
+        Logger.println(Logger.RepetitionRate.FEW, 
+          "pStates disagree: different length");
         return false; 
     }
     for (int i = 0; i < pStates.length; i++) {
-      if (!this.pStates[i].equals(that.pStates[i])) {
-        if (log) Logger.println(Logger.RepetitionRate.FEW, 
-                 "pStates disagree: pState " + i + " disagrees");
-        if (this.pStates[i].tail.nPoints() != that.pStates[i].tail.nPoints()) {
-          if (log) {
+      if (!server.pStates[i].equals(client.pStates[i])) {
+        Logger.println(Logger.RepetitionRate.FEW, 
+               "pStates disagree: pState " + i + " disagrees");
+        Logger.println(Logger.RepetitionRate.FEW, "server: \n" + server.pStates[i]);
+        Logger.println(Logger.RepetitionRate.FEW, "client: \n" + client.pStates[i]);
+        if (server.pStates[i].tail.nPoints() != client.pStates[i].tail.nPoints()) {
             Logger.println(Logger.RepetitionRate.FEW, "the tails disagree in number of points");
-            Logger.println(Logger.RepetitionRate.FEW, this.pStates[i].tail.nPoints());
-            Logger.println(Logger.RepetitionRate.FEW, that.pStates[i].tail.nPoints());
-          }      
-        } else if (!this.pStates[i].tail.equals(that.pStates[i].tail)) {
-          if (log) {
+            Logger.println(Logger.RepetitionRate.FEW, "server: " + server.pStates[i].tail.nPoints());
+            Logger.println(Logger.RepetitionRate.FEW, "client: " + client.pStates[i].tail.nPoints());
+            Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
+            Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+        } else if (!server.pStates[i].tail.equals(client.pStates[i].tail)) {
             Logger.println(Logger.RepetitionRate.FEW, "the tails disagree");
-            Logger.println(Logger.RepetitionRate.FEW, this.pStates[i].tail);
-            Logger.println(Logger.RepetitionRate.FEW, that.pStates[i].tail);      
-          }
+            Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
+            Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
         }
         
         return false;
       }
     }
 
-    if (!this.bullets.equals(that.bullets)) {
-      if (log) Logger.println(Logger.RepetitionRate.FEW, "bullets disagree");
+    if (!server.bullets.equals(client.bullets)) {
+      Logger.println(Logger.RepetitionRate.FEW, "bullets disagree");
+      if (server.bullets.size() != client.bullets.size()) {
+          Logger.println(Logger.RepetitionRate.FEW, "bullets disagree: number of bullets");
+          Logger.println(Logger.RepetitionRate.FEW, "server: " + server.bullets.size());
+          Logger.println(Logger.RepetitionRate.FEW, "client: " + client.bullets.size());
+      } else {
+        for (int i = 0; i < bullets.size(); ++i) {
+          Logger.println(Logger.RepetitionRate.FEW, "server: ");
+          Logger.println(Logger.RepetitionRate.FEW, server.bullets.get(i));
+          Logger.println(Logger.RepetitionRate.FEW, "client: ");
+          Logger.println(Logger.RepetitionRate.FEW, client.bullets.get(i));
+          Logger.println(Logger.RepetitionRate.FEW, server.bullets.get(i).equals(client.bullets.get(i)));
+        }
+      }
       return false;
     }
     return true;

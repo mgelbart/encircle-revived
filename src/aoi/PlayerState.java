@@ -95,20 +95,6 @@ public class PlayerState {
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }	
-
- 
-  public PlayerState cloneAndPwn() {
-    int score        = 0;
-    int sincePwned   = 0;
-
-    return new PlayerState(playerNo, ship, 
-        cropTailFrom, cropTailTo, 
-        score, untilReload, untilRespawn,
-        sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
-  }
-
-  
   
 
   public void assertEquals(PlayerState that) {
@@ -155,7 +141,24 @@ public class PlayerState {
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }
-  
+  public PlayerState cloneAndPwn() {
+    int score        = 0;
+    int sincePwned   = 0;
+
+    return new PlayerState(playerNo, ship, 
+        cropTailFrom, cropTailTo, 
+        score, untilReload, untilRespawn,
+        sinceScoring, sinceLooping, sinceCrossing,
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
+  }
+  public PlayerState clone() {
+    return new PlayerState(playerNo, ship, 
+        cropTailFrom, cropTailTo, 
+        score, untilReload, untilRespawn,
+        sinceScoring, sinceLooping, sinceCrossing,
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
+  }
+
 
   public String toString() {
     StringBuilder s = new StringBuilder();
@@ -172,6 +175,30 @@ public class PlayerState {
     s.append("\ndirection: ");
     s.append(ship.dir());
 
+    s.append("\nuntilReload: ");
+    s.append(untilReload);
+
+    s.append("\nuntilRespawn: ");
+    s.append(untilRespawn);
+
+    s.append("\nsinceScoring: ");
+    s.append(sinceScoring);
+
+    s.append("\nsinceLooping: ");
+    s.append(sinceLooping);
+
+    s.append("\nsinceCrossing: ");
+    s.append(sinceCrossing);
+
+    s.append("\nsinceHitByBullet: ");
+    s.append(sinceHitByBullet);
+
+    s.append("\nsincePwned: ");
+    s.append(sincePwned);
+
+    s.append("\nsinceKnot: ");
+    s.append(sinceKnot);
+    
     s.append("\n");
 
     return s.toString();
@@ -329,7 +356,8 @@ public class PlayerState {
     
     Tail newTail;
  
-    if (untilRespawn == 0 && prevState.untilRespawn > 0) {  // if you finished respawning
+    if (untilRespawn == 0 && prevState.untilRespawn > 0) {  
+      // if you finished respawning
       Logger.println(Logger.RepetitionRate.FREQUENT, prevState.tail.nKnots());
       newTail = prevState.tail;
       newTail = newTail.crop(cropTailFrom, cropTailTo);
@@ -337,12 +365,21 @@ public class PlayerState {
       Logger.println(Logger.RepetitionRate.FREQUENT, "-> "+newTail.nKnots());
       Logger.println(Logger.RepetitionRate.FREQUENT, "finished respawning");
     }
-    else if (untilRespawn > 0) {  // you are resawning
+    else if (untilRespawn > 0 && prevState.untilRespawn == 0) {  
+      // you just crashed
+      newTail = prevState.tail;
+      newTail = newTail.addPoint(p, time);
+      newTail = newTail.crop(cropTailFrom, cropTailTo);
+      Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
+      Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
+    }
+    else if (untilRespawn > 0) {
+      // you are respawning
       newTail = prevState.tail;
       newTail = newTail.crop(cropTailFrom, cropTailTo);
       Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
       Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
-    } 
+    }
 //    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
 //      newTail = new Tail(p, time);
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
