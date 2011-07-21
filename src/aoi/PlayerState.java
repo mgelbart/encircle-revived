@@ -309,13 +309,18 @@ public class PlayerState {
     Ship ship = new Ship(p, vx, vy, dir);
     Tail newTail = prevState.tail;
     
-    if (prevState == null)
+    if (prevState == null) {
+      // for the first time step
       newTail = new Tail(p, time);
-    else if (sinceKnot - prevState.sinceKnot < 0) 
-      newTail = newTail.addKnotAtHead();
+    } else {
+      
+      // If you made a knot, add it to the tail
+      if (sinceKnot - prevState.sinceKnot < 0) 
+        newTail = newTail.addKnotAtHead();
         
-    newTail = newTail.parse(p, time, cropEvents);
-     
+      newTail = newTail.parse(p, time, cropEvents);
+    }
+    
     return new PlayerState(playerNo, ship, 
         cropEvents, score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
