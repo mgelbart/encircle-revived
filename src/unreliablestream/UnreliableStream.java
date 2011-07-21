@@ -367,6 +367,7 @@ public class UnreliableStream {
     
     @Override
     public void run() {
+      if (!stream.isAlive()) { this.cancel(); return; };
       if (System.currentTimeMillis() - stream.lastSentTime > KEEPALIVEPERIOD)
         stream.send(new byte[0]);
     }
