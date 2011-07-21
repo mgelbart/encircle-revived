@@ -39,10 +39,7 @@ public class Ship {
     this.direction = direction;
     
     path = new NSPath();
-    int[][] shape = shape();
-    path.addPoint(shape[0][0], shape[1][0]);
-    path.addPoint(shape[0][1], shape[1][1]);
-    path.addPoint(shape[0][2], shape[1][2]);
+    path.addPoints(shape());
     path.close();
   }
 
@@ -83,29 +80,24 @@ public class Ship {
   }
 
 
-  private int[][] shape() {
+  private Point[] shape() {
     double cos = Math.cos(direction.toDouble());
     double sin = Math.sin(direction.toDouble());
 
     int deltaX, deltaY;
+    Point[] p = new Point[3];
 
-    int px[] = new int[3];
-    int py[] = new int[3];
-
-    for (int j=0; j<3; ++j) {
-
+    for (int j=0; j<p.length; ++j) {
       // Generate one of the three corners relative to origin.
       deltaX = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
       deltaY = (j-1) * SHIPWIDTH / 2;
 
       // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
       // and translate to player location.
-      px[j] = x + (int) (cos*deltaX - sin*deltaY);
-      py[j] = y + (int) (sin*deltaX + cos*deltaY);
-
+      p[j] = new Point(x + (int) (cos*deltaX - sin*deltaY),
+                       y + (int) (sin*deltaX + cos*deltaY));
     }
-
-    return new int[][]{px, py};
+    return p;
   }
   
   

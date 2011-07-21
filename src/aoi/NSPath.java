@@ -92,6 +92,10 @@ public class NSPath implements Iterable<Point>, Shape {
     
     points.add(newPoint);
   }
+  public void addPoints(Point[] newPoints) {
+    for (int i = 0; i < newPoints.length; i++)
+      addPoint(newPoints[i]);
+  }
   
   public int intersects(Line2D l) {
     if (nPoints() < 2) return -1;
