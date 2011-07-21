@@ -72,19 +72,10 @@ public class PlayerState {
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
   }	
-
-
-  public PlayerState(int playerNo, int x, int y, int vx, int vy, 
-      Angle direction, CropEventGroup cropEvents,
-      int score, int untilReload, int untilRespawn,
-      int sinceScoring, int sinceLooping, int sinceCrossing,
-      int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
-    this(playerNo, new Ship(new Point(x, y), vx, vy, direction), 
-        cropEvents,
-        score, untilReload, untilRespawn,
-        sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
-  }	
+  public PlayerState(int playerNo, Ship s, Tail t) {
+    this(playerNo, s, new CropEventGroup(), 
+        0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, t);
+  }
   
 
 //  public void assertEquals(PlayerState that) {
@@ -254,8 +245,14 @@ public class PlayerState {
 
     Byte cmd;
     int playerNo, x, y, vx, vy, score,
-        untilReload, untilRespawn, sinceScoring, sinceLooping, sinceCrossing,
-          sinceHitByBullet, sincePwned, sinceKnot;
+        untilReload, 
+        untilRespawn, 
+        sinceScoring, 
+        sinceLooping, 
+        sinceCrossing,
+        sinceHitByBullet, 
+        sincePwned, 
+        sinceKnot;
     Angle dir;
     CropEventGroup cropEvents;
 
@@ -309,47 +306,22 @@ public class PlayerState {
 
     
     Point p = new Point(x, y);
-
-
+    Ship ship = new Ship(p, vx, vy, dir);
+    Tail newTail = prevState.tail;
     
-    if (prevState == null)  // first time step
-      return new PlayerState(playerNo, x, y, vx, vy, dir, 
-          cropEvents, 
-          score, untilReload, untilRespawn,
-          sinceScoring, sinceLooping, sinceCrossing,
-          sinceHitByBullet, sincePwned, sinceKnot, 
-          new Tail(p, time));     
-   
+    if (prevState == null) {
+      // for the first time step
+      newTail = new Tail(p, time);
+    } else {
+      
+      // If you made a knot, add it to the tail
+      if (sinceKnot - prevState.sinceKnot < 0) 
+        newTail = newTail.addKnotAtHead();
         
-    Tail newTail;
- 
-    if (untilRespawn == 0 && prevState.untilRespawn > 0) {  
-      // if you finished respawning
-      Logger.println(Logger.RepetitionRate.FREQUENT, prevState.tail.nKnots());
-      newTail = prevState.tail;
-      newTail = newTail.crop(cropEvents);
-      newTail = newTail.addPoint(p, time);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "-> "+newTail.nKnots());
-      Logger.println(Logger.RepetitionRate.FREQUENT, "finished respawning");
-    }
-    else if (untilRespawn > 0) {
-      // you are respawning
-      newTail = prevState.tail;
-      newTail = newTail.crop(cropEvents);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
-      Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
-    }
-    else {
-      newTail = prevState.tail.parse(p, time, cropEvents);
+      newTail = newTail.parse(p, time, cropEvents);
     }
     
-    if (sinceKnot - prevState.sinceKnot < 0) { 
-      newTail = newTail.addKnotAtHead();
-      Logger.println(Logger.RepetitionRate.FREQUENT, "added knot: " + newTail.nKnots());
-    }
-          
-     
-    return new PlayerState(playerNo, x, y, vx, vy, dir, 
+    return new PlayerState(playerNo, ship, 
         cropEvents, score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, newTail);
