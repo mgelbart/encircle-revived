@@ -20,7 +20,7 @@ public class Client implements Runnable {
   private static final String DEFAULTCONFIGPATH = "client.conf";
 
   // The number of milliseconds to wait for a UDP reply before fallning back to TCP
-  private static final int UDPTIMEOUT = 3000;
+  private static final int UDPTIMEOUT = 4000;
   
   // The JLabel for the GUI.
   private JButton canvas;
@@ -130,7 +130,7 @@ public class Client implements Runnable {
         while (uStream.sendSuccessRate() < 0) {
           Logger.println(RepetitionRate.FEW, "waiting for UDP reply... ");
           if (System.currentTimeMillis() - start > UDPTIMEOUT) {
-            // fall back to TCP
+            Logger.println(RepetitionRate.FEW, "Falling back to TCP. ");
             ClientConfiguration.tcpOnly = true;
             break;
           }
@@ -285,6 +285,8 @@ public class Client implements Runnable {
 
     @Override
     public boolean received(byte[] data, UnreliableStream src) {
+      if (data.length == 0) return false; // just a keep alive packet
+      
       ByteArrayInputStream bin = new ByteArrayInputStream(data);
       
       GameState newState = GameState.parse(new DataInputStream(bin), prev);

@@ -143,6 +143,8 @@ public class UnreliableStreamServer implements Runnable {
           synchronized (connections) { connections.put(parsed.id, con); }
           final ConnectionListener lis = connectionListeners.get(parsed.id);
           if (lis != null) lis.established(con); // call the registered call back method, if any
+          con.startToKeepAlive();
+          
         } else
           // normal packet
           con.processReceived(parsed);
