@@ -45,19 +45,20 @@ public class GameState implements Comparable<GameState> {
 //  }
   
   public boolean deepEquals(GameState client) {
+    boolean toReturn = true;
     GameState server = this;
     
     // Compare times
     if (server.time != client.time) {
       Logger.println(Logger.RepetitionRate.FEW, "times disagree");
-      return false;
+      toReturn = false;
     }
 
     // Compare pStates
     if (server.pStates.length != client.pStates.length) {
         Logger.println(Logger.RepetitionRate.FEW, 
           "pStates disagree: different length");
-        return false; 
+        toReturn = false; 
     }
     for (int i = 0; i < pStates.length; i++) {
       if (!server.pStates[i].equals(client.pStates[i])) {
@@ -78,7 +79,7 @@ public class GameState implements Comparable<GameState> {
         } else if (!server.pStates[i].cropEvents.equals(client.pStates[i].cropEvents)) {
           Logger.println(Logger.RepetitionRate.FEW, "CropEventGroups disagree");
         }
-        return false;
+        toReturn = false;
       }
     }
 
@@ -97,9 +98,9 @@ public class GameState implements Comparable<GameState> {
           Logger.println(Logger.RepetitionRate.FEW, server.bullets.get(i).equals(client.bullets.get(i)));
         }
       }
-      return false;
+      toReturn = false;
     }
-    return true;
+    return toReturn;
   }
 
   public String toString() {

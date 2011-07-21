@@ -56,32 +56,26 @@ public class PlayerState {
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
       int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
-    this.playerNo = playerNo;
-    this.ship = ship.clone();
-    this.cropEvents = cropEvents.clone();
-    this.score = score;
-    this.untilReload      = Math.min(0xFF, untilReload);
-    this.untilRespawn     = Math.min(0xFF, untilRespawn);
-    this.sinceScoring     = Math.min(0xFF, sinceScoring);
-    this.sinceLooping     = Math.min(0xFF, sinceLooping);
-    this.sinceCrossing    = Math.min(0xFF, sinceCrossing);
-    this.sinceHitByBullet = Math.min(0xFF, sinceHitByBullet);
-    this.sincePwned       = Math.min(0xFF, sincePwned);
-    this.sinceKnot        = Math.min(0xFF, sinceKnot);
-    
-    this.tail = tail;
+    this.playerNo         = playerNo;
+    this.ship             = new Ship(ship);
+    this.cropEvents       = new CropEventGroup(cropEvents);
+    this.score            = score;
+    this.untilReload      = enforceByte(untilReload);
+    this.untilRespawn     = enforceByte(untilRespawn);
+    this.sinceScoring     = enforceByte(sinceScoring);
+    this.sinceLooping     = enforceByte(sinceLooping);
+    this.sinceCrossing    = enforceByte(sinceCrossing);
+    this.sinceHitByBullet = enforceByte(sinceHitByBullet);
+    this.sincePwned       = enforceByte(sincePwned);
+    this.sinceKnot        = enforceByte(sinceKnot);    
+    this.tail             = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
-    assert(playerNo >= 0);
-    assert(untilReload >= 0);
-    assert(untilRespawn >= 0);
-    assert(sinceScoring >= 0);
-    assert(sinceLooping >= 0);
-    assert(sinceCrossing >= 0);
-    assert(sinceHitByBullet >= 0);
-    assert(sincePwned >= 0);
-    assert(sinceKnot >= 0);
   }	
+  
+  private static int enforceByte(int i) {
+    return Math.max(Math.min(0xFF, i), 0);
+  }
 
   public PlayerState(int playerNo, int x, int y, int vx, int vy, 
       Angle direction, CropEventGroup cropEvents,
@@ -343,8 +337,7 @@ public class PlayerState {
           sinceHitByBullet, sincePwned, sinceKnot, 
           new Tail(p, time));     
    
-    
-    
+        
     Tail newTail;
  
     if (untilRespawn == 0 && prevState.untilRespawn > 0) {  
@@ -356,14 +349,6 @@ public class PlayerState {
       Logger.println(Logger.RepetitionRate.FREQUENT, "-> "+newTail.nKnots());
       Logger.println(Logger.RepetitionRate.FREQUENT, "finished respawning");
     }
-    else if (untilRespawn > 0 && prevState.untilRespawn == 0) {  
-      // you just crashed
-      newTail = prevState.tail;
-      newTail = newTail.addPoint(p, time);
-      newTail = newTail.crop(cropEvents);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
-      Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
-    }
     else if (untilRespawn > 0) {
       // you are respawning
       newTail = prevState.tail;
@@ -371,30 +356,8 @@ public class PlayerState {
       Logger.println(Logger.RepetitionRate.FREQUENT, "respawning... " + untilRespawn);
       Logger.println(Logger.RepetitionRate.FREQUENT, newTail.nPoints());
     }
-//    else if (sinceHitByBullet - prevState.sinceHitByBullet < 0) { // you got shot
-//      newTail = new Tail(p, time);
-//      Logger.println(Logger.RepetitionRate.INFREQUENT, "hit by bullet");
-//    } 
-    else if (sinceCrossing - prevState.sinceCrossing < 0) { 
-      newTail = prevState.tail;
-      newTail = newTail.addPoint(p, time);
-      newTail = newTail.crop(cropEvents);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "crossed");
-    }
-    else if (untilReload - prevState.untilReload > 0) {  // you shot
-      newTail = prevState.tail;
-      newTail = newTail.addPoint(p, time);
-      newTail = newTail.crop(cropEvents);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "shot");
-    } 
-    else if (sinceLooping - prevState.sinceLooping < 0) {  // you made a loop
-      newTail = prevState.tail;
-      newTail = newTail.addPoint(p, time);
-      newTail = newTail.crop(cropEvents);
-      Logger.println(Logger.RepetitionRate.FREQUENT, "made a loop");
-    } 
-    else {    // normal step
-      newTail = prevState.tail.addPoint(p, time);
+    else {
+      newTail = prevState.tail.parse(p, time, cropEvents);
     }
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
