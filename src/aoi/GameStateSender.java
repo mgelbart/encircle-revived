@@ -2,6 +2,8 @@ package aoi;
 
 import java.io.*;
 
+import aoi.Logger.RepetitionRate;
+
 import unreliablestream.*;
 
 /**
@@ -92,20 +94,37 @@ public class GameStateSender implements Runnable {
 
         if (previousTime != g.time) {
           
+          // Check whether the UnreliableStream is still alive.
+          if (udpStream != null && !udpStream.isAlive()) {
+            Logger.println(RepetitionRate.FEW, "UnreliableStream has timed out for player " + playerNo + ". Falling back to TCP.");
+            udpStream = null;
+          }
+          
+          
           // send using UDP if available. otherwise fall back to TCP.
-          synchronized (sendingLock) {
-            
+          synchronized (sendingLock) {  
+
             ByteArrayOutputStream bout; // used only with UDP
             OutputStream out;
             if (udpStream != null) {
+              // chose UDP  
               bout = new ByteArrayOutputStream();
               out = bout;
             } else {
+              // chose TCP
               bout = null;
               out = tcpStream;
             }
             
-            g.serialize(out);
+            try {
+              g.serialize(out);
+            } catch (IOException e1) {
+              Logger.println(RepetitionRate.FEW, "Failed to send game state to player " + playerNo + " at t=" + g.time + " using " + ((udpStream==null)? "TCP.":"UDP."));
+              Logger.println(RepetitionRate.FEW, "Assuming player disconnected. Ending GameStateSender execution.");
+              e1.printStackTrace();
+              return;
+            }
+            
             previousTime = g.time;
   
             if (udpStream != null) {

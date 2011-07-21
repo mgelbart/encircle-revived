@@ -119,63 +119,48 @@ public class GameState implements Comparable<GameState> {
     return s.toString();
   }
 
-  public void serialize(OutputStream o) {
+  public void serialize(OutputStream o) throws IOException {
 
     DataOutputStream b = new DataOutputStream(o);
 
-    try {
+    b.writeBytes("t");
+    b.writeInt(time);
 
-      b.writeBytes("t");
-      b.writeInt(time);
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+      pStates[j].serialize(b);
 
-      for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-        pStates[j].serialize(b);
+    b.writeBytes("b");
+    b.writeInt(bullets.size());
 
-      b.writeBytes("b");
-      b.writeInt(bullets.size());
-
-      for (int j=0; j<bullets.size(); ++j)
-        bullets.get(j).serialize(b);
-
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-    }
+    for (int j=0; j<bullets.size(); ++j)
+      bullets.get(j).serialize(b);
 
   }
 
   // Construct the new GameState using the state data received from the server
   // and the previous state (needed to construct things like Tails that are sent incrementally).
-  public static GameState parse(DataInputStream i, GameState prevState) {
+  public static GameState parse(DataInputStream i, GameState prevState) throws IOException {
 
     Byte cmd;
     int t, bCount;
     PlayerState states[] = new PlayerState[SimulationUtils.NUMPLAYERS];
     Vector<Bullet> bullets = new Vector<Bullet>();
 
-    try {
+    cmd = i.readByte();
+    assert(cmd == 't');
+    t = i.readInt();
 
-      cmd = i.readByte();
-      assert(cmd == 't');
-      t = i.readInt();
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+      states[j] = PlayerState.parse(i, (prevState == null) ? null : prevState.pStates[j], t);
+    
+    cmd = i.readByte();
+    assert(cmd == 'b');
+    bCount = i.readInt();
+    assert(bCount >= 0);
+    
+    for (int j=0; j<bCount; ++j)
+      bullets.add(Bullet.parse(i));
 
-      for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-        states[j] = PlayerState.parse(i, (prevState == null) ? null : prevState.pStates[j], t);
-	    
-      cmd = i.readByte();
-      assert(cmd == 'b');
-      bCount = i.readInt();
-      assert(bCount >= 0);
-	    
-      for (int j=0; j<bCount; ++j)
-        bullets.add(Bullet.parse(i));
-	    
-
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-      return null;
-    }
 
     return new GameState(t, states, bullets);
   }

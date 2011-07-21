@@ -21,8 +21,6 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
 
   private int playerNo;
   private DataInputStream tcpStream;
-  
-  private boolean udpEnabled = false;
 
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
 
@@ -63,10 +61,9 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
 
   public void run() {
 
-    // TODO: should die gracefully
-    while (true) {
+    // Read from the TCP stream until readFromStream returns false.
+    while (readFromStream(tcpStream)) {
 //      Logger.println(RepetitionRate.FREQUENT, "trying to read next (TCP):");
-      readFromStream(tcpStream);
     }
 
   }
@@ -79,23 +76,33 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
     final ByteArrayInputStream bin = new ByteArrayInputStream(data);
     final DataInputStream din = new DataInputStream(bin);
 
+    boolean success = false;
     while (bin.available() > 0) {
 //      Logger.println(RepetitionRate.FREQUENT, "trying to read (UDP):");
-      readFromStream(din);
+      success = success || readFromStream(din);
     }
 
-    return true;
+    return success; // all reads succeeded if this is true.
   }
 
-  private void readFromStream(DataInputStream din) {
-    // TODO: this needs to be behave well even if the client send garbage.
+  private boolean readFromStream(DataInputStream din) {
     
     PlayerControlParameters prev;
     synchronized (ctrls) { prev = ctrls.lastElement(); }
-    PlayerControlParameters ctrl = PlayerControlParameters.parse(din, prev);
+    
+    PlayerControlParameters ctrl;
+    try {
+      ctrl = PlayerControlParameters.parse(din, prev);
+    } catch (IOException e) {
+      Logger.println(RepetitionRate.FEW, "Failed to parse command parameters from player " + playerNo);
+      e.printStackTrace();
+      return false;
+    }
+    
+    
     if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) {
       Logger.println(RepetitionRate.FEW, "too many controls buffered for player " + playerNo);
-      return;
+      return true;
     }
 
     // Keep ctrls ordered by effectiveOn.
@@ -118,6 +125,7 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
     //Logger.println(Logger.RepetitionRate.FREQUENT, ")");
     //Logger.println(Logger.RepetitionRate.FREQUENT, ctrl.toString());
     
+    return true;
   }
   
 }

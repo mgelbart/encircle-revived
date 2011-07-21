@@ -240,13 +240,25 @@ public class Client implements Runnable {
       if (pcp.length == 0) {
  
         if (last == null) return; // the game didn't start yet.
-        last.serialize(dataOut); // keep sending the same command if there's nothing new
+        try {
+          last.serialize(dataOut); // keep sending the same command if there's nothing new
+        } catch (IOException e) {
+          Logger.println(RepetitionRate.FEW, "Failed to send command parameters to server (effectiveOn=" + last.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
+          Logger.println(RepetitionRate.FEW, "Assuming we disconnected. Ending Client execution.");
+          e.printStackTrace();
+        }
 
       } else {
 
         // Otherwise send all new parameters.
         for (PlayerControlParameters p : pcp)
-          p.serialize(dataOut);
+          try {
+            p.serialize(dataOut);
+          } catch (IOException e) {
+            Logger.println(RepetitionRate.FEW, "Failed to send command parameters to server (effectiveOn=" + p.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
+            Logger.println(RepetitionRate.FEW, "Assuming we disconnected. Ending Client execution.");
+            e.printStackTrace();
+          }
 
         last = pcp[pcp.length-1];
       }
@@ -289,8 +301,14 @@ public class Client implements Runnable {
       
       ByteArrayInputStream bin = new ByteArrayInputStream(data);
       
-      GameState newState = GameState.parse(new DataInputStream(bin), prev);
-      prev = newState;
+      GameState newState = null;
+      try {
+        newState = GameState.parse(new DataInputStream(bin), prev);
+      } catch (IOException e) {
+        Logger.println(RepetitionRate.FEW, "Failed to parse game state from server.");
+        e.printStackTrace();
+      }
+      prev = (newState != null)? newState:prev;
       
       intelligence.processGameStateUpdate(newState);
       
