@@ -84,6 +84,8 @@ public class GUI implements Runnable {
       drawables.add(new DrawableShip(j, DrawUtils.DEFAULTSTROKE));
 
     drawables.add(new DrawableScoreboard(Color.GRAY, Arena.current().sequence()));
+    
+    drawables.add(new DrawableFPS(DrawUtils.DEFAULTSTROKE));
 
     audibles.add(new AudibleShot());
     audibles.add(new AudibleCrash());
@@ -192,6 +194,9 @@ public class GUI implements Runnable {
         Paint[] colors = d.paint();
         Stroke[] strokes = d.stroke();
         for (int k=0; k<s.length; ++k) {
+          assert(colors[k] != null);
+          assert(strokes[k] != null);
+          assert(fill.length > k);
           DrawUtils.setPaint(colors[k]);
           DrawUtils.setStroke(strokes[k]);
           DrawUtils.shape(s[k], d.ingameCoordinates(), fill[k]);
