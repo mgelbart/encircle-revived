@@ -1,9 +1,14 @@
 package aoi;
 
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -12,7 +17,7 @@ import java.util.Vector;
  * Not Stupid Path. Like a Path2D object but gives access to the lines.
  * Cousin of NSPolygon.
  */
-public class NSPath implements Iterable<Point> {
+public class NSPath implements Iterable<Point>, Shape {
   
   private Vector<Point> points;
   private double length;  // Cache the trajectory length
@@ -87,6 +92,10 @@ public class NSPath implements Iterable<Point> {
     
     points.add(newPoint);
   }
+  public void addPoints(Point[] newPoints) {
+    for (int i = 0; i < newPoints.length; i++)
+      addPoint(newPoints[i]);
+  }
   
   public int intersects(Line2D l) {
     if (nPoints() < 2) return -1;
@@ -95,6 +104,10 @@ public class NSPath implements Iterable<Point> {
       if (getLine(i).intersectsLine(l))
         return i;
     return -1;
+  }
+  
+  public void close() {
+    addPoint(firstPoint());
   }
   
   public int intersects(NSPath that) {
@@ -145,5 +158,49 @@ public class NSPath implements Iterable<Point> {
   @SuppressWarnings("unchecked")
   public synchronized NSPath clone() {
     return new NSPath((Vector<Point>)points.clone(), length);
+  }
+
+  
+  // stuff for implementing shape
+  // not sure if this is good or sketch-ball
+  
+  @Override
+  public boolean contains(Point2D p) {
+    return toPath2D().contains(p);
+  }
+  @Override
+  public boolean contains(Rectangle2D r) {
+    return toPath2D().contains(r);
+  }
+  @Override
+  public boolean contains(double x, double y) {
+    return toPath2D().contains(x, y);
+  }
+  @Override
+  public boolean contains(double x, double y, double w, double h) {
+    return toPath2D().contains(x, y, w, h);
+  }
+  @Override
+  public Rectangle getBounds() {
+    return toPath2D().getBounds();
+  }
+  @Override
+  public Rectangle2D getBounds2D() {
+    return toPath2D().getBounds2D();
+  }
+  public PathIterator getPathIterator(AffineTransform at) {
+    return toPath2D().getPathIterator(at);
+  }
+  @Override
+  public PathIterator getPathIterator(AffineTransform at, double flatness) {
+    return toPath2D().getPathIterator(at, flatness);
+  }
+  @Override
+  public boolean intersects(Rectangle2D r) {
+    return toPath2D().intersects(r);
+  }
+  @Override
+  public boolean intersects(double x, double y, double w, double h) {
+    return toPath2D().intersects(x, y, w, h);
   }
 }

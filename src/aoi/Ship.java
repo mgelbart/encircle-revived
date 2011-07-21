@@ -2,7 +2,6 @@ package aoi;
 
 import java.awt.Point;
 import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
 
 /** 
  * A "read-only" class that describes a player's
@@ -25,6 +24,26 @@ public class Ship {
   private final Angle direction;
   
   private final NSPath path;  // cache the path for intersection checking
+  
+  
+ 
+  public Ship(Ship that) {
+    this(that.location(), that.vx, that.vy, that.direction);
+  }
+  
+  public Ship(Point p, int vx, int vy, Angle direction) {
+    this.x = p.x;
+    this.y = p.y;
+    this.vx = vx;
+    this.vy = vy;
+    this.direction = direction;
+    
+    path = new NSPath();
+    path.addPoints(shape());
+    path.close();
+  }
+
+  
   
   public int x() { return x; }
   public int y() { return y; }
@@ -52,30 +71,7 @@ public class Ship {
     if (!this.path.equals(that.path)) return false;
     return true;
   }
-  
-  public Ship(Ship that) {
-    this(that.x, that.y, that.vx, that.vy, that.direction);
-  }
-  
-  public Ship(Point2D p, int vx, int vy, Angle direction) {
-    this((int)p.getX(), (int)p.getY(), vx, vy, direction);
-  }
-  
-  public Ship(int x, int y, int vx, int vy, Angle direction) {
-    this.x = x;
-    this.y = y;
-    this.vx = vx;
-    this.vy = vy;
-    this.direction = direction;
-    
-    path = new NSPath();
-    int[][] shape = shape();
-    path.addPoint(shape[0][0], shape[1][0]);
-    path.addPoint(shape[0][1], shape[1][1]);
-    path.addPoint(shape[0][2], shape[1][2]);
-  }
 
-  
   public boolean intersects(Line2D line) {
     return path.intersects(line) >= 0;
   }
@@ -84,29 +80,24 @@ public class Ship {
   }
 
 
-  public int[][] shape() {
+  private Point[] shape() {
     double cos = Math.cos(direction.toDouble());
     double sin = Math.sin(direction.toDouble());
 
     int deltaX, deltaY;
+    Point[] p = new Point[3];
 
-    int px[] = new int[3];
-    int py[] = new int[3];
-
-    for (int j=0; j<3; ++j) {
-
+    for (int j=0; j<p.length; ++j) {
       // Generate one of the three corners relative to origin.
       deltaX = ((j==1) ? 1:-1) * SHIPLENGTH / 2;
       deltaY = (j-1) * SHIPWIDTH / 2;
 
       // Rotate each point by direction (multiply by {{cos -sin} {sin cos}})
       // and translate to player location.
-      px[j] = x + (int) (cos*deltaX - sin*deltaY);
-      py[j] = y + (int) (sin*deltaX + cos*deltaY);
-
+      p[j] = new Point(x + (int) (cos*deltaX - sin*deltaY),
+                       y + (int) (sin*deltaX + cos*deltaY));
     }
-
-    return new int[][]{px, py};
+    return p;
   }
   
   

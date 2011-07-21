@@ -1,7 +1,6 @@
 package aoi;
 
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.Vector;
 import java.util.Timer;
@@ -38,7 +37,7 @@ public class Simulation {
   private Thread guiThread = null;
   
   // for debugging
-  private static final boolean VERIFYSERIALIZATION = true;
+  private static final boolean VERIFYSERIALIZATION = false;
   
   
   public Simulation(Arena arena) {
@@ -139,9 +138,7 @@ public class Simulation {
           assert(pStates[j].score <= pointsPerRound);
           if (pStates[j].score == pointsPerRound) {
             for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              pStates[k] = pStates[k].clone("score", 0);
-              int TIME_BETWEEN_ROUNDS_JUST_TEMPORARY = 1000 / SimulationUtils.TIMESTEP;
-              pStates[k] = pStates[k].clone("untilRespawn", TIME_BETWEEN_ROUNDS_JUST_TEMPORARY);
+              pStates[k] = pStates[k].cloneAndPwn();
             }
           }
         }
@@ -176,11 +173,12 @@ public class Simulation {
             int cropFrom = pStates[j].tail.lengthFromLastKnotToTime(untilRespawn*SimulationUtils.UNCOILSPEED);
             int cropTo = game.time + 1; // +1 because crop() does not remove "cropTo itself"
             
-            Point2D newLocation = pStates[j].tail.getPointFromTime(cropFrom);
-            if (newLocation == null) newLocation = pStates[j].ship.location();
-              Angle newDir = pStates[j].tail.tangentAngleHead();
-            if (newDir == null) newDir = pStates[j].ship.dir();
-              ship = new Ship(newLocation, 0, 0, newDir);
+            Point newLocation = pStates[j].tail.getPointFromTime(cropFrom);
+            assert(newLocation != null);
+            Angle newDir = pStates[j].tail.tangentAngleHead();
+            assert(newDir != null);
+            // Create new ship with zero velocity
+            ship = new Ship(newLocation, 0, 0, newDir);
 
             tail = pStates[j].tail.crop(cropFrom, cropTo);
             
@@ -247,7 +245,7 @@ public class Simulation {
                   ClusterServerSide c = (ClusterServerSide) cNotSS;
                   
                   // Check if the center of the cluster is in the loop just made
-                  if (c.acceptable(arena.sequence()[pStates[j].score]) && intersection.toPath2D().contains(c.centerX(), c.centerY())) {
+                  if (c.acceptable(arena.sequence()[pStates[j].score]) && intersection.contains(c.centerX(), c.centerY())) {
                     Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + j + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
 
                     scored = true;
@@ -264,7 +262,7 @@ public class Simulation {
                 for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
                   if (k==j) continue;
 
-                  if (intersection.toPath2D().contains(pStates[k].ship.x(), pStates[k].ship.y())) {
+                  if (intersection.contains(pStates[k].ship.x(), pStates[k].ship.y())) {
                     gotPwned[k] = true; // set score to 0 if you are enclosed by the other player!!!!
                   }
                 }
@@ -296,7 +294,7 @@ public class Simulation {
           // end dealing with moving around and loops and stuff
           
           if (scored)
-            tail.addKnotAtHead();
+            tail = tail.addKnotAtHead();
           
 
           // Calculate the new positions for the bullets and figure out
@@ -346,12 +344,9 @@ public class Simulation {
         
         // Needs to be outside main loop because loop on j checks
         // if player j pwned someone else, not if player j got pwned.
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          if (gotPwned[j]) {
-            pStates[j] = pStates[j].clone("score", 0);
-            pStates[j] = pStates[j].clone("sincePwned", 0);
-          }
-        }
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+          if (gotPwned[j])
+            pStates[j] = pStates[j].cloneAndPwn();
 
         // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(game.time + 1, pStates, bullets);
@@ -362,9 +357,8 @@ public class Simulation {
           newGState.serialize(out);
           
           ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);
-          
-//          parsedGState.assertDeepEquals(newGState);
+          GameState parsedGState = GameState.parse(new DataInputStream(in), this.game);          
+          parsedGState.assertDeepEquals(newGState);
         }
         
         // Note: don't need locking since updating a reference is atomic.

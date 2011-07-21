@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.awt.*;
 import javax.swing.*;
 
 import aoi.Logger.RepetitionRate;

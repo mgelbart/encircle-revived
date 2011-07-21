@@ -1,8 +1,8 @@
 package aoi;
 
 import java.awt.Point;
-import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
+import java.awt.Shape;
+import java.util.TreeSet;
 import java.util.Vector;
 
 /** 
@@ -16,12 +16,12 @@ public class Tail {
   // ------------------------------------------------------------------------ //
 
   // The trajectory in the two space coordinates
-  private NSPath trajectory;
+  private final NSPath trajectory;
   
   // The time coordinate of each point
-  private Vector<Integer> times;
+  private final Vector<Integer> times;
   
-  private KnotGroup knots; 
+  private final KnotGroup knots; 
   
   // ---------------------- start constructors ----------------------- //
   public Tail(Point p, int time) {
@@ -58,7 +58,7 @@ public class Tail {
   }
   
   
-  // --------- ---------- start small cute functions --------------- //
+  // ------------------- start access functions --------------- //
   public int nPoints() {
     assert(trajectory.nPoints() == times.size());
     return Math.random()<0.5?trajectory.nPoints():times.size();
@@ -66,10 +66,14 @@ public class Tail {
   
   public int     nKnots  ()      { return knots.size();           }
   public double  length  ()      { return trajectory.length();    }
-  public Path2D  toPath2D()      { return trajectory.toPath2D();  }
+  public Shape  pathShape()      { return trajectory.clone();     }
   public boolean isEmpty ()      { return nPoints() == 0;         }
   public Point getPoint(int i)   { return trajectory.getPoint(i); }
 
+  public boolean contains(double x, double y) {
+    return trajectory.contains(x, y);
+  }
+  
   @SuppressWarnings("unchecked")
   public Iterable<Integer> getKnots() { 
     return (Iterable<Integer>)knots.clone(); 
@@ -90,24 +94,7 @@ public class Tail {
     if (isEmpty()) return null;
     else return times.firstElement();
   }
-  
-  public Point2D headPoint() {
-    assert(!isEmpty());
-    return getPoint(nPoints()-1);
-  }
-  public Point2D basePoint() {
-    assert(!isEmpty());
-    return getPoint(0);
-  }
-  
-  // The *time* of the last (closest to head) knot
-  // This function contains the logic that
-  // There is always a knot at the back
-  public int lastKnotTime() {
-    assert(!isEmpty());
-    return times.get(knots.last());
-  }
-  
+
   // the time of the first (closest to base)
   // knot NOT INCLUDING THE KNOT AT BASE
   // Returns the head time if the knot
@@ -115,7 +102,6 @@ public class Tail {
   public int cropToForCrossing() {
     assert(!isEmpty());
     assert(nKnots() > 0);
-    
     if (nKnots() == 1) return headTime(); 
     // (above) only knot at bases crop everything except the head    
     return times.get(knots.firstNotBase())+1;
@@ -123,53 +109,28 @@ public class Tail {
   }
 
   // the first (absolute) time at which the path from 
-  // the last knot to that time 
-  // has at least the specified length
-  // note that this does NOT output the time interval length from base to this point
+  // index to that time has at least the specified length
+  private int lengthFromIndexToTime(int index, double length) {
+    assert(!isEmpty());
+    NSPath subpath = new NSPath();
+
+    for (int i = index; i < nPoints(); i++) {
+      subpath.addPoint(getPoint(i)); 
+      if (subpath.length() >= length)
+        return times.get(i);
+    }
+    // what to do if the entire path is not long enough
+    // here we use lastElement()+1 so that if the whole path
+    // is not long enough, you don't crop anything
+    // when the output of this function is used as cropTailFrom
+    return headTime() + 1; 
+  }
   public int lengthFromBaseToTime(double length) {
-    assert(nPoints() > 0);
-    
-    NSPath subpath = new NSPath();
-
-    for (int i = 0; i < nPoints(); i++) {
-      subpath.addPoint(getPoint(i)); 
-      if (subpath.length() >= length)
-        return times.get(i);
-    }
-    
-    // what to do if the entire path is not long enough
-    // must be very careful with what you return in this case
-    // here we use lastElement()+1 so that if the whole path
-    // is not long enough, you don't crop anything
-    // when the output of this function is used as cropTailFrom
-    return headTime() + 1;  
+    return lengthFromIndexToTime(0, length);
   }
-  
-  
-  // the first (absolute) time at which the path from 
-  // the last knot to that time 
-  // has at least the specified length
-  // note that this does NOT output the time interval length from base to this point
   public int lengthFromLastKnotToTime(double length) {
-    assert(nPoints() > 0);
-    
-    NSPath subpath = new NSPath();
-
-    for (int i = knots.last(); i < nPoints(); i++) {
-      subpath.addPoint(getPoint(i)); 
-      if (subpath.length() >= length)
-        return times.get(i);
-    }
-    
-    // what to do if the entire path is not long enough
-    // must be very careful with what you return in this case
-    // here we use lastElement()+1 so that if the whole path
-    // is not long enough, you don't crop anything
-    // when the output of this function is used as cropTailFrom
-    return headTime() + 1;  
+    return lengthFromIndexToTime(knots.last(), length);  
   }
-  
-  
   
   public double lengthFromLastKnotToHead() {
     assert(nKnots() > 0);
@@ -186,71 +147,44 @@ public class Tail {
   }
   public Angle tangentAngleHead() {
     return tangentAngle(nPoints()-1);
-  }
-  public Angle tangentAngleBase() {
-    return tangentAngle(1);
-  }
-  
-  public void addKnotAtHead() {
-    knots.add(nPoints()-1);
-  }
-  // ---------------------- end small cute functions --------------- //
-  
-  // ---------- start big mean complicated functions --------------- //
-  // Create a copy of the Tail with an added point.
-  @SuppressWarnings("unchecked")
-  public Tail addPoint(Point curPoint, int time) {  
-    if (isEmpty())
-      return new Tail(curPoint, time);
-    // (above): this might happen if for example you just shot
-    // and now have absolutely no tail at all
-    
-    
-    // trajectory and times for the new tail
-    NSPath newTrajectory = trajectory.clone();
-    Vector<Integer> newTimes = (Vector<Integer>) (times.clone());
-    KnotGroup newKnots = (KnotGroup) knots.clone();
-    
-    assert(newTrajectory.nPoints() == trajectory.nPoints());
-    assert(newTimes.size() == times.size());    
-    assert(trajectory.nPoints() == times.size());
-    
-    Point2D prevPoint = trajectory.lastPoint();
-    Point2D prevPrevPoint = trajectory.lastlastPoint();
+  }  
 
+  // ------------- end access functions --------------- //
+  
+  
+  
+  // ------ start functions that (clone and) modify tail -------- //
+  public Tail addKnotAtHead() {
+    Tail newTail = clone();    
+    newTail.knots.add(nPoints()-1);
+    
+    return newTail;
+  }
+  
+  // Create a copy of the Tail with an added point.
+  public Tail addPoint(Point curPoint, int time) {  
+    if (isEmpty()) return new Tail(curPoint, time);
+    
+    Tail newTail = clone();
+    
+    Point prevPoint = newTail.trajectory.lastPoint();
+    Point prevPrevPoint = newTail.trajectory.lastlastPoint();
     assert(prevPoint != null);
     
-    // if the current point is not equal to the previous point
-    // but == is sketchy for double so we use this
-    if (prevPoint.distance(curPoint) > 0.9) {
-
+    if (!prevPoint.equals(curPoint)) {
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
       if (prevPrevPoint != null &&
-            curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {
-
-        assert(newTimes.size() > 1);
-        assert(newTrajectory.nPoints() == newTimes.size());
-        
-        newTrajectory.removeLast();
-        newTimes.removeElementAt(newTimes.size()-1);
-        
+            curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
+        newTail.trajectory.removeLast();
+        newTail.times.remove(newTail.times.size()-1);
       }
-
-      newTrajectory.addPoint(curPoint);
-      newTimes.add(time);
-
-      //Logger.println(Logger.RepetitionRate.FREQUENT, thatTrajectory.nPoints() + " " + thatTimes.size());
-      assert(newTrajectory.nPoints() == newTimes.size());
-      
-      return new Tail(newTrajectory, newTimes, newKnots);
-      
-    } else {
-      return this.clone();
+      newTail.trajectory.addPoint(curPoint);
+      newTail.times.add(time);
     }
-
+    assert(newTail.trajectory.nPoints() == newTail.times.size());
+    return newTail;
   }
-  
 
   // Crops part of a tail given the times "from" and "to".
   // Removes "from" but not "to"
@@ -311,7 +245,7 @@ public class Tail {
   
     return new Tail(loop, loopTimes, loopKnots);
   }
-  // ------------ end big mean complicated functions --------------- //
+  // ------ end functions that (clone and) modify tail -------- //
 
   @SuppressWarnings("unchecked")
   public Tail clone() {
@@ -322,5 +256,19 @@ public class Tail {
   
   public String toString() { return trajectory.toString(); }
    
+  
+
+  @SuppressWarnings("serial")
+  public class KnotGroup extends TreeSet<Integer> {
+      
+    public KnotGroup() {
+      super();
+      add(0);
+    }  
+
+    public Integer firstNotBase() {
+      return higher(0);
+    }
+  }
   
 }

@@ -225,6 +225,7 @@ public class ClusterDatabase {
     return d;
   }
   
+  @SuppressWarnings("unused")
   private int uniform(int[] p) {
     return (int)Math.floor(Math.random()*p.length);
   }

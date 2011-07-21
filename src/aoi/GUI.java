@@ -1,7 +1,6 @@
 package aoi;
 
 import java.applet.AudioClip;
-import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.*;
 import java.util.Set;

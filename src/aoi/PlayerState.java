@@ -89,12 +89,27 @@ public class PlayerState {
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
       int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
-    this(playerNo, new Ship(x, y, vx, vy, direction), 
+    this(playerNo, new Ship(new Point(x, y), vx, vy, direction), 
         cropTailFrom, cropTailTo,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }	
+
+ 
+  public PlayerState cloneAndPwn() {
+    int score        = 0;
+    int sincePwned   = 0;
+
+    return new PlayerState(playerNo, ship, 
+        cropTailFrom, cropTailTo, 
+        score, untilReload, untilRespawn,
+        sinceScoring, sinceLooping, sinceCrossing,
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
+  }
+
+  
+  
 
   public void assertEquals(PlayerState that) {
     this.ship.assertEquals(that.ship);
@@ -131,35 +146,7 @@ public class PlayerState {
   }
   
   
-  // Make a deep copy but set some parameter
-  public PlayerState clone(String key, int value) {
-
-    int playerNo     = this.playerNo;
-    int score        = this.score;
-    int untilRespawn = this.untilRespawn;
-    int untilReload  = this.untilReload;
-    int sincePwned   = this.sincePwned;
-    int sinceKnot    = this.sinceKnot;
-    
-    // TODO: use an enum for these.
-    if (key.equals("score"))
-      score = value;
-    else if (key.equals("untilRespawn"))
-      untilRespawn = value;
-    else if (key.equals("untilReload"))
-      untilReload = value;
-    else if (key.equals("sincePwned"))
-      sincePwned = value;    	
-    else 
-      assert(false);  // lol
-
-    return new PlayerState(playerNo, ship, 
-        cropTailFrom, cropTailTo, 
-        score, untilReload, untilRespawn,
-        sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
-  }
-
+  
   // Make a deep copy but set new ship
   public PlayerState clone(Ship newShip) {
     return new PlayerState(playerNo, newShip, 
@@ -261,7 +248,7 @@ public class PlayerState {
   public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) {
 
     Byte cmd;
-    int playerNo, x, y, vx, vy, energy, tailStarted, cropTailFrom, cropTailTo, score,
+    int playerNo, x, y, vx, vy, cropTailFrom, cropTailTo, score,
         untilReload, untilRespawn, sinceScoring, sinceLooping, sinceCrossing,
           sinceHitByBullet, sincePwned, sinceKnot;
     Angle dir;
@@ -384,7 +371,7 @@ public class PlayerState {
     
     
     if (sinceKnot - prevState.sinceKnot < 0) { 
-      newTail.addKnotAtHead();
+      newTail = newTail.addKnotAtHead();
       Logger.println(Logger.RepetitionRate.FREQUENT, "added knot: " + newTail.nKnots());
     }
           
