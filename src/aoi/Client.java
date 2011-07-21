@@ -19,6 +19,9 @@ public class Client implements Runnable {
   // Path to the default configuration file.
   private static final String DEFAULTCONFIGPATH = "client.conf";
 
+  // The number of milliseconds to wait for a UDP reply before fallning back to TCP
+  private static final int UDPTIMEOUT = 3000;
+  
   // The JLabel for the GUI.
   private JButton canvas;
 
@@ -112,20 +115,32 @@ public class Client implements Runnable {
         intel = new HigherBeing();
 
       /* Set up the UDP connection */
-      Logger.println(Logger.RepetitionRate.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
-      UnreliableStream uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
+      UnreliableStream uStream = null;
+      if (! ClientConfiguration.tcpOnly) {
+        Logger.println(Logger.RepetitionRate.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+        uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
       
-      // This passes received game states to the intelligence.
-      uStream.registerReceiver(new GameStateReceiver(intel));
-      
-      // connect and wait until we start getting some replies.
-      uStream.connect();
-      while (uStream.sendSuccessRate() < 0) { Logger.println(RepetitionRate.FEW, "waiting for reply... " + uStream.sendSuccessRate()); Thread.sleep(500); }
-
+        // This passes received game states to the intelligence.
+        uStream.registerReceiver(new GameStateReceiver(intel));
+        
+        // connect and wait until we start getting some replies.
+        uStream.connect();
+        
+        final long start = System.currentTimeMillis();
+        while (uStream.sendSuccessRate() < 0) {
+          Logger.println(RepetitionRate.FEW, "waiting for UDP reply... ");
+          if (System.currentTimeMillis() - start > UDPTIMEOUT) {
+            // fall back to TCP
+            ClientConfiguration.tcpOnly = true;
+            break;
+          }
+          Thread.sleep(500);
+        }
+    }
 
       // This timer task keeps asking the intelligence for new parameters
       // and sends them to the server.
-      TimerTask sendTask = new SendParamsTask(intel, uStream);
+      TimerTask sendTask = new SendParamsTask(intel, controlStream, uStream);
       Timer sendTimer = new Timer();
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
@@ -134,8 +149,14 @@ public class Client implements Runnable {
       GameState game = null;
 
       while (true) {
-        // there's nothing left for this thread to do!
-        Thread.sleep(10000);
+        if (ClientConfiguration.tcpOnly) {
+          // use this thread to parse game states from the TCP stream
+          game = GameState.parse(stateStream, game);
+          intel.processGameStateUpdate(game);
+        } else {
+          // in UDP mode the GameStateReceiver handles this so there's nothing left for this thread to do!
+          Thread.sleep(10000);
+        }
       }
 
     } catch (Exception e) {
@@ -175,13 +196,30 @@ public class Client implements Runnable {
   private static class SendParamsTask extends TimerTask {
 
     Intelligence intelligence;
-    UnreliableStream out;
+    
+    // UDP only
+    UnreliableStream udpOut;
+    
+    // TCP only
+    BufferedOutputStream tcpBufOut;
+    
+    // both UDP and TCP use this wrapper
+    DataOutputStream dataOut;
     
     PlayerControlParameters last;
+    double lastUdpSuccessRate = Double.NEGATIVE_INFINITY;
     
-    public SendParamsTask(Intelligence intelligence, UnreliableStream out) {
+    public SendParamsTask(Intelligence intelligence, OutputStream tcpOut, UnreliableStream udpOut) {
       this.intelligence = intelligence;
-      this.out = out;
+      this.udpOut = udpOut;
+      
+      if (tcpOut != null) {
+        this.tcpBufOut = new BufferedOutputStream(tcpOut);
+        this.dataOut = new DataOutputStream(this.tcpBufOut);
+      } else {
+        this.tcpBufOut = null;
+        this.dataOut = null;
+      }
     }
     
     public void run() {
@@ -189,27 +227,50 @@ public class Client implements Runnable {
       // Send all queued control parameters.
       PlayerControlParameters[] pcp = intelligence.getNewControlParameters();
       
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
-      DataOutputStream dout = new DataOutputStream(bout);
+      ByteArrayOutputStream byteOut = null;
+      
+      // Choose UDP or TCP stream
+      if (!ClientConfiguration.tcpOnly) {
+        byteOut = new ByteArrayOutputStream();
+        dataOut = new DataOutputStream(byteOut);
+      } else {
+        assert(dataOut != null);
+      }
       
       if (pcp.length == 0) {
  
         if (last == null) return; // the game didn't start yet.
-        last.serialize(dout); // keep sending the same command if there's nothing new
+        last.serialize(dataOut); // keep sending the same command if there's nothing new
 
       } else {
 
         // Otherwise send all new parameters.
         for (PlayerControlParameters p : pcp)
-          p.serialize(dout);
+          p.serialize(dataOut);
 
         last = pcp[pcp.length-1];
       }
       
-      out.send(bout.toByteArray());
+      // Flush UDP or TCP stream
+      if (byteOut != null) {
+        
+        udpOut.send(byteOut.toByteArray());
+        
+        final double s = udpOut.sendSuccessRate();
+        if (s < 0.999 && s < lastUdpSuccessRate) Logger.println(RepetitionRate.INFREQUENT, "UDP success rate: " + s);
+        lastUdpSuccessRate = s;
+        
+      } else {
+        
+        try {
+          tcpBufOut.flush();
+        } catch (IOException e) {
+          e.printStackTrace();
+          assert(false);
+        }
+        
+      }
       
-      final double s = out.sendSuccessRate();
-      if (s < 0.999) { Logger.println(RepetitionRate.INFREQUENT, "UDP success rate: " + s); }
     }
 
   }

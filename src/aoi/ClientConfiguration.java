@@ -18,6 +18,9 @@ public abstract class ClientConfiguration {
   // The id of the UnreliableStream used to connect to the server.
   public static short unreliableStreamId;
 
+  // Don't even attempt to use UDP.
+  public static boolean tcpOnly = false;
+  
   // Player number in the game.
   public static int playerNo;
 
@@ -41,6 +44,8 @@ public abstract class ClientConfiguration {
   public static String asString() {
     return "server:\n" + serverUrl
       + "\nport:\n" + serverPort
+      + "\nunreliable stream id:\n" + unreliableStreamId
+      + "\nTCP only:\n" + tcpOnly
       + "\nplayer no:\n" + playerNo
       + "\nnon-human:\n" + nonhuman
       + "\npredict:\n" + predictFuture;
@@ -57,6 +62,9 @@ public abstract class ClientConfiguration {
 
       reader.readLine();
       serverPort = Integer.parseInt(reader.readLine());
+
+      reader.readLine();
+      tcpOnly = Boolean.parseBoolean(reader.readLine());
 
       reader.readLine();
       nonhuman = Boolean.parseBoolean(reader.readLine());
