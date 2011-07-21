@@ -81,63 +81,49 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
     return s.toString();
   }
 
-  public void serialize(DataOutputStream o) {
+  public void serialize(DataOutputStream o) throws IOException {
 
-    try {
+    // Signal start of a new command:
+    if (CHECKBYTES) o.writeBytes("e");
+    o.writeInt(effectiveOn);
 
-      // Signal start of a new command:
-      if (CHECKBYTES) o.writeBytes("e");
-      o.writeInt(effectiveOn);
+    if (CHECKBYTES) o.writeBytes("a");
+    o.writeInt(acceleration);
 
-      if (CHECKBYTES) o.writeBytes("a");
-      o.writeInt(acceleration);
+    if (CHECKBYTES) o.writeBytes("d");
+    targetDirection.serialize(o);
 
-      if (CHECKBYTES) o.writeBytes("d");
-      targetDirection.serialize(o);
+    if (CHECKBYTES) o.writeBytes("s");
+    if (shoot) ++shootCtr;
+    o.write(shootCtr);
 
-      if (CHECKBYTES) o.writeBytes("s");
-      if (shoot) ++shootCtr;
-      o.write(shootCtr);
-
-      if (CHECKBYTES) o.writeBytes("b");
-      if (boost) ++boostCtr;
-      o.write(boostCtr);
-
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-    }
+    if (CHECKBYTES) o.writeBytes("b");
+    if (boost) ++boostCtr;
+    o.write(boostCtr);
 
   }
 
-  public static PlayerControlParameters parse(DataInputStream i, PlayerControlParameters prev) {
+  public static PlayerControlParameters parse(DataInputStream i, PlayerControlParameters prev) throws IOException {
 
     Byte cmd;
     int e, a, s, b;
     Angle d;
 
-    try {
-	    
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
-      e = i.readInt();
-		
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'a'); }
-      a = i.readInt();
-	    
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
-      d = Angle.parse(i);
-	    
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
-      s = i.read();
-	    
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
-      b = i.read();
-	    
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-      return null;
-    }
+
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'e'); }
+    e = i.readInt();
+	
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'a'); }
+    a = i.readInt();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
+    d = Angle.parse(i);
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
+    s = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
+    b = i.read();
 
     PlayerControlParameters params = new PlayerControlParameters(e, a, d,
                                                                   (s != prev.parsedShootCtr),

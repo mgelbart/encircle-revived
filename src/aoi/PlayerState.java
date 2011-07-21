@@ -184,71 +184,64 @@ public class PlayerState {
     return s.toString();
   }
 
-  public void serialize(DataOutputStream o) {
+  public void serialize(DataOutputStream o) throws IOException {
 
-    try {
-      
-      assert(playerNo >= 0);
-      assert(playerNo <= 0xFF);
-      if (CHECKBYTES) o.writeBytes("#");
-      o.write(playerNo);
+    assert(playerNo >= 0);
+    assert(playerNo <= 0xFF);
+    if (CHECKBYTES) o.writeBytes("#");
+    o.write(playerNo);
 
-      if (CHECKBYTES) o.writeBytes("x");
-      o.writeInt(ship.x());
+    if (CHECKBYTES) o.writeBytes("x");
+    o.writeInt(ship.x());
 
-      if (CHECKBYTES) o.writeBytes("y");
-      o.writeInt(ship.y());
+    if (CHECKBYTES) o.writeBytes("y");
+    o.writeInt(ship.y());
 
-      if (CHECKBYTES) o.writeBytes("u");
-      o.writeInt(ship.vx());
+    if (CHECKBYTES) o.writeBytes("u");
+    o.writeInt(ship.vx());
 
-      if (CHECKBYTES) o.writeBytes("v");
-      o.writeInt(ship.vy());
+    if (CHECKBYTES) o.writeBytes("v");
+    o.writeInt(ship.vy());
 
-      if (CHECKBYTES) o.writeBytes("d");
-      ship.dir().serialize(o);
+    if (CHECKBYTES) o.writeBytes("d");
+    ship.dir().serialize(o);
 
-      cropEvents.serialize(o);
-            
-      assert(score >= 0);
-      assert(score <= 0xFF);
-      if (CHECKBYTES) o.writeBytes("s");
-      o.write(score);
+    cropEvents.serialize(o);
+          
+    assert(score >= 0);
+    assert(score <= 0xFF);
+    if (CHECKBYTES) o.writeBytes("s");
+    o.write(score);
 
-      if (CHECKBYTES) o.writeBytes("l");
-      o.write(untilReload); // 255 = 0xFF (as an unsigned byte)
-      
-      if (CHECKBYTES) o.writeBytes("r");
-      o.write(untilRespawn);
-      
-      if (CHECKBYTES) o.writeBytes("s");
-      o.write(sinceScoring);
-      
-      if (CHECKBYTES) o.writeBytes("l");
-      o.write(sinceLooping);
-      
-      if (CHECKBYTES) o.writeBytes("c");
-      o.write(sinceCrossing);
-      
-      if (CHECKBYTES) o.writeBytes("b");
-      o.write(sinceHitByBullet);
-      
-      if (CHECKBYTES) o.writeBytes("p");
-      o.write(sincePwned);
+    if (CHECKBYTES) o.writeBytes("l");
+    o.write(untilReload); // 255 = 0xFF (as an unsigned byte)
+    
+    if (CHECKBYTES) o.writeBytes("r");
+    o.write(untilRespawn);
+    
+    if (CHECKBYTES) o.writeBytes("s");
+    o.write(sinceScoring);
+    
+    if (CHECKBYTES) o.writeBytes("l");
+    o.write(sinceLooping);
+    
+    if (CHECKBYTES) o.writeBytes("c");
+    o.write(sinceCrossing);
+    
+    if (CHECKBYTES) o.writeBytes("b");
+    o.write(sinceHitByBullet);
+    
+    if (CHECKBYTES) o.writeBytes("p");
+    o.write(sincePwned);
 
-      if (CHECKBYTES) o.writeBytes("k");
-      o.write(sinceKnot);
-
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-    }
+    if (CHECKBYTES) o.writeBytes("k");
+    o.write(sinceKnot);
 
   }
 
   // Construct the new PlayerState using the players state data received from the server
   // and the previous PlayerState (needed to construct things like Tail that are sent incrementally).
-  public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) {
+  public static PlayerState parse(DataInputStream i, PlayerState prevState, int time) throws IOException {
 
     Byte cmd;
     int playerNo, x, y, vx, vy, score,
@@ -263,62 +256,55 @@ public class PlayerState {
     Angle dir;
     CropEventGroup cropEvents;
 
-    try {
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == '#'); }
+    playerNo = i.read();
+    assert(playerNo == 0 || playerNo == 1);
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == '#'); }
-      playerNo = i.read();
-      assert(playerNo == 0 || playerNo == 1);
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'x'); }
+    x = i.readInt();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'x'); }
-      x = i.readInt();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'y'); }
+    y = i.readInt();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'y'); }
-      y = i.readInt();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'u'); }
+    vx = i.readInt();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'u'); }
-      vx = i.readInt();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'v'); }
+    vy = i.readInt();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'v'); }
-      vy = i.readInt();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
+    dir = Angle.parse(i);
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'd'); }
-      dir = Angle.parse(i);
+    cropEvents = new CropEventGroup(i);
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
+    score = i.read();
 
-      cropEvents = new CropEventGroup(i);
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
+    untilReload = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'r'); }
+    untilRespawn = i.read();
       
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
-      score = i.read();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
+    sinceScoring = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
+    sinceLooping = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'c'); }
+    sinceCrossing = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
+    sinceHitByBullet = i.read();
+    
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
+    sincePwned = i.read();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
-      untilReload = i.read();
-      
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'r'); }
-      untilRespawn = i.read();
-        
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
-      sinceScoring = i.read();
-      
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'l'); }
-      sinceLooping = i.read();
-      
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'c'); }
-      sinceCrossing = i.read();
-      
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
-      sinceHitByBullet = i.read();
-      
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
-      sincePwned = i.read();
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'k'); }
+    sinceKnot = i.read();
 
-      if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'k'); }
-      sinceKnot = i.read();
-
-	    
-    } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
-      assert(false);
-      return null;
-    }
+    
     Point p = new Point(x, y);
     Ship ship = new Ship(p, vx, vy, dir);
     Tail newTail = prevState.tail;
