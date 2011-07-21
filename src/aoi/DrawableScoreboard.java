@@ -68,7 +68,7 @@ public class DrawableScoreboard implements Drawable {
     final double boardWidth  = scoreboard.getOutline().getBounds2D().getWidth();
     final double scaleFact = 15. / boardHeight;  // make the letters 15 px high
     
-    // Precalculate everything for the coordinate transformation except that translation.
+    // Precalculate everything except the translation for the coordinate transformation.
     // The amount of translation depends on the canvas size which may change.
     at = new AffineTransform();
     at.scale(scaleFact, scaleFact);
