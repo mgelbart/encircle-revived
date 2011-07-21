@@ -96,6 +96,21 @@ public class PlayerState {
         sinceHitByBullet, sincePwned, sinceKnot, tail);
   }	
 
+ 
+  public PlayerState cloneAndPwn() {
+    int score        = 0;
+    int sincePwned   = 0;
+
+    return new PlayerState(playerNo, ship, 
+        cropTailFrom, cropTailTo, 
+        score, untilReload, untilRespawn,
+        sinceScoring, sinceLooping, sinceCrossing,
+        sinceHitByBullet, sincePwned, sinceKnot, tail);
+  }
+
+  
+  
+
   public void assertEquals(PlayerState that) {
     this.ship.assertEquals(that.ship);
     this.tail.assertEquals(that.tail);
@@ -131,35 +146,7 @@ public class PlayerState {
   }
   
   
-  // Make a deep copy but set some parameter
-  public PlayerState clone(String key, int value) {
-
-    int playerNo     = this.playerNo;
-    int score        = this.score;
-    int untilRespawn = this.untilRespawn;
-    int untilReload  = this.untilReload;
-    int sincePwned   = this.sincePwned;
-    int sinceKnot    = this.sinceKnot;
-    
-    // TODO: use an enum for these.
-    if (key.equals("score"))
-      score = value;
-    else if (key.equals("untilRespawn"))
-      untilRespawn = value;
-    else if (key.equals("untilReload"))
-      untilReload = value;
-    else if (key.equals("sincePwned"))
-      sincePwned = value;    	
-    else 
-      assert(false);  // lol
-
-    return new PlayerState(playerNo, ship, 
-        cropTailFrom, cropTailTo, 
-        score, untilReload, untilRespawn,
-        sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
-  }
-
+  
   // Make a deep copy but set new ship
   public PlayerState clone(Ship newShip) {
     return new PlayerState(playerNo, newShip, 

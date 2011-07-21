@@ -1,7 +1,6 @@
 package aoi;
 
 import java.awt.Point;
-import java.awt.geom.Point2D;
 import java.io.*;
 import java.util.Vector;
 import java.util.Timer;
@@ -139,9 +138,7 @@ public class Simulation {
           assert(pStates[j].score <= pointsPerRound);
           if (pStates[j].score == pointsPerRound) {
             for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              pStates[k] = pStates[k].clone("score", 0);
-              int TIME_BETWEEN_ROUNDS_JUST_TEMPORARY = 1000 / SimulationUtils.TIMESTEP;
-              pStates[k] = pStates[k].clone("untilRespawn", TIME_BETWEEN_ROUNDS_JUST_TEMPORARY);
+              pStates[k] = pStates[k].cloneAndPwn();
             }
           }
         }
@@ -178,10 +175,9 @@ public class Simulation {
             
             Point newLocation = pStates[j].tail.getPointFromTime(cropFrom);
             assert(newLocation != null);
-//            if (newLocation == null) newLocation = pStates[j].ship.location();
             Angle newDir = pStates[j].tail.tangentAngleHead();
-//            if (newDir == null) newDir = pStates[j].ship.dir();
             assert(newDir != null);
+            // Create new ship with zero velocity
             ship = new Ship(newLocation, 0, 0, newDir);
 
             tail = pStates[j].tail.crop(cropFrom, cropTo);
@@ -348,12 +344,9 @@ public class Simulation {
         
         // Needs to be outside main loop because loop on j checks
         // if player j pwned someone else, not if player j got pwned.
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          if (gotPwned[j]) {
-            pStates[j] = pStates[j].clone("score", 0);
-            pStates[j] = pStates[j].clone("sincePwned", 0);
-          }
-        }
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+          if (gotPwned[j])
+            pStates[j] = pStates[j].cloneAndPwn();
 
         // UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(game.time + 1, pStates, bullets);
