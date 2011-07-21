@@ -97,9 +97,11 @@ public class Simulation {
   }
 
   public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
-
-    PlayerState[] pStatesTemp = (PlayerState[]) (game.pStates.clone());
-    Vector<Bullet> bullets = new Vector<Bullet>();
+    // Create temporary variables
+    PlayerState[] pStatesTemp = new PlayerState[SimulationUtils.NUMPLAYERS];
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
+      pStatesTemp[j] = game.pStates[j];
+    Vector<Bullet> bulletsTemp = new Vector<Bullet>();
 
     // Set up a timer that wakes up the simulation thread every TIMESTEP
     // milliseconds. Note that, if the computation takes even slightly longer
@@ -150,7 +152,7 @@ public class Simulation {
         boolean[] gotPwned = new boolean[SimulationUtils.NUMPLAYERS];
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           gotPwned[j] = false;
-        // --- end
+
         
         for (int playerNo=0; playerNo<SimulationUtils.NUMPLAYERS; ++playerNo) { 
  /* ----------------------  "main" loop for each player  --------------------- */ 
@@ -206,7 +208,7 @@ public class Simulation {
             if (params[playerNo].shoot && 
                 SimulationUtils.canShoot(pStatesTemp[playerNo])) {
               
-              bullets.add(new Bullet(playerNo, ship.x(), ship.y(), ship.dir()));
+              bulletsTemp.add(new Bullet(playerNo, ship.x(), ship.y(), ship.dir()));
               untilReload = SimulationUtils.RELOADTIME;
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),                                             // from
@@ -217,15 +219,15 @@ public class Simulation {
             // (2) CHECK FOR TAIL CROSSINGS AND SCORING          
             for (int thatPlayerNo=0; thatPlayerNo<SimulationUtils.NUMPLAYERS; ++thatPlayerNo) {            
               // (below) See comments in the intersects() function for more detail on this BS
-              Tail intersection = tail.intersects(tail, (thatPlayerNo==playerNo)?2:0);
+              Tail intersection = pStatesTemp[thatPlayerNo].tail.intersects(tail, (thatPlayerNo==playerNo)?2:0);
   
               if (intersection != null) {
                 if (thatPlayerNo != playerNo) {
                   // If this player crossed the Tail of another player
                   sinceCrossing = 0;
                   cropEvents = cropEvents.addEvent(
-                      tail.baseTime(),   // from  
-                      tail.cropToForCrossing());           // to
+                      tail.baseTime(),              // from  
+                      tail.cropToForCrossing());    // to
                 } else {
                   // If this player intersected his own Tails
                   sinceLooping = 0;
@@ -258,7 +260,7 @@ public class Simulation {
                   
                   // Check if the other player got pwned.
                   for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-                    if (j != playerNo && intersection.contains(ship.x(), ship.y()))
+                    if (j != playerNo && intersection.contains(pStatesTemp[j].ship.x(), pStatesTemp[j].ship.y()))
                       gotPwned[j] = true;
                     
                 }      // end if (thatPlayerNo !=/== playerNo) 
@@ -268,8 +270,8 @@ public class Simulation {
             
             // (3) MOVE BULLETS AND CHECK IF PLAYER IS HIT BY BULLET
             boolean gotShot = false;
-            for (int k = bullets.size() - 1; k >= 0; --k) {
-              Bullet b = SimulationUtils.nextBulletPosition(bullets.get(k));
+            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
+              Bullet b = SimulationUtils.nextBulletPosition(bulletsTemp.get(k));
   
               // Whether the bullet hit something.
               boolean remove = !SimulationUtils.isInArena(b, arena);
@@ -281,9 +283,9 @@ public class Simulation {
   
               // Update the bullet position unless it hit something.
               if (!remove)
-                bullets.set(k, b);
+                bulletsTemp.set(k, b);
               else
-                bullets.remove(k);
+                bulletsTemp.remove(k);
             }  // end loop through bullets
             if (gotShot) {
               sinceHitByBullet = 0;
@@ -302,6 +304,8 @@ public class Simulation {
           }   // end if not respawning
           
 
+          Logger.println(Logger.RepetitionRate.FREQUENT, cropEvents);
+          
           // (6) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = tail.parse(ship.location(), game.time+1, cropEvents);
 
@@ -313,14 +317,14 @@ public class Simulation {
               ship,
               cropEvents,
               score,
-              untilReload-1,
-              untilRespawn-1,
-              sinceScoring+1,
-              sinceLooping+1,
-              sinceCrossing+1,
-              sinceHitByBullet+1,
-              sincePwned+1,
-              sinceKnot+1,
+              untilReload,
+              untilRespawn,
+              sinceScoring,
+              sinceLooping,
+              sinceCrossing,
+              sinceHitByBullet,
+              sincePwned,
+              sinceKnot,
               tail);
         } 
 /* ----------------- end of "main" loop for each player --------------------- */
@@ -332,7 +336,8 @@ public class Simulation {
             pStatesTemp[j] = pStatesTemp[j].cloneAndPwn();
 
         // (8) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
-        GameState newGState = new GameState(game.time + 1, pStatesTemp, bullets);
+        GameState newGState = new GameState(
+            game.time + 1, pStatesTemp, bulletsTemp);
         
         if (VERIFYSERIALIZATION) {
           // for debugging

@@ -45,8 +45,16 @@ public class CropEvent {
     return timesToTransmit <= 0;
   }
   
+  public int timesToTransmit() {
+    return timesToTransmit;
+  }
+  
   public CropEvent clone() {
     return new CropEvent(cropFrom, cropTo);
+  }
+  
+  public String toString() {
+    return "(From " + cropFrom + " to " + cropTo + ")";
   }
   
   public boolean equals(Object o) {
