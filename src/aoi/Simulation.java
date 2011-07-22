@@ -32,7 +32,7 @@ public class Simulation {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static final boolean VISUALIZE = true;
+  private static final boolean VISUALIZE = false;
   private GUI gui = null;
   private Thread guiThread = null;
   
@@ -311,7 +311,7 @@ public class Simulation {
           cropEvents = cropEvents.optimizeEvents(game.time + 1);
           
           
-          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.INFREQUENT, (game.time+1) + "  " + cropEvents);
+//          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.FREQUENT, (game.time+1) + "  " + cropEvents);
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
               game.time+1, cropEvents, score);
