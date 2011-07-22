@@ -28,6 +28,7 @@ public class Shooter {
     
     for (int j=0; j < SimulationUtils.NUMPLAYERS; ++j) {
       if (j==playerNo) continue; // skip self
+      if (current.pStates[j].untilRespawn > 0) continue; // skip respawning players
       
       final Line2D bulletLine = new Line2D.Double(b.location(), b.direction.move(b.location(), SimulationUtils.ARENASIZE));
       final double perpendicularDist = bulletLine.ptSegDist(current.pStates[j].ship.location());
