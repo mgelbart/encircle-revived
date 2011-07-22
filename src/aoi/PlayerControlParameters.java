@@ -64,6 +64,10 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
     return this.effectiveOn == that.effectiveOn;
   }
 
+  public PlayerControlParameters shoot() {
+    return new PlayerControlParameters(effectiveOn, acceleration, targetDirection, true, boost);
+  }
+  
   public String toString() {
     StringBuilder s = new StringBuilder();
 

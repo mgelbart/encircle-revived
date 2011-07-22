@@ -73,8 +73,10 @@ public class HigherBeing implements Intelligence {
     guiThread.start();
 
     timemachine = new TimeMachine();
+    TimeMachine.setCurrent(timemachine);
 
     mindreader = new MindReader(timemachine);
+    MindReader.setCurrent(mindreader);
 
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
@@ -146,13 +148,15 @@ public class HigherBeing implements Intelligence {
 
         // Don't do anything before the game starts.
         if (renderedState == null) continue;
-      
+        
+        GameState gState = renderedState; // copy the reference so it doesn't change during an iteration
+
         PlayerControlParameters c;
         if (ClientConfiguration.useMouse)
-          c = mousePilot.getParams(renderedState);
+          c = mousePilot.getParams(gState);
         else
-          c = keyboardPilot.getParams(renderedState);
-
+          c = keyboardPilot.getParams(gState);
+        
         if (c != null) queueParams(c);
 
       }

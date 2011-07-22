@@ -1,6 +1,9 @@
 package aoi;
 
+import java.util.TreeSet;
 import java.util.Vector;
+
+import aoi.Logger.Rep;
 
 /**
  * A class for storing the history of the game
@@ -9,13 +12,13 @@ import java.util.Vector;
 public class TimeMachine {
 
   // Definitive game states that have been received from the server.
-  private final Vector<GameState> states;
+  private final TreeSet<GameState> states;
 
   // Cached future game states
-  private final Vector<GameState> futureStates;
+  private final TreeSet<GameState> futureStates;
   
   // Commands by the player.
-  private final Vector<PlayerControlParameters> ownParams;
+  private final TreeSet<PlayerControlParameters> ownParams;
 
   // Number of game states to store in history.
   private final static int STATESSIZE = 5;
@@ -27,9 +30,9 @@ public class TimeMachine {
   public static TimeMachine current() { return current; }
   
   public TimeMachine() {
-    states = new Vector<GameState>(STATESSIZE + 1);
-    futureStates = new Vector<GameState>();
-    ownParams = new Vector<PlayerControlParameters>();
+    states = new TreeSet<GameState>();
+    futureStates = new TreeSet<GameState>();
+    ownParams = new TreeSet<PlayerControlParameters>();
   }
 
 
@@ -37,23 +40,8 @@ public class TimeMachine {
   // received from the server.
   public synchronized void processStateUpdate(GameState g) {
 
-    final int N = states.size();
-
-    int i = 0;
-    while (i < N && g.compareTo(states.get(i)) > 0) i++;
-
-    assert(i <= states.size());
-
-    // Don't add duplicates.
-    if (i < N && g == states.get(i)) return;
-
-    states.insertElementAt(g, i);
-
-    //Logger.println(Logger.RepetitionRate.FREQUENT, "New state for t=" + g.time + " inserted at i=" + i);
-
-    if (N+1 > STATESSIZE)
-      states.removeElementAt(0);
-
+    states.add(g);
+    
     // empty cached future states since we now have better information available.
     // TODO: it might make sense to do this less frequently.
     futureStates.clear();
@@ -67,12 +55,8 @@ public class TimeMachine {
 
     synchronized (ownParams) {
 
+      ownParams.remove(p); // replace the old one, if any.
       ownParams.add(p);
-      java.util.Collections.sort(ownParams);
-
-      // Prune old control params.
-      while (ownParams.size() > 2 && ownParams.get(1).effectiveOn - states.lastElement().time < 0)
-        ownParams.removeElementAt(0);
 
     }
 
@@ -84,7 +68,7 @@ public class TimeMachine {
 
     if (states.size() == 0) return null;
 
-    return states.lastElement();
+    return states.last();
 
   }
 
@@ -97,7 +81,7 @@ public class TimeMachine {
 
     // Don't extrapolate into the history. Should just store
     // more states if they are needed.
-    if (time - states.get(0).time < 0) return null;
+    if (time - states.first().time < 0) return null;
 
 
     /* 
@@ -112,8 +96,8 @@ public class TimeMachine {
     final GameState last = getAuthorativeState();
 
     // past or current state
-    if (time < last.time)  return getPastState(time);
-    if (time == last.time) return last;
+    if (time - last.time < 0) return getPastState(time);
+    if (time == last.time)    return last;
     
     // look in cached future states
     final GameState cached = getCachedState(time);
@@ -123,6 +107,8 @@ public class TimeMachine {
     /* 
      * Otherwise need to extrapolate into the future.
      */
+    if (time - cached.time <= 0) Logger.println(Rep.FEW, time - cached.time);
+    assert(time - cached.time > 0);
     
     // The extrapolated states for each player and bullet.
     Ship[] ship = new Ship[SimulationUtils.NUMPLAYERS];
@@ -139,7 +125,6 @@ public class TimeMachine {
     }
     
     // Predict how the states will evolve during each remaining (time-cached.time) time step
-    assert(time - cached.time > 0);
     for (int j=0; j < time - cached.time; ++j) {
       
       // Player states
@@ -178,24 +163,18 @@ public class TimeMachine {
           bullets.remove(k);  
       }
       
-      futureStates.add(new GameState(time, players, bullets));
+      futureStates.add(new GameState(cached.time+1+j, players, bullets));
     }
 
-
-    return futureStates.lastElement();
+    return futureStates.last();
 
   }
   
   private synchronized GameState getPastState(int time) {
     // Do a linear search on the history keeping in mind
     // that there may be holes in the history.
-    final int N = states.size();
-
-    int i = 0;
-    while (i < N && time - states.get(i).time > 0) i++;
-
-    assert(i <= N);
-    return states.get(i);
+    for (GameState g : states) if (time - g.time <= 0) return g;
+    return states.last();
   }
   
   /*
@@ -205,7 +184,7 @@ public class TimeMachine {
   private synchronized GameState getCachedState(int time) {
     // Do a linear search in the cache.
     for (GameState g : futureStates) if (g.time == time) return g;
-    return (futureStates.isEmpty())? getAuthorativeState() : futureStates.lastElement();
+    return (futureStates.isEmpty())? states.last() : futureStates.last();
   }
 
 
@@ -223,7 +202,7 @@ public class TimeMachine {
 
     // Fall back to assuming motion in current direction (unless at standstill).
     assert(states.size() > 0);
-    PlayerState last = states.lastElement().pStates[ClientConfiguration.playerNo];
+    PlayerState last = states.last().pStates[ClientConfiguration.playerNo];
     if (Math.abs(last.ship.vx()) + Math.abs(last.ship.vy()) > SimulationUtils.MAXACC/2)
       return new PlayerControlParameters(time, SimulationUtils.MAXACC, last.ship.dir(), false, false);
     else
@@ -235,26 +214,21 @@ public class TimeMachine {
   private PlayerControlParameters getOwnParamsAt(int time) {
 
     synchronized (ownParams) {
-      final int N = ownParams.size();
+      PlayerControlParameters candidate = null;
+      for (PlayerControlParameters p : ownParams) {
+        if (p.effectiveOn == time) return p;
+        if (p.effectiveOn - time > 0) break;
+        candidate = p;
+      }
 
-      int i = 0;
-      while (i < N && ownParams.get(i).effectiveOn - time <= 0) i++;
-
-      /*
-        if (i>0 && ownParams.get(i-1).effectiveOn - time < -2) {
-        Logger.println(Logger.RepetitionRate.FREQUENT, "getOwnParamsAt(" + time + ")");
-        Logger.println(Logger.RepetitionRate.FREQUENT, "effectiveOn: " + ownParams.get(i-1).effectiveOn);
-        }
-      */
-
-      if (i > 0) return ownParams.get(i-1);
+      if (candidate != null) return candidate;
 
       // This should never happen under normal circumstances except when
       // the game is just starting and the player hasn't sent any commands.
       // Fall back to assuming motion in current direction.
       Logger.println(Logger.Rep.FEW, "Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
-      return new PlayerControlParameters(time, 0, states.lastElement().pStates[ClientConfiguration.playerNo].ship.dir(), false, false);
+      return new PlayerControlParameters(time, 0, states.last().pStates[ClientConfiguration.playerNo].ship.dir(), false, false);
 
     }
   }
