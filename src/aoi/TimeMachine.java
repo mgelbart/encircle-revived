@@ -29,28 +29,28 @@ public class TimeMachine {
 
   // Call this whenever a new game state is
   // received from the server.
-  public void processStateUpdate(GameState g) {
+  public synchronized void processStateUpdate(GameState g) {
 
-    synchronized (states) {
-	    
-      final int N = states.size();
+    final int N = states.size();
 
-      int i = 0;
-      while (i < N && g.compareTo(states.get(i)) > 0) i++;
+    int i = 0;
+    while (i < N && g.compareTo(states.get(i)) > 0) i++;
 
-      assert(i <= states.size());
+    assert(i <= states.size());
 
-      // Don't add duplicates.
-      if (i < N && g == states.get(i)) return;
+    // Don't add duplicates.
+    if (i < N && g == states.get(i)) return;
 
-      states.insertElementAt(g, i);
+    states.insertElementAt(g, i);
 
-      //Logger.println(Logger.RepetitionRate.FREQUENT, "New state for t=" + g.time + " inserted at i=" + i);
+    //Logger.println(Logger.RepetitionRate.FREQUENT, "New state for t=" + g.time + " inserted at i=" + i);
 
-      if (N+1 > STATESSIZE)
-        states.removeElementAt(0);
+    if (N+1 > STATESSIZE)
+      states.removeElementAt(0);
 
-    }
+    // empty cached future states since we now have better information available.
+    // TODO: it might make sense to do this less frequently.
+    futureStates.clear();
 
   }
 
@@ -85,7 +85,7 @@ public class TimeMachine {
 
   // Get the GameState at the given time.
   @SuppressWarnings("unchecked")
-    public GameState getState(int time, MindReader reader) {	
+  public synchronized GameState getState(int time, MindReader reader) {	
 
     if (states.size() == 0) return null;
 
@@ -93,53 +93,54 @@ public class TimeMachine {
     // more states if they are needed.
     if (time - states.get(0).time < 0) return null;
 
-    int i = 0;
-    GameState last;
 
-    synchronized (states) {
+    /* 
+     * First figure out if this is:
+     *   - a buffered received state
+     *   - or cached future state
+     *   - or if we need to extrapolate into the future.
+     *   
+     */
 
-      final int N = states.size();
+    // last authorative state
+    final GameState last = getAuthorativeState();
 
-      while (i < N && time - states.get(i).time > 0) i++;
+    // past or current state
+    if (time < last.time)  return getPastState(time);
+    if (time == last.time) return last;
+    
+    // look in cached future states
+    final GameState cached = getCachedState(time);
+    if (cached.time == time) return cached;
 
-      assert(i <= N);
-
-      if (i < N-1 || (i == N-1 && states.get(i).time == time)) {
-        // TODO: might want to interpolate in
-        // case there are holes in the history.
-        return states.get(i);
-      }
-
-      // Otherwise need to extrapolate into the future.
-      // Start from the last authorative state.
-      last = states.lastElement();
-    }
-
-
-
-
+    
+    /* 
+     * Otherwise need to extrapolate into the future.
+     */
+    
     // The extrapolated states for each player and bullet.
     Ship[] ship = new Ship[SimulationUtils.NUMPLAYERS];
     PlayerState[] players = new PlayerState[SimulationUtils.NUMPLAYERS];
-    Vector<Bullet> bullets = (Vector<Bullet>) (last.bullets.clone());
+    Vector<Bullet> bullets = (Vector<Bullet>) (cached.bullets.clone());
     PlayerControlParameters[] ctrl = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
     PlayerControlParameters[] prevCtrl = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
 
     // Start from the last known values.
     for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
-      players[k] = last.pStates[k];
-      ship[k] = last.pStates[k].ship;
-      ctrl[k] = getParamsAt(k, last.time-1, reader);
+      players[k] = cached.pStates[k];
+      ship[k] = cached.pStates[k].ship;
+      ctrl[k] = getParamsAt(k, cached.time-1, reader);
     }
     
-    // Predict how the states will evolve during each remaining (time-last.time) time step
-    for (int j=0; j < time - last.time; ++j) {
+    // Predict how the states will evolve during each remaining (time-cached.time) time step
+    assert(time - cached.time > 0);
+    for (int j=0; j < time - cached.time; ++j) {
       
       // Player states
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
-        ctrl[k] = getParamsAt(k, last.time+j, reader);
-        ship[k] = (last.pStates[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
+        ctrl[k] = getParamsAt(k, cached.time+j, reader);
+        ship[k] = (cached.pStates[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
         
         boolean tookShot = false;
         // Take shots
@@ -170,11 +171,35 @@ public class TimeMachine {
         else
           bullets.remove(k);  
       }
+      
+      futureStates.add(new GameState(time, players, bullets));
     }
 
 
-    return new GameState(time, players, bullets);
+    return futureStates.lastElement();
 
+  }
+  
+  private synchronized GameState getPastState(int time) {
+    // Do a linear search on the history keeping in mind
+    // that there may be holes in the history.
+    final int N = states.size();
+
+    int i = 0;
+    while (i < N && time - states.get(i).time > 0) i++;
+
+    assert(i <= N);
+    return states.get(i);
+  }
+  
+  /*
+   * Return the cached GameState for the given time or, if such
+   * a state doesn't exist in the cache, the last cached state.
+   */
+  private synchronized GameState getCachedState(int time) {
+    // Do a linear search in the cache.
+    for (GameState g : futureStates) if (g.time == time) return g;
+    return (futureStates.isEmpty())? getAuthorativeState() : futureStates.lastElement();
   }
 
 
