@@ -34,12 +34,12 @@ public class Simulation {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static final boolean VISUALIZE = true;
+  private static final boolean VISUALIZE = false;
   private GUI gui = null;
   private Thread guiThread = null;
   
   // for debugging
-  public static final boolean VERIFYSERIALIZATION = true;
+  public static final boolean VERIFYSERIALIZATION = false;
   
   
   public Simulation(Arena arena) {
@@ -50,7 +50,7 @@ public class Simulation {
       Arena.setCurrent(arena);
       DrawUtils.initialize(DrawUtils.createDefaultCanvas());
       gui = new GUI();
-      guiThread = new Thread(gui);
+      guiThread = new Thread(gui, "gui");
       guiThread.start();
     }
   }

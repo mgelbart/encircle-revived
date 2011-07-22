@@ -33,7 +33,7 @@ public class App extends JApplet {
   }
 
   public void start() {
-    clientThread = new Thread(client);
+    clientThread = new Thread(client, "client-main");
     clientThread.start();
   }
 

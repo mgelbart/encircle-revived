@@ -32,7 +32,7 @@ public class Nonhuman implements Intelligence {
 
     games = new GameState[1];
 
-    intelThread = new Thread(this);
+    intelThread = new Thread(this, "intel");
     intelThread.start();
   }
 

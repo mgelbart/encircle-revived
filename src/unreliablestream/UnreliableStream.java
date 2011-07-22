@@ -119,7 +119,7 @@ public class UnreliableStream {
 
       }
       
-    });
+    }, "ustream-listener");
     
     listenThread.start();
     

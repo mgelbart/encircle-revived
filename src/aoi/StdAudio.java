@@ -21,7 +21,7 @@ import java.applet.*;
 public abstract class StdAudio {
   public static String AUDIO_DIRECTORY = File.separator + "sound" + File.separator;
 
-  private static final boolean DISABLE = false;
+  private static final boolean DISABLE = true;
   
   public static AudioClip takeShot  = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "Bow_Fire_Arrow-Stephan_Schutze-2133929391.wav");
   public static AudioClip score     = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "Metroid_Door-Brandino480-995195341.wav");
