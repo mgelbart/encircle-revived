@@ -189,6 +189,8 @@ public class Tail {
   // clone are crop the tail using all the CropEvents in
   // the CropEventGroup.
   private Tail crop(CropEventGroup ceg) {
+    if (ceg.isEmpty()) return clone();
+    
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
     KnotGroup newKnots = new KnotGroup();
