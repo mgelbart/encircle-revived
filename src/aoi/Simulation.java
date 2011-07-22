@@ -165,9 +165,10 @@ public class Simulation {
            * (3) move bullets and check if players are hit
            * (4) check for crashing
            * (5) move the Ship
-           * (6) update Tail
-           * (7) update the temporary player state
-           * (8) update the real game state
+           * (6) optimize cropEvents
+           * (7) update Tail
+           * (8) update the temporary player state
+           * (9) update the real game state
            * Note: steps (1)-(5) skipped for respawning players
            */
           
@@ -305,17 +306,18 @@ public class Simulation {
           }   // end if not respawning
           
 
-          // (5.5) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
+          // (6) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
           cropEvents = cropEvents.removeExpired(game.time + 1);
+          cropEvents = cropEvents.optimizeEvents(game.time + 1);
           
           
-//          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.INFREQUENT, (game.time+1) + "  " + cropEvents);
-          // (6) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
+          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.INFREQUENT, (game.time+1) + "  " + cropEvents);
+          // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
               game.time+1, cropEvents, score);
           
           
-          //  (7) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
+          //  (8) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
           pStatesTemp[playerNo] = new PlayerState(
               playerNo, 
@@ -339,7 +341,7 @@ public class Simulation {
           if (gotPwned[j])
             pStatesTemp[j] = pStatesTemp[j].cloneAndPwn();
 
-        // (8) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
+        // (9) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(
             game.time + 1, pStatesTemp, bulletsTemp);
         

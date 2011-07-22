@@ -160,8 +160,6 @@ public class Tail {
   // ------------- end access functions --------------- //
   
   
-  
-  
   // Adds a point to the tail directly, modifying the calling tail.
   // Do not make public.
   private void mutatingAdd(Point p, int time) {  

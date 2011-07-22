@@ -30,43 +30,49 @@ public class CropEventGroup {
     return new CropEventGroup(newEvents);
   }
   
-//  
-//  private CropEventGroup optimizeEvents(int time) {
-//    if (events.size() <= 1) return this;
-//    
-//    Vector<CropEvent> newEvents = new Vector<CropEvent>();
-//    
-//    // First, find the minimum cropFrom
-//    int minCropFrom = Integer.MAX_VALUE;
-//    for (CropEvent ce : events)
-//      minCropFrom = Math.min(minCropFrom, ce.cropFrom);
-//    // And the maximum cropTo
-//    int maxCropTo = Integer.MIN_VALUE;
-//    for (CropEvent ce : events)
-//      maxCropTo = Math.max(maxCropTo, ce.cropTo);
-//
-//    
-//    int maxTimesToTransmit = 0;
-//    Integer currentCropFrom = null;
-//    for (int i = minCropFrom; i <= maxCropTo; ++i) {
-//      boolean contains = false;
-//      for (CropEvent ce : events) {
-//        if (ce.contains(i)) {
-//          currentCropFrom = Math.min(currentCropFrom, i);
-//          maxTimesToTransmit = Math.max(maxTimesToTransmit, ce.timesToTransmit());
-//          contains = true;
-//        }
-//        if (!contains && currentCropFrom != null) {
-//          // if no events contain i and we are in the middle of an event
-//          newEvents.add(new CropEvent(currentCropFrom, i));
-//          currentCropFrom = null;
-//          maxTimesToTransmit = 0;
-//        }
-//      }
-//    }      
-//
-//    return new CropEventGroup(newEvents);
-//  }
+  // Group together CropEvents so that we are not
+  // transmitting many reduntantly to the client
+  // over the network. In the case where two CropEvents
+  // partially overlap, we take the larger of the 
+  // number of remaining times to transmit, or
+  // in practice the later of the timeCreated.
+  public CropEventGroup optimizeEvents(int time) {
+    if (events.size() <= 1) return this;
+    
+    Vector<CropEvent> newEvents = new Vector<CropEvent>();
+    
+    // First, find the minimum cropFrom
+    int minCropFrom = Integer.MAX_VALUE;
+    for (CropEvent ce : events)
+      minCropFrom = Math.min(minCropFrom, ce.cropFrom);
+    // And the maximum cropTo
+    int maxCropTo = Integer.MIN_VALUE;
+    for (CropEvent ce : events)
+      maxCropTo = Math.max(maxCropTo, ce.cropTo);
+
+    
+    int latestTimeCreated = 0;
+    Integer currentCropFrom = null;
+    // For every time between minCropFrom and maxCropTo
+    for (int i = minCropFrom; i <= maxCropTo; ++i) {
+      boolean contains = false;  // Do any of the events contain this time?
+      for (CropEvent ce : events) {
+        if (ce.contains(i)) {
+          currentCropFrom = currentCropFrom==null?i:Math.min(currentCropFrom, i);
+          latestTimeCreated = Math.max(latestTimeCreated, ce.timeCreated());
+          contains = true;
+        }
+      }
+      if (!contains && currentCropFrom != null) {
+        // if no events contain i and we are in the middle of an event
+        newEvents.add(new CropEvent(currentCropFrom, i, latestTimeCreated));
+        currentCropFrom = null;
+        latestTimeCreated = 0;
+      }
+    }      
+
+    return new CropEventGroup(newEvents);
+  }
   
   
   @SuppressWarnings("unchecked")

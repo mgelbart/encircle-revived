@@ -48,6 +48,10 @@ public class CropEvent {
     return time - timeCreated >= TIMES_TO_TRANSMIT;
   }
   
+  public int timeCreated() {
+    return timeCreated;
+  }
+  
   public String toString() {
     return "(From " + cropFrom + " to " + cropTo + ")";
   }
