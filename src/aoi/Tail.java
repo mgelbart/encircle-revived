@@ -217,15 +217,19 @@ public class Tail {
     if (prev == null)
       return new Tail(p, time);
 
+    // Execute all the pending crop events
     Tail newTail = prev.tail.crop(cropEvents);
     
     // If you were not going to crop the current point, then add it
     if (!cropEvents.contains(time)) {
       
-      newTail.mutatingAdd(p, time);
-      
-      if (score > prev.score)
+      if (score > prev.score) {
+        assert(!newTail.isEmpty());
         newTail.knots.add(newTail.nPoints()-1);
+      }
+      
+      // Add the latest point
+      newTail.mutatingAdd(p, time);
     }
     
     return newTail;
@@ -241,29 +245,27 @@ public class Tail {
    * @param excludePoints Number of points to exclude from the end of 'this'.
    *                      Useful is you want to check for loops (this==that).
    *                      
-   *   // Check if the last step of player j intersects with the path of player i
-   *   // and if so, return the loop of player j that is now complete
-   *   // (note: the behavior is not really defined when there is an intersection and i!=j,
-   *   // but this is fine because in the i!=j case all we really need out of this function
-   *   // is a boolean and loop==null is that boolean)
-   *   // Note this is not symmetric in i and j.
+   *  When "this" != "that" and there is an intersection, the content
+   *  of the returned Tail is undefined but it will not be null. 
    *                       
-   *  The excludePoints is necessary to avoid spurious two segment loops                       
+   *  The excludePoints is necessary to avoid spurious two segment loops
+   *  for example when "this" == "that" and the player is not moving                       
    */
   public Tail intersects(Tail that, int excludePoints) {
     if (that.trajectory.lastLine() == null) return null; 
 
-    // need the -1 because when this==that, you will have an intersection
-    // between the the last line of this (which is the 2nd last line of that)
-    // and the last line of that, since they share a point.
-    // in fact, need -2 when the player is standing still.
     int i = trajectory.subpath(0, nPoints()-excludePoints).intersects(that.trajectory.lastLine());
     if (i < 0) return null; // no intersection
-    // Construct an NSPath for the loop (in reality, this is only used if this == that)
+
     NSPath loop = trajectory.subpath(i, nPoints());
-    // Construct the times vector
     Vector<Integer> loopTimes = new Vector<Integer>();
     KnotGroup loopKnots = new KnotGroup();
+    
+    // (below) change to "for (i++; .....)"
+    // if you don't want to point right before the crossing
+    // to be included at the beginning of the loop
+    // also, the point right after the crossing is currently
+    // included in the loop
     for (; i < nPoints(); i++) {
       loopTimes.add(times.get(i));
       if (knots.contains(i)) loopKnots.add(loopTimes.size()-1);

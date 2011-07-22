@@ -190,7 +190,6 @@ public class Simulation {
           if (untilRespawn > 0) {
             assert(!tail.isEmpty());
             
-            
             int cropFrom = tail.lengthFromLastKnotToTime(
                            (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
             
@@ -234,8 +233,8 @@ public class Simulation {
                   // If this player intersected his own Tail
                   sinceLooping = 0;
                   cropEvents = cropEvents.addEvent(
-                      intersection.baseTime(),            // from 
-                      game.time + 1,                      // to
+                      intersection.baseTime()+1,      // from 
+                      game.time,                      // to
                       game.time + 1);
                   
                   // Check for scoring
