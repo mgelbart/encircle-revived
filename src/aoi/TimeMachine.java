@@ -41,11 +41,22 @@ public class TimeMachine {
   public synchronized void processStateUpdate(GameState g) {
 
     states.add(g);
+    if (states.size() > STATESSIZE) states.remove(states.first());
     
     // empty cached future states since we now have better information available.
     // TODO: it might make sense to do this less frequently.
     futureStates.clear();
 
+    // prune control parameters that have been superseded.
+    synchronized (ownParams) {
+      while(ownParams.size() > 2) {
+        final PlayerControlParameters oldest = ownParams.first();
+        final PlayerControlParameters secondOldest = ownParams.higher(oldest);
+
+        if (secondOldest.effectiveOn - g.time < 0) ownParams.remove(oldest);
+        else return;
+      }
+    }
   }
 
 
@@ -182,9 +193,16 @@ public class TimeMachine {
    * a state doesn't exist in the cache, the last cached state.
    */
   private synchronized GameState getCachedState(int time) {
-    // Do a linear search in the cache.
+    if (futureStates.isEmpty()) return states.last();
+    
+    final GameState lastCached = futureStates.last();
+    if (time > lastCached.time) return futureStates.last();
+    
+    // Do a linear search
     for (GameState g : futureStates) if (g.time == time) return g;
-    return (futureStates.isEmpty())? states.last() : futureStates.last();
+    
+    assert(false);
+    return states.last();
   }
 
 

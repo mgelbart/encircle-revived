@@ -104,8 +104,8 @@ public abstract class Server {
 
         // We need a reference to the sender threads to interrupt
         // them when the game sate is updated.
-        simulation.senderThreads[j] = new Thread(simulation.senders[j]);
-        simulation.listenerThreads[j] = new Thread(simulation.listeners[j]);
+        simulation.senderThreads[j] = new Thread(simulation.senders[j], "sender-"+j);
+        simulation.listenerThreads[j] = new Thread(simulation.listeners[j], "listener-"+j);
 
         // set the PlayerListener as a receiver of UDP packets and set GameStateSender to
         // use UDP as soon as a connection is established.

@@ -53,7 +53,7 @@ public class UnreliableStreamServer implements Runnable {
       assert(false);
     }
     
-    listener = new Thread(this);
+    listener = new Thread(this, "ustreamserv-listener");
   }
   
   private short getFreeId() {
@@ -265,8 +265,8 @@ public class UnreliableStreamServer implements Runnable {
     Runnable sender1 = new DummySender(stream1);
     Runnable sender2 = new DummySender(stream2);
     
-    Thread thread1 = new Thread(sender1);
-    Thread thread2 = new Thread(sender2);
+    Thread thread1 = new Thread(sender1, "sender-1");
+    Thread thread2 = new Thread(sender2, "sender-2");
     
     stream1.connect();
     stream2.connect();

@@ -71,7 +71,7 @@ public class HigherBeing implements Intelligence {
     Logger.println(Logger.Rep.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
 
     gui = new GUI();
-    guiThread = new Thread(gui);
+    guiThread = new Thread(gui, "gui");
     guiThread.start();
 
     timemachine = new TimeMachine();
@@ -96,7 +96,7 @@ public class HigherBeing implements Intelligence {
     renderTimer = new Timer();
     renderTimer.scheduleAtFixedRate(renderTask, 0, frametime);
 
-    intelThread = new Thread(this);
+    intelThread = new Thread(this, "intel");
     intelThread.start();
   }
 
@@ -120,7 +120,7 @@ public class HigherBeing implements Intelligence {
         ctrl.clear();
 
         if (N > 2)
-          Logger.println(Logger.Rep.INFREQ, "Too many ctrls buffered: " + N);
+          Logger.println(Logger.Rep.INFREQ, "many ctrls buffered: " + N);
 
       } else
         p = new PlayerControlParameters[]{};
@@ -177,6 +177,9 @@ public class HigherBeing implements Intelligence {
   private class RenderGameTask extends TimerTask {
 
     public void run() {
+      
+      // don't do anything if the gui hasn't finished rendering the previous frame.
+      //if (guiThread.getState() != Thread.State.TIMED_WAITING) return;
 
       renderedAuthorativeState = timemachine.getAuthorativeState();
 
@@ -186,6 +189,8 @@ public class HigherBeing implements Intelligence {
       if (ClientConfiguration.predictFuture > 0) {
         
         final int simulatedSteps = ClientConfiguration.predictFuture/SimulationUtils.TIMESTEP;
+        
+        if (simulatedSteps > 400/SimulationUtils.TIMESTEP) Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
       
         // This simply skips frames if the rendered states is less than
         // MINSIMULATEDSTEPS ahead of the authorative state.
