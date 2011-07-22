@@ -61,9 +61,9 @@ public class NSPath implements Iterable<Point>, Shape {
     return path;
   }
     
-  public double length()         { return length; }
-  public boolean isEmpty()       { return points.isEmpty(); }
-  public int nPoints()           { return points.size(); }
+  public double length()       { return length; }
+  public boolean isEmpty()     { return points.isEmpty(); }
+  public int nPoints()         { return points.size(); }
   public Point firstPoint()    { return getPoint(0); }
   public Point getPoint(int i) { return points.elementAt(i); }
   public Point lastPoint()     { return isEmpty()?null:points.lastElement(); } 
@@ -93,7 +93,7 @@ public class NSPath implements Iterable<Point>, Shape {
     length -= lastlastPoint().distance(lastPoint());
     points.remove(nPoints()-1);
   }
-  
+
 
   public void addPoint(int x, int y) {
     addPoint(new Point(x, y));

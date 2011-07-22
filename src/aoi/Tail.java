@@ -162,12 +162,6 @@ public class Tail {
   
   
   // ------ start functions that (clone and) modify tail -------- //
-  public Tail addKnotAtHead() {
-    KnotGroup newKnots = (KnotGroup)knots.clone();
-    newKnots.add(nPoints()-1);
-    
-    return new Tail(trajectory, times, newKnots);
-  }
   
   // Create a copy of the Tail with an added point.
   public Tail addPoint(Point curPoint, int time) {  
@@ -266,21 +260,51 @@ public class Tail {
 
   // Add p, then crop with ceg. Do this all at once
   // To avoid cloning twice per turn in PlayerState parsing
+  // This works even if prev.tail is empty
   public static Tail parse(PlayerState prev, Point p, int time, 
       CropEventGroup cropEvents, int score) {
     
     if (prev == null)
       return new Tail(p, time);
+
+    NSPath newPath           = new NSPath();
+    Vector<Integer> newTimes = new Vector<Integer>();
+    KnotGroup newKnots       = new KnotGroup();
     
-    Tail newTail = prev.tail;
-    newTail = newTail.addPoint(p, time);
+    // CROP
+    for (int i = 0; i < prev.tail.nPoints(); ++i) {
+      if (!cropEvents.contains(prev.tail.times.get(i))) {
+        newPath.addPoint(prev.tail.getPoint(i));
+        newTimes.add(prev.tail.times.get(i));
+        if (prev.tail.knots.contains(i)) 
+          newKnots.add(newTimes.size()-1);
+      }
+    }
     
-    if (score > prev.score)
-      newTail = newTail.addKnotAtHead();
+    // If you were not going to crop the current point, then add it
+    if (!cropEvents.contains(time)) {
+      
+      // ADD POINT
+      Point prevPoint     = newPath.lastPoint();
+      Point prevPrevPoint = newPath.lastlastPoint();
+      
+      if (prevPoint == null || !prevPoint.equals(p)) {
+        // Always add the latest position to the trajectory
+        // but combine it with the previous segment if both are short.
+        if (prevPrevPoint != null &&
+              p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
+          newPath.removeLast();
+          newTimes.remove(newTimes.size()-1);
+        }
+        newPath.addPoint(p);
+        newTimes.add(time);
+      }
+      
+      if (score > prev.score)
+        newKnots.add(newPath.nPoints()-1);
+    }
     
-    newTail = newTail.crop(cropEvents);
-    
-    return newTail;
+    return new Tail(newPath, newTimes, newKnots);
   }
   
   
@@ -296,11 +320,10 @@ public class Tail {
            times.toString() + "\n" +
            knots.toString();
     }
-   
-  
 
+  
   @SuppressWarnings("serial")
-  public class KnotGroup extends TreeSet<Integer> {
+  public static class KnotGroup extends TreeSet<Integer> {
       
     public KnotGroup() {
       super();
