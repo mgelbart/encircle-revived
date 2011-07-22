@@ -32,7 +32,7 @@ public class Simulation {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static final boolean VISUALIZE = false;
+  private static final boolean VISUALIZE = true;
   private GUI gui = null;
   private Thread guiThread = null;
   
@@ -141,7 +141,7 @@ public class Simulation {
           }
         }
         
-        // Move bullets first
+        // MOVE BULLETS
         for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
           Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
 
@@ -281,10 +281,13 @@ public class Simulation {
             
             
             // (3) CHECK IF PLAYER IS HIT BY BULLETS
-            for (Bullet b : bulletsTemp) {
+
+            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
+              Bullet b = bulletsTemp.get(k);
               if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
                 sinceHitByBullet = 0;
                 untilRespawn = SimulationUtils.timeUntilRespawn(tail);
+                bulletsTemp.remove(k);
               }
             }
             
