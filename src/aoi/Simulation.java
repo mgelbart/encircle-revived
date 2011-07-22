@@ -6,6 +6,8 @@ import java.util.Vector;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import aoi.Logger.Rep;
+
 /**
  *  The main class ran by the server that carries on the
  *  game step by step by calculating new positions for
@@ -207,6 +209,7 @@ public class Simulation {
             cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
             Point newLocation = tail.getPointFromTime(cropFrom);
+            if (newLocation == null) { newLocation=ship.location(); Logger.println(Rep.FEW, "suspicious... tail lenght: "+tail.length()); }
             Angle newDir      = tail.tangentAngleHead();
             // Create new ship with zero velocity
             ship = new Ship(newLocation, 0, 0, newDir);

@@ -4,6 +4,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import aoi.Logger.Rep;
+
 /**
  *  This class decides what to do based on (the
  *  history of) the game state.
@@ -156,6 +158,11 @@ public class HigherBeing implements Intelligence {
           c = mousePilot.getParams(gState);
         else
           c = keyboardPilot.getParams(gState);
+
+        if (c != null && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
+          //Logger.println(Rep.INFREQ, "could shoot");
+          c = c.shoot();
+        }
         
         if (c != null) queueParams(c);
 
