@@ -33,7 +33,7 @@ public abstract class SimulationUtils {
   public static final double DRAG = TIMESTEP * 0.0020;
 
   /* The bullet speed is a universal constant. */
-  public static final double BULLETSPEED = ARENASIZE / 1000 * TIMESTEP * 0.7;
+  public static final double BULLETSPEED = ARENASIZE / 1000 * TIMESTEP * 1.4;
 
   /* Minimum time between firing two bullets. */
   public static final int RELOADTIME = (int) ((1./TIMESTEP) * 200);

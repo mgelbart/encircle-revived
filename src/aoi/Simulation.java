@@ -141,7 +141,18 @@ public class Simulation {
           }
         }
         
-        // First copy the parameters to minimize the time difference
+        // Move bullets first
+        for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
+          Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
+
+          // Update the bullet position unless it hit something.
+          if (SimulationUtils.isInArena(b, arena))
+            bulletsTemp.set(k, b);
+          else
+            bulletsTemp.remove(k);
+        }
+        
+        // Copy the parameters to minimize the time difference
         // different players have to update their parameters.
         // Note: don't need to clone (deep copy) or lock because all
         // fields of PlayerControlParameters are final.
@@ -162,7 +173,7 @@ public class Simulation {
            * (0) copy previous state parameters
            * (1) take shots
            * (2) check for tail crossings and scoring
-           * (3) move bullets and check if players are hit
+           * (3) check if players are hit by bullets
            * (4) check for crashing
            * (5) move the Ship
            * (6) optimize cropEvents
@@ -207,7 +218,7 @@ public class Simulation {
             if (params[playerNo].shoot && 
                 SimulationUtils.canShoot(pStatesTemp[playerNo])) {
               
-              bulletsTemp.add(new Bullet(playerNo, ship.x(), ship.y(), ship.dir()));
+              bulletsTemp.add(SimulationUtils.nextPosition(new Bullet(playerNo, pStatesTemp[playerNo])));
               untilReload = SimulationUtils.RELOADTIME;
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),                                             // from
@@ -269,28 +280,12 @@ public class Simulation {
             }     // end for (otherPlayerNo)
             
             
-            // (3) MOVE BULLETS AND CHECK IF PLAYER IS HIT BY BULLET
-            boolean gotShot = false;
-            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
-              Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
-  
-              // Whether the bullet hit something.
-              boolean remove = !SimulationUtils.isInArena(b, arena);
-  
+            // (3) CHECK IF PLAYER IS HIT BY BULLETS
+            for (Bullet b : bulletsTemp) {
               if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
-                remove = true;
-                gotShot = true;              
+                sinceHitByBullet = 0;
+                untilRespawn = SimulationUtils.timeUntilRespawn(tail);
               }
-  
-              // Update the bullet position unless it hit something.
-              if (!remove)
-                bulletsTemp.set(k, b);
-              else
-                bulletsTemp.remove(k);
-            }  // end loop through bullets
-            if (gotShot) {
-              sinceHitByBullet = 0;
-              untilRespawn = SimulationUtils.timeUntilRespawn(tail);
             }
             
             
