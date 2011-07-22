@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.io.*;
 
@@ -33,9 +34,21 @@ public class Bullet {
     this.direction = direction;
     this.playerNo = playerNo;
   }
+  
+  public Bullet(int playerNo, Point loc, Angle direction) {
+    this(playerNo, loc.x, loc.y, direction);
+  }
+  
+  public Bullet(int playerNo, PlayerState pState) {
+    this(playerNo, pState.ship.location(), pState.ship.dir());
+  }
+  
+  public Point location() {
+    return new Point(x, y);
+  }
 
   public Line2D getLine() {
-    Bullet nextPos = SimulationUtils.nextBulletPosition(this);
+    Bullet nextPos = SimulationUtils.nextPosition(this);
     return new Line2D.Double(x, y, 2*x-nextPos.x, 2*y-nextPos.y);
   }
   

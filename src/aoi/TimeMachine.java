@@ -20,6 +20,12 @@ public class TimeMachine {
   // Number of game states to store in history.
   private final static int STATESSIZE = 5;
 
+  // A client will typically only instantiate one TimeMachine so
+  // this is provided for convenience.
+  private static TimeMachine current;
+  public static void setCurrent(TimeMachine tm) { current = tm; }
+  public static TimeMachine current() { return current; }
+  
   public TimeMachine() {
     states = new Vector<GameState>(STATESSIZE + 1);
     futureStates = new Vector<GameState>();
@@ -167,7 +173,7 @@ public class TimeMachine {
         Bullet b = bullets.get(k);
         
         if (SimulationUtils.isInArena(b, Arena.current()))
-          bullets.set(k, SimulationUtils.nextBulletPosition(b));
+          bullets.set(k, SimulationUtils.nextPosition(b));
         else
           bullets.remove(k);  
       }

@@ -11,6 +11,12 @@ public class MindReader {
 
   private final TimeMachine timemachine;
   
+  // A client will typically only instantiate one MindReader so
+  // this is provided for convenience.
+  private static MindReader current;
+  public static void setCurrent(MindReader mr) { current = mr; }
+  public static MindReader current() { return current; }
+  
   public MindReader(TimeMachine timemachine) {
     this.timemachine = timemachine;
   }
@@ -30,7 +36,7 @@ public class MindReader {
     GameState s1 = timemachine.getAuthorativeState();
     GameState s0 = timemachine.getState(s1.time-1, null);
 
-    // special cases for the very beginnin of the game.
+    // special cases for the very beginning of the game.
     if (s1 == null) return null;
     if (s0 == null) return new PlayerControlParameters(time, SimulationUtils.MAXACC, s1.pStates[P].ship.dir(), false, false);
 

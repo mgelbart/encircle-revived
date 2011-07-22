@@ -273,7 +273,7 @@ public class Simulation {
             // (3) MOVE BULLETS AND CHECK IF PLAYER IS HIT BY BULLET
             boolean gotShot = false;
             for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
-              Bullet b = SimulationUtils.nextBulletPosition(bulletsTemp.get(k));
+              Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
   
               // Whether the bullet hit something.
               boolean remove = !SimulationUtils.isInArena(b, arena);

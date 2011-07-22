@@ -132,7 +132,7 @@ public abstract class SimulationUtils {
      Note that this in particular does not tell you
      if the bullet hit something (a boundary, cluster).
   */
-  public static Bullet nextBulletPosition(Bullet b) {
+  public static Bullet nextPosition(Bullet b) {
 
     int x = b.x + (int) (((double) BULLETSPEED) * Math.cos(b.direction.toDouble()));
     int y = b.y + (int) (((double) BULLETSPEED) * Math.sin(b.direction.toDouble()));

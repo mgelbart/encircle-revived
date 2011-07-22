@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.io.*;
 
@@ -40,6 +41,14 @@ public class Angle {
     return Math.PI * (dir / (double) Integer.MAX_VALUE);
   }
   
+  public double cos() {
+    return Math.cos(toDouble());
+  }
+  
+  public double sin() {
+    return Math.sin(toDouble());
+  }
+  
   public String toString() {
     return String.format("%f", this.toDouble());
   }
@@ -59,6 +68,16 @@ public class Angle {
    */
   public double dtheta(Angle that) {
     return ((dir - that.dir) / (double) Integer.MAX_VALUE) * Math.PI;
+  }
+  
+  /*
+   * Move the source point in the direction specified by
+   * this angle.
+   */
+  public Point move(Point src, double dist) {
+    Point p = new Point(src.x, src.y);
+    p.translate((int) (dist*cos()), (int) (dist*sin()));
+    return p;
   }
   
   public void serialize(OutputStream out) throws IOException {
