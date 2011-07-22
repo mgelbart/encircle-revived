@@ -15,60 +15,64 @@ public class CropEventGroup {
   }
   
   private CropEventGroup(Vector<CropEvent> events) {
-    this();
-    // Remove expired events by copying the non-expired
-    // events from the input Vector
-    // Thus this constructor also effectively clones.
-    for (CropEvent ce : events)
-      if (!ce.toRemove())
-        this.events.add(ce);
+    this.events = events;
   }
   public CropEventGroup(CropEventGroup that) {
-    this(that.events);
+    this.events = that.events;
   }
-  
-  private CropEventGroup optimizeEvents() {
-    if (events.size() <= 1) return this;
-    
+
+  // Remove events that have been transmitted enough times 
+  public CropEventGroup removeExpired(int time) {
     Vector<CropEvent> newEvents = new Vector<CropEvent>();
-    
-    // First, find the minimum cropFrom
-    int minCropFrom = Integer.MAX_VALUE;
     for (CropEvent ce : events)
-      minCropFrom = Math.min(minCropFrom, ce.cropFrom);
-    // And the maximum cropTo
-    int maxCropTo = Integer.MIN_VALUE;
-    for (CropEvent ce : events)
-      maxCropTo = Math.max(maxCropTo, ce.cropTo);
-
-    
-    int maxTimesToTransmit = 0;
-    Integer currentCropFrom = null;
-    for (int i = minCropFrom; i <= maxCropTo; ++i) {
-      boolean contains = false;
-      for (CropEvent ce : events) {
-        if (ce.contains(i)) {
-          currentCropFrom = Math.min(currentCropFrom, i);
-          maxTimesToTransmit = Math.max(maxTimesToTransmit, ce.timesToTransmit());
-          contains = true;
-        }
-        if (!contains && currentCropFrom != null) {
-          // if no events contain i and we are in the middle of an event
-          newEvents.add(new CropEvent(currentCropFrom, i));
-          currentCropFrom = null;
-          maxTimesToTransmit = 0;
-        }
-      }
-    }      
-
+      if (!ce.toRemove(time))
+        newEvents.add(ce);
     return new CropEventGroup(newEvents);
   }
   
+//  
+//  private CropEventGroup optimizeEvents(int time) {
+//    if (events.size() <= 1) return this;
+//    
+//    Vector<CropEvent> newEvents = new Vector<CropEvent>();
+//    
+//    // First, find the minimum cropFrom
+//    int minCropFrom = Integer.MAX_VALUE;
+//    for (CropEvent ce : events)
+//      minCropFrom = Math.min(minCropFrom, ce.cropFrom);
+//    // And the maximum cropTo
+//    int maxCropTo = Integer.MIN_VALUE;
+//    for (CropEvent ce : events)
+//      maxCropTo = Math.max(maxCropTo, ce.cropTo);
+//
+//    
+//    int maxTimesToTransmit = 0;
+//    Integer currentCropFrom = null;
+//    for (int i = minCropFrom; i <= maxCropTo; ++i) {
+//      boolean contains = false;
+//      for (CropEvent ce : events) {
+//        if (ce.contains(i)) {
+//          currentCropFrom = Math.min(currentCropFrom, i);
+//          maxTimesToTransmit = Math.max(maxTimesToTransmit, ce.timesToTransmit());
+//          contains = true;
+//        }
+//        if (!contains && currentCropFrom != null) {
+//          // if no events contain i and we are in the middle of an event
+//          newEvents.add(new CropEvent(currentCropFrom, i));
+//          currentCropFrom = null;
+//          maxTimesToTransmit = 0;
+//        }
+//      }
+//    }      
+//
+//    return new CropEventGroup(newEvents);
+//  }
+  
   
   @SuppressWarnings("unchecked")
-  public CropEventGroup addEvent(int cropFrom, int cropTo) {
+  public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
     Vector<CropEvent> newEvents = (Vector<CropEvent>) events.clone();
-    newEvents.add(new CropEvent(cropFrom, cropTo));
+    newEvents.add(new CropEvent(cropFrom, cropTo, time));
     return new CropEventGroup(newEvents);
   }
   

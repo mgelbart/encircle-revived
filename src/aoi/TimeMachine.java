@@ -154,7 +154,6 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].sinceKnot+1,
                                       players[k].tail.addPoint(ship[k].location(), time)); 
                 // TODO: should actually do addPoints() with all the intermediate points
       

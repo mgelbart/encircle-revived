@@ -183,7 +183,6 @@ public class Simulation {
           int sinceCrossing         = SimulationUtils.enforceByte(game.pStates[playerNo].sinceCrossing    +1);
           int sinceHitByBullet      = SimulationUtils.enforceByte(game.pStates[playerNo].sinceHitByBullet +1);
           int sincePwned            = SimulationUtils.enforceByte(game.pStates[playerNo].sincePwned       +1);
-          int sinceKnot             = SimulationUtils.enforceByte(game.pStates[playerNo].sinceKnot        +1);        
           Tail tail                 = game.pStates[playerNo].tail;
                     
           // Special case: if you are in the process of respawning
@@ -192,9 +191,9 @@ public class Simulation {
             
             
             int cropFrom = tail.lengthFromLastKnotToTime(
-                           untilRespawn*SimulationUtils.UNCOILSPEED);
+                           (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
             
-            cropEvents = cropEvents.addEvent(cropFrom, game.time+1);
+            cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
             Point newLocation = tail.getPointFromTime(cropFrom);
             Angle newDir      = tail.tangentAngleHead();
@@ -212,7 +211,8 @@ public class Simulation {
               untilReload = SimulationUtils.RELOADTIME;
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),                                             // from
-                  tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1);  // to
+                  tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1,   // to
+                  game.time + 1);
             }
   
   
@@ -227,16 +227,17 @@ public class Simulation {
                   sinceCrossing = 0;
                   cropEvents = cropEvents.addEvent(
                       tail.baseTime(),              // from  
-                      tail.cropToForCrossing());    // to
+                      tail.cropToForCrossing(),     // to
+                      game.time + 1);
                 } else {
-                  // If this player intersected his own Tails
+                  // If this player intersected his own Tail
                   sinceLooping = 0;
                   cropEvents = cropEvents.addEvent(
                       intersection.baseTime(),            // from 
-                      game.time + 1);                     // to
+                      game.time + 1,                      // to
+                      game.time + 1);
                   
                   // Check for scoring
-                  assert(score < arena.sequence().length);
                   boolean scored = false;
                   for (Cluster cNotSS : arena.clusters) {
                     ClusterServerSide c = (ClusterServerSide) cNotSS;
@@ -255,7 +256,7 @@ public class Simulation {
                   }
                   if (scored) {
                     score++;
-                    tail = tail.addKnotAtHead();
+                    sinceScoring = 0;
                   }
                   
                   // Check if the other player got pwned.
@@ -304,11 +305,15 @@ public class Simulation {
           }   // end if not respawning
           
 
-          Logger.println(Logger.RepetitionRate.FREQUENT, cropEvents);
+          // (5.5) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
+          cropEvents = cropEvents.removeExpired(game.time + 1);
           
+          
+//          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.INFREQUENT, (game.time+1) + "  " + cropEvents);
           // (6) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
-          tail = tail.parse(ship.location(), game.time+1, cropEvents);
-
+          tail = Tail.parse(game.pStates[playerNo], ship.location(),
+              game.time+1, cropEvents, score);
+          
           
           //  (7) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
           //  RESULTING FROM THIS TIME STEP
@@ -324,7 +329,6 @@ public class Simulation {
               sinceCrossing,
               sinceHitByBullet,
               sincePwned,
-              sinceKnot,
               tail);
         } 
 /* ----------------- end of "main" loop for each player --------------------- */
