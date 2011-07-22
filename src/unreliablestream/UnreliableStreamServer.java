@@ -193,7 +193,12 @@ public class UnreliableStreamServer implements Runnable {
           @Override
           public boolean received(byte[] data, UnreliableStream src) {
             aoi.Logger.println(RepetitionRate.FEW, "server received from id " + src.getId() + ": " + new String(data));
-            src.send(("ack: " + new String(data)).getBytes());
+            try {
+              src.send(("ack: " + new String(data)).getBytes());
+            } catch (IOException e) {
+              e.printStackTrace();
+              assert(false);
+            }
             return true;
           }
           
@@ -234,7 +239,12 @@ public class UnreliableStreamServer implements Runnable {
       public DummySender(UnreliableStream s) { this.s = s; }
       
       public void run() {
-        s.send(("first client->server using id "+s.getId()+".").getBytes());
+        try {
+          s.send(("first client->server using id "+s.getId()+".").getBytes());
+        } catch (IOException e1) {
+          e1.printStackTrace();
+          assert(false);
+        }
         
         try {
           Thread.sleep(2000);
@@ -243,7 +253,12 @@ public class UnreliableStreamServer implements Runnable {
           assert(false);
         }
 
-        s.send(("second client->server using id "+s.getId()+".").getBytes());
+        try {
+          s.send(("second client->server using id "+s.getId()+".").getBytes());
+        } catch (IOException e) {
+          e.printStackTrace();
+          assert(false);
+        }
       }
     }
   
