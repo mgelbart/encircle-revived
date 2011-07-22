@@ -163,13 +163,10 @@ public class Tail {
   
   // ------ start functions that (clone and) modify tail -------- //
   public Tail addKnotAtHead() {
-    NSPath newPath = new NSPath();
-    Vector<Integer> newTimes = new Vector<Integer>();
-    KnotGroup newKnots = new KnotGroup();
-    
+    KnotGroup newKnots = (KnotGroup)knots.clone();
     newKnots.add(nPoints()-1);
     
-    return new Tail(newPath, newTimes, newKnots);
+    return new Tail(trajectory, times, newKnots);
   }
   
   // Create a copy of the Tail with an added point.
@@ -197,11 +194,6 @@ public class Tail {
     return newTail;
   }
 
-  // Crops part of a tail given the times "from" and "to".
-  // Removes "from" but not "to"
-  public Tail crop(int from, int to) {
-    return crop(new CropEvent(from, to));
-  }
   public Tail crop(CropEvent ce) {
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
@@ -274,8 +266,21 @@ public class Tail {
 
   // Add p, then crop with ceg. Do this all at once
   // To avoid cloning twice per turn in PlayerState parsing
-  public Tail parse(Point p, int time, CropEventGroup ceg) {
-    return addPoint(p, time).crop(ceg);
+  public static Tail parse(PlayerState prev, Point p, int time, 
+      CropEventGroup cropEvents, int score) {
+    
+    if (prev == null)
+      return new Tail(p, time);
+    
+    Tail newTail = prev.tail;
+    newTail = newTail.addPoint(p, time);
+    
+    if (score > prev.score)
+      newTail = newTail.addKnotAtHead();
+    
+    newTail = newTail.crop(cropEvents);
+    
+    return newTail;
   }
   
   

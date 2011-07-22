@@ -5,15 +5,18 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class CropEvent {
+
+  // The number of times to transmit each event
+  public static final int TIMES_TO_TRANSMIT = 20;
+  
   public final int cropFrom;
   public final int cropTo;
+  private final int timeCreated;
   
-  // The number of times to transmit each event
-  private int timesToTransmit = 20;
-  
-  public CropEvent(int cropFrom, int cropTo) {
+  public CropEvent(int cropFrom, int cropTo, int timeCreated) {
     this.cropFrom = cropFrom;
     this.cropTo = cropTo;
+    this.timeCreated = timeCreated;
   }
   
   // Parse for a single event, in a constructor
@@ -25,6 +28,8 @@ public class CropEvent {
 
     if (PlayerState.CHECKBYTES) { cmd = i.readByte(); assert(cmd == 't'); }
     cropTo = i.readInt();
+    
+    timeCreated = "clientOnlySoDoesntMatter".hashCode();
   }
   
   public void serialize(DataOutputStream o) throws IOException {
@@ -33,20 +38,18 @@ public class CropEvent {
 
     if (PlayerState.CHECKBYTES) o.writeBytes("t");
     o.writeInt(cropTo);
-    
-    timesToTransmit--;
   }
   
   public boolean contains(int i) {
     return (i - cropFrom >= 0 && i - cropTo < 0);
   }
   
-  public boolean toRemove() { 
-    return timesToTransmit <= 0;
+  public boolean toRemove(int time) { 
+    return time - timeCreated >= TIMES_TO_TRANSMIT;
   }
   
-  public CropEvent clone() {
-    return new CropEvent(cropFrom, cropTo);
+  public String toString() {
+    return "(From " + cropFrom + " to " + cropTo + ")";
   }
   
   public boolean equals(Object o) {

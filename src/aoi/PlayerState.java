@@ -43,7 +43,6 @@ public class PlayerState {
   public final int sinceCrossing; // the other player's path.
   public final int sinceHitByBullet;
   public final int sincePwned; // Lost all points.
-  public final int sinceKnot;  // Since the placement of the last knot.
 
 
   // Whether to transmit marker bytes before each transmitted value.
@@ -55,10 +54,10 @@ public class PlayerState {
       CropEventGroup cropEvents, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
-      int sinceHitByBullet, int sincePwned, int sinceKnot, Tail tail) {
+      int sinceHitByBullet, int sincePwned, Tail tail) {
     this.playerNo         = playerNo;
-    this.ship             = new Ship(ship);
-    this.cropEvents       = new CropEventGroup(cropEvents);
+    this.ship             = ship;
+    this.cropEvents       = cropEvents;
     this.score            = score;
     this.untilReload      = SimulationUtils.enforceByte(untilReload);
     this.untilRespawn     = SimulationUtils.enforceByte(untilRespawn);
@@ -67,33 +66,16 @@ public class PlayerState {
     this.sinceCrossing    = SimulationUtils.enforceByte(sinceCrossing);
     this.sinceHitByBullet = SimulationUtils.enforceByte(sinceHitByBullet);
     this.sincePwned       = SimulationUtils.enforceByte(sincePwned);
-    this.sinceKnot        = SimulationUtils.enforceByte(sinceKnot);    
     this.tail             = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
   }	
   public PlayerState(int playerNo, Ship s, Tail t) {
     this(playerNo, s, new CropEventGroup(), 
-        0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, t);
+        0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, t);
   }
   
-
-//  public void assertEquals(PlayerState that) {
-//    this.ship.assertEquals(that.ship);
-//    this.tail.assertEquals(that.tail);
-//    assert (this.playerNo == that.playerNo);
-//    assert (this.cropTailFrom == that.cropTailFrom);
-//    assert (this.cropTailTo == that.cropTailTo);
-//    assert (this.score == that.score);
-//    assert (this.untilReload == that.untilReload);
-//    assert (this.untilRespawn == that.untilRespawn);
-//    assert (this.sinceCrossing == that.sinceCrossing);
-//    assert (this.sinceHitByBullet == that.sinceHitByBullet);
-//    assert (this.sinceKnot == that.sinceKnot);
-//    assert (this.sinceLooping == that.sinceLooping);
-//    assert (this.sincePwned == that.sincePwned);
-//    assert (this.sinceScoring == that.sinceScoring);
-//  }
+  
   public boolean equals(PlayerState that) {
     if (this.playerNo != that.playerNo)                 return false;
     if (!this.ship.equals(that.ship))                   return false;
@@ -104,7 +86,6 @@ public class PlayerState {
     if (this.untilRespawn != that.untilRespawn)         return false;
     if (this.sinceCrossing != that.sinceCrossing)       return false;
     if (this.sinceHitByBullet != that.sinceHitByBullet) return false;
-    if (this.sinceKnot != that.sinceKnot)               return false;
     if (this.sinceLooping != that.sinceLooping)         return false;
     if (this.sincePwned != that.sincePwned)             return false;
     if (this.sinceScoring != that.sinceScoring)         return false;
@@ -119,7 +100,7 @@ public class PlayerState {
         cropEvents,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
+        sinceHitByBullet, sincePwned, tail);
   }
   public PlayerState cloneAndPwn() {
     int score        = 0;
@@ -129,14 +110,14 @@ public class PlayerState {
         cropEvents,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
+        sinceHitByBullet, sincePwned, tail);
   }
   public PlayerState clone() {
     return new PlayerState(playerNo, ship, 
         cropEvents, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, tail);
+        sinceHitByBullet, sincePwned, tail);
   }
 
 
@@ -175,9 +156,6 @@ public class PlayerState {
 
     s.append("\nsincePwned: ");
     s.append(sincePwned);
-
-    s.append("\nsinceKnot: ");
-    s.append(sinceKnot);
     
     s.append("\n");
 
@@ -234,9 +212,6 @@ public class PlayerState {
     if (CHECKBYTES) o.writeBytes("p");
     o.write(sincePwned);
 
-    if (CHECKBYTES) o.writeBytes("k");
-    o.write(sinceKnot);
-
   }
 
   // Construct the new PlayerState using the players state data received from the server
@@ -251,8 +226,7 @@ public class PlayerState {
         sinceLooping, 
         sinceCrossing,
         sinceHitByBullet, 
-        sincePwned, 
-        sinceKnot;
+        sincePwned;
     Angle dir;
     CropEventGroup cropEvents;
 
@@ -301,32 +275,16 @@ public class PlayerState {
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
     sincePwned = i.read();
 
-    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'k'); }
-    sinceKnot = i.read();
-
     
     Point p = new Point(x, y);
     Ship ship = new Ship(p, vx, vy, dir);
-    Tail newTail;
+    Tail newTail = Tail.parse(prevState, p, time, cropEvents, score);
     
-    if (prevState == null) {
-      // for the first time step
-      newTail = new Tail(p, time);
-    } else {
-      
-      newTail = prevState.tail;
-      
-      // If you made a knot, add it to the tail
-      if (sinceKnot - prevState.sinceKnot < 0) 
-        newTail = newTail.addKnotAtHead();
-        
-      newTail = newTail.parse(p, time, cropEvents);
-    }
     
     return new PlayerState(playerNo, ship, 
         cropEvents, score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, sinceKnot, newTail);
+        sinceHitByBullet, sincePwned, newTail);
   }
   
 

@@ -26,11 +26,6 @@ public class Ship {
   private final NSPath path;  // cache the path for intersection checking
   
   
- 
-  public Ship(Ship that) {
-    this(that.location(), that.vx, that.vy, that.direction);
-  }
-  
   public Ship(Point p, int vx, int vy, Angle direction) {
     assert(p != null);
     assert(direction != null);

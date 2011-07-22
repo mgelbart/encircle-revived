@@ -37,20 +37,32 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
 
   // Return the path to be drawn.
   public Shape[] shapes(GameState gState) {
-    final PlayerState s = gState.pStates[playerNo];
+    final PlayerState pState = gState.pStates[playerNo];
 
 //    Logger.println(Logger.RepetitionRate.INFREQUENT, s.sinceScoring); 
-    if (s == null) {   // first call
+    if (pState == null) {   // first call
       return null;
-    } else if (internalCounter == 0 && s.sinceScoring - prevSinceScoring < 0) {  // you just scored 
+    } else if (internalCounter == 0 && pState.sinceScoring - prevSinceScoring < 0) {  // you just scored 
       // crop the non-loop part from the scoring effect.
 //      Logger.println(Logger.RepetitionRate.INFREQUENT, "Cropping " + s.tailStarted + ":" + s.cropTailFrom);
-      scoringTail = scoringTail.crop(s.tail.baseTime(), s.cropEvents.getEvents().lastElement().cropFrom);
-      scoringTail = scoringTail.crop(s.cropEvents.getEvents().lastElement().cropTo, gState.time + 1);
+      assert(scoringTail != null);
+      assert(pState != null);
+      assert(pState.tail != null);
+      assert(pState.tail.baseTime() != null);
+      assert(pState.cropEvents.getEvents().lastElement() != null);
+      
+      scoringTail = scoringTail.crop(new CropEvent(
+              pState.tail.baseTime(), 
+              pState.cropEvents.getEvents().lastElement().cropFrom, 
+              "clientOnlySoDoesntMatter".hashCode()));
+      scoringTail = scoringTail.crop(new CropEvent(
+              pState.cropEvents.getEvents().lastElement().cropTo, 
+              gState.time + 1,
+              "clientOnlySoDoesntMatter".hashCode()));
       
       return new Shape[]{scoringTail.pathShape()};
     } else if (internalCounter == 0) {  // normal time
-      scoringTail = s.tail;
+      scoringTail = pState.tail;
       return null;
     } else {                   // while the effect is showing
       return new Shape[]{scoringTail.pathShape()};
