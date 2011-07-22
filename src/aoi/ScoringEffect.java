@@ -50,6 +50,7 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
       assert(pState.tail != null);
       assert(pState.tail.baseTime() != null);
       assert(pState.cropEvents.getEvents().lastElement() != null);
+      Logger.println(Logger.Rep.INFREQ, pState.cropEvents);
       
       scoringTail = scoringTail.crop(new CropEvent(
               pState.tail.baseTime(), 

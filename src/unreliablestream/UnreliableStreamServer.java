@@ -13,7 +13,7 @@ import java.util.Map;
 
 import unreliablestream.UnreliableStream.Packet;
 
-import aoi.Logger.RepetitionRate;
+import aoi.Logger.Rep;
 
 /**
  * Provides the server side implementation of UnreliableStream.
@@ -109,7 +109,7 @@ public class UnreliableStreamServer implements Runnable {
 
       // stop executing if the kill flag is set
       if (kill) {
-        aoi.Logger.println(RepetitionRate.FEW, "server killed.");
+        aoi.Logger.println(Rep.FEW, "server killed.");
         synchronized (connections) {
           for (UnreliableStream s : connections.values()) {
             s.disconnect();
@@ -136,7 +136,7 @@ public class UnreliableStreamServer implements Runnable {
         synchronized (connections) { con = connections.get(parsed.id); }
         
         if (con == null) {
-          if (!connections.containsKey(parsed.id)) { aoi.Logger.println(RepetitionRate.INFREQUENT, "received unknown id: " + parsed.id + " seq: " + parsed.sequenceNo); continue; }
+          if (!connections.containsKey(parsed.id)) { aoi.Logger.println(Rep.INFREQ, "received unknown id: " + parsed.id + " seq: " + parsed.sequenceNo); continue; }
           
           // someone is trying to establish a new connection.
           con = new UnreliableStream(socket, p.getAddress(), p.getPort(), parsed.id);
@@ -192,7 +192,7 @@ public class UnreliableStreamServer implements Runnable {
 
           @Override
           public boolean received(byte[] data, UnreliableStream src) {
-            aoi.Logger.println(RepetitionRate.FEW, "server received from id " + src.getId() + ": " + new String(data));
+            aoi.Logger.println(Rep.FEW, "server received from id " + src.getId() + ": " + new String(data));
             try {
               src.send(("ack: " + new String(data)).getBytes());
             } catch (IOException e) {
@@ -225,7 +225,7 @@ public class UnreliableStreamServer implements Runnable {
 
       @Override
       public boolean received(byte[] data, UnreliableStream src) {
-        aoi.Logger.println(RepetitionRate.FEW, "client received from id " + src.getId() + ": " + new String(data));
+        aoi.Logger.println(Rep.FEW, "client received from id " + src.getId() + ": " + new String(data));
         return true;
       }
       

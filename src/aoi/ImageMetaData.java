@@ -77,7 +77,7 @@ public class ImageMetaData {
     try {
       return ImageIO.read(new ByteArrayInputStream(imgData));
     } catch (Exception e) {
-      Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      Logger.println(Logger.Rep.FEW, e.toString());
       assert(false);
       return null;
     }

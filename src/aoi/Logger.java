@@ -4,23 +4,23 @@ import java.io.*;
 
 public abstract class Logger {
 
-  public enum RepetitionRate {FEW, INFREQUENT, FREQUENT};
+  public enum Rep {FEW, INFREQ, FREQ};
   
   // Where log messages are written
   private static PrintStream out = System.err;
   
   // Messages above this repetition rate are discarded
-  private static RepetitionRate verbosity = RepetitionRate.INFREQUENT;
+  private static Rep verbosity = Rep.INFREQ;
   
   // disables all logging at compile time
   private static final boolean DISABLE = false;
   
   
   public static void test() {
-    println(RepetitionRate.FEW, true);
+    println(Rep.FEW, true);
   }
   
-  public static void println(RepetitionRate rate, Object msg) {
+  public static void println(Rep rate, Object msg) {
     if (DISABLE) return;
     
     if (rate.compareTo(verbosity) > 0) return;

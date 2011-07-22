@@ -93,7 +93,7 @@ public class ClusterDatabase {
         b = imgStream.read(); // Returns -1 at end of stream.
       }
     } catch (Exception e) {
-      Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      Logger.println(Logger.Rep.FEW, e.toString());
       assert(false);
     }
 
@@ -182,7 +182,7 @@ public class ClusterDatabase {
   // Construct a ClusterServerSide corresponding to a Cluster
   public ClusterServerSide copyFromCluster(Cluster c) throws FileNotFoundException {
     ClusterServerSide css = parseCluster(c.imgName());
-    Logger.println(Logger.RepetitionRate.INFREQUENT, c.imgName());
+    Logger.println(Logger.Rep.INFREQ, c.imgName());
     //Logger.println(Logger.RepetitionRate.FREQUENT, c.contour().toString());
     //Logger.println(Logger.RepetitionRate.FREQUENT, c.imgMetaData().toString());
     //Logger.println(Logger.RepetitionRate.FREQUENT, css.nsLikelihoods.toString());
@@ -267,7 +267,7 @@ public class ClusterDatabase {
             css = null;
       	}
         
-        if (css == null) Logger.println(Logger.RepetitionRate.FEW, "Error: database does not have enough clusters with " + nSegments + " segments.");
+        if (css == null) Logger.println(Logger.Rep.FEW, "Error: database does not have enough clusters with " + nSegments + " segments.");
         assert(css != null);
         
         // keep searching for a random location until finding one that does not

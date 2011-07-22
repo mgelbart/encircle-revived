@@ -50,52 +50,52 @@ public class GameState implements Comparable<GameState> {
     
     // Compare times
     if (server.time != client.time) {
-      Logger.println(Logger.RepetitionRate.FEW, "times disagree");
+      Logger.println(Logger.Rep.FEW, "times disagree");
       toReturn = false;
     }
 
     // Compare pStates
     if (server.pStates.length != client.pStates.length) {
-        Logger.println(Logger.RepetitionRate.FEW, 
+        Logger.println(Logger.Rep.FEW, 
           "pStates disagree: different length");
         toReturn = false; 
     }
     for (int i = 0; i < pStates.length; i++) {
       if (!server.pStates[i].equals(client.pStates[i])) {
-        Logger.println(Logger.RepetitionRate.FEW, 
+        Logger.println(Logger.Rep.FEW, 
                "pStates disagree: pState " + i + " disagrees");
-        Logger.println(Logger.RepetitionRate.FEW, "server: \n" + server.pStates[i]);
-        Logger.println(Logger.RepetitionRate.FEW, "client: \n" + client.pStates[i]);
+        Logger.println(Logger.Rep.FEW, "server: \n" + server.pStates[i]);
+        Logger.println(Logger.Rep.FEW, "client: \n" + client.pStates[i]);
         if (server.pStates[i].tail.nPoints() != client.pStates[i].tail.nPoints()) {
-          Logger.println(Logger.RepetitionRate.FEW, "the tails disagree in number of points");
-          Logger.println(Logger.RepetitionRate.FEW, "server: " + server.pStates[i].tail.nPoints());
-          Logger.println(Logger.RepetitionRate.FEW, "client: " + client.pStates[i].tail.nPoints());
-          Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
-          Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+          Logger.println(Logger.Rep.FEW, "the tails disagree in number of points");
+          Logger.println(Logger.Rep.FEW, "server: " + server.pStates[i].tail.nPoints());
+          Logger.println(Logger.Rep.FEW, "client: " + client.pStates[i].tail.nPoints());
+          Logger.println(Logger.Rep.FEW, "\nserver: " + server.pStates[i].tail);
+          Logger.println(Logger.Rep.FEW, "\nclient: " + client.pStates[i].tail);      
         } else if (!server.pStates[i].tail.equals(client.pStates[i].tail)) {
-          Logger.println(Logger.RepetitionRate.FEW, "the tails disagree");
-          Logger.println(Logger.RepetitionRate.FEW, "\nserver: " + server.pStates[i].tail);
-          Logger.println(Logger.RepetitionRate.FEW, "\nclient: " + client.pStates[i].tail);      
+          Logger.println(Logger.Rep.FEW, "the tails disagree");
+          Logger.println(Logger.Rep.FEW, "\nserver: " + server.pStates[i].tail);
+          Logger.println(Logger.Rep.FEW, "\nclient: " + client.pStates[i].tail);      
         } else if (!server.pStates[i].cropEvents.equals(client.pStates[i].cropEvents)) {
-          Logger.println(Logger.RepetitionRate.FEW, "CropEventGroups disagree");
+          Logger.println(Logger.Rep.FEW, "CropEventGroups disagree");
         }
         toReturn = false;
       }
     }
 
     if (!server.bullets.equals(client.bullets)) {
-      Logger.println(Logger.RepetitionRate.FEW, "bullets disagree");
+      Logger.println(Logger.Rep.FEW, "bullets disagree");
       if (server.bullets.size() != client.bullets.size()) {
-          Logger.println(Logger.RepetitionRate.FEW, "bullets disagree: number of bullets");
-          Logger.println(Logger.RepetitionRate.FEW, "server: " + server.bullets.size());
-          Logger.println(Logger.RepetitionRate.FEW, "client: " + client.bullets.size());
+          Logger.println(Logger.Rep.FEW, "bullets disagree: number of bullets");
+          Logger.println(Logger.Rep.FEW, "server: " + server.bullets.size());
+          Logger.println(Logger.Rep.FEW, "client: " + client.bullets.size());
       } else {
         for (int i = 0; i < bullets.size(); ++i) {
-          Logger.println(Logger.RepetitionRate.FEW, "server: ");
-          Logger.println(Logger.RepetitionRate.FEW, server.bullets.get(i));
-          Logger.println(Logger.RepetitionRate.FEW, "client: ");
-          Logger.println(Logger.RepetitionRate.FEW, client.bullets.get(i));
-          Logger.println(Logger.RepetitionRate.FEW, server.bullets.get(i).equals(client.bullets.get(i)));
+          Logger.println(Logger.Rep.FEW, "server: ");
+          Logger.println(Logger.Rep.FEW, server.bullets.get(i));
+          Logger.println(Logger.Rep.FEW, "client: ");
+          Logger.println(Logger.Rep.FEW, client.bullets.get(i));
+          Logger.println(Logger.Rep.FEW, server.bullets.get(i).equals(client.bullets.get(i)));
         }
       }
       toReturn = false;

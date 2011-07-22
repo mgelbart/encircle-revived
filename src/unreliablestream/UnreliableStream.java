@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import aoi.Logger;
-import aoi.Logger.RepetitionRate;
+import aoi.Logger.Rep;
 
 /**
  * This class provides an unreliable packet "stream" between the client and server.
@@ -98,8 +98,8 @@ public class UnreliableStream {
           try {
             socket.receive(p);
           } catch (IOException e) {
-            if (keepAliveTimer == null) { aoi.Logger.println(RepetitionRate.INFREQUENT, "connection closed id: " + id); return; }
-            if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(RepetitionRate.INFREQUENT, "timeout on id: " + id); return; }
+            if (keepAliveTimer == null) { aoi.Logger.println(Rep.INFREQ, "connection closed id: " + id); return; }
+            if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(Rep.INFREQ, "timeout on id: " + id); return; }
             continue;
           }
           
@@ -109,7 +109,7 @@ public class UnreliableStream {
           try {
             parsed = Packet.parse(new DataInputStream(in), p.getLength());
           } catch (IOException e) {
-            Logger.println(RepetitionRate.FEW, "Failed to parse packet.");
+            Logger.println(Rep.FEW, "Failed to parse packet.");
             e.printStackTrace();
             continue;
           }
@@ -139,7 +139,7 @@ public class UnreliableStream {
   // Send the next packet
   public void send(byte[] data) throws IOException {
     if (data.length > MAXDATASIZE) {
-      Logger.println(RepetitionRate.FEW, "data size=" + data.length + " exceeds MAXDATASIZE=" + MAXDATASIZE);
+      Logger.println(Rep.FEW, "data size=" + data.length + " exceeds MAXDATASIZE=" + MAXDATASIZE);
     }
     assert(data.length <= MAXDATASIZE);
     
@@ -168,7 +168,7 @@ public class UnreliableStream {
   
   // deal with a parsed incoming packet
   void processReceived(Packet p) {
-    if (p.id != id) { aoi.Logger.println(RepetitionRate.INFREQUENT, "received unknown id: " + p.id); return; }
+    if (p.id != id) { aoi.Logger.println(Rep.INFREQ, "received unknown id: " + p.id); return; }
     
     final int diff = (lastReceived == null) ? 1 : p.sequenceNo - lastReceived.sequenceNo;
     if (diff > 0) {
@@ -194,7 +194,7 @@ public class UnreliableStream {
       
       return;
     } else {
-      aoi.Logger.println(RepetitionRate.INFREQUENT, "out of order packet received. id: " + p.id);
+      aoi.Logger.println(Rep.INFREQ, "out of order packet received. id: " + p.id);
       return;
     }
   }
@@ -369,7 +369,7 @@ public class UnreliableStream {
         try {
           stream.send(new byte[0]);
         } catch (IOException e) {
-          Logger.println(RepetitionRate.FEW, "Failed to send a keep alive.");
+          Logger.println(Rep.FEW, "Failed to send a keep alive.");
           e.printStackTrace();
         }
       }

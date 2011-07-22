@@ -43,22 +43,22 @@ public class Bullet {
     Bullet thatBullet = (Bullet) that;
     if (this.x != thatBullet.x) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "x");
+        Logger.println(Logger.Rep.INFREQ, "x");
       return false;
     }
     if (this.y != thatBullet.y) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "y");
+        Logger.println(Logger.Rep.INFREQ, "y");
       return false;
     }
     if (!this.direction.equals(thatBullet.direction)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "dir");
+        Logger.println(Logger.Rep.INFREQ, "dir");
       return false;
     }
     if (this.playerNo != thatBullet.playerNo) {
       if (Simulation.VERIFYSERIALIZATION) 
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "playerNo");
+        Logger.println(Logger.Rep.INFREQ, "playerNo");
       return false;
     }
     return true;
@@ -100,7 +100,7 @@ public class Bullet {
       direction.serialize(o);
 
     } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
+      Logger.println(Logger.Rep.FEW, ioe.toString());
       assert(false);
     }
 
@@ -127,7 +127,7 @@ public class Bullet {
       d = Angle.parse(i);
 	    
     } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.FEW, ioe.toString());
+      Logger.println(Logger.Rep.FEW, ioe.toString());
       assert(false);
       return null;
     }

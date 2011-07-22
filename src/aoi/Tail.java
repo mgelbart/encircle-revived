@@ -48,17 +48,17 @@ public class Tail {
     Tail server = this;
     if (!server.knots.equals(client.knots)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "KnotGroup does not agree");
+        Logger.println(Logger.Rep.INFREQ, "KnotGroup does not agree");
       toReturn = false;
     }
     if (!server.times.equals(client.times)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "times do not agree");
+        Logger.println(Logger.Rep.INFREQ, "times do not agree");
       toReturn = false;
     }
     if (!server.trajectory.equals(client.trajectory)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "NSPaths do not agree");
+        Logger.println(Logger.Rep.INFREQ, "NSPaths do not agree");
       toReturn = false;
     }
     

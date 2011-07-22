@@ -28,7 +28,7 @@ public class Nonhuman implements Intelligence {
 
   public Nonhuman() {
 
-    Logger.println(Logger.RepetitionRate.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
+    Logger.println(Logger.Rep.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
 
     games = new GameState[1];
 
