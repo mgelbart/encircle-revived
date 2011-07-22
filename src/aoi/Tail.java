@@ -203,9 +203,7 @@ public class Tail {
     return new Tail(newPath, newTimes, newKnots);
   }
   public Tail crop(CropEvent ce) {
-    CropEventGroup ceg = new CropEventGroup();
-    ceg.addEvent(ce);
-    return crop(ceg);
+    return crop((new CropEventGroup()).addEvent(ce));
   }
   // (above) this is a bit slow, but only used by ScoringEffect
   
