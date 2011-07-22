@@ -7,12 +7,12 @@ package aoi;
  *  increasing order of numerical value.
  */
 public class Cluster {
-	private final NotStupidPolygon contour; // the outline polygon, relevant for gameplay
+	private final NSPolygon contour; // the outline polygon, relevant for gameplay
 	private final ImageMetaData imgMetaData;
 
 
 
-  public Cluster(NotStupidPolygon contour, ImageMetaData imgMetaData) {
+  public Cluster(NSPolygon contour, ImageMetaData imgMetaData) {
   	this.contour = contour;
     this.imgMetaData = imgMetaData;
     
@@ -82,7 +82,7 @@ public class Cluster {
   public int centerX() { return contour.centerX(); }
   public int centerY() { return contour.centerY(); }
   
-  public NotStupidPolygon contour()  { return contour; }
+  public NSPolygon contour()  { return contour; }
   public ImageMetaData imgMetaData() { return imgMetaData; }
 
 
