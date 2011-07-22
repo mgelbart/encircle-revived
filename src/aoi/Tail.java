@@ -48,17 +48,17 @@ public class Tail {
     Tail server = this;
     if (!server.knots.equals(client.knots)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "KnotGroup does not agree");
+        Logger.println(Logger.Rep.INFREQ, "KnotGroup does not agree");
       toReturn = false;
     }
     if (!server.times.equals(client.times)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "times do not agree");
+        Logger.println(Logger.Rep.INFREQ, "times do not agree");
       toReturn = false;
     }
     if (!server.trajectory.equals(client.trajectory)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.RepetitionRate.INFREQUENT, "NSPaths do not agree");
+        Logger.println(Logger.Rep.INFREQ, "NSPaths do not agree");
       toReturn = false;
     }
     
@@ -203,9 +203,7 @@ public class Tail {
     return new Tail(newPath, newTimes, newKnots);
   }
   public Tail crop(CropEvent ce) {
-    CropEventGroup ceg = new CropEventGroup();
-    ceg.addEvent(ce);
-    return crop(ceg);
+    return crop((new CropEventGroup()).addEvent(ce));
   }
   // (above) this is a bit slow, but only used by ScoringEffect
   

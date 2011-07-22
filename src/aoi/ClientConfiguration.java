@@ -77,7 +77,7 @@ public abstract class ClientConfiguration {
 
     } catch (Exception e) {
 
-      Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      Logger.println(Logger.Rep.FEW, e.toString());
       assert(false);
 
     }

@@ -3,7 +3,7 @@ package aoi;
 import java.io.*;
 import java.util.Vector;
 
-import aoi.Logger.RepetitionRate;
+import aoi.Logger.Rep;
 import unreliablestream.*;
 
 /**
@@ -93,14 +93,14 @@ public class PlayerListener implements Runnable, UnreliableStream.Receiver {
     try {
       ctrl = PlayerControlParameters.parse(din, prev);
     } catch (IOException e) {
-      Logger.println(RepetitionRate.FEW, "Failed to parse command parameters from player " + playerNo);
+      Logger.println(Rep.FEW, "Failed to parse command parameters from player " + playerNo);
       e.printStackTrace();
       return false;
     }
     
     
     if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) {
-      Logger.println(RepetitionRate.FEW, "too many controls buffered for player " + playerNo);
+      Logger.println(Rep.FEW, "too many controls buffered for player " + playerNo);
       return true;
     }
 

@@ -2,7 +2,7 @@ package aoi;
 
 import java.io.*;
 
-import aoi.Logger.RepetitionRate;
+import aoi.Logger.Rep;
 
 import unreliablestream.*;
 
@@ -72,7 +72,7 @@ public class GameStateSender implements Runnable {
       tcpStream.flush();
 
     } catch (IOException ioe) {
-      Logger.println(Logger.RepetitionRate.INFREQUENT, ioe.toString());
+      Logger.println(Logger.Rep.INFREQ, ioe.toString());
       assert(false);
     }
 
@@ -96,7 +96,7 @@ public class GameStateSender implements Runnable {
           
           // Check whether the UnreliableStream is still alive.
           if (udpStream != null && !udpStream.isAlive()) {
-            Logger.println(RepetitionRate.FEW, "UnreliableStream has timed out for player " + playerNo + ". Falling back to TCP.");
+            Logger.println(Rep.FEW, "UnreliableStream has timed out for player " + playerNo + ". Falling back to TCP.");
             udpStream = null;
           }
           
@@ -119,8 +119,8 @@ public class GameStateSender implements Runnable {
             try {
               g.serialize(out);
             } catch (IOException e1) {
-              Logger.println(RepetitionRate.FEW, "Failed to buffer the game state for player " + playerNo + " at t=" + g.time + " using " + ((udpStream==null)? "TCP.":"UDP."));
-              Logger.println(RepetitionRate.FEW, "This should never happen (serializing to memory should never fail). Ending GameStateSender execution.");
+              Logger.println(Rep.FEW, "Failed to buffer the game state for player " + playerNo + " at t=" + g.time + " using " + ((udpStream==null)? "TCP.":"UDP."));
+              Logger.println(Rep.FEW, "This should never happen (serializing to memory should never fail). Ending GameStateSender execution.");
               e1.printStackTrace();
               return;
             }
@@ -131,8 +131,8 @@ public class GameStateSender implements Runnable {
               try {
                 udpStream.send(bout.toByteArray());
               } catch (IOException e1) {
-                Logger.println(RepetitionRate.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time + " using UDP.");
-                Logger.println(RepetitionRate.FEW, "The socket must be invalid. Ending GameStateSender execution.");
+                Logger.println(Rep.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time + " using UDP.");
+                Logger.println(Rep.FEW, "The socket must be invalid. Ending GameStateSender execution.");
                 e1.printStackTrace();
                 return;
               }
@@ -140,8 +140,8 @@ public class GameStateSender implements Runnable {
               try {
                 tcpStream.flush();
               } catch (IOException e1) {
-                Logger.println(RepetitionRate.FEW, "Failed to send game state to player " + playerNo + " at t=" + g.time + " using TCP.");
-                Logger.println(RepetitionRate.FEW, "Assuming player disconnected. Ending GameStateSender execution.");
+                Logger.println(Rep.FEW, "Failed to send game state to player " + playerNo + " at t=" + g.time + " using TCP.");
+                Logger.println(Rep.FEW, "Assuming player disconnected. Ending GameStateSender execution.");
                 e1.printStackTrace();
                 return;
               }

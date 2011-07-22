@@ -66,7 +66,7 @@ public class HigherBeing implements Intelligence {
   
   public HigherBeing() {
     
-    Logger.println(Logger.RepetitionRate.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
+    Logger.println(Logger.Rep.FEW, "HigherBeing for player " + ClientConfiguration.playerNo + " created.");
 
     gui = new GUI();
     guiThread = new Thread(gui);
@@ -116,7 +116,7 @@ public class HigherBeing implements Intelligence {
         ctrl.clear();
 
         if (N > 2)
-          Logger.println(Logger.RepetitionRate.INFREQUENT, "Too many ctrls buffered: " + N);
+          Logger.println(Logger.Rep.INFREQ, "Too many ctrls buffered: " + N);
 
       } else
         p = new PlayerControlParameters[]{};

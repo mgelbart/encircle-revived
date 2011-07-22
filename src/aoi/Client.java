@@ -6,7 +6,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.*;
 
-import aoi.Logger.RepetitionRate;
+import aoi.Logger.Rep;
 
 import unreliablestream.UnreliableStream;
 
@@ -59,7 +59,7 @@ public class Client implements Runnable {
       socket.setTcpNoDelay(true);
 
     } catch (Exception e) {
-      Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      Logger.println(Logger.Rep.FEW, e.toString());
       assert(false);
     } 
 
@@ -101,7 +101,7 @@ public class Client implements Runnable {
       Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf));
       Arena.setCurrent(arena);
       
-      Logger.println(Logger.RepetitionRate.FEW, ClientConfiguration.asString());
+      Logger.println(Logger.Rep.FEW, ClientConfiguration.asString());
       
       /* End of handshake. */
 
@@ -117,7 +117,7 @@ public class Client implements Runnable {
       /* Set up the UDP connection */
       UnreliableStream uStream = null;
       if (! ClientConfiguration.tcpOnly) {
-        Logger.println(Logger.RepetitionRate.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+        Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
         uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
       
         // This passes received game states to the intelligence.
@@ -128,9 +128,9 @@ public class Client implements Runnable {
         
         final long start = System.currentTimeMillis();
         while (uStream.sendSuccessRate() < 0) {
-          Logger.println(RepetitionRate.FEW, "waiting for UDP reply... ");
+          Logger.println(Rep.FEW, "waiting for UDP reply... ");
           if (System.currentTimeMillis() - start > UDPTIMEOUT) {
-            Logger.println(RepetitionRate.FEW, "Falling back to TCP. ");
+            Logger.println(Rep.FEW, "Falling back to TCP. ");
             ClientConfiguration.tcpOnly = true;
             break;
           }
@@ -144,7 +144,7 @@ public class Client implements Runnable {
       Timer sendTimer = new Timer();
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
-      Logger.println(Logger.RepetitionRate.FEW, "Ready...");
+      Logger.println(Logger.Rep.FEW, "Ready...");
       
       GameState game = null;
 
@@ -166,7 +166,7 @@ public class Client implements Runnable {
       } catch (Exception ee) {
       }
       
-      Logger.println(Logger.RepetitionRate.FEW, e.toString());
+      Logger.println(Logger.Rep.FEW, e.toString());
       e.printStackTrace(System.err);
       assert(false);
     }
@@ -235,7 +235,7 @@ public class Client implements Runnable {
         dataOut = new DataOutputStream(byteOut);
         
         if (!udpOut.isAlive()) {
-          Logger.println(RepetitionRate.FEW, "UnreliableStream has timed out. Falling back to TCP.");
+          Logger.println(Rep.FEW, "UnreliableStream has timed out. Falling back to TCP.");
           ClientConfiguration.tcpOnly = true;
           assert(tcpBufOut != null);
           dataOut = new DataOutputStream(this.tcpBufOut);
@@ -251,8 +251,8 @@ public class Client implements Runnable {
         try {
           last.serialize(dataOut); // keep sending the same command if there's nothing new
         } catch (IOException e) {
-          Logger.println(RepetitionRate.FEW, "Failed to send command parameters to server (effectiveOn=" + last.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
-          Logger.println(RepetitionRate.FEW, "Assuming we disconnected. Ending Client execution.");
+          Logger.println(Rep.FEW, "Failed to send command parameters to server (effectiveOn=" + last.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
+          Logger.println(Rep.FEW, "Assuming we disconnected. Ending Client execution.");
           e.printStackTrace();
         }
 
@@ -263,8 +263,8 @@ public class Client implements Runnable {
           try {
             p.serialize(dataOut);
           } catch (IOException e) {
-            Logger.println(RepetitionRate.FEW, "Failed to send command parameters to server (effectiveOn=" + p.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
-            Logger.println(RepetitionRate.FEW, "Assuming we disconnected. Ending Client execution.");
+            Logger.println(Rep.FEW, "Failed to send command parameters to server (effectiveOn=" + p.effectiveOn + " using " + ((ClientConfiguration.tcpOnly)? "TCP.":"UDP."));
+            Logger.println(Rep.FEW, "Assuming we disconnected. Ending Client execution.");
             e.printStackTrace();
           }
 
@@ -277,12 +277,12 @@ public class Client implements Runnable {
         try {
           udpOut.send(byteOut.toByteArray());
         } catch (IOException e) {
-          Logger.println(RepetitionRate.INFREQUENT, "Failed to send using UDP.");
+          Logger.println(Rep.INFREQ, "Failed to send using UDP.");
           e.printStackTrace();
         }
         
         final double s = udpOut.sendSuccessRate();
-        if (s < 0.999 && s < lastUdpSuccessRate) Logger.println(RepetitionRate.INFREQUENT, "UDP success rate: " + s);
+        if (s < 0.999 && s < lastUdpSuccessRate) Logger.println(Rep.INFREQ, "UDP success rate: " + s);
         lastUdpSuccessRate = s;
         
       } else {
@@ -318,7 +318,7 @@ public class Client implements Runnable {
       try {
         newState = GameState.parse(new DataInputStream(bin), prev);
       } catch (IOException e) {
-        Logger.println(RepetitionRate.FEW, "Failed to parse game state from server.");
+        Logger.println(Rep.FEW, "Failed to parse game state from server.");
         e.printStackTrace();
         return false;
       }

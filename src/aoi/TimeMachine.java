@@ -246,7 +246,7 @@ public class TimeMachine {
       // This should never happen under normal circumstances except when
       // the game is just starting and the player hasn't sent any commands.
       // Fall back to assuming motion in current direction.
-      Logger.println(Logger.RepetitionRate.FEW, "Couldn't get own parameters at t=" + time + ".");
+      Logger.println(Logger.Rep.FEW, "Couldn't get own parameters at t=" + time + ".");
       assert(states.size() > 0);
       return new PlayerControlParameters(time, 0, states.lastElement().pStates[ClientConfiguration.playerNo].ship.dir(), false, false);
 

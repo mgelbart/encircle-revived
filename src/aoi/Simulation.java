@@ -117,7 +117,7 @@ public class Simulation {
     timer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
 
 
-    Logger.println(Logger.RepetitionRate.FEW, "Game starting.");
+    Logger.println(Logger.Rep.FEW, "Game starting.");
 
     while (true) {
 
@@ -127,7 +127,7 @@ public class Simulation {
       } catch (InterruptedException e) {
 
         if (game.time % 100 == 0)
-          Logger.println(Logger.RepetitionRate.INFREQUENT, "Current local time: " + game.time);
+          Logger.println(Logger.Rep.INFREQ, "Current local time: " + game.time);
 
         // --- Stuff that you do first
         // Check if one of the players won.
@@ -246,7 +246,7 @@ public class Simulation {
                     // Check if the center of the cluster is in the loop just made
                     if (c.acceptable(arena.sequence()[score]) && 
                         intersection.contains(c.centerX(), c.centerY())) {
-                      Logger.println(Logger.RepetitionRate.INFREQUENT, 
+                      Logger.println(Logger.Rep.INFREQ, 
                           "Player " + playerNo + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
                       
                       scored = true;
@@ -307,6 +307,8 @@ public class Simulation {
           
 
           // (6) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
+          // (if want speedup, combine these into one function so
+          //  that cropEvents doesn't clone twice)
           cropEvents = cropEvents.removeExpired(game.time + 1);
           cropEvents = cropEvents.optimizeEvents(game.time + 1);
           
@@ -354,8 +356,8 @@ public class Simulation {
           GameState parsedGState = GameState.parse(
               new DataInputStream(in), this.game);          
           if(!newGState.deepEquals(parsedGState)) {
-            Logger.println(Logger.RepetitionRate.FEW, "Previous state:");
-            Logger.println(Logger.RepetitionRate.FEW, this.game);
+            Logger.println(Logger.Rep.FEW, "Previous state:");
+            Logger.println(Logger.Rep.FEW, this.game);
             assert(false);
           }
         }

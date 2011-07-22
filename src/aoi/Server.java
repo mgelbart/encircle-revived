@@ -58,7 +58,7 @@ public abstract class Server {
           buf.write(arena.toString());
           buf.close();
         } catch (Exception e) {
-          Logger.println(Logger.RepetitionRate.FEW, e.toString());
+          Logger.println(Logger.Rep.FEW, e.toString());
           assert(false);
         }
 
@@ -69,14 +69,14 @@ public abstract class Server {
           arena = Arena.parse(new FileInputStream(Arena.ARENA_METADATA_FILENAME));
 
         } catch (Exception e) {
-          Logger.println(Logger.RepetitionRate.FEW, e.toString());
+          Logger.println(Logger.Rep.FEW, e.toString());
           assert(false);
           arena = null;
         }
 
       }
 	    
-      Logger.println(Logger.RepetitionRate.FEW, "Arena generated.");
+      Logger.println(Logger.Rep.FEW, "Arena generated.");
 
       Simulation simulation = new Simulation(arena);
 
@@ -114,12 +114,12 @@ public abstract class Server {
 
 
       // Wait for two clients to connect:
-      Logger.println(Logger.RepetitionRate.FEW, "Waiting for clients to connect...");
+      Logger.println(Logger.Rep.FEW, "Waiting for clients to connect...");
       
       Socket[] sockets = new Socket[2];
       for (int j=0; j<2; ++j) {
         sockets[j] = servSocket.accept();
-        Logger.println(Logger.RepetitionRate.FEW, "Player " + j + " connected.");
+        Logger.println(Logger.Rep.FEW, "Player " + j + " connected.");
 
         // Don't buffer data before sending TCP packets.
         sockets[j].setTcpNoDelay(true);
