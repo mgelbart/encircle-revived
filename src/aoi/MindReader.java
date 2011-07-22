@@ -1,7 +1,5 @@
 package aoi;
 
-import java.util.Vector;
-
 /**
  * A class that figures out what the other
  * player is going to do.
@@ -11,39 +9,10 @@ import java.util.Vector;
  */
 public class MindReader {
 
-  // Definitive game states that have been received from the server.
-  private final Vector<GameState> states;
-
-  // Number of game states to store in history.
-  private final static int STATESSIZE = 3;
-
-  public MindReader() {
-    states = new Vector<GameState>(STATESSIZE + 1);
-  }
-
-
-  // Call this whenever a new game state is
-  // received from the server.
-  public void processStateUpdate(GameState g) {
-
-    synchronized (states) {
-
-      final int N = states.size();
-
-      int i = 0;
-      while (i < N && g.compareTo(states.get(i)) > 0) i++;
-
-      assert(i <= states.size());
-
-      // Don't add duplicates.
-      if (i < N && g.time == states.get(i).time) return;
-
-      states.insertElementAt(g, i);
-
-      if (N+1 > STATESSIZE)
-        states.removeElementAt(0);
-    }
-
+  private final TimeMachine timemachine;
+  
+  public MindReader(TimeMachine timemachine) {
+    this.timemachine = timemachine;
   }
 
 
@@ -57,20 +26,13 @@ public class MindReader {
 
     final int P = playerNo;
 
-    GameState s0, s1;
+    /* Use the latest states received from the server to get a first order approximation for the acceleration. */
+    GameState s1 = timemachine.getAuthorativeState();
+    GameState s0 = timemachine.getState(s1.time-1, null);
 
-    synchronized (states) {
-
-      final int N = states.size();
-
-      if (N == 0) return null;
-
-      if (N < 3) return new PlayerControlParameters(time, SimulationUtils.MAXACC, states.get(N-1).pStates[P].ship.dir(), false, false);
-
-      s0 = states.get(N-2);
-      s1 = states.get(N-1);
-
-    }
+    // special cases for the very beginnin of the game.
+    if (s1 == null) return null;
+    if (s0 == null) return new PlayerControlParameters(time, SimulationUtils.MAXACC, s1.pStates[P].ship.dir(), false, false);
 
     // Change in velocity PER TIME STEP.
     double dvx = s1.pStates[P].ship.vx() - s0.pStates[P].ship.vx() / (double) (s1.time - s0.time);

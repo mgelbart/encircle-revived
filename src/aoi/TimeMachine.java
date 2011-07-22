@@ -11,6 +11,9 @@ public class TimeMachine {
   // Definitive game states that have been received from the server.
   private final Vector<GameState> states;
 
+  // Cached future game states
+  private final Vector<GameState> futureStates;
+  
   // Commands by the player.
   private final Vector<PlayerControlParameters> ownParams;
 
@@ -19,6 +22,7 @@ public class TimeMachine {
 
   public TimeMachine() {
     states = new Vector<GameState>(STATESSIZE + 1);
+    futureStates = new Vector<GameState>();
     ownParams = new Vector<PlayerControlParameters>();
   }
 
@@ -154,8 +158,7 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].tail.addPoint(ship[k].location(), time)); 
-                // TODO: should actually do addPoints() with all the intermediate points
+                                      players[k].tail.addPoint(ship[k].location(), time));
       
       }
 

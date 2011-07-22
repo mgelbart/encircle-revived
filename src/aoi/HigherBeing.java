@@ -74,7 +74,7 @@ public class HigherBeing implements Intelligence {
 
     timemachine = new TimeMachine();
 
-    mindreader = new MindReader();
+    mindreader = new MindReader(timemachine);
 
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
@@ -103,7 +103,6 @@ public class HigherBeing implements Intelligence {
   /* Store the latest game state in a queue. */
   public void processGameStateUpdate(GameState game) {
     timemachine.processStateUpdate(game);
-    mindreader.processStateUpdate(game);
   }
 
 
