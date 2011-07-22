@@ -30,6 +30,16 @@ public abstract class StdAudio {
   public static AudioClip getShot   = (DISABLE)? null:null;
   public static AudioClip crash     = (DISABLE)? null:getClip(AUDIO_DIRECTORY + "36847__EcoDTR__LaserRocket2.wav");
   
+  /*
+   * Do whatever needs to be done to initialize the sound engine.
+   */
+  public static void init() {
+    if (!DISABLE) {
+      // Make sure StdAudio is initialized by playing a silent sound clip.
+      StdAudio.play(new double[]{0., 0.});
+    }
+  }
+  
   // play the input array
   // 44,100 samples per second, 16-bit audio, mono, signed PCM, little Endian
   // the array values are assumed to be between -1 and 1

@@ -45,8 +45,7 @@ public class Client implements Runnable {
 
   public void run() {
 
-    // Make sure StdAudio is initialized by playing a silent sound clip.
-    StdAudio.play(new double[]{0., 0.});
+    StdAudio.init();
     
     Socket socket = null;
 
