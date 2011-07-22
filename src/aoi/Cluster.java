@@ -1,5 +1,7 @@
 package aoi;
 
+import java.awt.Point;
+
 /**
  *  Clusters are image patches spread around the map. Each cluster
  *  contains a particular number of segments which defines the
@@ -71,16 +73,15 @@ public class Cluster {
 	// image and contour values. However, it should be noted that
 	// the countour has its own width, height, and center
 	// that may not be exactly the same as for the image.
-  public int imgWidth()   { return imgMetaData.width(); }
-  public int imgHeight()  { return imgMetaData.height(); }
+  public int imgWidth()   { return imgMetaData.width();   }
+  public int imgHeight()  { return imgMetaData.height();  }
   public int imgCenterX() { return imgMetaData.centerX(); }
   public int imgCenterY() { return imgMetaData.centerY(); }
-  public String imgName() { return imgMetaData.name(); }
+  public String imgName() { return imgMetaData.name();    }
   
-  public int width()   { return contour.width(); }
-  public int height()  { return contour.height(); }
-  public int centerX() { return contour.centerX(); }
-  public int centerY() { return contour.centerY(); }
+  public int width()   { return contour.width();   }
+  public int height()  { return contour.height();  }
+  public Point center(){ return contour.center();  }
   
   public NSPolygon contour()  { return contour; }
   public ImageMetaData imgMetaData() { return imgMetaData; }

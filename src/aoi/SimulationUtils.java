@@ -54,7 +54,9 @@ public abstract class SimulationUtils {
   public static final int NUMPLAYERS = 2;
 
  
-// may want to say > 2*UNCOILSPEED or something to catch crazy bugs
+  // may want to say > 2*UNCOILSPEED or something to catch crazy bugs
+  // This function takes linear time in the Tail length,
+  // due to the useless Tail refactoring XOXO
   public static int timeUntilRespawn(Tail t) {
     if (t.length() > UNCOILSPEED) return (int) (t.lengthFromLastKnotToHead() / UNCOILSPEED);
     // the +1 is because we actually respawn at time 1, not 0

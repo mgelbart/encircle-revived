@@ -2,8 +2,10 @@ package aoi;
 
 import java.awt.Point;
 import java.awt.Shape;
+import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
+import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
 
 /** 
  * The tail. Immutable.
@@ -15,31 +17,26 @@ public class Tail {
   public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
 
-  // The trajectory in the two space coordinates
-  private final NSPath trajectory;
+  // A map from times to Points. Each key-value pair
+  // in this map corresponds to a "3D point" in the
+  // trajectory, the 3rd dimension being time.
+  private final TreeMap<Integer, Point> trajectory;
   
-  // The time coordinate of each point
-  private final Vector<Integer> times;
-  
-  private final KnotGroup knots; 
+  private final TreeSet<Integer> knots; 
   
   // ---------------------- start constructors ----------------------- //
-  public Tail(Point p, int time) {
-    trajectory = new NSPath();
-    times = new Vector<Integer>();
-    knots = new KnotGroup();
+  public Tail(int time, Point p) {
+    trajectory = new TreeMap<Integer, Point>();
+    knots = new TreeSet<Integer>();
     
-    trajectory.addPoint(p);
-    times.add(time);
-    
-    assert(trajectory.nPoints() == times.size());
+    trajectory.put(time, p);
+    knots.add(time);  // knot at base
   }
-  private Tail(NSPath trajectory, Vector<Integer> times, KnotGroup knots) {
+  private Tail(TreeMap<Integer, Point> trajectory, TreeSet<Integer> knots) {
     this.trajectory = trajectory;
-    this.times = times;
     this.knots = knots;
     
-    assert(trajectory.nPoints() == times.size());
+    knots.add(baseTime());  // make sure there is a knot at the base
   }
   // ---------------------- end constructors ----------------------- //  
 
@@ -51,14 +48,9 @@ public class Tail {
         Logger.println(Logger.Rep.INFREQ, "KnotGroup does not agree");
       toReturn = false;
     }
-    if (!server.times.equals(client.times)) {
-      if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.Rep.INFREQ, "times do not agree");
-      toReturn = false;
-    }
     if (!server.trajectory.equals(client.trajectory)) {
       if (Simulation.VERIFYSERIALIZATION)
-        Logger.println(Logger.Rep.INFREQ, "NSPaths do not agree");
+        Logger.println(Logger.Rep.INFREQ, "trajectories (times) do not agree");
       toReturn = false;
     }
     
@@ -67,40 +59,58 @@ public class Tail {
   
   
   // ------------------- start access functions --------------- //
-  public int nPoints() {
-    assert(trajectory.nPoints() == times.size());
-    return Math.random()<0.5?trajectory.nPoints():times.size();
+  public int     nPoints() { return trajectory.size();    }
+  public int     nKnots () { return knots.size();         }
+  public boolean isEmpty() { return trajectory.isEmpty(); }
+  
+  public Point getPoint (int time) { 
+    return trajectory.get(time); 
   }
   
-  public int     nKnots  ()      { return knots.size();           }
-  public double  length  ()      { return trajectory.length();    }
-  public Shape  pathShape()      { return trajectory.clone();     }
-  public boolean isEmpty ()      { return nPoints() == 0;         }
-  public Point getPoint(int i)   { return trajectory.getPoint(i); }
-
-  public boolean contains(double x, double y) {
-    return trajectory.contains(x, y);
+  public boolean contains(Point p) {
+    return trajectory.containsValue(p);
   }
   
   @SuppressWarnings("unchecked")
-  public Iterable<Integer> getKnots() { 
+  public Iterable<Integer> getKnotTimes() { 
     return (Iterable<Integer>)knots.clone(); 
-  }
-  
-  public Point getPointFromTime(int time) {
-    for (int i = 0; i < nPoints(); i++)
-      if (times.get(i) == time)
-        return getPoint(i);
-    return null;
   }
 
   public Integer headTime() {
     if (isEmpty()) return null;
-    else return times.lastElement();
+    else return trajectory.lastKey();
   }
   public Integer baseTime() {
     if (isEmpty()) return null;
-    else return times.firstElement();
+    else return trajectory.firstKey();
+  }
+  public Integer beforeHeadTime() {
+    if (nPoints() < 2) return null;
+    return trajectory.lowerKey(headTime());
+  }
+  public Point headPoint() {
+    if (isEmpty()) return null;
+    return getPoint(headTime());
+  }
+  public Point basePoint() {
+    if (isEmpty()) return null;
+    return getPoint(baseTime());
+  }
+  public Point beforeHeadPoint() {
+    if (nPoints() < 2) return null;
+    return getPoint(trajectory.lowerKey(headTime()));
+  }
+  
+  public Shape pathShape() { 
+    Path2D path = new Path2D.Double();
+    if (isEmpty()) return path;
+    
+    int i = 0;
+    for (Point p : trajectory.values()) {
+      if (i++ == 0) path.moveTo(p.x, p.y);
+      else path.lineTo(p.x, p.y);
+    }
+    return path;  
   }
 
   // the time of the first (closest to base)
@@ -112,20 +122,27 @@ public class Tail {
     assert(nKnots() > 0);
     if (nKnots() == 1) return headTime(); 
     // (above) only knot at bases crop everything except the head    
-    return times.get(knots.firstNotBase())+1;
-    // (above) crop everything including this knot
+    return knots.higher(knots.first())+1;
+    // (above) crop everything including this knot (second from base)
   }
 
+  public double length() {
+    double length = 0;
+    for (int time : trajectory.headMap(headTime()).keySet())
+      length += getPoint(time).distance(getPoint(trajectory.higherKey(time))); 
+    return length;
+  }
+  
   // the first (absolute) time at which the path from 
   // index to that time has at least the specified length
-  private int lengthFromIndexToTime(int index, double length) {
+  private int convertLengthToTimeStartingAtSpecifiedTime(int startTime, double minLength) {
     assert(!isEmpty());
-    NSPath subpath = new NSPath();
-
-    for (int i = index; i < nPoints(); i++) {
-      subpath.addPoint(getPoint(i)); 
-      if (subpath.length() >= length)
-        return times.get(i);
+    
+    double length = 0;
+    for (int time : trajectory.headMap(headTime()).keySet()) {
+      length += getPoint(time).distance(getPoint(trajectory.higherKey(time))); 
+      if (length >= minLength)
+        return time;
     }
     // what to do if the entire path is not long enough
     // here we use lastElement()+1 so that if the whole path
@@ -133,56 +150,58 @@ public class Tail {
     // when the output of this function is used as cropTailFrom
     return headTime() + 1; 
   }
-  public int lengthFromBaseToTime(double length) {
-    return lengthFromIndexToTime(0, length);
+  public int convertLengthToTimeStartingAtBase(double length) {
+    return convertLengthToTimeStartingAtSpecifiedTime(baseTime(), length);
   }
-  public int lengthFromLastKnotToTime(double length) {
-    return lengthFromIndexToTime(knots.last(), length);  
+  public int convertLengthToTimeStartingAtLatestKnot(double length) {
+    return convertLengthToTimeStartingAtSpecifiedTime(knots.last(), length);  
   }
   
   public double lengthFromLastKnotToHead() {
     assert(nKnots() > 0);
     double length = 0;
-    for (int i = knots.last(); i < nPoints()-1; i++)
-      length += getPoint(i).distance(getPoint(i+1));
+    for (int time = knots.last(); time < headTime(); time = trajectory.higherKey(time))
+      length += trajectory.get(time).distance(trajectory.get(trajectory.higherKey(time)));
     return length;
   }
   
-  // Finds the angle of the line from i-1 to i
-  public Angle tangentAngle(int i) {
-    if (i <= 0 || i >= nPoints() || nPoints() < 2) return null;
-    return new Angle(getPoint(i-1), getPoint(i)); 
+  public Angle tangentAngle(int time) {
+    if (time <= baseTime() || time > headTime() || nPoints() < 2) return null;
+    return new Angle(getPoint(trajectory.lowerKey(time)), getPoint(time));
   }
   public Angle tangentAngleHead() {
-    return tangentAngle(nPoints()-1);
+    return new Angle(headTime());
   }  
+  
+  // Get a line from "time" to the next time
+  private Line2D getLine(int time) {
+    return new Line2D.Double(trajectory.get(time), trajectory.get(trajectory.higherKey(time)));
+  }
+  private Line2D lastLine() {
+    return new Line2D.Double(beforeHeadPoint(), headPoint());
+  }
 
   // ------------- end access functions --------------- //
   
   
   // Adds a point to the tail directly, modifying the calling tail.
   // Do not make public.
-  private void mutatingAdd(Point p, int time) {  
+  private void mutatingAdd(int time, Point p) {  
     
-    Point prevPoint     = trajectory.lastPoint();
-    Point prevPrevPoint = trajectory.lastlastPoint();
+    Point prevPoint     = headPoint();
+    Point prevPrevPoint = beforeHeadPoint();
     
     if (prevPoint == null || !prevPoint.equals(p)) {
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
-      if (prevPrevPoint != null &&
-            p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
-        trajectory.removeLast();
-        times.remove(times.size()-1);
-      }
-      trajectory.addPoint(p);
-      times.add(time);
+      if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT)   
+        trajectory.remove(headTime());
+      trajectory.put(time, p);
     }
-    assert(trajectory.nPoints() == times.size());
   }
-  public Tail addPoint(Point p, int time) {
+  public Tail addPoint(int time, Point p) {
     Tail newTail = clone();
-    newTail.mutatingAdd(p, time);
+    newTail.mutatingAdd(time, p);
     return newTail;
   }
 
@@ -191,21 +210,23 @@ public class Tail {
   private Tail crop(CropEventGroup ceg) {
     if (ceg.isEmpty()) return clone();
     
-    NSPath newPath = new NSPath();
-    Vector<Integer> newTimes = new Vector<Integer>();
-    KnotGroup newKnots = new KnotGroup();
+    TreeMap<Integer, Point> newTrajectory = new TreeMap<Integer, Point>();
+    TreeSet<Integer> newKnots = new TreeSet<Integer>();
     
-    for (int i = 0; i < nPoints(); i++) {
-      if (!ceg.contains(times.get(i))) {
-        newPath.addPoint(getPoint(i));
-        newTimes.add(times.get(i));
-        if (knots.contains(i)) newKnots.add(newTimes.size()-1);
+    for (int time : trajectory.keySet()) {
+      if (!ceg.contains(time)) {
+        newTrajectory.put(time, trajectory.get(time));
+        if (knots.contains(time)) newKnots.add(time);
       }
     }
-    return new Tail(newPath, newTimes, newKnots);
+    return new Tail(newTrajectory, newKnots);
   }
-  public Tail crop(CropEvent ce) {
+  private Tail crop(CropEvent ce) {
     return crop((new CropEventGroup()).addEvent(ce));
+  }
+  public Tail crop(int cropFrom, int cropTo) {
+    return crop(new CropEvent(cropFrom, cropTo,
+        "DoesntMatter".hashCode()));
   }
   // (above) this is a bit slow, but only used by ScoringEffect
   
@@ -217,7 +238,7 @@ public class Tail {
       CropEventGroup cropEvents, int sinceScoring) {
     
     if (prev == null)
-      return new Tail(p, time);
+      return new Tail(time, p);
 
     // Execute all the pending crop events
     Tail newTail = prev.tail.crop(cropEvents);
@@ -235,7 +256,7 @@ public class Tail {
       }
       
       // Add the latest point
-      newTail.mutatingAdd(p, time);
+      newTail.mutatingAdd(time, p);
     }
     
     return newTail;
@@ -247,65 +268,49 @@ public class Tail {
   /**
    * Does this Tail intersect with *the last line of* another Tail?
    * If so, return the loop that is formed as a Tail. If not, return null.
-   * 
-   * @param excludePoints Number of points to exclude from the end of 'this'.
-   *                      Useful is you want to check for loops (this==that).
    *                      
-   *  When "this" != "that" and there is an intersection, the content
-   *  of the returned Tail is undefined but it will not be null. 
-   *                       
-   *  The excludePoints is necessary to avoid spurious two segment loops
-   *  for example when "this" == "that" and the player is not moving                       
+   * When "this" != "that" and there is an intersection, the content
+   * of the returned Tail is undefined but it will not be null.                    
    */
-  public Tail intersects(Tail that, int excludePoints) {
-    if (that.trajectory.lastLine() == null) return null; 
+  public Tail intersects(Tail that) {
+    if (this.nPoints() < 2) return null;
+    if (that.nPoints() < 2) return null; 
 
-    int i = trajectory.subpath(0, nPoints()-excludePoints).intersects(that.trajectory.lastLine());
-    if (i < 0) return null; // no intersection
-
-    NSPath loop = trajectory.subpath(i, nPoints());
-    Vector<Integer> loopTimes = new Vector<Integer>();
-    KnotGroup loopKnots = new KnotGroup();
-    
-    // (below) change to "for (i++; .....)"
-    // if you don't want to point right before the crossing
-    // to be included at the beginning of the loop
-    // also, the point right after the crossing is currently
-    // included in the loop
-    for (; i < nPoints(); i++) {
-      loopTimes.add(times.get(i));
-      if (knots.contains(i)) loopKnots.add(loopTimes.size()-1);
+    // The excludePoints is necessary to avoid spurious two segment loops
+    // for example when "this" == "that" and the player is not moving                       
+    int excludePoints = this == that?2:0;
+    int lastTime;
+    for (lastTime = headTime(); excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
+      
+    // Check if trajectory intersects the last line of that.trajectory
+    // Excluding the last excludePoints of trajectory
+    Line2D thatLastLine = that.lastLine();
+    int intersectionTime = baseTime()-1;
+    for (int time : trajectory.headMap(lastTime).keySet()) {  // excludes lastTime
+      if (getLine(time).intersectsLine(thatLastLine)) {
+        intersectionTime = time;
+        break;
+      }
     }
-  
-    return new Tail(loop, loopTimes, loopKnots);
+    if (intersectionTime < baseTime()) return null; // no intersection
+
+    // Include the point right before crossing
+    // in the loop, as well as the point right after crossing
+    return crop(baseTime(), intersectionTime);
   }
 
+  
 
   @SuppressWarnings("unchecked")
   public Tail clone() {
-    return new Tail(trajectory.clone(), 
-        (Vector<Integer>)times.clone(),
-        (KnotGroup) knots.clone());
+    return new Tail((TreeMap<Integer,Point>)trajectory.clone(), 
+        (TreeSet<Integer>) knots.clone());
   }
   
   public String toString() { 
     return trajectory.toString() + "\n" +
-           times.toString() + "\n" +
            knots.toString();
     }
 
-  
-  @SuppressWarnings("serial")
-  public static class KnotGroup extends TreeSet<Integer> {
-      
-    public KnotGroup() {
-      super();
-      add(0);
-    }  
-
-    public Integer firstNotBase() {
-      return higher(0);
-    }
-  }
   
 }

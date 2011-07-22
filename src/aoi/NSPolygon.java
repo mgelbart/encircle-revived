@@ -66,11 +66,14 @@ public class NSPolygon extends Polygon implements Iterable<Line2D> {
     return (int) getBounds2D().getHeight();
   }
 
-  public int centerX() {
+  public Point center() {
+    return new Point(centerX(), centerY());
+  }
+ 
+  private int centerX() {
     return (int) getBounds2D().getCenterX();
   }
-
-  public int centerY() {
+  private int centerY() {
     return (int) getBounds2D().getCenterY();
   }
 

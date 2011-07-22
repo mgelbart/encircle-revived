@@ -28,7 +28,7 @@ public class DrawableTail extends DefaultDrawable {
     Tail tail = gState.pStates[playerNo].tail;
     Shape[] shapes = new Shape[nShapes];
     int j = 0;
-    for (int k : tail.getKnots()) {
+    for (int k : tail.getKnotTimes()) {
       Point2D knotPoint = tail.getPoint(k);
       
       AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());

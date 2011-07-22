@@ -150,7 +150,7 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].tail.addPoint(ship[k].location(), time));
+                                      players[k].tail.addPoint(time, ship[k].location()));
       
       }
 

@@ -93,7 +93,7 @@ public class Simulation {
 
     
     Ship ship = new Ship(p, 0, 0, dir);
-    Tail tail = new Tail(p, time);
+    Tail tail = new Tail(time, p);
     
     return new PlayerState(playerNo, ship, tail);
   }
@@ -196,12 +196,12 @@ public class Simulation {
           if (untilRespawn > 0) {
             assert(!tail.isEmpty());
             
-            int cropFrom = tail.lengthFromLastKnotToTime(
+            int cropFrom = tail.convertLengthToTimeStartingAtLatestKnot(
                            (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
             
             cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
-            Point newLocation = tail.getPointFromTime(cropFrom);
+            Point newLocation = tail.getPoint(cropFrom);
             Angle newDir      = tail.tangentAngleHead();
             // (below) In case the tail only has one point,
             // need to keep things straight
@@ -222,7 +222,7 @@ public class Simulation {
               untilReload = SimulationUtils.RELOADTIME;
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),                                             // from
-                  tail.lengthFromBaseToTime(SimulationUtils.BULLETCOST) + 1,   // to
+                  tail.convertLengthToTimeStartingAtBase(SimulationUtils.BULLETCOST) + 1,   // to
                   game.time + 1);
             }
   
@@ -230,7 +230,7 @@ public class Simulation {
             // (2) CHECK FOR TAIL CROSSINGS AND SCORING          
             for (int thatPlayerNo=0; thatPlayerNo<SimulationUtils.NUMPLAYERS; ++thatPlayerNo) {            
               // (below) See comments in the intersects() function for more detail on this BS
-              Tail intersection = pStatesTemp[thatPlayerNo].tail.intersects(tail, (thatPlayerNo==playerNo)?2:0);
+              Tail intersection = pStatesTemp[thatPlayerNo].tail.intersects(tail);
   
               if (intersection != null) {
                 if (thatPlayerNo != playerNo) {
@@ -255,9 +255,9 @@ public class Simulation {
                     
                     // Check if the center of the cluster is in the loop just made
                     if (c.acceptable(arena.sequence()[score]) && 
-                        intersection.contains(c.centerX(), c.centerY())) {
+                        intersection.contains(c.center())) {
                       Logger.println(Logger.Rep.INFREQ, 
-                          "Player " + playerNo + " encircled (" + c.centerX() + ", " + c.centerY() + ").");
+                          "Player " + playerNo + " encircled (" + c.center().x + ", " + c.center().y + ").");
                       
                       scored = true;
   
@@ -272,7 +272,7 @@ public class Simulation {
                   
                   // Check if the other player got pwned.
                   for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-                    if (j != playerNo && intersection.contains(pStatesTemp[j].ship.x(), pStatesTemp[j].ship.y()))
+                    if (j != playerNo && intersection.contains(pStatesTemp[j].ship.location()))
                       gotPwned[j] = true;
                     
                 }      // end if (thatPlayerNo !=/== playerNo) 
