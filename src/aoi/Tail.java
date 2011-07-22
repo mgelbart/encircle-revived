@@ -6,7 +6,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 /** 
- * The tail.
+ * The tail. Immutable.
  */
 public class Tail {
   
@@ -275,9 +275,6 @@ public class Tail {
   }
 
 
-  
-  
-  
   @SuppressWarnings("unchecked")
   public Tail clone() {
     return new Tail(trajectory.clone(), 
