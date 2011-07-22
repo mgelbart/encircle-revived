@@ -119,8 +119,8 @@ public class GameStateSender implements Runnable {
             try {
               g.serialize(out);
             } catch (IOException e1) {
-              Logger.println(RepetitionRate.FEW, "Failed to send game state to player " + playerNo + " at t=" + g.time + " using " + ((udpStream==null)? "TCP.":"UDP."));
-              Logger.println(RepetitionRate.FEW, "Assuming player disconnected. Ending GameStateSender execution.");
+              Logger.println(RepetitionRate.FEW, "Failed to buffer the game state for player " + playerNo + " at t=" + g.time + " using " + ((udpStream==null)? "TCP.":"UDP."));
+              Logger.println(RepetitionRate.FEW, "This should never happen (serializing to memory should never fail). Ending GameStateSender execution.");
               e1.printStackTrace();
               return;
             }
@@ -128,10 +128,23 @@ public class GameStateSender implements Runnable {
             previousTime = g.time;
   
             if (udpStream != null) {
-              udpStream.send(bout.toByteArray());
+              try {
+                udpStream.send(bout.toByteArray());
+              } catch (IOException e1) {
+                Logger.println(RepetitionRate.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time + " using UDP.");
+                Logger.println(RepetitionRate.FEW, "The socket must be invalid. Ending GameStateSender execution.");
+                e1.printStackTrace();
+                return;
+              }
             } else {
-              try { tcpStream.flush(); }
-              catch (Exception ex) { Logger.println(Logger.RepetitionRate.INFREQUENT, ex.toString()); assert(false); }
+              try {
+                tcpStream.flush();
+              } catch (IOException e1) {
+                Logger.println(RepetitionRate.FEW, "Failed to send game state to player " + playerNo + " at t=" + g.time + " using TCP.");
+                Logger.println(RepetitionRate.FEW, "Assuming player disconnected. Ending GameStateSender execution.");
+                e1.printStackTrace();
+                return;
+              }
             }
 
           }

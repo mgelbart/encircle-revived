@@ -83,7 +83,7 @@ public class UnreliableStream {
   }
   
   // Connect to the remote host and start listening for incoming packets.
-  public void connect() {
+  public void connect() throws IOException {
   
     Thread listenThread = new Thread(new Runnable() {
 
@@ -92,30 +92,31 @@ public class UnreliableStream {
         byte[] buf = new byte[Packet.HEADERSIZE + UnreliableStream.MAXDATASIZE + 1];
         DatagramPacket p = new DatagramPacket(buf, buf.length);
         
-        try {
-          while (true) {
-
-            // wait for an incoming packet to arrive
-            try {
-              socket.receive(p);
-            } catch (SocketTimeoutException ex) {
-              if (keepAliveTimer == null) { aoi.Logger.println(RepetitionRate.INFREQUENT, "connection closed id: " + id); return; }
-              if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(RepetitionRate.INFREQUENT, "timeout on id: " + id); return; }
-              continue;
-            }
-            
-            // parse the bytes into a Packet
-            final ByteArrayInputStream in = new ByteArrayInputStream(p.getData());
-            final Packet parsed = Packet.parse(new DataInputStream(in), p.getLength());
-            
-            processReceived(parsed);
+        while (true) {
+          
+          // wait for an incoming packet to arrive
+          try {
+            socket.receive(p);
+          } catch (IOException e) {
+            if (keepAliveTimer == null) { aoi.Logger.println(RepetitionRate.INFREQUENT, "connection closed id: " + id); return; }
+            if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(RepetitionRate.INFREQUENT, "timeout on id: " + id); return; }
+            continue;
           }
           
-        } catch (IOException e) {
-          e.printStackTrace();
-          assert(false);
-          return;
+          // parse the bytes into a Packet
+          final ByteArrayInputStream in = new ByteArrayInputStream(p.getData());
+          Packet parsed;
+          try {
+            parsed = Packet.parse(new DataInputStream(in), p.getLength());
+          } catch (IOException e) {
+            Logger.println(RepetitionRate.FEW, "Failed to parse packet.");
+            e.printStackTrace();
+            continue;
+          }
+          
+          processReceived(parsed);
         }
+
       }
       
     });
@@ -125,7 +126,7 @@ public class UnreliableStream {
     startToKeepAlive();
   }
   
-  void startToKeepAlive() {
+  void startToKeepAlive() throws IOException {
     keepAliveTimer = new Timer();
     lastReceivedTime = System.currentTimeMillis();
     lastSentTime = lastReceivedTime;
@@ -136,7 +137,7 @@ public class UnreliableStream {
   }
 
   // Send the next packet
-  public void send(byte[] data) {
+  public void send(byte[] data) throws IOException {
     if (data.length > MAXDATASIZE) {
       Logger.println(RepetitionRate.FEW, "data size=" + data.length + " exceeds MAXDATASIZE=" + MAXDATASIZE);
     }
@@ -150,13 +151,9 @@ public class UnreliableStream {
     
     final byte[] all = new Packet(id, seq, ack, ackRel, data).toBytes();
     final DatagramPacket p = new DatagramPacket(all, all.length, remoteHost, remotePort);
-    try {
-      socket.send(p);
-      lastSentTime = System.currentTimeMillis();
-    } catch (IOException e) {
-      e.printStackTrace();
-      assert(false);
-    }
+
+    socket.send(p);
+    lastSentTime = System.currentTimeMillis();
     
 //    Logger.println(RepetitionRate.INFREQUENT, "sent " + data.length + " bytes. seq: " + seq);
     
@@ -368,8 +365,14 @@ public class UnreliableStream {
     @Override
     public void run() {
       if (!stream.isAlive()) { this.cancel(); return; };
-      if (System.currentTimeMillis() - stream.lastSentTime > KEEPALIVEPERIOD)
-        stream.send(new byte[0]);
+      if (System.currentTimeMillis() - stream.lastSentTime > KEEPALIVEPERIOD) {
+        try {
+          stream.send(new byte[0]);
+        } catch (IOException e) {
+          Logger.println(RepetitionRate.FEW, "Failed to send a keep alive.");
+          e.printStackTrace();
+        }
+      }
     }
     
   }

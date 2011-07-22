@@ -274,7 +274,12 @@ public class Client implements Runnable {
       // Flush UDP or TCP stream
       if (byteOut != null) {
         
-        udpOut.send(byteOut.toByteArray());
+        try {
+          udpOut.send(byteOut.toByteArray());
+        } catch (IOException e) {
+          Logger.println(RepetitionRate.INFREQUENT, "Failed to send using UDP.");
+          e.printStackTrace();
+        }
         
         final double s = udpOut.sendSuccessRate();
         if (s < 0.999 && s < lastUdpSuccessRate) Logger.println(RepetitionRate.INFREQUENT, "UDP success rate: " + s);
