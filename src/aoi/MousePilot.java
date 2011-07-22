@@ -10,7 +10,6 @@ import javax.swing.event.*;
  * A simple interface for controlling your ship based on mouse events.
  */
 public class MousePilot implements MouseInputListener {
-  private int acc = 0;
   private Point target;
   private boolean shoot = false;
   private boolean boost = false;
@@ -25,8 +24,12 @@ public class MousePilot implements MouseInputListener {
     Point2D tar = DrawUtils.fromJavaUserSpaceToGameCoordinates(target);
     
     // Set the acceleration based on the distance between the ship and mouse.
-    final double l = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
-    acc = (int) (SimulationUtils.MAXACC * (1.-Math.exp(-loc.distanceSq(tar)/l)));
+    final double lsq = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
+    final double distsq = loc.distanceSq(tar);
+    
+    int acc;
+    if (distsq < lsq/2) acc = 0; 
+    else              acc = (int) (SimulationUtils.MAXACC * (1.-Math.exp(-distsq/lsq)));
     
     return new PlayerControlParameters(currentGameState.time, acc, new Angle(loc, tar), shoot, boost);
   }
