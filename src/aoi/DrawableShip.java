@@ -44,7 +44,8 @@ public class DrawableShip extends DefaultDrawable {
     PlayerState currentState = game.pStates[playerNo];
     
     if (lastState != null) {
-      if (currentState.score < lastState.score)
+      if (currentState.sincePwned < lastState.sincePwned ||
+          currentState.sincePwned == 0)
         pwnedCounter = PWNAGETIME;
 //        shotCounter = shotCounter==0?SHOTPWNTIME:shotCounter;
     }

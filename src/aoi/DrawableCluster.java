@@ -28,7 +28,7 @@ public class DrawableCluster extends Cluster implements Drawable {
   // as fraction of the total arena size or something like that.
   public static final double CLUSTER_SCALING_FACTOR = 1./700.;
 
-  public DrawableCluster(NotStupidPolygon contour, ImageMetaData imgMetaData) {
+  public DrawableCluster(NSPolygon contour, ImageMetaData imgMetaData) {
     super(contour, imgMetaData);
 
     this.img = imgMetaData.img();

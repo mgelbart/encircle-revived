@@ -13,24 +13,24 @@ import org.xml.sax.Attributes;
  * The list of points does not wrap around, i.e. x[0] not equal x[end]. 
  */
 @SuppressWarnings("serial")
-public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
+public class NSPolygon extends Polygon implements Iterable<Line2D> {
   private int[] x;
   private int[] y;
   private final int n;
 	
-  public NotStupidPolygon(int[] x, int[] y) {
+  public NSPolygon(int[] x, int[] y) {
     super(x, y, x.length);
     assert(x.length == y.length);
     n = x.length;
     this.x = x;
     this.y = y;
   }
-  public NotStupidPolygon(int[][] coords) {
+  public NSPolygon(int[][] coords) {
     this(coords[0], coords[1]);
   }
 
   // Decode serialized object
-  public static NotStupidPolygon parse(Attributes serialized) {
+  public static NSPolygon parse(Attributes serialized) {
     String[] mainParts = serialized.getValue("d").split(":");
 		
     int n = Integer.parseInt(mainParts[0]);
@@ -43,7 +43,7 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
       coords[1][i] = Integer.parseInt(oneCoord[1]);
     }
 
-    return new NotStupidPolygon(coords);
+    return new NSPolygon(coords);
   }
 
   // Serialize (encode) object
@@ -114,7 +114,7 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
 //    return contains(line.getP1()) || contains(line.getP2());
 //  }
   
-  public boolean intersects(NotStupidPolygon that) {
+  public boolean intersects(NSPolygon that) {
     // To speed up, first check the bounding box of that
     if (!intersects(that.getBounds2D())) return false;
     for (Line2D l : that)
@@ -133,14 +133,14 @@ public class NotStupidPolygon extends Polygon implements Iterable<Line2D> {
   }
   
 	
-  public NotStupidPolygon scaledVersion(int factorX, int factorY) {
+  public NSPolygon scaledVersion(int factorX, int factorY) {
     int[] newX = new int[n];
     int[] newY = new int[n];
     for (int i = 0; i < n; i++) {
       newX[i] = x[i] * factorX;
       newY[i] = y[i] * factorY;
     }
-    return new NotStupidPolygon(newX, newY);
+    return new NSPolygon(newX, newY);
   }
 	
   public void move(int deltaX, int deltaY) {

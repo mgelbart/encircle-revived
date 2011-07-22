@@ -214,7 +214,7 @@ public class Tail {
   // To avoid cloning twice per turn in PlayerState parsing
   // This works even if prev.tail is empty
   public static Tail parse(PlayerState prev, Point p, int time, 
-      CropEventGroup cropEvents, int score) {
+      CropEventGroup cropEvents, int sinceScoring) {
     
     if (prev == null)
       return new Tail(p, time);
@@ -225,7 +225,11 @@ public class Tail {
     // If you were not going to crop the current point, then add it
     if (!cropEvents.contains(time)) {
       
-      if (score > prev.score) {
+      // Note: we use this instead of checking if the score is 
+      // incremented because of a bug with scoring and getting
+      // pwned on the same turn
+      if (sinceScoring - prev.sinceScoring < 0 ||
+          sinceScoring == 0) {
         assert(!newTail.isEmpty());
         newTail.knots.add(newTail.nPoints()-1);
       }

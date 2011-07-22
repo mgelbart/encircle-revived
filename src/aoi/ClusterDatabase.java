@@ -132,10 +132,10 @@ public class ClusterDatabase {
     imageSizeX *= scale;
     imageSizeY *= scale;
     // scale the image size as well
-    // this could also be done with the scale() and scaledVersion() commands of ImageMetaData and NotStupidPolygon
+    // this could also be done with the scale() and scaledVersion() commands of ImageMetaData and NSPolygon
     // respectively, but it's simpler to do it this way because of double/int conversion + rounding errors
   	
-    NotStupidPolygon imageContour = new NotStupidPolygon(polyXCoords, polyYCoords);
+    NSPolygon imageContour = new NSPolygon(polyXCoords, polyYCoords);
     // The data from the database comes from Matlab which gives the coordinates
     // from the center of the image. This does not mean that the center of these
     // coordinates is necessarily (0,0) because the contour might not be centered

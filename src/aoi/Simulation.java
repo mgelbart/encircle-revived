@@ -202,8 +202,12 @@ public class Simulation {
             cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
             Point newLocation = tail.getPointFromTime(cropFrom);
-            if (newLocation == null) { newLocation=ship.location(); Logger.println(Rep.FEW, "suspicious... tail lenght: "+tail.length()); }
             Angle newDir      = tail.tangentAngleHead();
+            // (below) In case the tail only has one point,
+            // need to keep things straight
+            if (newLocation == null) newLocation = ship.location(); 
+            if (newDir == null) newDir = ship.dir();
+            
             // Create new ship with zero velocity
             ship = new Ship(newLocation, 0, 0, newDir);
           } 
@@ -309,7 +313,7 @@ public class Simulation {
 //          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.FREQUENT, (game.time+1) + "  " + cropEvents);
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
-              game.time+1, cropEvents, score);
+              game.time+1, cropEvents, sinceScoring);
           
           
           //  (8) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS

@@ -19,7 +19,7 @@ public class ClusterServerSide extends Cluster {
   // Determines which clusters we accept given the likelihood function.
   private static final double MIN_ACCEPTED_LIKELIHOOD = 0.9;
 
-  public ClusterServerSide(NotStupidPolygon contour, ImageMetaData imgMetaData, Map<Integer, Double> nsLikelihoods) {
+  public ClusterServerSide(NSPolygon contour, ImageMetaData imgMetaData, Map<Integer, Double> nsLikelihoods) {
 	super(contour, imgMetaData);
 	this.nsLikelihoods = nsLikelihoods;
   }
