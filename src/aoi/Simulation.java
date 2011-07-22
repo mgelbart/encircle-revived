@@ -127,32 +127,41 @@ public class Simulation {
       try {
         Thread.sleep(10000);
       } catch (InterruptedException e) {
-
         if (game.time % 100 == 0)
-          Logger.println(Logger.Rep.INFREQ, "Current local time: " + game.time);
+          Logger.println(Rep.INFREQ, "Current local time: " + game.time);
 
-        // --- Stuff that you do first
-        // Check if one of the players won.
-        // (This is a temporary hack).
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          assert(pStatesTemp[j].score <= pointsPerRound);
-          if (pStatesTemp[j].score == pointsPerRound) {
-            for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              pStatesTemp[k] = pStatesTemp[k].cloneAndPwn();
-            }
-          }
-        }
         
-        // MOVE BULLETS
+        
+        /* TABLE OF CONTENTS
+         * 
+         * (-1) move bullets
+         * for each player
+         *   (0) copy previous state parameters
+         *   if not respawning
+         *     (1) take shots
+         *     (2) check for tail crossings and scoring
+         *     (3) check if players are hit by bullets
+         *     (4) check for crashing
+         *     (5) move the Ship
+         *   (6) optimize cropEvents
+         *   (7) update Tail
+         *   (8) update the temporary player state
+         * (9) check if anyone one (temporary)
+         * (10) update the real game state
+         */
+          
+        
+        
+        // (-1) MOVE BULLETS
         for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
           Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
-
           // Update the bullet position unless it hit something.
           if (SimulationUtils.isInArena(b, arena))
             bulletsTemp.set(k, b);
           else
             bulletsTemp.remove(k);
         }
+        
         
         // Copy the parameters to minimize the time difference
         // different players have to update their parameters.
@@ -169,22 +178,6 @@ public class Simulation {
         
         for (int playerNo=0; playerNo<SimulationUtils.NUMPLAYERS; ++playerNo) { 
  /* ----------------------  "main" loop for each player  --------------------- */ 
-
-          /* TABLE OF CONTENTS
-           * 
-           * (0) copy previous state parameters
-           * (1) take shots
-           * (2) check for tail crossings and scoring
-           * (3) check if players are hit by bullets
-           * (4) check for crashing
-           * (5) move the Ship
-           * (6) optimize cropEvents
-           * (7) update Tail
-           * (8) update the temporary player state
-           * (9) update the real game state
-           * Note: steps (1)-(5) skipped for respawning players
-           */
-          
           
           // (0) COPY THE PREVIOUS STATE'S PARAMETERS AND UPDATE BYTE FLAGS
           Ship ship                 = game.pStates[playerNo].ship;
@@ -343,7 +336,20 @@ public class Simulation {
           if (gotPwned[j])
             pStatesTemp[j] = pStatesTemp[j].cloneAndPwn();
 
-        // (9) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
+        // (9) CHECK IF ONE OF THE PLAYERS WON
+        // (This is a temporary hack).
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+          assert(pStatesTemp[j].score <= pointsPerRound);
+          if (pStatesTemp[j].score == pointsPerRound) {
+            for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
+              pStatesTemp[k] = pStatesTemp[k].cloneAndPwn();
+            }
+            break;
+          }
+        }        
+        
+        
+        // (10) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(
             game.time + 1, pStatesTemp, bulletsTemp);
         
