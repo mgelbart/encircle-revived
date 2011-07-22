@@ -278,7 +278,7 @@ public class PlayerState {
     
     Point p = new Point(x, y);
     Ship ship = new Ship(p, vx, vy, dir);
-    Tail newTail = Tail.parse(prevState, p, time, cropEvents, score);
+    Tail newTail = Tail.parse(prevState, p, time, cropEvents, sinceScoring);
     
     
     return new PlayerState(playerNo, ship, 
