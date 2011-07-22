@@ -70,10 +70,13 @@ public class CropEventGroup {
   
   
   @SuppressWarnings("unchecked")
-  public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
+  public CropEventGroup addEvent(CropEvent ce) {
     Vector<CropEvent> newEvents = (Vector<CropEvent>) events.clone();
-    newEvents.add(new CropEvent(cropFrom, cropTo, time));
+    newEvents.add(ce);
     return new CropEventGroup(newEvents);
+  }
+  public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
+    return addEvent(new CropEvent(cropFrom, cropTo, time));
   }
   
   public void serialize(DataOutputStream o) throws IOException {

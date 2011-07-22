@@ -161,49 +161,36 @@ public class Tail {
   
   
   
-  // ------ start functions that (clone and) modify tail -------- //
   
-  // Create a copy of the Tail with an added point.
-  public Tail addPoint(Point curPoint, int time) {  
-    if (isEmpty()) return new Tail(curPoint, time);
+  // Adds a point to the tail directly, modifying the calling tail.
+  // Do not make public.
+  private void mutatingAdd(Point p, int time) {  
     
-    Tail newTail = clone();
+    Point prevPoint     = trajectory.lastPoint();
+    Point prevPrevPoint = trajectory.lastlastPoint();
     
-    Point prevPoint = newTail.trajectory.lastPoint();
-    Point prevPrevPoint = newTail.trajectory.lastlastPoint();
-    assert(prevPoint != null);
-    
-    if (!prevPoint.equals(curPoint)) {
+    if (prevPoint == null || !prevPoint.equals(p)) {
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
       if (prevPrevPoint != null &&
-            curPoint.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
-        newTail.trajectory.removeLast();
-        newTail.times.remove(newTail.times.size()-1);
+            p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
+        trajectory.removeLast();
+        times.remove(times.size()-1);
       }
-      newTail.trajectory.addPoint(curPoint);
-      newTail.times.add(time);
+      trajectory.addPoint(p);
+      times.add(time);
     }
-    assert(newTail.trajectory.nPoints() == newTail.times.size());
+    assert(trajectory.nPoints() == times.size());
+  }
+  public Tail addPoint(Point p, int time) {
+    Tail newTail = clone();
+    newTail.mutatingAdd(p, time);
     return newTail;
   }
 
-  public Tail crop(CropEvent ce) {
-    NSPath newPath = new NSPath();
-    Vector<Integer> newTimes = new Vector<Integer>();
-    KnotGroup newKnots = new KnotGroup();
-    
-    for (int i = 0; i < nPoints(); i++) {
-      if (!ce.contains(times.get(i))) {
-        newPath.addPoint(getPoint(i));
-        newTimes.add(times.get(i));
-        if (knots.contains(i)) newKnots.add(newTimes.size()-1);
-      }
-    }
-    return new Tail(newPath, newTimes, newKnots);
-  }
-  // (below) Keep this as a separate function for speed
-  public Tail crop(CropEventGroup ceg) {
+  // clone are crop the tail using all the CropEvents in
+  // the CropEventGroup.
+  private Tail crop(CropEventGroup ceg) {
     NSPath newPath = new NSPath();
     Vector<Integer> newTimes = new Vector<Integer>();
     KnotGroup newKnots = new KnotGroup();
@@ -217,7 +204,39 @@ public class Tail {
     }
     return new Tail(newPath, newTimes, newKnots);
   }
+  public Tail crop(CropEvent ce) {
+    CropEventGroup ceg = new CropEventGroup();
+    ceg.addEvent(ce);
+    return crop(ceg);
+  }
+  // (above) this is a bit slow, but only used by ScoringEffect
   
+  
+  // Add p, then crop with ceg. Do this all at once
+  // To avoid cloning twice per turn in PlayerState parsing
+  // This works even if prev.tail is empty
+  public static Tail parse(PlayerState prev, Point p, int time, 
+      CropEventGroup cropEvents, int score) {
+    
+    if (prev == null)
+      return new Tail(p, time);
+
+    Tail newTail = prev.tail.crop(cropEvents);
+    
+    // If you were not going to crop the current point, then add it
+    if (!cropEvents.contains(time)) {
+      
+      newTail.mutatingAdd(p, time);
+      
+      if (score > prev.score)
+        newTail.knots.add(newTail.nPoints()-1);
+    }
+    
+    return newTail;
+  }
+  
+  
+
 
   /**
    * Does this Tail intersect with *the last line of* another Tail?
@@ -256,56 +275,9 @@ public class Tail {
   
     return new Tail(loop, loopTimes, loopKnots);
   }
-  // ------ end functions that (clone and) modify tail -------- //
 
-  // Add p, then crop with ceg. Do this all at once
-  // To avoid cloning twice per turn in PlayerState parsing
-  // This works even if prev.tail is empty
-  public static Tail parse(PlayerState prev, Point p, int time, 
-      CropEventGroup cropEvents, int score) {
-    
-    if (prev == null)
-      return new Tail(p, time);
 
-    NSPath newPath           = new NSPath();
-    Vector<Integer> newTimes = new Vector<Integer>();
-    KnotGroup newKnots       = new KnotGroup();
-    
-    // CROP
-    for (int i = 0; i < prev.tail.nPoints(); ++i) {
-      if (!cropEvents.contains(prev.tail.times.get(i))) {
-        newPath.addPoint(prev.tail.getPoint(i));
-        newTimes.add(prev.tail.times.get(i));
-        if (prev.tail.knots.contains(i)) 
-          newKnots.add(newTimes.size()-1);
-      }
-    }
-    
-    // If you were not going to crop the current point, then add it
-    if (!cropEvents.contains(time)) {
-      
-      // ADD POINT
-      Point prevPoint     = newPath.lastPoint();
-      Point prevPrevPoint = newPath.lastlastPoint();
-      
-      if (prevPoint == null || !prevPoint.equals(p)) {
-        // Always add the latest position to the trajectory
-        // but combine it with the previous segment if both are short.
-        if (prevPrevPoint != null &&
-              p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {        
-          newPath.removeLast();
-          newTimes.remove(newTimes.size()-1);
-        }
-        newPath.addPoint(p);
-        newTimes.add(time);
-      }
-      
-      if (score > prev.score)
-        newKnots.add(newPath.nPoints()-1);
-    }
-    
-    return new Tail(newPath, newTimes, newKnots);
-  }
+  
   
   
   @SuppressWarnings("unchecked")
