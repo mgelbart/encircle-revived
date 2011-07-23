@@ -69,6 +69,10 @@ public class UnreliableStream {
   private Double lagAverage = null;
   private Double lagPessimistic = null;
   
+  // Don't return any lag estimates until we have this many samples.
+  // Used as a decrementing counter.
+  private int samplesBeforeEstimating = 100;
+  
   // A timer that sends empty packets if there's nothing else to send.
   private Timer keepAliveTimer;
   
@@ -204,6 +208,9 @@ public class UnreliableStream {
           lagPessimistic = lagPessimistic + (lag-lagPessimistic) * ((lagPessimistic > lag)? 0.01:1.);
         }
         
+        // decrement the counter that causes the public methods to initially return null.
+        if (samplesBeforeEstimating > 0) --samplesBeforeEstimating;
+        
         // ignore skipped packets
         while (!notAcked.isEmpty() && notAcked.firstKey() - p.ack < 0)
           notAcked.remove(notAcked.firstKey());
@@ -257,14 +264,14 @@ public class UnreliableStream {
    * This includes both network lag and processing time on the
    * remote side between receiving a packet and sending the next one.
    */
-  public double averageLag() { return lagAverage; }
+  public Integer averageLag() { return (samplesBeforeEstimating == 0)? (int) Math.round(lagAverage) : null; }
   
   /*
    * Same as averageLag() but the lag estimate is low pass filtered
    * in such a way that it increases rapidly whenever the instantaneous
    * lag is greater than the current estimate.
    */
-  public double pessimisticLag() { return lagPessimistic; }
+  public Integer pessimisticLag() { return (samplesBeforeEstimating == 0)? (int) Math.round(lagPessimistic) : null; }
   
   // Returns true iff the connection is considered to be alive.
   public boolean isAlive() {

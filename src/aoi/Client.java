@@ -23,8 +23,11 @@ public class Client implements Runnable {
   private static final int UDPTIMEOUT = 4000;
   
   // The JLabel for the GUI.
-  private JButton canvas;
+  private static JButton canvas;
 
+  // The UDP stream used for receiving game states and sending control parameters.
+  private static UnreliableStream uStream = null;
+  
   /**
    * Constructs a new Client using the given configuration
    * and with the GUI drawn in frame.
@@ -114,7 +117,6 @@ public class Client implements Runnable {
         intel = new HigherBeing();
 
       /* Set up the UDP connection */
-      UnreliableStream uStream = null;
       if (! ClientConfiguration.tcpOnly) {
         Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
         uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
@@ -189,6 +191,15 @@ public class Client implements Runnable {
     }
 
     client.run(); // Can just run this from the main() thread.
+  }
+  
+  public static Integer lagEstimate() {
+    if (ClientConfiguration.tcpOnly)
+      return 200; // we have no way of estimating lag for TCP
+    else {
+      assert(uStream != null);
+      return uStream.averageLag();
+    }
   }
 
   
@@ -325,10 +336,13 @@ public class Client implements Runnable {
       
       intelligence.processGameStateUpdate(newState);
       
-      if (newState.time%300 == 0) {
-        Logger.println(Rep.INFREQ, "lag estimate. average: " + Math.round(src.averageLag())
-                                  +" pessimistic: " + Math.round(src.pessimisticLag()) + " ms");
-      }
+//      if (newState.time%300 == 0) {
+//        final Integer avglag = src.averageLag();
+//        final Integer peslag = src.pessimisticLag();
+//        if (avglag != null && peslag != null)
+//          Logger.println(Rep.INFREQ, "lag estimate. average: " + avglag
+//                                    +" pessimistic: " + peslag + " ms");
+//      }
       
       return true;
     }

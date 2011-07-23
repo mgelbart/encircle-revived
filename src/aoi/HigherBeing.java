@@ -199,7 +199,10 @@ public class HigherBeing implements Intelligence {
           
           // in the long term we would like to (on average) be this many steps ahead
           // of the latest state received from the server
-          final int targetSimulatedSteps = ClientConfiguration.predictFuture/SimulationUtils.TIMESTEP;
+          Integer lagEstimate = Client.lagEstimate();
+          if (lagEstimate == null) lagEstimate = 0;
+          final int targetSimulatedSteps = (int) Math.round(Math.max(ClientConfiguration.predictFuture, 100 + lagEstimate)
+                                                            / (double) SimulationUtils.TIMESTEP);
           
           // the next time to render
           renderedTime = (renderedState != null) ? renderedTime + 1 : 0;
@@ -217,6 +220,13 @@ public class HigherBeing implements Intelligence {
           if (Math.abs(simulatedSteps-targetSimulatedSteps) > 3) Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
   
           renderedState = timemachine.getState(renderedTime, mindreader);
+          
+          if (renderedTime%400 == 0) {
+            //Logger.println(Rep.INFREQ, "sleep: " + sleeptime + " ms");
+            Logger.println(Rep.INFREQ, "avg. lag:    " + lagEstimate + " ms");
+            Logger.println(Rep.INFREQ, "target CSP:  " + targetSimulatedSteps*SimulationUtils.TIMESTEP + " ms");
+            Logger.println(Rep.INFREQ, "current CSP: " + simulatedSteps*SimulationUtils.TIMESTEP + " ms");
+          }
   	    
         } else {
           
@@ -234,7 +244,6 @@ public class HigherBeing implements Intelligence {
 
         try {
           //Thread.sleep((int) sleeptime, ((int) (1000*sleeptime))%1000);
-          //if (renderedTime%100 == 0) Logger.println(Rep.INFREQ, "sleep: " + sleeptime);
           Thread.sleep(Math.round(sleeptime));
         } catch (InterruptedException e) {
           if (stop) return;
