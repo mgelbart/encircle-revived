@@ -66,7 +66,7 @@ public class Tail {
   public int     nKnots () { return knots.size();         }
   public boolean isEmpty() { return trajectory.isEmpty(); }
   
-  public Point getPoint (int time) { 
+  public Point getPoint(int time) { 
     return trajectory.get(time); 
   }
   
@@ -214,8 +214,13 @@ public class Tail {
     if (prevPoint == null || !prevPoint.equals(p)) {
       // Always add the latest position to the trajectory
       // but combine it with the previous segment if both are short.
-      if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT)   
-        trajectory.remove(headTime());
+      if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {    
+        if (knots.contains(headTime())) {
+          knots.remove(headTime());
+          knots.add(time);
+        }
+        trajectory.remove(headTime()); 
+      }
       trajectory.put(time, p);
     }
   }
