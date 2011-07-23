@@ -78,7 +78,7 @@ public abstract class Server {
 	    
       Logger.println(Logger.Rep.FEW, "Arena generated.");
 
-      Simulation simulation = new Simulation(arena);
+      Simulation simulation = new Simulation(arena, clusterDbSayWithPET, maxSegmentNumber);
 
       simulation.initGameState();
 
@@ -134,17 +134,9 @@ public abstract class Server {
 
 
       // Start simulating the game!
-      simulation.startGame(clusterDbSayWithPET, maxSegmentNumber);
+      Thread t = new Thread(simulation);
+      t.start();
 
-      // TODO: start the while(true) loop from the beginning
-      //       to server multiple games at a time.
-      //
-      //       However, should first implement a way to
-      //       gracefully stop the threads for games that are
-      //       finished. Also, some limitations that prevent
-      //       overloading the server need to be in place.
-      udpServ.stop();
-      return;
     }
   }
 

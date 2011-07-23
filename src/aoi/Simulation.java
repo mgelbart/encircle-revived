@@ -18,13 +18,17 @@ import aoi.Logger.Rep;
  *  Server class for that (like Client and Intelligence are
  *  separated on the client side).
  */
-public class Simulation {
+public class Simulation  implements Runnable {
 
   // The current game state.
   private GameState game;
 
   // Static information about the game state.
   private Arena arena;
+  
+  private ClusterDatabase clusterDB;
+  private int pointsPerRound;
+  
 
   // References to the senders/listeners threads so we can interrupt them.
   // TODO: these should be private
@@ -42,8 +46,11 @@ public class Simulation {
   public static final boolean VERIFYSERIALIZATION = false;
   
   
-  public Simulation(Arena arena) {
+  public Simulation(Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
     this.arena = arena;
+    this.clusterDB = clusterDB;
+    this.pointsPerRound = pointsPerRound;
+    
     if (VISUALIZE) {
       // init GUI
       ClientConfiguration.setPlayerNo(1);  // sketch-ball
@@ -99,7 +106,7 @@ public class Simulation {
     return new PlayerState(playerNo, ship, tail);
   }
 
-  public void startGame(ClusterDatabase clusterDB, int pointsPerRound) throws IOException {
+  public void run() {
     // Create temporary variables
     PlayerState[] pStatesTemp = new PlayerState[SimulationUtils.NUMPLAYERS];
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
@@ -281,7 +288,12 @@ public class Simulation {
                       scored = true;
   
                       // Store the vote in a file for post-processing
-                      clusterDB.writeData(c.imgName(), score+1, "Mike R");
+                      try {
+                        clusterDB.writeData(c.imgName(), score+1, "Mike R");
+                      } catch (IOException e1) {
+                        Logger.println(Rep.FEW, "Couldn't store vote.");
+                        e1.printStackTrace();
+                      }
                     }
                   }
                   if (scored) {
@@ -370,11 +382,24 @@ public class Simulation {
         if (VERIFYSERIALIZATION) {
           // for debugging
           ByteArrayOutputStream out = new ByteArrayOutputStream();
-          newGState.serialize(out);
+          try {
+            newGState.serialize(out);
+          } catch (IOException e1) {
+            Logger.println(Rep.FEW, "Couldn't serialize state.");
+            e1.printStackTrace();
+            assert(false);
+          }
           
           ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-          GameState parsedGState = GameState.parse(
-              new DataInputStream(in), this.game);          
+          GameState parsedGState = null;
+          try {
+            parsedGState = GameState.parse(
+                new DataInputStream(in), this.game);
+          } catch (IOException e1) {
+            Logger.println(Rep.FEW, "Couldn't parse state.");
+            e1.printStackTrace();
+            assert(false);
+          }          
           if(!newGState.deepEquals(parsedGState)) {
             Logger.println(Logger.Rep.FEW, "Previous state:");
             Logger.println(Logger.Rep.FEW, this.game);

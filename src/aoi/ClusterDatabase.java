@@ -259,7 +259,7 @@ public class ClusterDatabase {
         // If no Clusters are available, throw an error (for now, just an assert)
        	css = null;
       	for (i = 0; i < imageFilenames.length; i++) {
-          if (alreadyUsed[i]) continue;
+          //if (alreadyUsed[i]) continue; // TODO: had to disable this because we had too few clusters for two games!!
           css = parseCluster(i);
           if (css.acceptable(nSegments))
             break;
