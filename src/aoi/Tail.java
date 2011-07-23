@@ -87,6 +87,10 @@ public class Tail {
     if (nPoints() < 2) return null;
     return trajectory.lowerKey(headTime());
   }
+  public Integer afterBaseTime() {
+    if (isEmpty()) return null;
+    return trajectory.higherKey(baseTime());
+  }
   public Point headPoint() {
     if (isEmpty()) return null;
     return getPoint(headTime());
@@ -97,7 +101,12 @@ public class Tail {
   }
   public Point beforeHeadPoint() {
     if (nPoints() < 2) return null;
-    return getPoint(trajectory.lowerKey(headTime()));
+    return getPoint(beforeHeadTime());
+  }
+  public Point afterBasePoint() {
+    if (nPoints() < 2) return null;
+    return getPoint(afterBaseTime());
+    
   }
   
   public Path2D toPath2D() { 
@@ -136,16 +145,19 @@ public class Tail {
     return length;
   }
   
-  // the first (absolute) time at which the path from 
-  // index to that time has at least the specified length
+  // the first time at which the path from 
+  // "startTime" to that time has at least the specified length
   private int convertLengthToTimeStartingAtSpecifiedTime(int startTime, double minLength) {
     assert(!isEmpty());
+    if (minLength == 0) return startTime;
     
     double length = 0;
-    for (int time : trajectory.headMap(headTime()).keySet()) {
-      length += getPoint(time).distance(getPoint(trajectory.higherKey(time))); 
+    int nextTime;
+    for (int time = startTime; time < headTime(); time = nextTime) {
+      nextTime = trajectory.higherKey(time);
+      length += getPoint(time).distance(getPoint(nextTime));
       if (length >= minLength)
-        return time;
+        return nextTime;
     }
     // what to do if the entire path is not long enough
     // here we use lastElement()+1 so that if the whole path
@@ -164,12 +176,17 @@ public class Tail {
     assert(nKnots() > 0);
     double length = 0;
     for (int time = knots.last(); time < headTime(); time = trajectory.higherKey(time))
-      length += trajectory.get(time).distance(trajectory.get(trajectory.higherKey(time)));
+      length += getPoint(time).distance(getPoint(trajectory.higherKey(time)));
     return length;
   }
   
+  // Returns the angle between the previous point before the point at "time"
+  // and the point at time
+  // Special case, if time == basetime(), then it returns the angle from base point to the next one
   public Angle tangentAngle(int time) {
-    if (time - baseTime() <= 0 || time - headTime() > 0 || nPoints() < 2) return null;
+    if (nPoints() < 2) return null;
+    if (time == baseTime()) return new Angle(basePoint(), afterBasePoint());
+    if (time - baseTime() <= 0 || time - headTime() > 0) return null;
     return new Angle(getPoint(trajectory.lowerKey(time)), getPoint(time));
   }
   public Angle tangentAngleHead() {
@@ -283,9 +300,13 @@ public class Tail {
     if (this.nPoints() < 2+excludePoints) return null;
     if (that.nPoints() < 2) return null; 
 
+    Logger.println(Rep.INFREQ, this);
+    
     int lastTime = headTime();
     for (; excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
       
+    Logger.println(Rep.INFREQ, lastTime);
+    
     // Check if trajectory intersects the last line of that.trajectory
     // Excluding the last excludePoints of trajectory
     Line2D thatLastLine = that.lastLine();

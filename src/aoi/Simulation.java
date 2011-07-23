@@ -195,7 +195,7 @@ public class Simulation {
           // Special case: if you are in the process of respawning
           if (untilRespawn > 0) {
             assert(!tail.isEmpty());
-            
+
             int cropFrom = tail.convertLengthToTimeStartingAtLatestKnot(
                            (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
             

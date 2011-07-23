@@ -57,12 +57,12 @@ public class ScoringEffect extends DefaultDrawable implements Audible {
       scoringTail = scoringTail.crop(
               pState.cropEvents.getEvents().lastElement().cropTo, 
               gState.time + 1);
-      return new Shape[]{scoringTail.pathShape()};
+      return new Shape[]{scoringTail.toPath2D()};
     } else if (internalCounter == 0) {  // normal time
       scoringTail = pState.tail;
       return null;
     } else {                   // while the effect is showing
-      return new Shape[]{scoringTail.pathShape()};
+      return new Shape[]{scoringTail.toPath2D()};
     }
   }
 
