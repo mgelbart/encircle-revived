@@ -177,6 +177,10 @@ public class HigherBeing implements Intelligence {
     
     public boolean stop = false;
     
+    // only print out every SKIPWARNS warning about large CSP.
+    private static final int SKIPWARNS = 5;
+    private int warnCtr = 1;
+    
     public void run() {
       
       while (true) {
@@ -213,11 +217,14 @@ public class HigherBeing implements Intelligence {
           // Adjust the frametime using an exponential moving average (low pass filter)
           sleeptime = sleeptime + 0.2*(simulatedSteps-targetSimulatedSteps);
           
-          // skip frames if we are behind the target.
-          if (simulatedSteps < targetSimulatedSteps)
+          // skip frames if we are significantly behind the target.
+          if (simulatedSteps < targetSimulatedSteps-1)
             renderedTime = renderedAuthorativeState.time + targetSimulatedSteps;
           
-          if (Math.abs(simulatedSteps-targetSimulatedSteps) > 3) Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
+          if (Math.abs(simulatedSteps-targetSimulatedSteps) > 3 && --warnCtr == 0) {
+            Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
+            warnCtr = SKIPWARNS;
+          }
   
           renderedState = timemachine.getState(renderedTime, mindreader);
           
