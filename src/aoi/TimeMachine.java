@@ -138,6 +138,9 @@ public class TimeMachine {
     // Predict how the states will evolve during each remaining (time-cached.time) time step
     for (int j=0; j < time - cached.time; ++j) {
       
+      // the time on this iteration.
+      final int timej = cached.time+1+j;
+      
       // Player states
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
@@ -161,7 +164,7 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].tail.addPoint(time, ship[k].location()));
+                                      players[k].tail.addPoint(timej, ship[k].location()));
       
       }
 
@@ -174,7 +177,7 @@ public class TimeMachine {
           bullets.remove(k);  
       }
       
-      futureStates.add(new GameState(cached.time+1+j, players, bullets));
+      futureStates.add(new GameState(timej, players, bullets));
     }
 
     return futureStates.last();
