@@ -2,7 +2,6 @@ package unreliablestream;
 
 import java.io.*;
 import java.net.*;
-import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -63,7 +62,7 @@ public class UnreliableStream {
   
   // The seq number and send time of last sent packets that have not been acked yet.
   // Used to estimate lag.
-  private TreeMap<Integer, Long> notAcked = new TreeMap<Integer, Long>(); 
+  private TreeMap<Integer, Long> notAcked = new TreeMap<Integer, Long>(); // not that TreeMap is not synchronized (internally)
   
   // The low pass filtered estimates of the lag.
   private Double lagAverage = null;
@@ -166,7 +165,7 @@ public class UnreliableStream {
 
     socket.send(p);
     lastSentTime = System.currentTimeMillis();
-    notAcked.put(seq, lastSentTime);
+    synchronized (notAcked) { notAcked.put(seq, lastSentTime); }
     
 //    Logger.println(RepetitionRate.INFREQUENT, "sent " + data.length + " bytes. seq: " + seq);
     
@@ -198,7 +197,14 @@ public class UnreliableStream {
       lastReceivedTime = System.currentTimeMillis();
       
       // update the lag estimates
-      final Long sentTimeOfAcked = notAcked.remove(p.ack);
+      Long sentTimeOfAcked;
+      synchronized (notAcked) {
+        sentTimeOfAcked = notAcked.remove(p.ack);
+        // ignore skipped packets
+        while (!notAcked.isEmpty() && notAcked.firstKey() - p.ack < 0)
+          notAcked.remove(notAcked.firstKey());
+      }
+      
       if (sentTimeOfAcked != null) {
         final double lag = lastReceivedTime - sentTimeOfAcked;
         
@@ -211,10 +217,7 @@ public class UnreliableStream {
         
         // decrement the counter that causes the public methods to initially return null.
         if (samplesBeforeEstimating > 0) --samplesBeforeEstimating;
-        
-        // ignore skipped packets
-        while (!notAcked.isEmpty() && notAcked.firstKey() - p.ack < 0)
-          notAcked.remove(notAcked.firstKey());
+
       } else {
 //        Logger.println(Rep.INFREQ, "already acked: " + p.ack);
       }
