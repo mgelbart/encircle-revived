@@ -300,12 +300,10 @@ public class Tail {
     if (this.nPoints() < 2+excludePoints) return null;
     if (that.nPoints() < 2) return null; 
 
-    Logger.println(Rep.INFREQ, this);
     
     int lastTime = headTime();
     for (; excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
       
-    Logger.println(Rep.INFREQ, lastTime);
     
     // Check if trajectory intersects the last line of that.trajectory
     // Excluding the last excludePoints of trajectory
@@ -317,8 +315,15 @@ public class Tail {
         break;
       }
     }
-    if (intersectionTime < baseTime()) return null; // no intersection
+    if (intersectionTime - baseTime() < 0) return null; // no intersection
 
+//    Logger.println(Rep.INFREQ, this);
+//
+//    Logger.println(Rep.INFREQ, lastTime);
+//
+//    Logger.println(Rep.INFREQ, intersectionTime);
+
+    
     // Include the point right before crossing
     // in the loop, as well as the point right after crossing
     return crop(baseTime(), intersectionTime);
