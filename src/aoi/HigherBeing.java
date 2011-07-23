@@ -39,25 +39,14 @@ public class HigherBeing implements Intelligence {
 
   // The last rendered game state.
   private GameState renderedState = null;
+  
+  // The time that was supposed to be rendered last.
+  // Could disagree with renderedState.time if timemachine.getState() is slow.
+  private int renderedTime = 0;
 	
-  // Life time of a rendered frame in ms.
-  //
-  // If no new state is received within this time
-  // client-side prediction will be used to render
-  // the next frame.
-  //
-  // Setting this to > SimulationUtils.TIMESTEP will tend to push
-  // the simulated time (== renderedTime - renderedServerTime)
-  // towards MINSIMULATEDTIME.
-  private int frametime = MINFRAMETIME;
-
-  private static final int MINFRAMETIME = SimulationUtils.TIMESTEP + 1;
-
-  // Maximum number of turns to predict into the future.
-//  private static int MAXSIMULATEDSTEPS = 1000/SimulationUtils.TIMESTEP;
-
   // The timer in charge of updating the GUI.
-  private Timer renderTimer;
+  private RenderTimer renderTimer;
+  private Thread renderTimerThread;
 
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
@@ -92,9 +81,9 @@ public class HigherBeing implements Intelligence {
     keyboardPilot = new KeyboardPilot();
     DrawUtils.addKeyListener(keyboardPilot);
     
-    TimerTask renderTask = new RenderGameTask();
-    renderTimer = new Timer();
-    renderTimer.scheduleAtFixedRate(renderTask, 0, frametime);
+    renderTimer = new RenderTimer();
+    renderTimerThread = new Thread(renderTimer, "render-timer");
+    renderTimerThread.start();
 
     intelThread = new Thread(this, "intel");
     intelThread.start();
@@ -178,66 +167,81 @@ public class HigherBeing implements Intelligence {
 
 
 
-  private class RenderGameTask extends TimerTask {
+  private class RenderTimer implements Runnable {
 
+    // sleep time between frames in ms.
+    //
+    // This is low pass filtered based on the actual amount of CSP
+    // so that on average the number of CSP steps tends to the desired value;
+    private double sleeptime = SimulationUtils.TIMESTEP;
+    
+    public boolean stop = false;
+    
     public void run() {
       
-      // don't do anything if the gui hasn't finished rendering the previous frame.
-      //if (guiThread.getState() != Thread.State.TIMED_WAITING) return;
-
-      renderedAuthorativeState = timemachine.getAuthorativeState();
-
-      // This can happen before the game actually starts.
-      if (renderedAuthorativeState == null) return;
-
-      if (ClientConfiguration.predictFuture > 0) {
-        
-        final int simulatedSteps = ClientConfiguration.predictFuture/SimulationUtils.TIMESTEP;
-        
-        if (simulatedSteps > 400/SimulationUtils.TIMESTEP) Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
-      
-        // This simply skips frames if the rendered states is less than
-        // MINSIMULATEDSTEPS ahead of the authorative state.
-        // The opposite should never happen as long as
-        // frametime > SimulationUtils.TIMESTEP.
-        int newRenderedTime = (renderedState != null) ? renderedState.time + 1 : 0;
-        if (newRenderedTime - renderedAuthorativeState.time < simulatedSteps) {
+      while (true) {
+        // don't do anything if the gui hasn't finished rendering the previous frame.
+        //if (guiThread.getState() != Thread.State.TIMED_WAITING) return;
   
-          /*
-          Logger.println(Logger.RepetitionRate.FREQUENT, "Skipped "
-                             + (renderedAuthorativeState.time
-                                + MINSIMULATEDSTEPS
-                                - newRenderedTime)
-                             + " frames.");
+        renderedAuthorativeState = timemachine.getAuthorativeState();
   
-          Logger.println(Logger.RepetitionRate.FREQUENT, "Authorative time: " + renderedAuthorativeState.time);
-          if (renderedState != null) {
-            Logger.println(Logger.RepetitionRate.FREQUENT, "Rendered time: " + renderedState.time);
+        // This can happen before the game actually starts.
+        if (renderedAuthorativeState == null) {
+          try {
+            Thread.sleep(SimulationUtils.TIMESTEP);
+          } catch (InterruptedException e) {
+            Logger.println(Rep.FEW, "interrupted");
           }
-          */
-          
-          newRenderedTime = renderedAuthorativeState.time + simulatedSteps;
-  		
+          continue;
         }
   
-        renderedState = timemachine.getState(newRenderedTime, mindreader);
-	    
-      } else {
+        if (ClientConfiguration.predictFuture > 0) {
+          
+          // in the long term we would like to (on average) be this many steps ahead
+          // of the latest state received from the server
+          final int targetSimulatedSteps = ClientConfiguration.predictFuture/SimulationUtils.TIMESTEP;
+          
+          // the next time to render
+          renderedTime = (renderedState != null) ? renderedTime + 1 : 0;
+          
+          // the actual number of CSP frames
+          final int simulatedSteps = renderedTime - renderedAuthorativeState.time;
+          
+          // Adjust the frametime using an exponential moving average (low pass filter)
+          sleeptime = sleeptime + 0.2*(simulatedSteps-targetSimulatedSteps);
+          
+          // skip frames if we are behind the target.
+          if (simulatedSteps < targetSimulatedSteps)
+            renderedTime = renderedAuthorativeState.time + targetSimulatedSteps;
+          
+          if (Math.abs(simulatedSteps-targetSimulatedSteps) > 3) Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
+  
+          renderedState = timemachine.getState(renderedTime, mindreader);
+  	    
+        } else {
+          
+          renderedState = renderedAuthorativeState;
+          
+        }
         
-        renderedState = renderedAuthorativeState;
         
+        assert(renderedState != null);
+  
+        gui.setGameState(renderedState);
+        guiThread.interrupt();
+  
+        intelThread.interrupt();
+
+        try {
+          //Thread.sleep((int) sleeptime, ((int) (1000*sleeptime))%1000);
+          //if (renderedTime%100 == 0) Logger.println(Rep.INFREQ, "sleep: " + sleeptime);
+          Thread.sleep(Math.round(sleeptime));
+        } catch (InterruptedException e) {
+          if (stop) return;
+        }
       }
-      
-      
-      assert(renderedState != null);
-
-      gui.setGameState(renderedState);
-      guiThread.interrupt();
-
-      intelThread.interrupt();
     }
 
   }
-
 
 }
