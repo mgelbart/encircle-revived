@@ -84,14 +84,13 @@ public class HigherBeing implements Intelligence {
     // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
     
-    if (ClientConfiguration.useMouse) {
-      mousePilot = new MousePilot();
-      DrawUtils.addMouseListener(mousePilot);
-      DrawUtils.addMouseMotionListener(mousePilot);
-    } else {
-      keyboardPilot = new KeyboardPilot();
-      DrawUtils.addKeyListener(keyboardPilot);
-    }
+
+    mousePilot = new MousePilot();
+    DrawUtils.addMouseListener(mousePilot);
+    DrawUtils.addMouseMotionListener(mousePilot);
+
+    keyboardPilot = new KeyboardPilot();
+    DrawUtils.addKeyListener(keyboardPilot);
     
     TimerTask renderTask = new RenderGameTask();
     renderTimer = new Timer();
@@ -155,15 +154,19 @@ public class HigherBeing implements Intelligence {
         GameState gState = renderedState; // copy the reference so it doesn't change during an iteration
 
         PlayerControlParameters c;
-        if (ClientConfiguration.useMouse)
+
+        if (ClientConfiguration.useMouse) {
           c = mousePilot.getParams(gState);
-        else
+        } else
           c = keyboardPilot.getParams(gState);
 
-        if (c != null && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
+        if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
           //Logger.println(Rep.INFREQ, "could shoot");
           c = c.shoot();
         }
+        
+        if (keyboardPilot.stop)
+          c = c.stop();
         
         if (c != null) queueParams(c);
 

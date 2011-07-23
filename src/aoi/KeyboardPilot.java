@@ -13,6 +13,9 @@ public class KeyboardPilot implements KeyListener {
   private boolean shoot = false;
   private boolean boost = false;
   
+  public boolean stop = false;
+  public boolean dontShoot = false;
+  
   public PlayerControlParameters getParams(GameState currentGameState) {
     return new PlayerControlParameters(currentGameState.time, acc,
          currentGameState.pStates[ClientConfiguration.playerNo].ship.dir().add(Math.PI/2*( ((left)? 1:0) - ((right)? 1:0) )),
@@ -42,6 +45,14 @@ public class KeyboardPilot implements KeyListener {
     case (KeyEvent.VK_SPACE):
       shoot = true;
       break;
+      
+    case (KeyEvent.VK_A):
+      stop = true;
+      break;
+      
+    case (KeyEvent.VK_F):
+      dontShoot = true;
+      break;
     }
 
     e.consume();
@@ -70,6 +81,14 @@ public class KeyboardPilot implements KeyListener {
       
     case (KeyEvent.VK_SPACE):
       shoot = false;
+      break;
+      
+    case (KeyEvent.VK_A):
+      stop = false;
+      break;
+      
+    case (KeyEvent.VK_F):
+      dontShoot = false;
       break;
     }
 

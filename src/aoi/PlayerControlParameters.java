@@ -67,6 +67,10 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   public PlayerControlParameters shoot() {
     return new PlayerControlParameters(effectiveOn, acceleration, targetDirection, true, boost);
   }
+
+  public PlayerControlParameters stop() {
+    return new PlayerControlParameters(effectiveOn, 0, targetDirection, shoot, boost);
+  }
   
   public String toString() {
     StringBuilder s = new StringBuilder();
