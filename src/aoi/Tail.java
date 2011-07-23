@@ -274,8 +274,8 @@ public class Tail {
       // Note: we use this instead of checking if the score is 
       // incremented because of a bug with scoring and getting
       // pwned on the same turn
-      if (sinceScoring - prev.sinceScoring < 0 ||
-          sinceScoring == 0) {
+      if ((sinceScoring - prev.sinceScoring < 0 ||
+          sinceScoring == 0)) {
         assert(!newTail.isEmpty());
         newTail.knots.add(newTail.headTime());
       }
