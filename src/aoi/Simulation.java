@@ -139,8 +139,8 @@ public class Simulation {
          *   (0) copy previous state parameters
          *   if not respawning
          *     (1) take shots
-         *     (2) check for tail crossings and scoring
          *     (3) check if players are hit by bullets
+         *     (2) check for tail crossings and scoring
          *     (4) check for crashing
          *     (5) move the Ship
          *   (6) optimize cropEvents
@@ -206,7 +206,7 @@ public class Simulation {
             Point newLocation = tail.getPoint(cropFrom);
             Angle newDir;
             if (SPIN_WHILE_RESPAWN)
-              newDir     =  new Angle(game.time / (2*Math.PI));
+              newDir     =  new Angle(game.time * 0.2);
             else
               newDir     = tail.tangentAngleHead();
             // (below) In case the tail only has one point,
@@ -231,9 +231,20 @@ public class Simulation {
                   tail.convertLengthToTimeStartingAtBase(SimulationUtils.BULLETCOST) + 1,   // to
                   game.time + 1);
             }
+            
+            
+            // (2) CHECK IF PLAYER IS HIT BY BULLETS
+            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
+              Bullet b = bulletsTemp.get(k);
+              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
+                sinceHitByBullet = 0;
+                untilRespawn = SimulationUtils.timeUntilRespawn(tail);
+                bulletsTemp.remove(k);
+              }
+            }
   
   
-            // (2) CHECK FOR TAIL CROSSINGS AND SCORING          
+            // (3) CHECK FOR TAIL CROSSINGS AND SCORING          
             for (int thatPlayerNo=0; thatPlayerNo<SimulationUtils.NUMPLAYERS; ++thatPlayerNo) {            
               // (below) See comments in the intersects() function for more detail on this BS
               Tail intersection = pStatesTemp[thatPlayerNo].tail.intersects(tail);
@@ -261,7 +272,8 @@ public class Simulation {
                     
                     // Check if the center of the cluster is in the loop just made
                     if (c.acceptable(arena.sequence()[score]) && 
-                        intersection.toPath2D().contains(c.center())) {
+                        intersection.toPath2D().contains(c.center()) &&
+                        sinceHitByBullet > 0) {
                       Logger.println(Logger.Rep.INFREQ, 
                           "Player " + playerNo + " encircled (" + c.center().x + ", " + c.center().y + ").");
                       
@@ -286,16 +298,7 @@ public class Simulation {
             }     // end for (otherPlayerNo)
             
             
-            // (3) CHECK IF PLAYER IS HIT BY BULLETS
 
-            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
-              Bullet b = bulletsTemp.get(k);
-              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
-                sinceHitByBullet = 0;
-                untilRespawn = SimulationUtils.timeUntilRespawn(tail);
-                bulletsTemp.remove(k);
-              }
-            }
             
             
             // (4) CHECK IF PLAYER CRASHED

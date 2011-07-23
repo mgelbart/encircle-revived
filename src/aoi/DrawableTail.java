@@ -30,6 +30,7 @@ public class DrawableTail extends DefaultDrawable {
     int j = 0;
     for (int time : tail.getKnotTimes()) {
       Point2D knotPoint = tail.getPoint(time);
+      assert(knotPoint != null);
       
       AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
       
