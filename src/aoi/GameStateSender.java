@@ -23,6 +23,8 @@ public class GameStateSender implements Runnable {
   private Object sendingLock = new Object();
   private final short udpId;
   private Simulation sim;
+  
+  private boolean stop = false;
 
   private int previousTime = -1;
 
@@ -46,6 +48,8 @@ public class GameStateSender implements Runnable {
       this.udpStream = out;
     }
   }
+  
+  public void stop() { stop = true; }
 
   public void run() {
 
@@ -80,10 +84,11 @@ public class GameStateSender implements Runnable {
     // Sleep until interruption (triggered by Simulation
     // when game state is updated);
     while (true) {
-	    
+      
       try {
-        Thread.sleep(10000);
+        Thread.sleep(200);
       } catch (InterruptedException e) {
+        if (stop) { Logger.println(Rep.FEW, "GameStateSender stopping."); return; }
 
         assert(tcpStream != null || udpStream != null);
 

@@ -143,6 +143,7 @@ public abstract class Server {
       //       gracefully stop the threads for games that are
       //       finished. Also, some limitations that prevent
       //       overloading the server need to be in place.
+      udpServ.stop();
       return;
     }
   }

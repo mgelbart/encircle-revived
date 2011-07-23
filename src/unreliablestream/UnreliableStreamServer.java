@@ -54,6 +54,7 @@ public class UnreliableStreamServer implements Runnable {
     }
     
     listener = new Thread(this, "ustreamserv-listener");
+    listener.setDaemon(true);
   }
   
   private short getFreeId() {
@@ -112,7 +113,7 @@ public class UnreliableStreamServer implements Runnable {
         aoi.Logger.println(Rep.FEW, "server killed.");
         synchronized (connections) {
           for (UnreliableStream s : connections.values()) {
-            s.disconnect();
+            if (s != null) s.disconnect();
           }
           connections.clear();
           connectionListeners.clear();

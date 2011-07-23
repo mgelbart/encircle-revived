@@ -51,6 +51,7 @@ public class Simulation {
       DrawUtils.initialize(DrawUtils.createDefaultCanvas());
       gui = new GUI();
       guiThread = new Thread(gui, "gui");
+      guiThread.setDaemon(true);
       guiThread.start();
     }
   }
@@ -388,6 +389,18 @@ public class Simulation {
           // for debugging
           gui.setGameState(this.game);
           guiThread.interrupt();
+        }
+        
+        // end game if both players have disconnected.
+        boolean livePlayers = false;
+        for (Thread t : listenerThreads)
+          if (t.getState() != Thread.State.TERMINATED) { livePlayers = true; break; }
+        
+        if (!livePlayers) {
+          Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");
+          timer.cancel();
+          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { senders[j].stop(); senderThreads[j].interrupt(); }
+          return;
         }
         
       }  // end catch
