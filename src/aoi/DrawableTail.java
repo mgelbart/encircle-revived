@@ -28,12 +28,12 @@ public class DrawableTail extends DefaultDrawable {
     Tail tail = gState.pStates[playerNo].tail;
     Shape[] shapes = new Shape[nShapes];
     int j = 0;
-    for (int k : tail.getKnotTimes()) {
-      Point2D knotPoint = tail.getPoint(k);
+    for (int time : tail.getKnotTimes()) {
+      Point2D knotPoint = tail.getPoint(time);
       
       AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
       
-      Angle a = tail.tangentAngle(k + 1);
+      Angle a = tail.tangentAngle(time);
       if (a == null) a = gState.pStates[playerNo].ship.dir();
       
       at.rotate(a.toDouble());
@@ -44,7 +44,7 @@ public class DrawableTail extends DefaultDrawable {
           new Line2D.Double(KNOTSIZE/2, KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2));
 
     }
-    shapes[nShapes-1] = tail.pathShape();
+    shapes[nShapes-1] = tail.toPath2D();
     return shapes;
   }
 

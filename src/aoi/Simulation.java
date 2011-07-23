@@ -201,8 +201,14 @@ public class Simulation {
             
             cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
+            final boolean SPIN_WHILE_RESPAWN = true;
+            
             Point newLocation = tail.getPoint(cropFrom);
-            Angle newDir      = tail.tangentAngleHead();
+            Angle newDir;
+            if (SPIN_WHILE_RESPAWN)
+              newDir     =  new Angle(game.time / (2*Math.PI));
+            else
+              newDir     = tail.tangentAngleHead();
             // (below) In case the tail only has one point,
             // need to keep things straight
             if (newLocation == null) newLocation = ship.location(); 
@@ -255,7 +261,7 @@ public class Simulation {
                     
                     // Check if the center of the cluster is in the loop just made
                     if (c.acceptable(arena.sequence()[score]) && 
-                        intersection.contains(c.center())) {
+                        intersection.toPath2D().contains(c.center())) {
                       Logger.println(Logger.Rep.INFREQ, 
                           "Player " + playerNo + " encircled (" + c.center().x + ", " + c.center().y + ").");
                       
@@ -272,7 +278,7 @@ public class Simulation {
                   
                   // Check if the other player got pwned.
                   for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-                    if (j != playerNo && intersection.contains(pStatesTemp[j].ship.location()))
+                    if (j != playerNo && intersection.toPath2D().contains(pStatesTemp[j].ship.location()))
                       gotPwned[j] = true;
                     
                 }      // end if (thatPlayerNo !=/== playerNo) 

@@ -7,6 +7,8 @@ import java.awt.geom.Path2D;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import aoi.Logger.Rep;
+
 /** 
  * The tail. Immutable.
  */
@@ -35,8 +37,9 @@ public class Tail {
   private Tail(TreeMap<Integer, Point> trajectory, TreeSet<Integer> knots) {
     this.trajectory = trajectory;
     this.knots = knots;
-    
-    knots.add(baseTime());  // make sure there is a knot at the base
+
+    if (!isEmpty())
+      knots.add(baseTime());  // make sure there is a knot at the base
   }
   // ---------------------- end constructors ----------------------- //  
 
@@ -67,10 +70,6 @@ public class Tail {
     return trajectory.get(time); 
   }
   
-  public boolean contains(Point p) {
-    return trajectory.containsValue(p);
-  }
-  
   @SuppressWarnings("unchecked")
   public Iterable<Integer> getKnotTimes() { 
     return (Iterable<Integer>)knots.clone(); 
@@ -78,11 +77,11 @@ public class Tail {
 
   public Integer headTime() {
     if (isEmpty()) return null;
-    else return trajectory.lastKey();
+    return trajectory.lastKey();
   }
   public Integer baseTime() {
     if (isEmpty()) return null;
-    else return trajectory.firstKey();
+    return trajectory.firstKey();
   }
   public Integer beforeHeadTime() {
     if (nPoints() < 2) return null;
@@ -101,12 +100,16 @@ public class Tail {
     return getPoint(trajectory.lowerKey(headTime()));
   }
   
-  public Shape pathShape() { 
+  public Path2D toPath2D() { 
+    return toPath2D(trajectory.values());
+  }
+  
+  // The Path2D returned here is not closed by default
+  public static Path2D toPath2D(Iterable<Point> points) {
     Path2D path = new Path2D.Double();
-    if (isEmpty()) return path;
     
     int i = 0;
-    for (Point p : trajectory.values()) {
+    for (Point p : points) {
       if (i++ == 0) path.moveTo(p.x, p.y);
       else path.lineTo(p.x, p.y);
     }
@@ -166,11 +169,11 @@ public class Tail {
   }
   
   public Angle tangentAngle(int time) {
-    if (time <= baseTime() || time > headTime() || nPoints() < 2) return null;
+    if (time - baseTime() <= 0 || time - headTime() > 0 || nPoints() < 2) return null;
     return new Angle(getPoint(trajectory.lowerKey(time)), getPoint(time));
   }
   public Angle tangentAngleHead() {
-    return new Angle(headTime());
+    return tangentAngle(headTime());
   }  
   
   // Get a line from "time" to the next time
@@ -252,7 +255,7 @@ public class Tail {
       if (sinceScoring - prev.sinceScoring < 0 ||
           sinceScoring == 0) {
         assert(!newTail.isEmpty());
-        newTail.knots.add(newTail.nPoints()-1);
+        newTail.knots.add(time);
       }
       
       // Add the latest point
@@ -273,14 +276,15 @@ public class Tail {
    * of the returned Tail is undefined but it will not be null.                    
    */
   public Tail intersects(Tail that) {
-    if (this.nPoints() < 2) return null;
-    if (that.nPoints() < 2) return null; 
-
     // The excludePoints is necessary to avoid spurious two segment loops
     // for example when "this" == "that" and the player is not moving                       
     int excludePoints = this == that?2:0;
-    int lastTime;
-    for (lastTime = headTime(); excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
+    
+    if (this.nPoints() < 2+excludePoints) return null;
+    if (that.nPoints() < 2) return null; 
+
+    int lastTime = headTime();
+    for (; excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
       
     // Check if trajectory intersects the last line of that.trajectory
     // Excluding the last excludePoints of trajectory
