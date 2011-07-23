@@ -49,6 +49,8 @@ public abstract class Logger {
     
     out.print(System.currentTimeMillis() % 1000000);
     out.print(' ');
+    out.print(Thread.currentThread().getName());
+    out.print(' ');
     out.print(classname);
     out.print('.');
     out.print(method);
