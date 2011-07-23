@@ -52,7 +52,8 @@ public class MindReader {
 
     return new PlayerControlParameters(time,
                                        (int) (Math.min(SimulationUtils.MAXACC, a)),
-                                       s1.pStates[P].ship.dir(),
+                                       // average the last two directions to reduce jittering of AI controlled ships
+                                       new Angle((s1.pStates[P].ship.dir().toDouble() + s1.pStates[P].ship.dir().toDouble())/2),
                                        false, false);
   }
 
