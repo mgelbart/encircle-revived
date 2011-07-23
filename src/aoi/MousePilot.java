@@ -30,12 +30,13 @@ public class MousePilot implements MouseInputListener {
     // the decay length^2
     final double lsq = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
     
-    // use the distance parallel to the direction of the ship only
+    // use only the distance parallel to the direction of the ship
     final Line2D perpLine = new Line2D.Double(loc, ship.dir().add(Math.PI/2).move(loc, 1000.));
     final double distsq = perpLine.ptLineDistSq(tar);
+    final boolean infront = Line2D.relativeCCW(perpLine.getX1(), perpLine.getY1(), perpLine.getX2(), perpLine.getY2(), tar.getX(), tar.getY()) > 0;
     
     int acc;
-    if (distsq < lsq/2) acc = 0; 
+    if (distsq < lsq/2 || !infront) acc = 0; 
     else              acc = (int) (SimulationUtils.MAXACC * (1.-Math.exp(-distsq/lsq)));
     
     return new PlayerControlParameters(currentGameState.time, acc, new Angle(loc, tar), shoot, boost);
