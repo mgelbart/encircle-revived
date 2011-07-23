@@ -72,6 +72,7 @@ public class HigherBeing implements Intelligence {
 
     gui = new GUI();
     guiThread = new Thread(gui, "gui");
+    guiThread.setPriority(Thread.MAX_PRIORITY);
     guiThread.start();
 
     timemachine = new TimeMachine();
