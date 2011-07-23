@@ -40,6 +40,7 @@ public abstract class Server {
 	  // (This can be moved later) Initialize ClusterDatabase;
 	  ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
 
+	  int simId = 0;
     while (true) {
 
       Arena arena;
@@ -104,8 +105,8 @@ public abstract class Server {
 
         // We need a reference to the sender threads to interrupt
         // them when the game sate is updated.
-        simulation.senderThreads[j] = new Thread(simulation.senders[j], "sender-"+j);
-        simulation.listenerThreads[j] = new Thread(simulation.listeners[j], "listener-"+j);
+        simulation.senderThreads[j] = new Thread(simulation.senders[j], "sender-"+simId+"-"+j);
+        simulation.listenerThreads[j] = new Thread(simulation.listeners[j], "listener-"+simId+"-"+j);
 
         // set the PlayerListener as a receiver of UDP packets and set GameStateSender to
         // use UDP as soon as a connection is established.
@@ -134,9 +135,10 @@ public abstract class Server {
 
 
       // Start simulating the game!
-      Thread t = new Thread(simulation);
+      Thread t = new Thread(simulation, "simulation-"+simId);
       t.start();
 
+      ++simId;
     }
   }
 

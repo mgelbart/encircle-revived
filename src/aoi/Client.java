@@ -142,7 +142,7 @@ public class Client implements Runnable {
       // This timer task keeps asking the intelligence for new parameters
       // and sends them to the server.
       TimerTask sendTask = new SendParamsTask(intel, controlStream, uStream);
-      Timer sendTimer = new Timer();
+      Timer sendTimer = new Timer("send-timer");
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
       Logger.println(Logger.Rep.FEW, "Ready...");

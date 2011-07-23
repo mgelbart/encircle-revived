@@ -123,8 +123,8 @@ public class Simulation  implements Runnable {
 
 
     TimerTask interruptTask = new InterruptThreadsTask(threads);
-    Timer timer = new Timer();
-    timer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
+    Timer advanceSimTimer = new Timer("advance-simulation-timer");
+    advanceSimTimer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
 
 
     Logger.println(Logger.Rep.FEW, "Game starting.");
@@ -423,7 +423,7 @@ public class Simulation  implements Runnable {
         
         if (!livePlayers) {
           Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");
-          timer.cancel();
+          advanceSimTimer.cancel();
           for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { senders[j].stop(); senderThreads[j].interrupt(); }
           return;
         }

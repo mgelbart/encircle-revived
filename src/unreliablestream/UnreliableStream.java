@@ -111,7 +111,7 @@ public class UnreliableStream {
             socket.receive(p);
           } catch (IOException e) {
             if (keepAliveTimer == null) { aoi.Logger.println(Rep.INFREQ, "connection closed id: " + id); return; }
-            if (lastReceivedTime - System.currentTimeMillis() > TIMEOUT) { aoi.Logger.println(Rep.INFREQ, "timeout on id: " + id); return; }
+            if (!isAlive()) { aoi.Logger.println(Rep.INFREQ, "timeout on id: " + id); return; }
             continue;
           }
           
@@ -131,7 +131,7 @@ public class UnreliableStream {
 
       }
       
-    }, "ustream-listener");
+    }, "ustream-listener-"+id);
     
     listenThread.start();
     
@@ -139,7 +139,8 @@ public class UnreliableStream {
   }
   
   void startToKeepAlive() throws IOException {
-    keepAliveTimer = new Timer();
+    assert(keepAliveTimer == null);
+    keepAliveTimer = new Timer("keep-alive-timer-"+id);
     lastReceivedTime = System.currentTimeMillis();
     keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
     
@@ -275,14 +276,15 @@ public class UnreliableStream {
   
   // Returns true iff the connection is considered to be alive.
   public boolean isAlive() {
-    return System.currentTimeMillis() - lastReceivedTime < TIMEOUT;
+    return keepAliveTimer != null && System.currentTimeMillis() - lastReceivedTime < TIMEOUT;
   }
 
   // Kills the connection
   public void disconnect() {
-    assert(keepAliveTimer != null);
-    keepAliveTimer.cancel();
-    keepAliveTimer = null;
+    if (keepAliveTimer != null) {
+      keepAliveTimer.cancel();
+      keepAliveTimer = null;
+    }
   }
   
   /*

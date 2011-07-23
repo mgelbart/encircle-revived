@@ -13,6 +13,7 @@ import java.util.Map;
 
 import unreliablestream.UnreliableStream.Packet;
 
+import aoi.Logger;
 import aoi.Logger.Rep;
 
 /**
@@ -37,7 +38,11 @@ public class UnreliableStreamServer implements Runnable {
   // a list of registered connection listeners
   private final Map<Short, ConnectionListener> connectionListeners = new HashMap<Short, ConnectionListener>();
   
+  // this thread listens for incoming packets and routes them
   private final Thread listener;
+  
+  // this thread occasionally removes dead connections.
+  private final Thread cleaner;
   
   // kill the server asap
   private boolean kill = false;
@@ -55,6 +60,27 @@ public class UnreliableStreamServer implements Runnable {
     
     listener = new Thread(this, "ustreamserv-listener");
     listener.setDaemon(true);
+    
+    // periodically remove dead connections
+    cleaner = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (true) {
+          try {
+            Thread.sleep(UnreliableStream.TIMEOUT);
+          } catch (InterruptedException e) {
+            Logger.println(Rep.FEW, "interrupted");
+          }
+          if (kill) return;
+          synchronized (connections) {
+            for (int id : connections.keySet()) {
+              UnreliableStream con = connections.get(id);
+              if (con != null && !con.isAlive()) connections.remove(id).disconnect();
+            }
+          }
+        }
+      }
+    }, "ustreamserv-cleaner");
   }
   
   private short getFreeId() {
@@ -92,6 +118,7 @@ public class UnreliableStreamServer implements Runnable {
     assert(!listener.isAlive());
     
     listener.start();
+    cleaner.start();
   }
   
   // Stop listening for new packets.
@@ -149,8 +176,6 @@ public class UnreliableStreamServer implements Runnable {
         } else
           // normal packet
           con.processReceived(parsed);
-          
-        
         
       } catch (IOException e) {
         e.printStackTrace();
