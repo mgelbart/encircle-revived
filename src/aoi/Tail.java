@@ -272,7 +272,7 @@ public class Tail {
       if (sinceScoring - prev.sinceScoring < 0 ||
           sinceScoring == 0) {
         assert(!newTail.isEmpty());
-        newTail.knots.add(time);
+        newTail.knots.add(newTail.headTime());
       }
       
       // Add the latest point
