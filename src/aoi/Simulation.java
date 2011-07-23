@@ -206,7 +206,7 @@ public class Simulation {
             Point newLocation = tail.getPoint(cropFrom);
             Angle newDir;
             if (SPIN_WHILE_RESPAWN)
-              newDir     =  new Angle(game.time / (2*Math.PI));
+              newDir     =  new Angle(game.time * 0.2);
             else
               newDir     = tail.tangentAngleHead();
             // (below) In case the tail only has one point,
