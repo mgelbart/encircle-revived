@@ -73,7 +73,7 @@ public class UnreliableStream {
   private int samplesBeforeEstimating = 100;
   
   // A timer that sends empty packets if there's nothing else to send.
-  private Timer keepAliveTimer;
+  private Thread keepAliveTimer;
   
   // list of handlers for received packets
   private Vector<Receiver> receivers = new Vector<Receiver>();
@@ -109,7 +109,7 @@ public class UnreliableStream {
           try {
             socket.receive(p);
           } catch (IOException e) {
-            if (keepAliveTimer == null) { aoi.Logger.println(Rep.INFREQ, "connection closed id: " + id); return; }
+            if (keepAliveTimer == null) { aoi.Logger.println(Rep.INFREQ, "connection closed. id: " + id); return; }
             if (!isAlive()) { aoi.Logger.println(Rep.INFREQ, "timeout on id: " + id); return; }
             continue;
           }
@@ -138,10 +138,39 @@ public class UnreliableStream {
   }
   
   void startToKeepAlive() throws IOException {
+    
+    class KeepAliveTimer implements Runnable {
+      UnreliableStream stream;
+      KeepAliveTimer(UnreliableStream stream) { this.stream = stream; }
+      
+      @Override
+      public void run() {
+        while (true) {
+          if (!stream.isAlive()) { Logger.println(Rep.FEW, "keep alive timer stopped."); return; };
+          final long untilKeepAlive = KEEPALIVEPERIOD - (System.currentTimeMillis()-stream.lastSentTime);
+          if (untilKeepAlive <= 20) {
+            try {
+              stream.send(new byte[0]);
+            } catch (IOException e) {
+              Logger.println(Rep.FEW, "Failed to send a keep alive.");
+              e.printStackTrace();
+            }
+          } else {
+            try {
+              Thread.sleep(untilKeepAlive);
+            } catch (InterruptedException e) {
+              Logger.println(Rep.FEW, "interrupted");
+            }
+          }
+        }
+      }
+      
+    }
+    
     assert(keepAliveTimer == null);
-    keepAliveTimer = new Timer("keep-alive-timer-"+id);
     lastReceivedTime = System.currentTimeMillis();
-    keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
+    keepAliveTimer = new Thread(new KeepAliveTimer(this), "keep-alive-timer-"+id);
+    keepAliveTimer.start();
     
     // send the first keep alive packet.
     send(new byte[0]);
@@ -285,8 +314,9 @@ public class UnreliableStream {
   // Kills the connection
   public void disconnect() {
     if (keepAliveTimer != null) {
-      keepAliveTimer.cancel();
-      keepAliveTimer = null;
+      Thread t = keepAliveTimer;
+      keepAliveTimer = null; // this forces isAlive() --> false.
+      t.interrupt();
     }
   }
   
@@ -408,28 +438,6 @@ public class UnreliableStream {
       return out.toByteArray();
     }
 
-  }
-  
-  private static class KeepAliveTask extends TimerTask {
-    UnreliableStream stream;
-
-    KeepAliveTask(UnreliableStream stream) {
-      this.stream = stream;
-    }
-    
-    @Override
-    public void run() {
-      if (!stream.isAlive()) { this.cancel(); return; };
-      if (System.currentTimeMillis() - stream.lastSentTime > KEEPALIVEPERIOD) {
-        try {
-          stream.send(new byte[0]);
-        } catch (IOException e) {
-          Logger.println(Rep.FEW, "Failed to send a keep alive.");
-          e.printStackTrace();
-        }
-      }
-    }
-    
   }
   
 }
