@@ -325,6 +325,11 @@ public class Client implements Runnable {
       
       intelligence.processGameStateUpdate(newState);
       
+      if (newState.time%300 == 0) {
+        Logger.println(Rep.INFREQ, "lag estimate. average: " + Math.round(src.averageLag())
+                                  +" pessimistic: " + Math.round(src.pessimisticLag()) + " ms");
+      }
+      
       return true;
     }
     

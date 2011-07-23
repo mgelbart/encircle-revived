@@ -2,9 +2,11 @@ package unreliablestream;
 
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -56,8 +58,16 @@ public class UnreliableStream {
   
 
   // The system time when the last packet was received.
-  private long lastReceivedTime;
-  private long lastSentTime;
+  private long lastReceivedTime = 0;
+  private long lastSentTime = 0;
+  
+  // The seq number and send time of last sent packets that have not been acked yet.
+  // Used to estimate lag.
+  private TreeMap<Integer, Long> notAcked = new TreeMap<Integer, Long>(); 
+  
+  // The low pass filtered estimates of the lag.
+  private Double lagAverage = null;
+  private Double lagPessimistic = null;
   
   // A timer that sends empty packets if there's nothing else to send.
   private Timer keepAliveTimer;
@@ -66,8 +76,6 @@ public class UnreliableStream {
   private Vector<Receiver> receivers = new Vector<Receiver>();
   
   public UnreliableStream(DatagramSocket socket, InetAddress remoteHost, int remotePort, short id) {
-    lastReceivedTime = System.currentTimeMillis();
-    lastSentTime = lastReceivedTime;
     
     try {
       socket.setSoTimeout(TIMEOUT/4);
@@ -129,7 +137,6 @@ public class UnreliableStream {
   void startToKeepAlive() throws IOException {
     keepAliveTimer = new Timer();
     lastReceivedTime = System.currentTimeMillis();
-    lastSentTime = lastReceivedTime;
     keepAliveTimer.schedule(new KeepAliveTask(this), KEEPALIVEPERIOD, KEEPALIVEPERIOD/3);
     
     // send the first keep alive packet.
@@ -154,6 +161,7 @@ public class UnreliableStream {
 
     socket.send(p);
     lastSentTime = System.currentTimeMillis();
+    notAcked.put(seq, lastSentTime);
     
 //    Logger.println(RepetitionRate.INFREQUENT, "sent " + data.length + " bytes. seq: " + seq);
     
@@ -173,6 +181,7 @@ public class UnreliableStream {
     final int diff = (lastReceived == null) ? 1 : p.sequenceNo - lastReceived.sequenceNo;
     if (diff > 0) {
       
+      // update the ack fields sent to the remote party
       if (lastReceived == null) { relativeReceived = 0; lastReceived = p; }
       else {
         synchronized (lastReceived) {
@@ -182,6 +191,26 @@ public class UnreliableStream {
         }
       }
       lastReceivedTime = System.currentTimeMillis();
+      
+      // update the lag estimates
+      final Long sentTimeOfAcked = notAcked.remove(p.ack);
+      if (sentTimeOfAcked != null) {
+        final double lag = lastReceivedTime - sentTimeOfAcked;
+        
+        if (lagAverage == null || lagPessimistic == null) { lagAverage=lag; lagPessimistic=lag; }
+        else {
+          lagAverage     = lagAverage     + (lag-lagAverage)     * 0.01;
+          // for the pessimistic average, use a different time constant for below/above average lag
+          lagPessimistic = lagPessimistic + (lag-lagPessimistic) * ((lagPessimistic > lag)? 0.01:1.);
+        }
+        
+        // ignore skipped packets
+        while (!notAcked.isEmpty() && notAcked.firstKey() - p.ack < 0)
+          notAcked.remove(notAcked.firstKey());
+      } else {
+//        Logger.println(Rep.INFREQ, "already acked: " + p.ack);
+      }
+      
       
 //      Logger.println(RepetitionRate.INFREQUENT, "received " + p.data.length + " bytes. seq: " + p.sequenceNo);
       
@@ -223,6 +252,20 @@ public class UnreliableStream {
     return (1 + ones) / (double) (1 + Packet.ACKBITS);
   }
 
+  /*
+   * Returns a low pass filtered average estimate of the lag.
+   * This includes both network lag and processing time on the
+   * remote side between receiving a packet and sending the next one.
+   */
+  public double averageLag() { return lagAverage; }
+  
+  /*
+   * Same as averageLag() but the lag estimate is low pass filtered
+   * in such a way that it increases rapidly whenever the instantaneous
+   * lag is greater than the current estimate.
+   */
+  public double pessimisticLag() { return lagPessimistic; }
+  
   // Returns true iff the connection is considered to be alive.
   public boolean isAlive() {
     return System.currentTimeMillis() - lastReceivedTime < TIMEOUT;
