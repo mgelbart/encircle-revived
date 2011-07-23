@@ -55,7 +55,7 @@ public class DrawUtils {
   public static Paint DEFAULTPAINT = Color.BLACK;
   public static BasicStroke DEFAULTSTROKE = new BasicStroke((float) 1.);
 
-  public static int IMAGE_TYPE = BufferedImage.TYPE_INT_ARGB;
+  private static GraphicsConfiguration graphicsConfig;
 
   // The drawing functions cannot be called before this is set to true.
   private static boolean initialized = false;
@@ -91,6 +91,8 @@ public class DrawUtils {
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
 
+    graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+    
     initBuffers();
     
     initialized = true;
@@ -98,8 +100,8 @@ public class DrawUtils {
  
   private static void initBuffers() {
     // Initialize the buffer and the screen.
-    offscreenImage = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
-    onscreenImage  = new BufferedImage(canvasWidth(), canvasHeight(), IMAGE_TYPE);
+    offscreenImage = graphicsConfig.createCompatibleImage(canvasWidth(), canvasHeight(), Transparency.TRANSLUCENT);
+    onscreenImage  = graphicsConfig.createCompatibleImage(canvasWidth(), canvasHeight(), Transparency.TRANSLUCENT);
     offscreen = offscreenImage.createGraphics();
     onscreen  = onscreenImage.createGraphics();
     setPaint(DEFAULTPAINT);
