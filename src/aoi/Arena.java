@@ -45,8 +45,8 @@ public class Arena {
   }
 
   // Static convenience methods for accessing the Arena from various classes in the client.
-  public static void setCurrent(Arena a) {assert(current==null);current = a; }
-  public static Arena current() { assert(current!= null); return current; }
+  public static void setCurrent(Arena a) { assert(current==null); current = a; }
+  public static Arena current() { return current; }
   
   public String toString() {
     StringBuilder s = new StringBuilder();
