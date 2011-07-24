@@ -44,11 +44,11 @@ public abstract class SimulationUtils {
   // Energy recharge period (i.e. how many turns to gain one point).
   public static final int RECHARGEPERIOD = (int) ((1./TIMESTEP) * 1000);
 
-  // The maximum velocity. Special thank you to the laws of physics.
-  private static final double MAXVELOCITY = MAXACC/DRAG;
+  // The maximum ship speed. Special thank you to the laws of physics.
+  public static final double MAXSPEED = MAXACC/DRAG;
   
   // The rate at which you recoil backwards after crashing.
-  public static final double UNCOILSPEED = MAXVELOCITY * 2.;
+  public static final double UNCOILSPEED = MAXSPEED * 2.;
   
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
