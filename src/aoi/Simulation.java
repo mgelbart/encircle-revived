@@ -38,12 +38,13 @@ public class Simulation  implements Runnable {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static final boolean VISUALIZE = false;
+  private static boolean VISUALIZE = false;
+  private boolean VISUALIZETHIS = VISUALIZE;
   private GUI gui = null;
   private Thread guiThread = null;
   
   // for debugging
-  public static final boolean VERIFYSERIALIZATION = false;
+  public static final boolean VERIFYSERIALIZATION = true;
   
   
   public Simulation(Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
@@ -52,6 +53,8 @@ public class Simulation  implements Runnable {
     this.pointsPerRound = pointsPerRound;
     
     if (VISUALIZE) {
+      VISUALIZE = false; // don't visualize more than one
+      VISUALIZETHIS = true;
       // init GUI
       ClientConfiguration.setPlayerNo(1);  // sketch-ball
       Arena.setCurrent(arena);
@@ -410,7 +413,7 @@ public class Simulation  implements Runnable {
         // Note: don't need locking since updating a reference is atomic.
         this.game = newGState;
 
-        if (VISUALIZE) {
+        if (VISUALIZETHIS) {
           // for debugging
           gui.setGameState(this.game);
           guiThread.interrupt();
