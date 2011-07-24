@@ -265,13 +265,15 @@ public class DrawUtils {
   }
 
   // Transform p from game coordinates to the Java GUI coordinates.
-  public static Point2D fromGameToJavaUserSpaceCoordinates(Point2D p) {
-    return fromGameCoords().transform(p, null);
+  public static Point fromGameToJavaUserSpaceCoordinates(Point2D p) {
+    Point2D p2d = fromGameCoords().transform(p, null);
+    return new Point((int) Math.round(p2d.getX()), (int) Math.round(p2d.getY()));
   }
   
-  public static Point2D fromJavaUserSpaceToGameCoordinates(Point2D p) {
+  public static Point fromJavaUserSpaceToGameCoordinates(Point2D p) {
     try {
-      return fromGameCoords().inverseTransform(p, null);
+      Point2D p2d = fromGameCoords().inverseTransform(p, null);
+      return new Point((int) Math.round(p2d.getX()), (int) Math.round(p2d.getY()));
     } catch (NoninvertibleTransformException e) {
       // TODO Auto-generated catch block
       e.printStackTrace();

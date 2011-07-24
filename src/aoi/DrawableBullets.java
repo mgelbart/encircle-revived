@@ -26,7 +26,7 @@ public class DrawableBullets implements Drawable {
   private final static Color BULLETCOLOR = Color.GREEN;
   private final static Color BULLETTAILCOLOR = Color.BLUE;
 
-  private final Point2D endOfTail;
+  private final Point endOfTail;
   private final Path2D bulletTail;
   
   public DrawableBullets() {
@@ -66,8 +66,8 @@ public class DrawableBullets implements Drawable {
       at.rotate(b.direction.toDouble());
       shapes[2*j+1] = at.createTransformedShape(bulletTail);
       
-      Point2D start = DrawUtils.fromGameToJavaUserSpaceCoordinates(new Point(b.x, b.y));
-      Point2D end = DrawUtils.fromGameToJavaUserSpaceCoordinates(at.transform(endOfTail, null));
+      Point start = DrawUtils.fromGameToJavaUserSpaceCoordinates(new Point(b.x, b.y));
+      Point end = DrawUtils.fromGameToJavaUserSpaceCoordinates(at.transform(endOfTail, null));
       colors[2*j+1] = new GradientPaint((float) start.getX(), (float) start.getY(), BULLETTAILCOLOR,
                                         (float) end.getX(), (float) end.getY(), Color.BLACK);
       fill[2*j+1] = true;
