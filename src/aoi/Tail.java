@@ -208,21 +208,18 @@ public class Tail {
   // Do not make public.
   private void mutatingAdd(int time, Point p) {  
     
-    Point prevPoint     = headPoint();
     Point prevPrevPoint = beforeHeadPoint();
     
-    if (prevPoint == null || !prevPoint.equals(p)) {
-      // Always add the latest position to the trajectory
-      // but combine it with the previous segment if both are short.
-      if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {    
-        if (knots.contains(headTime())) {
-          knots.remove(headTime());
-          knots.add(time);
-        }
-        trajectory.remove(headTime()); 
+    // Always add the latest position to the trajectory
+    // but combine it with the previous segment if both are short.
+    if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {    
+      if (knots.contains(headTime())) {
+        knots.remove(headTime());
+        knots.add(time);
       }
-      trajectory.put(time, p);
+      trajectory.remove(headTime()); 
     }
+    trajectory.put(time, p);
   }
   public Tail addPoint(int time, Point p) {
     Tail newTail = clone();
