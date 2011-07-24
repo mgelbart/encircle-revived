@@ -100,7 +100,7 @@ public class GameStateSender implements Runnable {
         if (previousTime != g.time) {
           
           // Check whether the UnreliableStream is still alive.
-          if (udpStream != null && !udpStream.isAlive()) {
+          if (udpStream != null && udpStream.hasDied()) {
             Logger.println(Rep.FEW, "UnreliableStream has timed out for player " + playerNo + ". Falling back to TCP.");
             udpStream = null;
           }

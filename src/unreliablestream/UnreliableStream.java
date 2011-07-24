@@ -78,6 +78,9 @@ public class UnreliableStream {
   // list of handlers for received packets
   private Vector<Receiver> receivers = new Vector<Receiver>();
   
+  // indicates whether the stream was ever started.
+  private boolean wasStarted = false;
+  
   public UnreliableStream(DatagramSocket socket, InetAddress remoteHost, int remotePort, short id) {
     
     try {
@@ -109,8 +112,7 @@ public class UnreliableStream {
           try {
             socket.receive(p);
           } catch (IOException e) {
-            if (keepAliveTimer == null) { aoi.Logger.println(Rep.INFREQ, "connection closed. id: " + id); return; }
-            if (!isAlive()) { aoi.Logger.println(Rep.INFREQ, "timeout on id: " + id); return; }
+            if (hasDied()) { aoi.Logger.println(Rep.INFREQ, "no longer alive: " + id); return; }
             continue;
           }
           
@@ -174,6 +176,8 @@ public class UnreliableStream {
     
     // send the first keep alive packet.
     send(new byte[0]);
+    
+    wasStarted = true;
   }
 
   // Send the next packet
@@ -310,6 +314,10 @@ public class UnreliableStream {
   public boolean isAlive() {
     return keepAliveTimer != null && System.currentTimeMillis() - lastReceivedTime < TIMEOUT;
   }
+  
+  public boolean wasStarted() { return wasStarted; }
+  
+  public boolean hasDied() { return wasStarted && !isAlive(); }
 
   // Kills the connection
   public void disconnect() {

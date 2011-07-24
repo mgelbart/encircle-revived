@@ -244,7 +244,7 @@ public class Client implements Runnable {
         byteOut = new ByteArrayOutputStream();
         dataOut = new DataOutputStream(byteOut);
         
-        if (!udpOut.isAlive()) {
+        if (udpOut.hasDied()) {
           Logger.println(Rep.FEW, "UnreliableStream has timed out. Falling back to TCP.");
           ClientConfiguration.tcpOnly = true;
           assert(tcpBufOut != null);

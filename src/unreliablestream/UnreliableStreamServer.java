@@ -75,7 +75,7 @@ public class UnreliableStreamServer implements Runnable {
           synchronized (connections) {
             for (int id : connections.keySet()) {
               UnreliableStream con = connections.get(id);
-              if (con != null && !con.isAlive()) connections.remove(id).disconnect();
+              if (con != null && con.hasDied()) connections.remove(id).disconnect();
             }
           }
         }
