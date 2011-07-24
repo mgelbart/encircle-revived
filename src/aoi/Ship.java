@@ -49,6 +49,7 @@ public class Ship {
   public int vy() { return vy; }
   public Angle dir() { return direction; }
   public Point location() { return new Point(x, y); }
+  public double speed() { return Math.pow(Math.pow(vx, 2) + Math.pow(vy, 2), 0.5); }
   
   public final NSPath getNSPath() { return path; }
   
