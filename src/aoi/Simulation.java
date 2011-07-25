@@ -139,7 +139,7 @@ public class Simulation  implements Runnable {
       try {
         Thread.sleep(10000);
       } catch (InterruptedException e) {
-        if (game.time % 100 == 0)
+        if (game.time % 1000 == 100)
           Logger.println(Rep.INFREQ, "Current local time: " + game.time);
 
         
