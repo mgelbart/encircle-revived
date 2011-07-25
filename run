@@ -26,4 +26,6 @@ fi
 
 killall "$OPTS" java
 killall "$OPTS" make
-echo "Killed all java and make processes younger than $LIFETIME seconds.";
+echo "Killed all java and make processes younger than $LIFETIME seconds. Remaining:";
+sleep 1;
+ps -e | grep java
