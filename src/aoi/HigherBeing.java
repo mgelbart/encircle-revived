@@ -2,8 +2,6 @@ package aoi;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 
 import aoi.Logger.Rep;

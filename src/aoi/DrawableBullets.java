@@ -1,16 +1,8 @@
 package aoi;
 
-import java.awt.GradientPaint;
-import java.awt.Point;
-import java.awt.Shape;
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Stroke;
-import java.awt.Rectangle;
-import java.awt.Image;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
-import java.awt.geom.Point2D;
 
 /**
  *  A GUI element for drawing bullets.
