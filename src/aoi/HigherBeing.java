@@ -255,11 +255,11 @@ public class HigherBeing implements Intelligence {
   
           renderedState = timemachine.getState(renderedTime, mindreader);
           
-          if (renderedTime%400 == 0) {
+          if (renderedTime%2000 == 200) {
             //Logger.println(Rep.INFREQ, "sleep: " + sleeptime + " ms");
-            Logger.println(Rep.INFREQ, "avg. lag:    " + lagEstimate + " ms");
-            Logger.println(Rep.INFREQ, "target CSP:  " + targetSimulatedSteps*SimulationUtils.TIMESTEP + " ms");
-            Logger.println(Rep.INFREQ, "current CSP: " + simulatedSteps*SimulationUtils.TIMESTEP + " ms");
+            Logger.println(Rep.INFREQ, "avg. lag: " + lagEstimate
+                            + "  target/current CSP: " + targetSimulatedSteps*SimulationUtils.TIMESTEP
+                            + " / " + simulatedSteps*SimulationUtils.TIMESTEP + " ms");
           }
   	    
         } else {
