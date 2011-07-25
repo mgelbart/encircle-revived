@@ -1,6 +1,7 @@
 package aoi;
 
 import java.awt.Point;
+import java.awt.geom.Path2D;
 import java.io.*;
 import java.util.Vector;
 import java.util.Timer;
@@ -278,12 +279,13 @@ public class Simulation  implements Runnable {
                   
                   // Check for scoring
                   boolean scored = false;
+                  Path2D intersectionPathCache = intersection.toPath2D();
                   for (Cluster cNotSS : arena.clusters) {
                     ClusterServerSide c = (ClusterServerSide) cNotSS;
                     
                     // Check if the center of the cluster is in the loop just made
                     if (c.acceptable(arena.sequence()[score]) && 
-                        intersection.toPath2D().contains(c.center()) &&
+                        intersectionPathCache.contains(c.center()) &&
                         sinceHitByBullet > 0) {
                       Logger.println(Logger.Rep.INFREQ, 
                           "Player " + playerNo + " encircled (" + c.center().x + ", " + c.center().y + ").");
@@ -306,7 +308,7 @@ public class Simulation  implements Runnable {
                   
                   // Check if the other player got pwned.
                   for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-                    if (j != playerNo && intersection.toPath2D().contains(pStatesTemp[j].ship.location()))
+                    if (j != playerNo && intersectionPathCache.contains(pStatesTemp[j].ship.location()))
                       gotPwned[j] = true;
                     
                 }      // end if (thatPlayerNo !=/== playerNo) 
