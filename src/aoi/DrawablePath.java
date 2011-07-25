@@ -1,9 +1,6 @@
 package aoi;
 
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.Shape;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.geom.Path2D;
 import java.util.Vector;
 
