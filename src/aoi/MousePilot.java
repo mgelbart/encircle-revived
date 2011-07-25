@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.util.Vector;
 
 import javax.swing.event.*;
 
@@ -14,53 +15,61 @@ public class MousePilot implements MouseInputListener {
   private Point target;
   private boolean shoot = false;
   private boolean boost = false;
+  
+  private Vector<Point> trajectory = null;
+  private Vector<Point> finishedTrajectory;
 
   
   public PlayerControlParameters getParams(GameState currentGameState) {
     if (target == null) return null;
-    
-    // ship location
-    Ship ship = currentGameState.pStates[ClientConfiguration.playerNo].ship; 
-    Point loc = ship.location();
+
     // mouse location
-    Point2D tar = DrawUtils.fromJavaUserSpaceToGameCoordinates(target);
+    Point tar = DrawUtils.fromJavaUserSpaceToGameCoordinates(target);
     
-    // Set the acceleration based on the distance between the ship and mouse.
+    PlayerControlParameters p = Tracker.paramsToTarget(currentGameState.time, currentGameState.pStates[ClientConfiguration.playerNo].ship, tar);
     
-    // the decay length^2
-    final double lsq = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
+    if (shoot) p = p.shoot();
     
-    // use only the distance parallel to the direction of the ship
-    final Line2D perpLine = new Line2D.Double(loc, ship.dir().add(Math.PI/2).move(loc, 1000.));
-    final double distsq = perpLine.ptLineDistSq(tar);
-    final boolean infront = Line2D.relativeCCW(perpLine.getX1(), perpLine.getY1(), perpLine.getX2(), perpLine.getY2(), tar.getX(), tar.getY()) > 0;
-    
-    int acc;
-    if (distsq < lsq/2 || !infront) acc = 0; 
-    else              acc = (int) (SimulationUtils.MAXACC * (1.-Math.exp(-distsq/lsq)));
-    
-    return new PlayerControlParameters(currentGameState.time, acc, new Angle(loc, tar), shoot, boost);
+    return p;
+  }
+  
+  public Vector<Point> trajectory() {
+    Vector<Point> t = finishedTrajectory;
+    finishedTrajectory = null;
+    return t;
   }
 
   @Override
   public void mouseMoved(MouseEvent e) {
     target = e.getPoint();
+    e.consume();
   }
  
 
   @Override
   public void mousePressed(MouseEvent e) {
-    shoot = true;
+    if(e.getButton() == MouseEvent.BUTTON1) {
+      trajectory = new Vector<Point>();
+      trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));
+    }
     e.consume();
   }
 
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    shoot = false;
+    if(e.getButton() == MouseEvent.BUTTON1) {
+      finishedTrajectory = trajectory;
+      trajectory = null;
+    }
     e.consume();
   }
-  
+
+  @Override
+  public void mouseDragged(MouseEvent e) {
+    if (trajectory != null) trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));
+    e.consume();
+  }
   
   @Override
   public void mouseClicked(MouseEvent e) { 
@@ -74,9 +83,5 @@ public class MousePilot implements MouseInputListener {
 
   @Override
   public void mouseExited(MouseEvent e) { }
-
-
-  @Override
-  public void mouseDragged(MouseEvent e) { }
   
 }

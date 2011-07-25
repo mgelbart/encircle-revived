@@ -1,5 +1,7 @@
 package aoi;
 
+import java.awt.Color;
+import java.awt.Point;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -54,6 +56,7 @@ public class HigherBeing implements Intelligence {
   // Call one of these to get new control parameters.
   private KeyboardPilot keyboardPilot = null;
   private MousePilot mousePilot = null;
+  private DrawablePath mousePath;
   
   public HigherBeing() {
     
@@ -77,6 +80,8 @@ public class HigherBeing implements Intelligence {
     mousePilot = new MousePilot();
     DrawUtils.addMouseListener(mousePilot);
     DrawUtils.addMouseMotionListener(mousePilot);
+    mousePath = new DrawablePath(ClientConfiguration.playerNo, DrawUtils.DEFAULTSTROKE, Color.GREEN, null);
+    gui.addDrawable(mousePath);
 
     keyboardPilot = new KeyboardPilot();
     DrawUtils.addKeyListener(keyboardPilot);
@@ -145,8 +150,30 @@ public class HigherBeing implements Intelligence {
         PlayerControlParameters c;
 
         if (ClientConfiguration.useMouse) {
-          c = mousePilot.getParams(gState);
+          
+          // remove path from tracker if we crashed
+          if (renderedState.pStates[ClientConfiguration.playerNo].untilRespawn > 0) {
+            Tracker.setPathToTrack(null);
+            mousePath.setPath(null);
+          }
+          
+          // see if mousepilot has a new trajectory to track.
+          Vector<Point> path = mousePilot.trajectory();
+          if (path != null)
+            Tracker.setPathToTrack(path);
+          
+          
+          if (Tracker.pointsLeftToTrack() > 0) {
+            // let Tracker decide what to do if it still has points left to track
+            c = Tracker.nextParams(gState.time, gState.pStates[ClientConfiguration.playerNo].ship);
+            path = Tracker.remainingPath();
+            if (path != null) mousePath.setPath(path);
+          } else
+            // otherwise go towards the cursor.
+            c = mousePilot.getParams(gState);
+          
         } else
+          // if mouse is disabled
           c = keyboardPilot.getParams(gState);
 
         if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
