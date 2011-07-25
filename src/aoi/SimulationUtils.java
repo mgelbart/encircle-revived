@@ -183,6 +183,10 @@ public abstract class SimulationUtils {
   public static int enforceByte(int i) {
     return Math.max(Math.min(0xFF, i), 0);
   }
+  
+  public static int enforceShort(int i) {
+    return Math.max(Math.min(0xFFFF, i), 0);
+  }
  
   // Returns the angle between three points (0-1-2). Angle in [0 pi)
   public static double angle(double x0, double y0, double x1, double y1, double x2, double y2) {

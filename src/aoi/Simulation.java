@@ -196,7 +196,7 @@ public class Simulation  implements Runnable {
           CropEventGroup cropEvents = game.pStates[playerNo].cropEvents;
           int score                 = game.pStates[playerNo].score;
           int untilReload           = SimulationUtils.enforceByte(game.pStates[playerNo].untilReload      -1);
-          int untilRespawn          = SimulationUtils.enforceByte(game.pStates[playerNo].untilRespawn     -1);
+          int untilRespawn          = SimulationUtils.enforceShort(game.pStates[playerNo].untilRespawn     -1);
           int sinceScoring          = SimulationUtils.enforceByte(game.pStates[playerNo].sinceScoring     +1);
           int sinceLooping          = SimulationUtils.enforceByte(game.pStates[playerNo].sinceLooping     +1);
           int sinceCrossing         = SimulationUtils.enforceByte(game.pStates[playerNo].sinceCrossing    +1);

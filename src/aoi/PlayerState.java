@@ -37,7 +37,7 @@ public class PlayerState {
    * However, to save bandwidth we only transmit one byte per since/until* 
    * variable. Any value >255 is transmitted as 255. */
   public final int untilReload;
-  public final int untilRespawn;
+  public final int untilRespawn; // transmitted as a SHORT!
   public final int sinceScoring;
   public final int sinceLooping;
   public final int sinceCrossing; // the other player's path.
@@ -60,7 +60,7 @@ public class PlayerState {
     this.cropEvents       = cropEvents;
     this.score            = score;
     this.untilReload      = SimulationUtils.enforceByte(untilReload);
-    this.untilRespawn     = SimulationUtils.enforceByte(untilRespawn);
+    this.untilRespawn     = SimulationUtils.enforceShort(untilRespawn);
     this.sinceScoring     = SimulationUtils.enforceByte(sinceScoring);
     this.sinceLooping     = SimulationUtils.enforceByte(sinceLooping);
     this.sinceCrossing    = SimulationUtils.enforceByte(sinceCrossing);
@@ -192,10 +192,10 @@ public class PlayerState {
     o.write(score);
 
     if (CHECKBYTES) o.writeBytes("l");
-    o.write(untilReload); // 255 = 0xFF (as an unsigned byte)
+    o.write(untilReload);
     
     if (CHECKBYTES) o.writeBytes("r");
-    o.write(untilRespawn);
+    o.writeShort(untilRespawn);
     
     if (CHECKBYTES) o.writeBytes("s");
     o.write(sinceScoring);
@@ -258,7 +258,7 @@ public class PlayerState {
     untilReload = i.read();
     
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'r'); }
-    untilRespawn = i.read();
+    untilRespawn = i.readShort();
       
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 's'); }
     sinceScoring = i.read();
