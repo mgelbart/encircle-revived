@@ -208,8 +208,11 @@ public class Simulation  implements Runnable {
           if (untilRespawn > 0) {
             assert(!tail.isEmpty());
 
+            final boolean LOSE_KNOT_WHEN_CRASH = false;
+            
             int cropFrom = tail.convertLengthToTimeStartingAtLatestKnot(
                            (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
+            if (!LOSE_KNOT_WHEN_CRASH) cropFrom++;
             
             cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
             
