@@ -228,10 +228,10 @@ public class HigherBeing implements Intelligence {
   
         if (ClientConfiguration.predictFuture > 0) {
           
-          // in the long term we would like to (on average) be this many steps ahead
-          // of the latest state received from the server
           Integer lagEstimate = Client.lagEstimate();
           if (lagEstimate == null) lagEstimate = 0;
+          // in the long term we would like to (on average) be this many steps ahead
+          // of the latest state received from the server
           final int targetSimulatedSteps = (int) Math.round(Math.max(ClientConfiguration.predictFuture, 100 + lagEstimate)
                                                             / (double) SimulationUtils.TIMESTEP);
           
@@ -241,8 +241,14 @@ public class HigherBeing implements Intelligence {
           // the actual number of CSP frames
           final int simulatedSteps = renderedTime - renderedAuthorativeState.time;
           
-          // Adjust the frametime using an exponential moving average (low pass filter)
-          sleeptime = sleeptime + 0.2*(simulatedSteps-targetSimulatedSteps);
+          // Adjust the sleep time using an exponential moving average (low pass filter).
+          // The idea is that sleeptime plus the time it takes to run this function should
+          // be equal (on average) to the _server_ TIMESTEP (measured using server's clock).
+          sleeptime = sleeptime + 0.1*Math.signum(simulatedSteps-targetSimulatedSteps);
+          
+          // The sleep time cannot be much more than TIMESTEP
+          final double MAXSLEEPTIME = 1.3*SimulationUtils.TIMESTEP;
+          sleeptime = Math.min(MAXSLEEPTIME, sleeptime);
           
           // skip frames if we are significantly behind the target.
           if (simulatedSteps < targetSimulatedSteps-1)

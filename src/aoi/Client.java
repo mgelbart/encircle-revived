@@ -217,7 +217,8 @@ public class Client implements Runnable {
     DataOutputStream dataOut;
     
     PlayerControlParameters last;
-    double lastUdpSuccessRate = Double.NEGATIVE_INFINITY;
+    double lastUdpSendSuccessRate = Double.NEGATIVE_INFINITY;
+    double lastUdpReicSuccessRate = Double.NEGATIVE_INFINITY;
     
     public SendParamsTask(Intelligence intelligence, OutputStream tcpOut, UnreliableStream udpOut) {
       this.intelligence = intelligence;
@@ -292,8 +293,10 @@ public class Client implements Runnable {
         }
         
         final double s = udpOut.sendSuccessRate();
-        if (s < 0.999 && s < lastUdpSuccessRate) Logger.println(Rep.INFREQ, "UDP success rate: " + s);
-        lastUdpSuccessRate = s;
+        final double r = udpOut.receiveSuccessRate();
+        if ((s < 0.999 || r < 0.999) && (s < lastUdpSendSuccessRate || r < lastUdpReicSuccessRate)) Logger.println(Rep.INFREQ, "UDP send/receive success rate: " + s + " / " +r);
+        lastUdpSendSuccessRate = s;
+        lastUdpReicSuccessRate = r;
         
       } else {
         
