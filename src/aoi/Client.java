@@ -1,10 +1,10 @@
 package aoi;
 
+import java.awt.Canvas;
 import java.io.*;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.*;
 
 import aoi.Logger.Rep;
 
@@ -23,7 +23,7 @@ public class Client implements Runnable {
   private static final int UDPTIMEOUT = 4000;
   
   // The JLabel for the GUI.
-  private static JButton canvas;
+  private static Canvas canvas;
 
   // The UDP stream used for receiving game states and sending control parameters.
   private static UnreliableStream uStream = null;
@@ -35,7 +35,7 @@ public class Client implements Runnable {
    * If config is null, the default configuration file
    * is used.
    */
-  public Client(JButton canvas) {
+  public Client(Canvas canvas) {
     this.canvas = canvas;
 
     // Load the default config file if none has been loaded so far. Used in the Applet.

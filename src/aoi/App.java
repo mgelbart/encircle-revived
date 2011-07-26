@@ -1,5 +1,6 @@
 package aoi;
 
+import java.awt.Canvas;
 import javax.swing.*;
 
 /**
@@ -13,9 +14,9 @@ public class App extends JApplet {
 
   public void init() {
 
-    final JButton gui = new JButton();
-    gui.setBorder(null);
-    setContentPane(gui);
+    final Canvas canvas = new Canvas();
+    //canvas.setBorder(null);
+    add(canvas);
     
     /*
     try {
@@ -29,7 +30,7 @@ public class App extends JApplet {
     }
     */
 
-    client = new Client(gui);
+    client = new Client(canvas);
   }
 
   public void start() {
