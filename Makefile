@@ -15,7 +15,7 @@ serverFiles := $(srcdir)GameStateSender.java $(srcdir)PlayerListener.java $(srcd
 
 clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DefaultDrawable.java $(srcdir)DrawableFPS.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)ScoringEffect.java $(srcdir)DrawableScoreboard.java $(srcdir)DrawableBullets.java $(srcdir)App.java $(srcdir)StdAudio.java $(srcdir)Audible.java $(srcdir)AudibleShot.java $(srcdir)AudibleCrash.java $(srcdir)KeyboardPilot.java $(srcdir)MousePilot.java $(srcdir)Shooter.java $(srcdir)DrawablePath.java $(srcdir)Tracker.java
 
-commonFiles := $(srcdir)Angle.java $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)NSPath.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawUtils.java $(srcdir)DrawableCluster.java $(srcdir)NSPolygon.java $(srcdir)ImageMetaData.java $(srcdir)Logger.java $(srcdir)CropEvent.java $(srcdir)CropEventGroup.java
+commonFiles := $(srcdir)Angle.java $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)NSPath.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawUtils.java $(srcdir)DrawableCluster.java $(srcdir)NSPolygon.java $(srcdir)ImageMetaData.java $(srcdir)Logger.java $(srcdir)CropEvent.java $(srcdir)CropEventGroup.java $(srcdir)Protocol.java
 
 UDPFiles := $(streamsrcdir)UnreliableStream.java $(streamsrcdir)UnreliableStreamServer.java
 
@@ -70,3 +70,6 @@ push_bin:
 
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer
+
+test_protocol: default
+	java $(runopts) aoi/Protocol
