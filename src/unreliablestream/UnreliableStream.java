@@ -29,7 +29,7 @@ public class UnreliableStream {
   
   // The connection is considered dead if no packets are received in this time.
   // Specified in milliseconds.
-  static final int TIMEOUT = 4000;
+  public static final int TIMEOUT = 8000;
   
   // An empty packet is sent at least every KEEPALIVEPERIOD ms if there's
   // nothing else to send.

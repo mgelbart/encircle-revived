@@ -10,6 +10,10 @@ import java.awt.Point;
  * is no need to reverse engineer any parameters.
  */
 public abstract class SimulationUtils {
+  
+  // The amount of time given to the players between sending the
+  // initial game state and starting the game.
+  public static final int PREPARATIONTIME = 1000;
 
   // Advance the simulation every TIMESTEP milliseconds.
   // This will not be respected if the computation takes longer

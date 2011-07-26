@@ -21,6 +21,9 @@ import aoi.Logger.Rep;
  */
 public class Simulation  implements Runnable {
 
+  // a unique identifier for this match
+  public final long matchId;
+  
   // The current game state.
   private GameState game;
 
@@ -33,10 +36,7 @@ public class Simulation  implements Runnable {
 
   // References to the senders/listeners threads so we can interrupt them.
   // TODO: these should be private
-  public final Thread[] senderThreads = new Thread[SimulationUtils.NUMPLAYERS];
-  public final Thread[] listenerThreads = new Thread[SimulationUtils.NUMPLAYERS];
-  public final GameStateSender[] senders = new GameStateSender[SimulationUtils.NUMPLAYERS];
-  public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
+  public final Communicator[] communicators = new Communicator[SimulationUtils.NUMPLAYERS];
   
   // for debugging
   private static boolean VISUALIZE = false;
@@ -48,7 +48,8 @@ public class Simulation  implements Runnable {
   public static final boolean VERIFYSERIALIZATION = true;
   
   
-  public Simulation(Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
+  public Simulation(long matchId, Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
+    this.matchId = matchId;
     this.arena = arena;
     this.clusterDB = clusterDB;
     this.pointsPerRound = pointsPerRound;
@@ -111,6 +112,16 @@ public class Simulation  implements Runnable {
   }
 
   public void run() {
+
+    // start the client communicators
+    for (Communicator c : communicators) c.start();
+    
+    try {
+      Thread.sleep(SimulationUtils.PREPARATIONTIME);
+    } catch (InterruptedException e2) {
+      Logger.println(Rep.FEW, "interrupted");
+    }
+    
     // Create temporary variables
     PlayerState[] pStatesTemp = new PlayerState[SimulationUtils.NUMPLAYERS];
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
@@ -120,11 +131,8 @@ public class Simulation  implements Runnable {
     // Set up a timer that wakes up the simulation thread every TIMESTEP
     // milliseconds. Note that, if the computation takes even slightly longer
     // than TIMESTEP, the time step will be doubled.
-    Thread[] threads = new Thread[1+SimulationUtils.NUMPLAYERS];
+    Thread[] threads = new Thread[1];
     threads[0] = Thread.currentThread();
-    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-      threads[1+j] = senderThreads[j];
-
 
     TimerTask interruptTask = new InterruptThreadsTask(threads);
     Timer advanceSimTimer = new Timer("advance-simulation-timer");
@@ -181,7 +189,7 @@ public class Simulation  implements Runnable {
         // fields of PlayerControlParameters are final.
         PlayerControlParameters[] params = new PlayerControlParameters[SimulationUtils.NUMPLAYERS];
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
-          params[j] = listeners[j].getCtrlParams(game.time);
+          params[j] = communicators[j].getCtrlParams(game.time);
         
         boolean[] gotPwned = new boolean[SimulationUtils.NUMPLAYERS];
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
@@ -426,15 +434,18 @@ public class Simulation  implements Runnable {
         
         // end game if both players have disconnected.
         boolean livePlayers = false;
-        for (Thread t : listenerThreads)
-          if (t.getState() != Thread.State.TERMINATED) { livePlayers = true; break; }
+        for (Communicator  c: communicators)
+          if (c.isAlive()) { livePlayers = true; break; }
         
         if (!livePlayers) {
           Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");
           advanceSimTimer.cancel();
-          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { senders[j].stop(); senderThreads[j].interrupt(); }
+          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { communicators[j].stop(); }
           return;
         }
+        
+        for (Communicator c : communicators)
+          c.sendNewState();
         
       }  // end catch
     }  // end infinite while loop

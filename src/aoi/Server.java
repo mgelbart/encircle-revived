@@ -3,6 +3,8 @@ package aoi;
 import java.io.*;
 import java.net.*;
 
+import aoi.Logger.Rep;
+
 import unreliablestream.*;
 
 /**
@@ -17,30 +19,57 @@ public abstract class Server {
 
   private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
 
-  public static void main(String argv[]) throws Exception {
+  public static void main(String argv[]) {
 
     // Parse input options:
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-    reader.readLine();  // dummy line
-    final boolean generateNewMap = Boolean.parseBoolean(reader.readLine());
+    boolean generateNewMap = true;
+    int maxSegmentNumber = -1;
+    int[] numPerNum = null;
+    
+    try {
+      reader.readLine(); // dummy line
+      generateNewMap = Boolean.parseBoolean(reader.readLine());
 
-    reader.readLine();  // dummy line
-    String[] segmentNos = reader.readLine().split(",");
-    final int maxSegmentNumber = segmentNos.length;
-    int[] numPerNum = new int[maxSegmentNumber]; 
-    for (int i = 0; i < maxSegmentNumber; i++)
-      numPerNum[i] = Integer.parseInt(segmentNos[i]);
-    // NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
+      reader.readLine();  // dummy line
+      String[] segmentNos = reader.readLine().split(",");
+      
+      maxSegmentNumber = segmentNos.length;
+      numPerNum = new int[maxSegmentNumber]; 
+      for (int i = 0; i < maxSegmentNumber; i++)
+        numPerNum[i] = Integer.parseInt(segmentNos[i]);
+      // NOTE: THIS WILL MESS UP IF YOU READ A PRE-EXISTING ARENA AND IT DOESN'T MATCH
+    } catch (IOException e1) {
+      Logger.println(Rep.FEW, "Couldn't read server conf file.");
+      e1.printStackTrace();
+      return;
+    }
 
-    ServerSocket servSocket = new ServerSocket(TCPPORT);
-    UnreliableStreamServer udpServ = new UnreliableStreamServer(UDPPORT);
-    udpServ.start();
+    ServerSocket servSocket;
+    UnreliableStreamServer udpServ;
+    
+    try {
+      servSocket = new ServerSocket(TCPPORT);
+      udpServ = new UnreliableStreamServer(UDPPORT);
+      udpServ.start();
+    } catch (IOException e1) {
+      Logger.println(Rep.FEW, "Failed to init sockets.");
+      e1.printStackTrace();
+      return;
+    }
 
 	  // (This can be moved later) Initialize ClusterDatabase;
-	  ClusterDatabase clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+	  ClusterDatabase clusterDbSayWithPET;
+    try {
+      clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+    } catch (FileNotFoundException e1) {
+      Logger.println(Rep.FEW, "Failed to init cluster DB.");
+      e1.printStackTrace();
+      return;
+    }
 
-	  int simId = 0;
+	  int matchId = 0;
     while (true) {
 
       Arena arena;
@@ -51,7 +80,13 @@ public abstract class Server {
         // For now, two of each nSegments from 1 to 7
 //        simulation.clusters = clusterDbSayWithPET.generateArenaClusters(numPerNum);
         
-        arena = clusterDbSayWithPET.generateArena(numPerNum);
+        try {
+          arena = clusterDbSayWithPET.generateArena(numPerNum);
+        } catch (FileNotFoundException e1) {
+          Logger.println(Rep.FEW, "Failed to generate map.");
+          e1.printStackTrace();
+          return;
+        }
 
         try {
           FileWriter writer = new FileWriter(Arena.ARENA_METADATA_FILENAME);
@@ -79,66 +114,57 @@ public abstract class Server {
 	    
       Logger.println(Logger.Rep.FEW, "Arena generated.");
 
-      Simulation simulation = new Simulation(arena, clusterDbSayWithPET, maxSegmentNumber);
+      Simulation simulation = new Simulation(matchId, arena, clusterDbSayWithPET, maxSegmentNumber);
 
       simulation.initGameState();
 
       // Establish client connections.
       
-      // This helper class sets the PlayerListener as a receiver of UDP packets as soon
+      // This helper class sets the Communicator as a receiver of UDP packets as soon
       // as an UnreliableStream to the client is established.
       class SetUDPIO implements UnreliableStreamServer.ConnectionListener {
-        PlayerListener listener;
-        GameStateSender sender;
-        SetUDPIO(PlayerListener listener, GameStateSender sender) { this.listener = listener; this.sender = sender; }
+        Communicator communicator;
+        SetUDPIO(Communicator communicator) { this.communicator = communicator; }
         
         @Override
-        public void established(UnreliableStream stream) { stream.registerReceiver(listener); sender.setUDPOutput(stream); }
+        public void established(UnreliableStream stream) { stream.registerReceiver(communicator); communicator.setUDPOutput(stream); }
       }
 
+      // Prepare to accept a UDP connection.
       for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
         // Assign an ID number for the UDP stream of the client.
         short id = udpServ.expectConnection();
         
-        simulation.senders[j] = new GameStateSender(j, simulation, null, id);
-        simulation.listeners[j] = new PlayerListener(j, simulation, null);
-
-        // We need a reference to the sender threads to interrupt
-        // them when the game sate is updated.
-        simulation.senderThreads[j] = new Thread(simulation.senders[j], "sender-"+simId+"-"+j);
-        simulation.listenerThreads[j] = new Thread(simulation.listeners[j], "listener-"+simId+"-"+j);
+        simulation.communicators[j] = new Communicator(j, simulation, id);
 
         // set the PlayerListener as a receiver of UDP packets and set GameStateSender to
         // use UDP as soon as a connection is established.
-        udpServ.registerConnectionListener(id, new SetUDPIO(simulation.listeners[j], simulation.senders[j]));
+        udpServ.registerConnectionListener(id, new SetUDPIO(simulation.communicators[j]));
       }
 
 
       // Wait for two clients to connect:
       Logger.println(Logger.Rep.FEW, "Waiting for clients to connect...");
       
-      Socket[] sockets = new Socket[2];
-      for (int j=0; j<2; ++j) {
-        sockets[j] = servSocket.accept();
-        Logger.println(Logger.Rep.FEW, "Player " + j + " connected.");
-
-        // Don't buffer data before sending TCP packets.
-        sockets[j].setTcpNoDelay(true);
-
-        simulation.senders[j].setTCPOutput(sockets[j].getOutputStream());
-        simulation.listeners[j].setTCPStream(sockets[j].getInputStream());
-
-        // Start sender & listener threads.
-        simulation.senderThreads[j].start();
-        simulation.listenerThreads[j].start();
+      Socket[] sockets = new Socket[SimulationUtils.NUMPLAYERS];
+      try {
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+          sockets[j] = servSocket.accept();
+          Logger.println(Logger.Rep.FEW, "Player " + j + " connected.");
+          simulation.communicators[j].setTCPSocket(sockets[j]);
+        }
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "Failed to accept client connection.");
+        e.printStackTrace();
+        return;
       }
 
 
       // Start simulating the game!
-      Thread t = new Thread(simulation, "simulation-"+simId);
+      Thread t = new Thread(simulation, "simulation-"+matchId);
       t.start();
 
-      ++simId;
+      ++matchId;
     }
   }
 
