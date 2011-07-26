@@ -66,7 +66,7 @@ push_jar: jar
 	scp aoi.jar aoiserv@vps6609.inmotionhosting.com:public_html/
 
 push_bin:
-	scp -r bin aoiserv@vps6609.inmotionhosting.com:aoirun/
+	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:aoirun/
 
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer
