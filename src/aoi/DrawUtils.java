@@ -55,68 +55,46 @@ public class DrawUtils {
   public static Paint DEFAULTPAINT = Color.BLACK;
   public static BasicStroke DEFAULTSTROKE = new BasicStroke((float) 1.);
 
-  private static GraphicsConfiguration graphicsConfig;
-
   // The drawing functions cannot be called before this is set to true.
   private static boolean initialized = false;
 
-  // Set to true if the canvas is resized[ Need to reallocate the buffer images when this happens.
-  private static boolean canvasResized = false;
-  
   // The Paint object currently in use.
-  private static Paint paint;
-
-  // Double buffered graphics
-  // Offscreen stores the currently buffered image that
-  // methods like shape() and image() draw on.
-  // Calling show() switches this buffered image to the screen.
-  private static BufferedImage offscreenImage, onscreenImage;
-  private static Graphics2D offscreen, onscreen;
+  private static Paint paint = DEFAULTPAINT;
+  
+  // Double buffered graphics.
+  // offscreen stores the buffered image that will be showed when show()
+  // is next called.
+  private static BufferStrategy strategy;
+  private static Graphics2D offscreen = null;
 
   // The JLabel that the objects are drawn on.
-  private static JButton canvas;
+  private static Canvas canvas;
 
   // the minimal area of game coordinates that will be rendered.
   private static Rectangle renderedGameCoords;
-
+  
   // Initialize the module to draw objects on the specified canvas.
-  public static void initialize(JButton canv) {
+  public static void initialize(Canvas canv) {
     assert(!initialized);
 
     assert(canv != null);
     canvas = canv;
 
-    canvas.addComponentListener(new ResizeListener());
+    canvas.setIgnoreRepaint(true);
+    canvas.createBufferStrategy(2);
+    strategy = canvas.getBufferStrategy();
     
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
-
-    graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
     
-    initBuffers();
+    initBuffer();
     
-    initialized = true;
-  }
- 
-  private static void initBuffers() {
-    // Initialize the buffer and the screen.
-    offscreenImage = graphicsConfig.createCompatibleImage(canvasWidth(), canvasHeight(), Transparency.TRANSLUCENT);
-    onscreenImage  = graphicsConfig.createCompatibleImage(canvasWidth(), canvasHeight(), Transparency.TRANSLUCENT);
-    offscreen = offscreenImage.createGraphics();
-    onscreen  = onscreenImage.createGraphics();
     setPaint(DEFAULTPAINT);
     setStroke(DEFAULTSTROKE);
     clear(Color.BLACK);
-
-    // add antialiasing
-    RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-                                              RenderingHints.VALUE_ANTIALIAS_ON);
-    hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-    offscreen.addRenderingHints(hints);
-
-
-    ImageIcon icon = new ImageIcon(onscreenImage);
-    canvas.setIcon(icon);
+    show();
+    
+    initialized = true;
   }
   
   public static void freeResources() {
@@ -124,6 +102,7 @@ public class DrawUtils {
 
     assert(initialized);
 
+    if (offscreen != null) offscreen.dispose();
     initialized = false;
   }
   
@@ -236,16 +215,30 @@ public class DrawUtils {
   /**
    * Render the currently buffered "off-screen" image to the screen.
    */
-  public static void show() {
-    if (canvasResized) {
-      // reallocate the buffer images and skip frame.
-      canvasResized = false;
-      initBuffers();
-      return;
-    }
+  public static void show() {   
+    /*
+     *  Paint the buffered image
+     */
+    assert(offscreen != null);
+    offscreen.dispose();
+    strategy.show();
     
-    onscreen.drawImage(offscreenImage, 0, 0, null);
-    canvas.repaint();
+    initBuffer();
+    
+  }
+  
+  /**
+   * Get the new offscreen image to buffer to.
+   */
+  private static void initBuffer() {
+    // this cast seems sketchy but it is apparently commonly used.
+    offscreen = (Graphics2D) strategy.getDrawGraphics();
+
+    // add antialiasing
+    //RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+    //                                          RenderingHints.VALUE_ANTIALIAS_ON);
+    //hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    //offscreen.addRenderingHints(hints);
   }
 
 
@@ -314,39 +307,27 @@ public class DrawUtils {
     canvas.addKeyListener(l);
   }
   
-  public static JButton createDefaultCanvas() {
+  public static Canvas createDefaultCanvas() {
     // The main application window
     JFrame frame = new JFrame();
 
     // The JLabel on which the whole GUI is drawn.
-    JButton canvas = new JButton();
-    canvas.setBorder(null);
+    Canvas canvas = new Canvas();
+    //canvas.setBorder(null);
     canvas.setPreferredSize(new Dimension(700, 700));
 
-//    gui.setText("Loading...");
+    //canvas.setText("Loading...");
     
-    frame.setContentPane(canvas);
+    frame.add(canvas);
 
     frame.setResizable(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    frame.setTitle("AoI");
+    frame.setTitle("Encircle");
     frame.pack();
     frame.setVisible(true);
     
     return canvas;
   }
-  
-  public static class ResizeListener implements ComponentListener {
-    
-    public void componentResized(ComponentEvent e) {
-      canvasResized = true;
-    }
 
-    public void componentHidden(ComponentEvent arg0) {}
-
-    public void componentMoved(ComponentEvent arg0) {}
-
-    public void componentShown(ComponentEvent arg0) {}
-  }
 }
