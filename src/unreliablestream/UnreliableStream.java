@@ -217,6 +217,8 @@ public class UnreliableStream {
     
     final int diff = (lastReceived == null) ? 1 : p.sequenceNo - lastReceived.sequenceNo;
     if (diff > 0) {
+      if (diff != 1)
+        aoi.Logger.println(Rep.INFREQ, "skipped "+diff+" packets. id: " + p.id);
       
       // update the ack fields sent to the remote party
       if (lastReceived == null) { relativeReceived = 0; lastReceived = p; }
