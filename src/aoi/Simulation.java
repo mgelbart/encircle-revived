@@ -229,37 +229,48 @@ public class Simulation  implements Runnable {
 
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
 
+            Logger.println(Rep.INFREQ, "TOR: " + timeOfRespawn[playerNo]);
+            Logger.println(Rep.INFREQ, "untilRespawn: " + untilRespawn);
+            Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
+            Logger.println(Rep.INFREQ, "Time now: " + newTime);
+            
             if (!tail.isEmpty()) {
+              
+              // Compute cropFrom
               Integer cropFrom = tail.convertLengthToTime(
                   timeOfRespawn[playerNo], lengthUntilRespawn[playerNo], true);
               assert(cropFrom != null);
-              
-              cropFrom++;  // so that you never lose your knot when respawning due to a shot
-
-              cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
-              
+                     
+              // Get the new location and angle of the ship
               Point newLocation = tail.getPoint(cropFrom);
               Angle newDir;
               if (spinWhileRespawn[playerNo])
-                newDir     =  new Angle(game.time * 0.2);
+                newDir = new Angle(game.time * 0.2);
               else
-                newDir     = tail.tangentAngleHead();
-              // (below) In case the tail only has one point,
-              // need to keep things straight
+                newDir = tail.tangentAngleHead();
+              // (below) In case the tail only has one point
               if (newLocation == null) newLocation = ship.location(); 
               if (newDir == null) newDir = ship.dir();
               
               // Create new ship with zero velocity
               ship = new Ship(newLocation, 0, 0, newDir);
+              
+              // Add the crop events
+              if (sinceHitByBullet - sinceCrashed <= 0)
+                cropFrom++;  // so that you never lose your knot when respawning due to a shot
+              cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
+       
+              
             } else {
               Logger.println(Rep.FEW, "Empty tail during respawn..."); 
-              Logger.println(Rep.INFREQ, "TOR: " + timeOfRespawn[playerNo]);
-              Logger.println(Rep.INFREQ, "untilRespawn: " + untilRespawn);
-              Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
-              Logger.println(Rep.INFREQ, "Time now: " + newTime);
+              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
+              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
+              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
+              Logger.println(Rep.FEW, "Time now: " + newTime);
             }
      
-          } 
+            
+          }
           else {
           // Normal case when not respawning
             
@@ -306,7 +317,7 @@ public class Simulation  implements Runnable {
               lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
               untilRespawn = 1 + (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
               timeOfRespawn[playerNo] = tail.convertLengthToTime(tail.headTime(), lengthUntilRespawn[playerNo], false);
-//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
+              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
               spinWhileRespawn[playerNo] = false;
             }
             // There still may be problems here if
