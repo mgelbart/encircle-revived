@@ -150,7 +150,7 @@ public class Tail {
   // "startTime" to that time has at least the specified length
   public Integer convertLengthToTime(int startTime, double minLength, boolean forwardDir) {
     assert(!isEmpty());
-    if (minLength == 0) return startTime;
+    if (minLength <= 0) return startTime;
      
     double length = 0;
     int nextTime = startTime;

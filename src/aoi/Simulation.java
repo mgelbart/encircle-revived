@@ -226,34 +226,39 @@ public class Simulation  implements Runnable {
           // Special case: if you are in the process of respawning
           if (untilRespawn > 0) {
             // Either you were shot or you crashed
-            assert(!tail.isEmpty());
-            
+
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
-            
-            Integer cropFrom = tail.convertLengthToTime(
-                timeOfRespawn[playerNo], lengthUntilRespawn[playerNo], true);
-            assert(cropFrom != null);
-            
-//            Logger.println(Rep.INFREQ, "TOR: " + timeOfRespawn[playerNo]);
-//            Logger.println(Rep.INFREQ, "untilRespawn: " + untilRespawn);
-//            Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
-//            Logger.println(Rep.INFREQ, "Time now: " + newTime);
-            
-            cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
-                        
-            Point newLocation = tail.getPoint(cropFrom);
-            Angle newDir;
-            if (spinWhileRespawn[playerNo])
-              newDir     =  new Angle(game.time * 0.2);
-            else
-              newDir     = tail.tangentAngleHead();
-            // (below) In case the tail only has one point,
-            // need to keep things straight
-            if (newLocation == null) newLocation = ship.location(); 
-            if (newDir == null) newDir = ship.dir();
-            
-            // Create new ship with zero velocity
-            ship = new Ship(newLocation, 0, 0, newDir);
+
+            if (!tail.isEmpty()) {
+              Integer cropFrom = tail.convertLengthToTime(
+                  timeOfRespawn[playerNo], lengthUntilRespawn[playerNo], true);
+              assert(cropFrom != null);
+              
+              cropFrom++;  // so that you never lose your knot when respawning due to a shot
+
+              cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
+              
+              Point newLocation = tail.getPoint(cropFrom);
+              Angle newDir;
+              if (spinWhileRespawn[playerNo])
+                newDir     =  new Angle(game.time * 0.2);
+              else
+                newDir     = tail.tangentAngleHead();
+              // (below) In case the tail only has one point,
+              // need to keep things straight
+              if (newLocation == null) newLocation = ship.location(); 
+              if (newDir == null) newDir = ship.dir();
+              
+              // Create new ship with zero velocity
+              ship = new Ship(newLocation, 0, 0, newDir);
+            } else {
+              Logger.println(Rep.FEW, "Empty tail during respawn..."); 
+              Logger.println(Rep.INFREQ, "TOR: " + timeOfRespawn[playerNo]);
+              Logger.println(Rep.INFREQ, "untilRespawn: " + untilRespawn);
+              Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
+              Logger.println(Rep.INFREQ, "Time now: " + newTime);
+            }
+     
           } 
           else {
           // Normal case when not respawning
@@ -288,10 +293,10 @@ public class Simulation  implements Runnable {
             if (sinceHitByBullet == 0 ||
                 SimulationUtils.isOutOfBounds(ship, arena)) {
               timeOfRespawn[playerNo] = tail.lastKnotTime();
-              lengthUntilRespawn[playerNo] = tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
-              untilRespawn = (int) (lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED) + 1;
-              assert(untilRespawn > 0);
-//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+              lengthUntilRespawn[playerNo] = 
+                tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
+              untilRespawn = 1 + (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
+//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
               spinWhileRespawn[playerNo] = true;
             } 
             
@@ -299,10 +304,9 @@ public class Simulation  implements Runnable {
             // (3) CHECK IF PLAYER HIT A CLUSTER
             else if (SimulationUtils.isInCluster(ship, arena)) {
               lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
-              untilRespawn = (int) (lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED) + 1;
+              untilRespawn = 1 + (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
               timeOfRespawn[playerNo] = tail.convertLengthToTime(tail.headTime(), lengthUntilRespawn[playerNo], false);
-              assert(untilRespawn > 0);
-//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
               spinWhileRespawn[playerNo] = false;
             }
             // There still may be problems here if
