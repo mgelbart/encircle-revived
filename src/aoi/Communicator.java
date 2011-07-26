@@ -141,6 +141,7 @@ public class Communicator implements UnreliableStream.Receiver {
     stop = true; 
     if (udpStream != null) {
       udpStream.disconnect();
+      udpSenderThread.interrupt();
     }
   }
 
