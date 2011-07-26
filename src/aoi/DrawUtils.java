@@ -47,6 +47,8 @@ import java.awt.geom.*;
 import java.awt.image.*;
 import javax.swing.*;
 
+import aoi.Logger.Rep;
+
 public class DrawUtils {
 
   public static int DEFAULTRENDEREDGAMEWIDTH = SimulationUtils.ARENASIZE;
@@ -93,6 +95,11 @@ public class DrawUtils {
     setStroke(DEFAULTSTROKE);
     clear(Color.BLACK);
     show();
+    
+    BufferCapabilities cab = strategy.getCapabilities();
+    Logger.println(Rep.FEW, "page flipping: " + cab.isPageFlipping());
+    Logger.println(Rep.FEW, "HW accelerated front/back buffer: " + cab.getFrontBufferCapabilities().isAccelerated()
+                                + " / " + cab.getBackBufferCapabilities().isAccelerated());
     
     initialized = true;
   }
