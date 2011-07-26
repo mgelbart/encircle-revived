@@ -11,7 +11,7 @@ import javax.swing.event.*;
  */
 public class MousePilot implements MouseInputListener {
   private Point target;
-  private boolean shoot = false;
+  public boolean shoot = false;
   private boolean boost = false;
   
   private Vector<Point> trajectory = null;
@@ -46,9 +46,11 @@ public class MousePilot implements MouseInputListener {
 
   @Override
   public void mousePressed(MouseEvent e) {
-    if(e.getButton() == MouseEvent.BUTTON1) {
+    if (e.getButton() == MouseEvent.BUTTON1) {
       trajectory = new Vector<Point>();
       trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));
+    } else {
+      shoot = true;
     }
     e.consume();
   }
@@ -56,9 +58,11 @@ public class MousePilot implements MouseInputListener {
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    if(e.getButton() == MouseEvent.BUTTON1) {
+    if (e.getButton() == MouseEvent.BUTTON1) {
       finishedTrajectory = trajectory;
       trajectory = null;
+    } else {
+      shoot = false;
     }
     e.consume();
   }

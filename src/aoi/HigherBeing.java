@@ -173,12 +173,18 @@ public class HigherBeing implements Intelligence {
         } else
           // if mouse is disabled
           c = keyboardPilot.getParams(gState);
-
+        
+        // auto-shooter
         if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
           //Logger.println(Rep.INFREQ, "could shoot");
           c = c.shoot();
         }
         
+        // manual shoot
+        if (mousePilot.shoot || keyboardPilot.shoot)
+          c = c.shoot();
+        
+        // manual stop
         if (keyboardPilot.stop)
           c = c.stop();
         

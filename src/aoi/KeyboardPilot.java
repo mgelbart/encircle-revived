@@ -10,7 +10,7 @@ public class KeyboardPilot implements KeyListener {
   private int acc = 0;
   private boolean left = false;
   private boolean right = false;
-  private boolean shoot = false;
+  public boolean shoot = false;
   private boolean boost = false;
   
   public boolean stop = false;
