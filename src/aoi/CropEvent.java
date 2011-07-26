@@ -12,11 +12,16 @@ public class CropEvent {
   public final int cropFrom;
   public final int cropTo;
   private final int timeCreated;
+  public String cause = null;
   
   public CropEvent(int cropFrom, int cropTo, int timeCreated) {
     this.cropFrom = cropFrom;
     this.cropTo = cropTo;
     this.timeCreated = timeCreated;
+  }
+  public CropEvent(int cropFrom, int cropTo, int timeCreated, String cause) {
+    this(cropFrom, cropTo, timeCreated);
+    this.cause = cause;
   }
   
   // Parse for a single event, in a constructor
@@ -53,7 +58,9 @@ public class CropEvent {
   }
   
   public String toString() {
-    return "(From " + cropFrom + " to " + cropTo + ")";
+    String s = "(From " + cropFrom + " to " + cropTo + ")";
+    if (cause != null) s += " caused by " + cause;
+    return s;
   }
   
   public boolean equals(Object o) {

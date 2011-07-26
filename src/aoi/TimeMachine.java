@@ -164,6 +164,7 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
+                                      players[k].sinceCrashed+1,
                                       players[k].tail.addPoint(timej, ship[k].location()));
       
       }
@@ -171,7 +172,7 @@ public class TimeMachine {
       for (int k=bullets.size()-1; k >= 0; --k) {
         Bullet b = bullets.get(k);
         
-        if (SimulationUtils.isInArena(b, Arena.current()))
+        if (SimulationUtils.isInValidLocation(b, Arena.current()))
           bullets.set(k, SimulationUtils.nextPosition(b));
         else
           bullets.remove(k);  

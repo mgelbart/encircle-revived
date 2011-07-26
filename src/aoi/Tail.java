@@ -104,8 +104,10 @@ public class Tail {
   }
   public Point afterBasePoint() {
     if (nPoints() < 2) return null;
-    return getPoint(afterBaseTime());
-    
+    return getPoint(afterBaseTime()); 
+  }
+  public int lastKnotTime() {
+    return knots.last();
   }
   
   public Path2D toPath2D() { 
@@ -146,39 +148,41 @@ public class Tail {
   
   // the first time at which the path from 
   // "startTime" to that time has at least the specified length
-  private int convertLengthToTimeStartingAtSpecifiedTime(int startTime, double minLength) {
+  public Integer convertLengthToTime(int startTime, double minLength, boolean forwardDir) {
     assert(!isEmpty());
     if (minLength == 0) return startTime;
-    
+     
     double length = 0;
-    int nextTime;
-    for (int time = startTime; time < headTime(); time = nextTime) {
-      nextTime = trajectory.higherKey(time);
+    int nextTime = startTime;
+    for (int time = startTime; nextTime <= headTime() && nextTime >= baseTime(); time = nextTime) {
+      nextTime = forwardDir?trajectory.higherKey(time):trajectory.lowerKey(time);
       length += getPoint(time).distance(getPoint(nextTime));
       if (length >= minLength)
-        return nextTime;
+        return new Integer(nextTime);
     }
     // what to do if the entire path is not long enough
     // here we use lastElement()+1 so that if the whole path
     // is not long enough, you don't crop anything
     // when the output of this function is used as cropTailFrom
-    return headTime() + 1; 
+    return null; 
   }
-  public int convertLengthToTimeStartingAtBase(double length) {
-    return convertLengthToTimeStartingAtSpecifiedTime(baseTime(), length);
-  }
-  public int convertLengthToTimeStartingAtLatestKnot(double length) {
-    return convertLengthToTimeStartingAtSpecifiedTime(knots.last(), length);  
-  }
-  
-  public double lengthFromLastKnotToHead() {
-    assert(nKnots() > 0);
+   
+//   Returns the length from the head to the first time
+//   (counting from the head) that is less than or equal to
+//   desiredTime
+  public double convertTimeToLengthStartingAtHead(int desiredTime) {
+    if (desiredTime >= headTime()) return 0.;
+    if (desiredTime <= baseTime()) return length();
+    
     double length = 0;
-    for (int time = knots.last(); time < headTime(); time = trajectory.higherKey(time))
-      length += getPoint(time).distance(getPoint(trajectory.higherKey(time)));
+    int nextTime;
+    for (int time = headTime(); time > desiredTime; time = nextTime) {
+      nextTime = trajectory.lowerKey(time);
+      length += getPoint(time).distance(getPoint(nextTime));
+    }
     return length;
   }
-  
+
   // Returns the angle between the previous point before the point at "time"
   // and the point at time
   // Special case, if time == basetime(), then it returns the angle from base point to the next one
@@ -298,13 +302,17 @@ public class Tail {
     // for example when "this" == "that" and the player is not moving                       
     int excludePoints = this == that?2:0;
     
+    Logger.println(Logger.Rep.INFREQ, excludePoints);
+    
     if (this.nPoints() < 2+excludePoints) return null;
     if (that.nPoints() < 2) return null; 
 
     
     int lastTime = headTime();
     for (; excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
-      
+    
+    Logger.println(Logger.Rep.INFREQ, headTime() + " _ " + lastTime);
+    
     
     // Check if trajectory intersects the last line of that.trajectory
     // Excluding the last excludePoints of trajectory
@@ -318,8 +326,8 @@ public class Tail {
     }
     if (intersectionTime - baseTime() < 0) return null; // no intersection
 
-//    Logger.println(Rep.INFREQ, this);
-//
+    Logger.println(Rep.INFREQ, this);
+    Logger.println(Rep.INFREQ, that);
 //    Logger.println(Rep.INFREQ, lastTime);
 //
 //    Logger.println(Rep.INFREQ, intersectionTime);

@@ -39,7 +39,7 @@ public class Simulation  implements Runnable {
   public final PlayerListener[] listeners = new PlayerListener[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static boolean VISUALIZE = false;
+  private static boolean VISUALIZE = true;
   private boolean VISUALIZETHIS = VISUALIZE;
   private GUI gui = null;
   private Thread guiThread = null;
@@ -133,6 +133,13 @@ public class Simulation  implements Runnable {
 
     Logger.println(Logger.Rep.FEW, "Game starting.");
 
+    // Persistent variables used for respawning
+    // (the values are used in subsequent time steps)
+    int timeOfRespawn = 0; // the time corresponding to the point 
+                           // at which respawning will terminate for a given tail
+    double lengthUntilRespawn = 0;
+    boolean spinWhileRespawn = false;
+    
     while (true) {
 
       // Sleep until next time step.
@@ -143,7 +150,7 @@ public class Simulation  implements Runnable {
           Logger.println(Rep.INFREQ, "Current local time: " + game.time);
 
         
-        
+        int newTime  = game.time + 1;
         /* TABLE OF CONTENTS
          * 
          * (-1) move bullets
@@ -151,9 +158,9 @@ public class Simulation  implements Runnable {
          *   (0) copy previous state parameters
          *   if not respawning
          *     (1) take shots
-         *     (3) check if players are hit by bullets
-         *     (2) check for tail crossings and scoring
-         *     (4) check for crashing
+         *     (2) check if players are hit by bullets
+         *     (3) check for crashing into clusters
+         *     (4) check for tail crossings and scoring
          *     (5) move the Ship
          *   (6) optimize cropEvents
          *   (7) update Tail
@@ -168,7 +175,7 @@ public class Simulation  implements Runnable {
         for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
           Bullet b = SimulationUtils.nextPosition(bulletsTemp.get(k));
           // Update the bullet position unless it hit something.
-          if (SimulationUtils.isInArena(b, arena))
+          if (SimulationUtils.isInValidLocation(b, arena))
             bulletsTemp.set(k, b);
           else
             bulletsTemp.remove(k);
@@ -195,32 +202,33 @@ public class Simulation  implements Runnable {
           Ship ship                 = game.pStates[playerNo].ship;
           CropEventGroup cropEvents = game.pStates[playerNo].cropEvents;
           int score                 = game.pStates[playerNo].score;
-          int untilReload           = SimulationUtils.enforceByte(game.pStates[playerNo].untilReload      -1);
+          int untilReload           = SimulationUtils.enforceByte (game.pStates[playerNo].untilReload      -1);
           int untilRespawn          = SimulationUtils.enforceShort(game.pStates[playerNo].untilRespawn     -1);
-          int sinceScoring          = SimulationUtils.enforceByte(game.pStates[playerNo].sinceScoring     +1);
-          int sinceLooping          = SimulationUtils.enforceByte(game.pStates[playerNo].sinceLooping     +1);
-          int sinceCrossing         = SimulationUtils.enforceByte(game.pStates[playerNo].sinceCrossing    +1);
-          int sinceHitByBullet      = SimulationUtils.enforceByte(game.pStates[playerNo].sinceHitByBullet +1);
-          int sincePwned            = SimulationUtils.enforceByte(game.pStates[playerNo].sincePwned       +1);
+          int sinceScoring          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceScoring     +1);
+          int sinceLooping          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceLooping     +1);
+          int sinceCrossing         = SimulationUtils.enforceByte (game.pStates[playerNo].sinceCrossing    +1);
+          int sinceHitByBullet      = SimulationUtils.enforceShort(game.pStates[playerNo].sinceHitByBullet +1);
+          int sincePwned            = SimulationUtils.enforceByte (game.pStates[playerNo].sincePwned       +1);
+          int sinceCrashed          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceCrashed     +1);
           Tail tail                 = game.pStates[playerNo].tail;
-                    
+           
+          
           // Special case: if you are in the process of respawning
           if (untilRespawn > 0) {
+            // Either you were shot or you crashed
             assert(!tail.isEmpty());
-
-            final boolean LOSE_KNOT_WHEN_CRASH = false;
             
-            int cropFrom = tail.convertLengthToTimeStartingAtLatestKnot(
-                           (untilRespawn-1)*SimulationUtils.UNCOILSPEED);
-            if (!LOSE_KNOT_WHEN_CRASH) cropFrom++;
+            Integer cropFrom = tail.convertLengthToTime(
+                timeOfRespawn, lengthUntilRespawn, true);
+            assert(cropFrom != null);
             
-            cropEvents = cropEvents.addEvent(cropFrom, game.time+1, game.time+1);
+            lengthUntilRespawn -= SimulationUtils.UNCOILSPEED;
             
-            final boolean SPIN_WHILE_RESPAWN = true;
-            
+            cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
+                        
             Point newLocation = tail.getPoint(cropFrom);
             Angle newDir;
-            if (SPIN_WHILE_RESPAWN)
+            if (spinWhileRespawn)
               newDir     =  new Angle(game.time * 0.2);
             else
               newDir     = tail.tangentAngleHead();
@@ -241,25 +249,49 @@ public class Simulation  implements Runnable {
               
               bulletsTemp.add(SimulationUtils.nextPosition(new Bullet(playerNo, pStatesTemp[playerNo])));
               untilReload = SimulationUtils.RELOADTIME;
+              Integer cropTo = tail.convertLengthToTime(tail.baseTime(), SimulationUtils.BULLETCOST, true);
+              assert(cropTo != null);
               cropEvents = cropEvents.addEvent(
-                  tail.baseTime(),                                             // from
-                  tail.convertLengthToTimeStartingAtBase(SimulationUtils.BULLETCOST) + 1,   // to
-                  game.time + 1);
+                  tail.baseTime(),    // from
+                  cropTo + 1,         // to
+                  game.time + 1,
+                  "taking shot");
             }
             
             
-            // (2) CHECK IF PLAYER IS HIT BY BULLETS
+            // (2) CHECK IF PLAYER IS HIT BY BULLETS (OR WENT OUT OF BOUNDS)
             for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
               Bullet b = bulletsTemp.get(k);
               if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
                 sinceHitByBullet = 0;
-                untilRespawn = SimulationUtils.timeUntilRespawn(tail);
                 bulletsTemp.remove(k);
               }
             }
+            // If you were shot, set the cropEvents and untilRespawn
+            // The case where you flew way out of bounds is handled
+            // here as well (in the same way)
+            if (sinceHitByBullet == 0 ||
+                SimulationUtils.isOutOfBounds(ship, arena)) {
+              timeOfRespawn = tail.lastKnotTime();
+              lengthUntilRespawn = tail.convertTimeToLengthStartingAtHead(timeOfRespawn);
+              untilRespawn = (int) (lengthUntilRespawn / SimulationUtils.UNCOILSPEED);
+              assert(untilRespawn > 0);
+              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+              spinWhileRespawn = true;
+            } // (3) CHECK IF PLAYER HIT A CLUSTER
+            else if (SimulationUtils.isInCluster(ship, arena)) {
+              lengthUntilRespawn = SimulationUtils.CRASHUNCOILLENGTH;
+              untilRespawn = (int) (lengthUntilRespawn / SimulationUtils.UNCOILSPEED);
+              timeOfRespawn = tail.convertLengthToTime(tail.headTime(), lengthUntilRespawn, false);
+              assert(untilRespawn > 0);
+              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+              spinWhileRespawn = false;
+            }
+            // There still may be problems here if
+            // you also cross, score, etc. on the same round...
   
   
-            // (3) CHECK FOR TAIL CROSSINGS AND SCORING          
+            // (4) CHECK FOR TAIL CROSSINGS AND SCORING          
             for (int thatPlayerNo=0; thatPlayerNo<SimulationUtils.NUMPLAYERS; ++thatPlayerNo) {            
               // (below) See comments in the intersects() function for more detail on this BS
               Tail intersection = pStatesTemp[thatPlayerNo].tail.intersects(tail);
@@ -271,14 +303,16 @@ public class Simulation  implements Runnable {
                   cropEvents = cropEvents.addEvent(
                       tail.baseTime(),              // from  
                       tail.cropToForCrossing(),     // to
-                      game.time + 1);
+                      game.time + 1,
+                      "crossed path");
                 } else {
                   // If this player intersected his own Tail
                   sinceLooping = 0;
                   cropEvents = cropEvents.addEvent(
                       intersection.baseTime()+1,      // from 
                       game.time,                      // to
-                      game.time + 1);
+                      game.time + 1,
+                      "made loop");
                   
                   // Check for scoring
                   boolean scored = false;
@@ -319,17 +353,10 @@ public class Simulation  implements Runnable {
             }     // end for (otherPlayerNo)
             
             
-
-            
-            
-            // (4) CHECK IF PLAYER CRASHED
-            if (!SimulationUtils.isInArena(ship, arena)) {
-              untilRespawn = SimulationUtils.timeUntilRespawn(tail);
-            }
-            
-            
+          
             // (5) CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
-            ship = SimulationUtils.nextPosition(ship, params[playerNo]);
+              ship = SimulationUtils.nextPosition(ship, params[playerNo]);
+            
           }   // end if not respawning
           
 
@@ -340,7 +367,7 @@ public class Simulation  implements Runnable {
           cropEvents = cropEvents.optimizeEvents(game.time + 1);
           
           
-//          if (!cropEvents.isEmpty()) Logger.println(Logger.RepetitionRate.FREQUENT, (game.time+1) + "  " + cropEvents);
+          if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, (game.time+1) + "  " + cropEvents);
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
               game.time+1, cropEvents, sinceScoring);
@@ -360,6 +387,7 @@ public class Simulation  implements Runnable {
               sinceCrossing,
               sinceHitByBullet,
               sincePwned,
+              sinceCrashed,
               tail);
         } 
 /* ----------------- end of "main" loop for each player --------------------- */

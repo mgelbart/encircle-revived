@@ -44,7 +44,7 @@ public class Shooter {
       Bullet btemp = b;
       for (int k=0; k < RANGEINSTEPS; ++k) {
         btemp = SimulationUtils.nextPosition(btemp);
-        if (!SimulationUtils.isInArena(btemp, Arena.current())) continue;
+        if (!SimulationUtils.isInValidLocation(btemp, Arena.current())) continue;
         
         if (SimulationUtils.gotShot(TimeMachine.current().getState(current.time+k, MindReader.current()).pStates[j], btemp))
           return true;

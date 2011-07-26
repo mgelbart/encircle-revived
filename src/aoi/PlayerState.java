@@ -3,6 +3,8 @@ package aoi;
 import java.awt.Point;
 import java.io.*;
 
+import aoi.Logger.Rep;
+
 /** 
  * A "read-only" class that describes a player's state.
  *
@@ -43,6 +45,7 @@ public class PlayerState {
   public final int sinceCrossing; // the other player's path.
   public final int sinceHitByBullet;
   public final int sincePwned; // Lost all points.
+  public final int sinceCrashed;
 
 
   // Whether to transmit marker bytes before each transmitted value.
@@ -54,7 +57,8 @@ public class PlayerState {
       CropEventGroup cropEvents, 
       int score, int untilReload, int untilRespawn,
       int sinceScoring, int sinceLooping, int sinceCrossing,
-      int sinceHitByBullet, int sincePwned, Tail tail) {
+      int sinceHitByBullet, int sincePwned, int sinceCrashed,
+      Tail tail) {
     this.playerNo         = playerNo;
     this.ship             = ship;
     this.cropEvents       = cropEvents;
@@ -64,15 +68,17 @@ public class PlayerState {
     this.sinceScoring     = SimulationUtils.enforceByte(sinceScoring);
     this.sinceLooping     = SimulationUtils.enforceByte(sinceLooping);
     this.sinceCrossing    = SimulationUtils.enforceByte(sinceCrossing);
-    this.sinceHitByBullet = SimulationUtils.enforceByte(sinceHitByBullet);
+    this.sinceHitByBullet = SimulationUtils.enforceShort(sinceHitByBullet);
     this.sincePwned       = SimulationUtils.enforceByte(sincePwned);
+    this.sinceCrashed     = SimulationUtils.enforceByte(sinceCrashed);
     this.tail             = tail;
 
     assert(playerNo < SimulationUtils.NUMPLAYERS);
   }	
   public PlayerState(int playerNo, Ship s, Tail t) {
     this(playerNo, s, new CropEventGroup(), 
-        0, 0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, t);
+        0, 0, 0, 0xFF, 0xFF, 0xFF, Short.MAX_VALUE, 0xFF, 0xFF, t);
+    
   }
   
   
@@ -89,6 +95,7 @@ public class PlayerState {
     if (this.sinceLooping != that.sinceLooping)         return false;
     if (this.sincePwned != that.sincePwned)             return false;
     if (this.sinceScoring != that.sinceScoring)         return false;
+    if (this.sinceCrashed != that.sinceCrashed)        return false;
     return true;
   }
   
@@ -100,7 +107,8 @@ public class PlayerState {
         cropEvents,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceCrashed,
+        tail);
   }
   public PlayerState cloneAndPwn() {
     int score        = 0;
@@ -110,14 +118,16 @@ public class PlayerState {
         cropEvents,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceCrashed,
+        tail);
   }
   public PlayerState clone() {
     return new PlayerState(playerNo, ship, 
         cropEvents, 
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, tail);
+        sinceHitByBullet, sincePwned, sinceCrashed,
+        tail);
   }
 
 
@@ -156,6 +166,9 @@ public class PlayerState {
 
     s.append("\nsincePwned: ");
     s.append(sincePwned);
+    
+    s.append("\nsinceCrashed: ");
+    s.append(sinceCrashed);
     
     s.append("\n");
 
@@ -207,11 +220,13 @@ public class PlayerState {
     o.write(sinceCrossing);
     
     if (CHECKBYTES) o.writeBytes("b");
-    o.write(sinceHitByBullet);
+    o.writeShort(sinceHitByBullet);
     
     if (CHECKBYTES) o.writeBytes("p");
     o.write(sincePwned);
-
+    
+    if (CHECKBYTES) o.writeBytes("c");
+    o.write(sinceCrashed);
   }
 
   // Construct the new PlayerState using the players state data received from the server
@@ -226,7 +241,8 @@ public class PlayerState {
         sinceLooping, 
         sinceCrossing,
         sinceHitByBullet, 
-        sincePwned;
+        sincePwned,
+        sinceCrashed;
     Angle dir;
     CropEventGroup cropEvents;
 
@@ -270,12 +286,17 @@ public class PlayerState {
     sinceCrossing = i.read();
     
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'b'); }
-    sinceHitByBullet = i.read();
+    sinceHitByBullet = i.readShort();
     
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'p'); }
     sincePwned = i.read();
 
+    if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'c'); }
+    sinceCrashed = i.read();
     
+//    if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, time + "  " + cropEvents);
+    
+
     Point p = new Point(x, y);
     Ship ship = new Ship(p, vx, vy, dir);
     Tail newTail = Tail.parse(prevState, p, time, cropEvents, sinceScoring);
@@ -284,7 +305,8 @@ public class PlayerState {
     return new PlayerState(playerNo, ship, 
         cropEvents, score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
-        sinceHitByBullet, sincePwned, newTail);
+        sinceHitByBullet, sincePwned, sinceCrashed,
+        newTail);
   }
   
 

@@ -41,27 +41,17 @@ public abstract class SimulationUtils {
   /* Length of path required to spend in order to shoot.  */
   public static final double BULLETCOST = ARENASIZE * 0.12;
  
-  // Energy recharge period (i.e. how many turns to gain one point).
-  public static final int RECHARGEPERIOD = (int) ((1./TIMESTEP) * 1000);
-
   // The maximum ship speed. Special thank you to the laws of physics.
   public static final double MAXSPEED = MAXACC/DRAG;
   
   // The rate at which you recoil backwards after crashing.
   public static final double UNCOILSPEED = MAXSPEED * 2.;
   
+  // The amount of time you spend uncoiling if you crash
+  public static final double CRASHUNCOILLENGTH = ARENASIZE * 0.08; 
+  
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
-
- 
-  // may want to say > 2*UNCOILSPEED or something to catch crazy bugs
-  // This function takes linear time in the Tail length,
-  // due to the useless Tail refactoring XOXO
-  public static int timeUntilRespawn(Tail t) {
-    if (t.length() > UNCOILSPEED) return (int) (t.lengthFromLastKnotToHead() / UNCOILSPEED);
-    // the +1 is because we actually respawn at time 1, not 0
-    else return 1;
-  }
   
   
   /* Returns an array of {x, y, vx, vy, direction} after
@@ -142,7 +132,7 @@ public abstract class SimulationUtils {
     return new Bullet(b.playerNo, x, y, b.direction);
   }
 
-  public static boolean isInArena(Bullet b, Arena a) {
+  public static boolean isInValidLocation(Bullet b, Arena a) {
     if (isOutOfBounds(b.x, b.y)) return false;
 
     // hit a cluster
@@ -153,15 +143,15 @@ public abstract class SimulationUtils {
     return true;
   }
 
-  public static boolean isInArena(Ship s, Arena a) {
-    if (isOutOfBounds(s.x(), s.y())) return false;
-
-    // hit a cluster
+  public static boolean isOutOfBounds(Ship s, Arena a) {
+    return isOutOfBounds(s.x(), s.y());
+  }
+  
+  public static boolean isInCluster(Ship s, Arena a) {
     for (Cluster c : a.clusters)
       if (c.intersects(s))
-        return false;
-    
-    return true;
+        return true;
+    return false;
   }
 
   public static boolean isInArena(int x, int y, Arena a) { 
@@ -185,7 +175,13 @@ public abstract class SimulationUtils {
   }
   
   public static int enforceShort(int i) {
-    return Math.max(Math.min(0xFFFF, i), 0);
+//    return Math.max(Math.min(0xFFFF, i), 0);
+    // Because the combination of writeShort/readShort
+    // ends up interpreting the short in a signed way,
+    // we use all shorts here as only 15 bits, not 16.
+    // this the above lines is commented and replaced
+    // with the below
+    return Math.max(Math.min(Short.MAX_VALUE, i), 0);
   }
  
   // Returns the angle between three points (0-1-2). Angle in [0 pi)

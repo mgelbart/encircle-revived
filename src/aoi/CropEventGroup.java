@@ -65,7 +65,7 @@ public class CropEventGroup {
       }
       if (!contains && currentCropFrom != null) {
         // if no events contain i and we are in the middle of an event
-        newEvents.add(new CropEvent(currentCropFrom, i, latestTimeCreated));
+        newEvents.add(new CropEvent(currentCropFrom, i, latestTimeCreated, "merged"));
         currentCropFrom = null;
         latestTimeCreated = 0;
       }
@@ -84,6 +84,9 @@ public class CropEventGroup {
   public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
     return addEvent(new CropEvent(cropFrom, cropTo, time));
   }
+  public CropEventGroup addEvent(int cropFrom, int cropTo, int time, String cause) {
+    return addEvent(new CropEvent(cropFrom, cropTo, time, cause));
+  }
   
   public void serialize(DataOutputStream o) throws IOException {
     if (PlayerState.CHECKBYTES) o.writeBytes("n");
@@ -100,9 +103,9 @@ public class CropEventGroup {
     return events.isEmpty();
   }
   
-  public boolean contains(int i) {
+  public boolean contains(int time) {
     for (CropEvent ce : events)
-      if (ce.contains(i)) return true;
+      if (ce.contains(time)) return true;
     return false;
   }
   
@@ -113,7 +116,7 @@ public class CropEventGroup {
   public String toString() {
     String s = "";
     for (CropEvent ce : events)
-      s += ce + " and ";
+      s += ce + ", ";
     return s;
   }
   
