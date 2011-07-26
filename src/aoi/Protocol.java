@@ -21,7 +21,6 @@ public abstract class Protocol {
   public enum ClientState {
     REQUESTEDMATCH,
     READYFORMATCH,
-    RECEIVEDPLAYERNO,
     RECEIVEDARENA,
     GAMESTARTED,
     GAMEENDED,
@@ -84,8 +83,8 @@ public abstract class Protocol {
    * Game server to Client:
    */
   private static final String MATCHSTARTING = "matchStarting";
-  public static String matchStarting(long gameId) { return MATCHSTARTING+" "+gameId+"\n"; }
-  public static Long parseMatchStarting(String msg)  { return parse1Long(MATCHSTARTING, msg); }
+  public static String matchStarting(long gameId, long playerId, long uStreamId) { return MATCHSTARTING+" "+gameId+" "+playerId+" "+uStreamId+"\n"; }
+  public static long[] parseMatchStarting(String msg)  { return parseNLongs(MATCHSTARTING, msg, 3); }
   
   private static final String MATCHENDED = "matchEnded";
   public static String matchEnded(long gameId) { return MATCHENDED+" "+gameId+"\n"; }
@@ -111,22 +110,38 @@ public abstract class Protocol {
 
   
   // parse a request with one long argument.
+  private static long[] parseNLongs(String cmd, String msg, int n) {
+    String[] strParts = parseStrings(cmd, msg);
+    if (strParts == null || strParts.length < n+1);
+    long[] parts = new long[n];
+    for (int j=1; j<1+n; ++j) {
+      try { parts[j-1] = Long.parseLong(strParts[j]); }
+      catch (NumberFormatException e) { return null; }
+    }
+    return parts;
+  }
+  
+  // parse a request with one long argument.
   private static Long parse1Long(String cmd, String msg) {
     try { return Long.parseLong(parse1String(cmd, msg)); }
     catch (NumberFormatException e) { return null; }
   }
   
-  // parse a request with one long argument.
+  // parse a request with one string argument.
   private static String parse1String(String cmd, String msg) {
-    // parts[0] should be the command and parts[1] the first arg
-    String[] parts = msg.split("[^-\\w]+", 3);
-    if (parts.length < 2) return null;
-    if (!parts[0].equals(cmd)) return null;
-    if (parts[1].isEmpty()) return null;
-    
+    String[] parts = parseStrings(cmd, msg);
+    if (parts == null || parts.length<2) return null;
     return parts[1];
   }
   
+  
+  // parse a request with one or more string arguments.
+  private static String[] parseStrings(String cmd, String msg) {
+    // parts[0] should be the command and parts[1] the first arg
+    String[] parts = msg.split("[^-\\w]+");
+    if (parts.length < 2) return null;
+    return parts;
+  }
   
   // for testing
   public static void main(String argv[]) throws Exception {
@@ -140,6 +155,12 @@ public abstract class Protocol {
     assert(7 == parseMatchMade(matchMade(7)));
     assert(123 == parseMatchMade(matchMade(123)));
     assert(-123 == parseMatchMade(matchMade(-123)));
+    
+    long[] args = new long[]{ 123l, 4l, 567l};
+    long[] argsParsed = parseMatchStarting(matchStarting(args[0], args[1], args[2]));
+    assert(args[0] == argsParsed[0]);
+    assert(args[1] == argsParsed[1]);
+    assert(args[2] == argsParsed[2]);
     
     Logger.println(Rep.FEW, "tests done.");
   }
