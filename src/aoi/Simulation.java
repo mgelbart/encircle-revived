@@ -39,13 +39,15 @@ public class Simulation  implements Runnable {
   public final Communicator[] communicators = new Communicator[SimulationUtils.NUMPLAYERS];
   
   // for debugging
-  private static boolean VISUALIZE = true;
+  private static boolean VISUALIZE = false;
   private boolean VISUALIZETHIS = VISUALIZE;
   private GUI gui = null;
   private Thread guiThread = null;
   
   // for debugging
   public static final boolean VERIFYSERIALIZATION = true;
+  
+  /* ----------------------------------------------------------------- */
   
   
   public Simulation(long matchId, Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
@@ -237,7 +239,6 @@ public class Simulation  implements Runnable {
 //            Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
 //            Logger.println(Rep.INFREQ, "Time now: " + newTime);
             
-            
             cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
                         
             Point newLocation = tail.getPoint(cropFrom);
@@ -290,7 +291,7 @@ public class Simulation  implements Runnable {
               lengthUntilRespawn[playerNo] = tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
               untilRespawn = (int) (lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED) + 1;
               assert(untilRespawn > 0);
-              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
               spinWhileRespawn[playerNo] = true;
             } 
             
@@ -301,7 +302,7 @@ public class Simulation  implements Runnable {
               untilRespawn = (int) (lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED) + 1;
               timeOfRespawn[playerNo] = tail.convertLengthToTime(tail.headTime(), lengthUntilRespawn[playerNo], false);
               assert(untilRespawn > 0);
-              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
+//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn);
               spinWhileRespawn[playerNo] = false;
             }
             // There still may be problems here if
@@ -386,7 +387,9 @@ public class Simulation  implements Runnable {
           cropEvents = cropEvents.optimizeEvents(game.time + 1);
           
           
-          if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, (game.time+1) + "  " + cropEvents);
+//          if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, (game.time+1) + "  " + cropEvents);
+          
+          
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
               game.time+1, cropEvents, sinceScoring);
