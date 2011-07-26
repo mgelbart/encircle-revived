@@ -14,7 +14,7 @@ import aoi.Logger.Rep;
 public class Cluster {
 	private final NSPolygon contour; // the outline polygon, relevant for gameplay
 	private final ImageMetaData imgMetaData;
-	private final Rectangle boundingBox;
+	private Rectangle boundingBox;
 
 
   public Cluster(NSPolygon contour, ImageMetaData imgMetaData) {
@@ -55,24 +55,6 @@ public class Cluster {
 	  return contour.intersects(b.getLine()) || contains(b.x, b.y);
 	}
 	
-	// move the cluster by (deltaX, deltaY)
-	public void move(int deltaX, int deltaY) {
-	  contour.move(deltaX, deltaY);
-	  imgMetaData.move(deltaX, deltaY);
-	} 
-	
-	// center the *image* at this new location
-	public void moveTo(int newX, int newY) {
-	  move(-imgCenterX() + newX, -imgCenterY() + newY);
-	}
-	
-	// used for initializing clusters
-  public void randomizeLocation() {
-  	int x = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
-  	int y = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
-  	moveTo(x, y);    
-  }
-  
   
 	
 	// In most cases, these functions can be used interchangeably for

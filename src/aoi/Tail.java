@@ -195,14 +195,6 @@ public class Tail {
   public Angle tangentAngleHead() {
     return tangentAngle(headTime());
   }  
-  
-  // Get a line from "time" to the next time
-  private Line2D getLine(int time) {
-    return new Line2D.Double(trajectory.get(time), trajectory.get(trajectory.higherKey(time)));
-  }
-  private Line2D lastLine() {
-    return new Line2D.Double(beforeHeadPoint(), headPoint());
-  }
 
   // ------------- end access functions --------------- //
   
@@ -211,11 +203,13 @@ public class Tail {
   // Do not make public.
   private void mutatingAdd(int time, Point p) {  
     
-    Point prevPrevPoint = beforeHeadPoint();
-    
     // Always add the latest position to the trajectory
     // but combine it with the previous segment if both are short.
-    if (prevPrevPoint != null && p.distance(prevPrevPoint) < MINTRAJECTORYSEGMENT) {    
+    // we need the second part after "||" for a special case when there
+    // is exactly one point in the tail and you try to add
+    // a point at the same location
+    if ((beforeHeadPoint() != null && p.distance(beforeHeadPoint()) < MINTRAJECTORYSEGMENT)
+           || (headPoint() != null && p.equals(headPoint()))) {    
       if (knots.contains(headTime())) {
         knots.remove(headTime());
         knots.add(time);
@@ -302,35 +296,32 @@ public class Tail {
     // for example when "this" == "that" and the player is not moving                       
     int excludePoints = this == that?2:0;
     
-    Logger.println(Logger.Rep.INFREQ, excludePoints);
-    
     if (this.nPoints() < 2+excludePoints) return null;
     if (that.nPoints() < 2) return null; 
 
     
-    int lastTime = headTime();
-    for (; excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
-    
-    Logger.println(Logger.Rep.INFREQ, headTime() + " _ " + lastTime);
-    
+    int lastTime;
+    for (lastTime = headTime(); excludePoints-- > 0; lastTime = trajectory.lowerKey(lastTime));
     
     // Check if trajectory intersects the last line of that.trajectory
     // Excluding the last excludePoints of trajectory
-    Line2D thatLastLine = that.lastLine();
-    int intersectionTime = baseTime()-1;
+    Point that1 = that.beforeHeadPoint();
+    Point that2 = that.headPoint();
+    Integer intersectionTime = null;
     for (int time : trajectory.headMap(lastTime).keySet()) {  // excludes lastTime
-      if (getLine(time).intersectsLine(thatLastLine)) {
+      Point this1 = trajectory.get(time);
+      Point this2 = trajectory.get(trajectory.higherKey(time));
+      if (Line2D.linesIntersect(this1.x, this1.y, this2.x, this2.y, that1.x, that1.y, that2.x, that2.y)) {
         intersectionTime = time;
         break;
       }
     }
-    if (intersectionTime - baseTime() < 0) return null; // no intersection
+    if (intersectionTime == null) return null; // no intersection
 
-    Logger.println(Rep.INFREQ, this);
-    Logger.println(Rep.INFREQ, that);
+//    Logger.println(Rep.INFREQ, this);
+//    Logger.println(Rep.INFREQ, that);
 //    Logger.println(Rep.INFREQ, lastTime);
-//
-//    Logger.println(Rep.INFREQ, intersectionTime);
+//    Logger.println(Rep.INFREQ, "intersectiontime = " + intersectionTime);
 
     
     // Include the point right before crossing

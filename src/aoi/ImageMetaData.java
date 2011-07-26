@@ -18,8 +18,8 @@ public class ImageMetaData {
   public final byte[] IMGFORMATHEADER = DatatypeConverter.parseHexBinary("89504e47");
 
   private final byte[] imgData; // The image data in binary format
-  private int sizeX, sizeY;  // the dimensions of the image, for drawing only
-  private int centerX, centerY; // the center of the image, for drawing only
+  private final int sizeX, sizeY;  // the dimensions of the image, for drawing only
+  private final int centerX, centerY; // the center of the image, for drawing only
   // (the above is generally (0,0) except for some small) perturbations
   private final String name;  // filename of the image file
   // eventually, the client should not have this information
@@ -68,9 +68,11 @@ public class ImageMetaData {
       +  " imgName=\"" + name + "\"";
   }
 	
-  public void move(int deltaX, int deltaY) {
-    centerX += deltaX;
-    centerY += deltaY;
+  public ImageMetaData move(int deltaX, int deltaY) {
+    return new ImageMetaData(imgData, sizeX, sizeY, 
+        centerX + deltaX, 
+        centerY + deltaY, 
+        name);
   }
 
   public Image img() {

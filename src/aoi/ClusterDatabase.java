@@ -274,7 +274,7 @@ public class ClusterDatabase {
         // overlap with any existing clusters already chosen for the arena
         do {
           // give it a random location
-          css.randomizeLocation();
+          css = (ClusterServerSide) css.randomizeLocation();
 
           overlaps = false;
           for (Cluster inArena : arenaClusters)

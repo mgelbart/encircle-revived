@@ -14,8 +14,8 @@ import org.xml.sax.Attributes;
  */
 @SuppressWarnings("serial")
 public class NSPolygon extends Polygon implements Iterable<Line2D> {
-  private int[] x;
-  private int[] y;
+  private final int[] x;
+  private final int[] y;
   private final int n;
 	
   public NSPolygon(int[] x, int[] y) {
@@ -146,12 +146,14 @@ public class NSPolygon extends Polygon implements Iterable<Line2D> {
     return new NSPolygon(newX, newY);
   }
 	
-  public void move(int deltaX, int deltaY) {
-    translate(deltaX, deltaY);
+  public NSPolygon move(int deltaX, int deltaY) {
+    int[] newX = new int[n];
+    int[] newY = new int[n];
     for (int i = 0; i < n; i++) {
-      x[i] += deltaX;
-      y[i] += deltaY;
+      newX[i] = x[i] + deltaX;
+      newY[i] = y[i] + deltaY;
     }
+    return new NSPolygon(newX, newY);
   }
   
   public Iterator<Line2D> iterator() {
