@@ -1,6 +1,9 @@
 package aoi;
 
 import java.awt.Point;
+import java.awt.Rectangle;
+
+import aoi.Logger.Rep;
 
 /**
  *  Clusters are image patches spread around the map. Each cluster
@@ -11,12 +14,13 @@ import java.awt.Point;
 public class Cluster {
 	private final NSPolygon contour; // the outline polygon, relevant for gameplay
 	private final ImageMetaData imgMetaData;
-
+	private final Rectangle boundingBox;
 
 
   public Cluster(NSPolygon contour, ImageMetaData imgMetaData) {
   	this.contour = contour;
     this.imgMetaData = imgMetaData;
+    this.boundingBox = contour.getBounds();
     
     // assert(p.centerX()+p.width()/2  <=  SimulationUtils.ARENASIZE/2);
     // assert(p.centerX()+p.width()/2  >= -SimulationUtils.ARENASIZE/2);
@@ -42,10 +46,12 @@ public class Cluster {
 	}
 	
 	public boolean intersects(Ship s) {
+	  if (!boundingBox.intersects(s.getNSPath().getBounds())) return false; // this is an _important_ optimization if contours have ~100 points
 	  return contour.intersects(s.getNSPath());
 	}
 	
 	public boolean intersects(Bullet b) {
+	   if (!boundingBox.intersectsLine(b.getLine())) return false; // this is an _important_ optimization if contours have ~100 points
 	  return contour.intersects(b.getLine()) || contains(b.x, b.y);
 	}
 	
