@@ -228,12 +228,7 @@ public class Simulation  implements Runnable {
             // Either you were shot or you crashed
 
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
-
-            Logger.println(Rep.INFREQ, "TOR: " + timeOfRespawn[playerNo]);
-            Logger.println(Rep.INFREQ, "untilRespawn: " + untilRespawn);
-            Logger.println(Rep.INFREQ, "lengthUR: " + lengthUntilRespawn[playerNo]);
-            Logger.println(Rep.INFREQ, "Time now: " + newTime);
-            
+ 
             if (!tail.isEmpty()) {
               
               // Compute cropFrom
