@@ -10,19 +10,24 @@ import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import aoi.Logger.Rep;
 
 
 /**
- * The main class run by the matchmaking server. 
+ * The matchmaking server. 
  */
 public class Matchmaker {
-	
 
+	List<String> gameServers;
+	Queue<GameClient> clients;
+
+	// This class contains the data for one game client.
 	class GameClient {
 		Socket socket; 
 		String username;
@@ -30,15 +35,38 @@ public class Matchmaker {
 		
 		GameClient(Socket s) {
 			socket = s;
-			state = null;
+			state = null;			
+		}
+		
+		@Override
+		public String toString() {
+			String s = "GameClient addr " + socket.getRemoteSocketAddress() + " state " + state;
+			if (username != null) 
+				s += " " + username;
+			return s;
 		}
 	}
 	
+	// This thread manages interaction with one game client.
 	class GameClientManager implements Runnable {
 		GameClient client;
 		
 		GameClientManager(GameClient c) {
 			client = c;
+		}
+		
+		void checkForMatch() {
+        	Logger.println(Rep.FREQ, "Head of Q: " + clients.peek());
+
+        	// Do we have a match?
+        	for (GameClient c: clients) {
+        		Logger.println(Rep.FREQ, c);
+        		
+        		if ((c != client) && (c.state == Protocol.ClientState.REQUESTEDMATCH)) {
+        			        			  	
+        		}
+        	}
+        	
 		}
 
 		@Override
@@ -58,9 +86,10 @@ public class Matchmaker {
 		        		Logger.println(Rep.FREQ, "Match requested by username: '" + username + "'");
 		        		client.username = username;
 		        		client.state = Protocol.ClientState.REQUESTEDMATCH;
-		        	}
-		        	
-		        	out.print(Protocol.ack());
+		        		
+		        		checkForMatch();
+		        	}		        	
+		        			        	
 		        }
 			} 
 		    catch (IOException e) {
@@ -72,44 +101,55 @@ public class Matchmaker {
 		
 	}
 
-	List<String> gameServers;
-	Queue<GameClient> clients;
-	
-	Matchmaker() {			
-		readListOfGameServers();
-		clients = new LinkedList<GameClient>();
-		Logger.setVerbosity(Rep.FREQ);
-		
-		ServerSocket servSocket;
-		try {
-			servSocket = new ServerSocket(Server.TCPPORT);	
-		}
-	    catch (IOException e1) {
-	        Logger.println(Rep.FEW, "Failed to init sockets.");
-	        e1.printStackTrace();
-	        return;
-	    }
-		
-		while (true) {
-		    try {
-		      Socket socket = servSocket.accept();
-		      Logger.println(Rep.FREQ, "Connected to client");
-		      GameClient client = new GameClient(socket);
-		      GameClientManager manager = new GameClientManager(client); 
-		      Thread t = new Thread(manager, "manageGameClient");
-		      t.start();
-		    }
-		    catch (IOException e) {
-		        Logger.println(Rep.FEW, "Socket exception");
-		        e.printStackTrace();
+	// This thread loops listening for new game clients.
+	class GameClientListener implements Runnable {
+		@Override
+		public void run() {
+			ServerSocket servSocket;
+			try {
+				servSocket = new ServerSocket(Server.TCPPORT);	
+			}
+		    catch (IOException e1) {
+		        Logger.println(Rep.FEW, "Failed to init sockets.");
+		        e1.printStackTrace();
 		        return;
 		    }
-		}
-	    
+			
+			while (true) {
+			    try {
+			      Socket socket = servSocket.accept();
+			      Logger.println(Rep.FREQ, "Connected to client");
+			      GameClient client = new GameClient(socket);
+			      clients.add(client);
+			      GameClientManager manager = new GameClientManager(client); 
+			      Thread t = new Thread(manager, "GameClientManager");
+			      t.start();			      			     
+			    }
+			    catch (IOException e) {
+			        Logger.println(Rep.FEW, "Socket exception");
+			        e.printStackTrace();
+			        return;
+			    }
+			}
+		    
+		}		
+	}
+		
+	Matchmaker() {			
+		Logger.setVerbosity(Rep.FREQ);
+
+		readListOfGameServers();
+		clients = new LinkedBlockingQueue<GameClient>();
+		
+	    GameClientListener listener = new GameClientListener(); 
+	    Thread t = new Thread(listener, "GameClientListener");
+	    t.start();		
 	}
 
 	void readListOfGameServers() {
-		gameServers = new ArrayList<String>();
+		// NOTE: In multi-threaded code we must use synchronized keyword when iterating over the list.
+		// See http://download.oracle.com/javase/6/docs/api/java/util/Collections.html#synchronizedList(java.util.List)
+		gameServers = Collections.synchronizedList(new ArrayList<String>());
 
 		Logger.println(Rep.FEW, "Reading game server list from stdin");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -129,8 +169,10 @@ public class Matchmaker {
 			throw new RuntimeException("No game server names found");
 		}
 		
-		for (String server : gameServers) {
-			Logger.println(Rep.FEW, "Game server '" + server + "' found in conf file");
+		synchronized(gameServers) {
+			for (String server : gameServers) {
+				Logger.println(Rep.FEW, "Game server '" + server + "' found in conf file");
+			}
 		}
 	}
 	  
