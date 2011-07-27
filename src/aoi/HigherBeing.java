@@ -39,10 +39,7 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
 
 
 
-  public void think() {
-    // copy the reference so it doesn't change during an iteration
-    GameState gState = latestState(); 
-
+  public PlayerControlParameters think(GameState gState) {
     PlayerControlParameters c;
 
     if (ClientConfiguration.useMouse) {
@@ -86,7 +83,7 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
     if (keyboardPilot.stop)
       c = c.stop();
 
-    if (c != null) queueParams(c);
+    return c;
 
    
 

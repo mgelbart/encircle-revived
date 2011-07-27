@@ -68,7 +68,7 @@ public class DefaultIntelligence implements Intelligence {
         // Don't do anything before the game starts.
         if (latestState == null) continue;
         
-        think();
+        queueParams(think(latestState));
       }
     }
   }
@@ -78,8 +78,6 @@ public class DefaultIntelligence implements Intelligence {
     timemachine.processStateUpdate(game);
   }
   
-  protected GameState latestState() { return latestState; }
-
 
   public PlayerControlParameters[] getNewControlParameters() {
     PlayerControlParameters[] p;
@@ -101,8 +99,9 @@ public class DefaultIntelligence implements Intelligence {
 
   }
 
-  protected void queueParams(PlayerControlParameters params) {
-
+  private void queueParams(PlayerControlParameters params) {
+    if (params == null) return;
+    
     synchronized (ctrl) {
       ctrl.add(params);
     }
@@ -111,15 +110,12 @@ public class DefaultIntelligence implements Intelligence {
 
   }
 
-  public void think() {
-    // copy the reference so it doesn't change during an iteration
-    GameState gState = latestState; 
-        
-    queueParams(new PlayerControlParameters(
+  public PlayerControlParameters think(GameState gState) {        
+    return new PlayerControlParameters(
       clientTime, 
       SimulationUtils.MAXACC, 
       new Angle((Math.random()-0.5)*2*Math.PI),
-      false, false));
+      false, false);
   } 
 
 

@@ -13,15 +13,11 @@ public class Nonhuman extends DefaultIntelligence {
   private int acc = SimulationUtils.MAXACC / 2;
   private Angle dir = new Angle(0);
   
-  public void think() {
+  public PlayerControlParameters think(GameState gState) {
 
     double bestV, V, currentV;     // define a potential function V for decision making
     PlayerControlParameters bestCtrl, testCtrl;
-    
-    // copy the reference so it doesn't change during an iteration
-    GameState gState = latestState(); 
-
-    
+        
     
     
     currentV = potentialFunction(gState.pStates[ClientConfiguration.playerNo].ship);
@@ -76,8 +72,7 @@ public class Nonhuman extends DefaultIntelligence {
       bestCtrl = bestCtrl.shoot();
 
 
-    queueParams(bestCtrl);
-
+    return bestCtrl;
   }
 
   /* 
