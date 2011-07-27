@@ -149,7 +149,7 @@ public abstract class Protocol {
   private static String[] parseStrings(String cmd, String msg) {
     // parts[0] should be the command and parts[1] the first arg
     String[] parts = msg.split("[^-\\w]+");
-    if (parts.length < 2) return null;
+    if (parts.length < 2 || !parts[0].equals(cmd)) return null;
     return parts;
   }
   
