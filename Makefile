@@ -63,7 +63,7 @@ jar:
 	jar cfm aoi.jar Manifest.txt client.conf -C bin/ .
 
 push_jar: jar
-	scp aoi.jar aoiserv@vps6609.inmotionhosting.com:public_html/
+	scp aoi.jar ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:/var/www/html/
 
 push_bin:
 	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:aoirun/
