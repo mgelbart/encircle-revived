@@ -52,7 +52,7 @@ public abstract class SimulationUtils {
   public static final double UNCOILSPEED = MAXSPEED * 2.;
   
   // The amount of time you spend uncoiling if you crash
-  public static final double CRASHUNCOILLENGTH = ARENASIZE * 0.08; 
+  public static final double CRASHUNCOILLENGTH = ARENASIZE * 0.075; 
   
   // The number of players in the game. Currently not adjustable.
   public static final int NUMPLAYERS = 2;
