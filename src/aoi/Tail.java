@@ -151,7 +151,11 @@ public class Tail {
   public Integer convertLengthToTime(int startTime, double minLength, boolean forwardDir) {
     assert(!isEmpty());
     if (minLength <= 0) return startTime;
-     
+    if (nPoints() < 2)  return startTime;  
+    // (above) needed to avoid bug in which the loop below
+    // will caller higher/lowerKey and hit null pointer when
+    // tail has only 1 point
+    
     double length = 0;
     int nextTime = startTime;
     for (int time = startTime; nextTime <= headTime() && nextTime >= baseTime(); time = nextTime) {

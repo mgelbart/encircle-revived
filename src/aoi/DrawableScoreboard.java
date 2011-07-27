@@ -111,7 +111,7 @@ public class DrawableScoreboard implements Drawable {
           scorePath.moveTo(xR, yB);
           scorePath.lineTo(xL, yB);
         } else {
-          scorePath.moveTo(xR, yT);
+          scorePath.moveTo(xL, yB);
           scorePath.lineTo(xL, yT);
         }
         break;
@@ -123,16 +123,16 @@ public class DrawableScoreboard implements Drawable {
           scorePath.lineTo(xL, yB);
         } else {
           scorePath.moveTo(xR, yB);
-          scorePath.lineTo(xL, yB);
+          scorePath.lineTo(xR, yT);
         }
         break;
       case 2:
-        scorePath.moveTo(xL, yT);
-        scorePath.lineTo(xL, yB);
+        scorePath.moveTo(xL, yB);
+        scorePath.lineTo(xR, yB);
         break;
       case 3:
-        scorePath.moveTo(xR, yT);
-        scorePath.lineTo(xR, yB);
+        scorePath.moveTo(xL, yT);
+        scorePath.lineTo(xR, yT);
         break;
       }
       shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);

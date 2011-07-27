@@ -234,7 +234,10 @@ public class Simulation  implements Runnable {
               // Compute cropFrom
               Integer cropFrom = tail.convertLengthToTime(
                   timeOfRespawn[playerNo], lengthUntilRespawn[playerNo], true);
-              assert(cropFrom != null);
+              // this will be null if you crash when your tail is smaller
+              // that SimulationUtils.CRASHUNCOILLENGTH
+              // in this case we crop the whole tail
+              if (cropFrom == null) cropFrom = tail.headTime();
                      
               // Get the new location and angle of the ship
               Point newLocation = tail.getPoint(cropFrom);
