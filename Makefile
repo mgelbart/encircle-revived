@@ -63,10 +63,10 @@ jar:
 	jar cfm aoi.jar Manifest.txt client.conf -C bin/ .
 
 push_jar: jar
-	scp aoi.jar ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:/var/www/html/
+	scp -i ~/.ssh/encircle.pem aoi.jar ec2-user@50.16.200.221:/var/www/html/aoi.jar
 
 push_bin:
-	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:aoirun/
+	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@50.16.200.221:aoirun/
 
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer
