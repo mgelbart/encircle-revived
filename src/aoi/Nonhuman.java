@@ -11,57 +11,18 @@ import java.awt.geom.Point2D;
  *  not rely on any human input.
  *
  */
-public class Nonhuman implements Intelligence {
-
-  // A queue of latest game states.
-  GameState[] games;
-
-  // The control parameters to be sent to the server.
-  PlayerControlParameters ctrl = null;
-  PlayerControlParameters prevCtrl = null;
-
-  // Last time ctrl was changed.
-  int lastAction = -999999;
-
-  // The main thread that runs think() in an infinite loop.
-  Thread intelThread;
+public class Nonhuman extends DefaultIntelligence {
 
   public Nonhuman() {
-
+    super();    
     Logger.println(Logger.Rep.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
-
-    games = new GameState[1];
-
-    intelThread = new Thread(this, "intel");
-    intelThread.start();
-  }
-
-  public void run() {
-    think();
-  }
-
-  /* Store the latest game state in a queue. */
-  public void processGameStateUpdate(GameState game) {
-    games[0] = game; /* Our queue consists of one element! */
-
-    intelThread.interrupt();
-  }
-
-
-  public PlayerControlParameters[] getNewControlParameters() {
-    if (ctrl != prevCtrl) {
-      prevCtrl = ctrl;
-      return new PlayerControlParameters[]{ctrl};
-    }
-
-    return new PlayerControlParameters[]{};
   }
 
   public void think() {
 
     int acc;
     Angle dir;
-    boolean shoot, boost;
+    boolean shoot;
 
     acc = SimulationUtils.MAXACC / 2;
 
@@ -70,45 +31,20 @@ public class Nonhuman implements Intelligence {
       try {
         Thread.sleep(1000); // Sleep when there's nothing better to do.
       } catch (InterruptedException e) {
-			
-        // Shoot if appropriate, i.e., if your path is not too long and another player is in range
-        double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
-        double MAX_ANGLE_TO_SHOOT = 0.1;
-        shoot = false;
-        if (Math.abs(games[0].time - games[0].pStates[ClientConfiguration.playerNo].tail.baseTime()) < MAX_LOOP_TO_SHOOT) { 
-          if (prevCtrl != null) {
-            Ship ComparedSayWithPET = SimulationUtils.nextPosition(
-                games[0].pStates[ClientConfiguration.playerNo].ship,
-                new PlayerControlParameters(prevCtrl.effectiveOn, 
-                    SimulationUtils.MAXACC/10, prevCtrl.targetDirection, false, false));
-            
-            for (int playerNos = 0; playerNos < SimulationUtils.NUMPLAYERS; playerNos++) {
-              if (playerNos == ClientConfiguration.playerNo) continue; // Skip yourself
-              
-              double theangle = SimulationUtils.angle(
-                  games[0].pStates[playerNos].ship.x(), 
-                  games[0].pStates[playerNos].ship.y(), 
-                  games[0].pStates[ClientConfiguration.playerNo].ship.x(), 
-                  games[0].pStates[ClientConfiguration.playerNo].ship.y(), 
-                  ComparedSayWithPET.x(), ComparedSayWithPET.y());
-              
-              // Logger.println(Logger.RepetitionRate.FREQUENT, theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
-              if (theangle < MAX_ANGLE_TO_SHOOT) {
-                shoot = true;
-              }
-            }
-          }
-        }
-        boost = false;
+
+        // Don't do anything before the game starts.
+        if (latestState() == null) continue;
+        
+        GameState gState = latestState(); // copy the reference so it doesn't change during an iteration
 
 
         // define a potential function V for decision making
         double bestV, V, currentV;
         PlayerControlParameters bestCtrl, testCtrl;
 
+        
 
-        currentV = potentialFunction(games[0].pStates[ClientConfiguration.playerNo].ship.x(),
-                                     games[0].pStates[ClientConfiguration.playerNo].ship.y());
+        currentV = potentialFunction(gState.pStates[ClientConfiguration.playerNo].ship);
 
         bestV = Double.POSITIVE_INFINITY;
         bestCtrl = null;
@@ -116,14 +52,14 @@ public class Nonhuman implements Intelligence {
         // Try different directions.
         for (int j=-1; j<=1; ++j) {
 
-          dir = games[0].pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
+          dir = gState.pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
         
           // The candidate set of control parameters.
-          testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
-                                                 shoot, boost);
+          testCtrl = new PlayerControlParameters(gState.time, acc, dir,
+                                                 false, false);
 
           Ship intPos = SimulationUtils.nextPosition(
-              games[0].pStates[ClientConfiguration.playerNo].ship, testCtrl);
+              gState.pStates[ClientConfiguration.playerNo].ship, testCtrl);
 
           V = Double.NEGATIVE_INFINITY;
 
@@ -133,7 +69,7 @@ public class Nonhuman implements Intelligence {
 
             intPos = SimulationUtils.nextPosition(intPos, testCtrl);
 
-            V = Math.max(V, potentialFunction(intPos.x(), intPos.y()));
+            V = Math.max(V, potentialFunction(intPos));
           }
 
           // Prefer going straight
@@ -154,43 +90,40 @@ public class Nonhuman implements Intelligence {
                        * SimulationUtils.MAXACC);
           //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
         }
-        // if (Math.random() < .9) acc=0;
-        //Logger.println(Logger.RepetitionRate.FREQUENT, "acc: " + acc);
 
-        lastAction = games[0].time;
-
-        ctrl = bestCtrl;
+        
+        // Use automatic shooter
+        if (Shooter.wouldHit(gState, ClientConfiguration.playerNo))
+          bestCtrl = bestCtrl.shoot();
+        
+        
+        queueParams(bestCtrl);
       }
-
     }
-
   }
 
-  /* Evaluate the desirability of a given position (x, y)
-     on the arena.
+  /* 
+   * Evaluate the desirability of a given position (x, y)
+   * on the arena.
   */
-  private double potentialFunction(int x, int y) {
+  private static double potentialFunction(Ship s) {
     double V = 0;
 
-    Point2D loc = new Point(x, y);
-
     double range = 500 / SimulationUtils.TIMESTEP
-      * Math.sqrt( Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vx(), 2)
-                   + Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vy(), 2));
+      * Math.sqrt( Math.pow(s.vx(), 2)
+                   + Math.pow(s.vy(), 2));
 
     range = Math.max(range, SimulationUtils.ARENASIZE/20);
 
     // Repuslive terms pushing you away from the arena boundaries
-    V += Math.exp((Math.abs(x) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
-    V += Math.exp((Math.abs(y) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
+    V += Math.exp((Math.abs(s.x()) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
+    V += Math.exp((Math.abs(s.y()) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
 
     for (Cluster clust : Arena.current().clusters) {
-
-      V += -truncatedLog(loc.distance(clust.center().x, clust.center().y + clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.center().x, clust.center().y - clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.center().x + clust.width()/2, clust.center().y), range);
-      V += -truncatedLog(loc.distance(clust.center().x + clust.width()/2, clust.center().y), range);
-
+      V += -truncatedLog(s.location().distance(clust.center().x, clust.center().y + clust.height()/2), range);
+      V += -truncatedLog(s.location().distance(clust.center().x, clust.center().y - clust.height()/2), range);
+      V += -truncatedLog(s.location().distance(clust.center().x + clust.width()/2, clust.center().y), range);
+      V += -truncatedLog(s.location().distance(clust.center().x + clust.width()/2, clust.center().y), range);
     }
 
     return V;
@@ -202,7 +135,7 @@ public class Nonhuman implements Intelligence {
 //    return Math.exp(-Math.abs(x/range));
 //  }
 
-  private double truncatedLog(double x, double range) {
+  private static double truncatedLog(double x, double range) {
     if (Math.abs(x) > range) return 0.0;
 
     return Math.log(Math.abs(x/range));

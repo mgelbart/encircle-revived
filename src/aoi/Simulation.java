@@ -243,8 +243,8 @@ public class Simulation  implements Runnable {
               lengthUntilRespawn[playerNo] = 
                 tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
               untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
-              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo] + " t =" + timeOfRespawn[playerNo] + "currentTime = " + newTime);
-              Logger.println(Rep.INFREQ, tail);
+//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo] + " t =" + timeOfRespawn[playerNo] + "currentTime = " + newTime);
+//              Logger.println(Rep.INFREQ, tail);
               spinWhileRespawn[playerNo] = true;
             } 
             else if (SimulationUtils.isInCluster(ship, arena)) {
@@ -254,8 +254,8 @@ public class Simulation  implements Runnable {
                   tail.headTime(), lengthUntilRespawn[playerNo], false);
               if (tor == null) tor = tail.baseTime();
               timeOfRespawn[playerNo] = tor;
-              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
-              Logger.println(Rep.INFREQ, tail);
+//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.INFREQ, tail);
               spinWhileRespawn[playerNo] = false;
             }
             // There still may be problems here if
@@ -270,10 +270,10 @@ public class Simulation  implements Runnable {
  
             if (!tail.isEmpty()) {
                
-              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
-              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
-              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
-              Logger.println(Rep.FEW, "Time now: " + newTime);
+//              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
+//              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "Time now: " + newTime);
               
               // Compute cropFrom
               Integer cropFrom = tail.convertLengthToTime(
@@ -281,7 +281,7 @@ public class Simulation  implements Runnable {
               // this will be null if you crash when your tail is smaller
               // that SimulationUtils.CRASHUNCOILLENGTH
               // in this case we crop the whole tail
-              Logger.println(Rep.FEW, "cropFrom: " + cropFrom);
+//              Logger.println(Rep.FEW, "cropFrom: " + cropFrom);
               
               if (cropFrom == null) cropFrom = tail.headTime();
               
