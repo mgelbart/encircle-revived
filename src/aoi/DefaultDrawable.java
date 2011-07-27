@@ -11,8 +11,8 @@ public class DefaultDrawable implements Drawable {
   
   // Currently allow up to 8 players
   public static final Color[] otherPlayerColors = 
-    new Color[]{Color.BLUE, Color.GREEN, Color.MAGENTA, Color.CYAN,
-                Color.YELLOW, Color.ORANGE, Color.PINK};
+    new Color[]{Color.BLUE, Color.MAGENTA, Color.CYAN,
+                Color.YELLOW, Color.ORANGE, Color.PINK, Color.LIGHT_GRAY};
   
   protected int playerNo;
   

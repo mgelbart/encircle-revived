@@ -167,9 +167,8 @@ public class Simulation  implements Runnable {
          * for each player
          *   (0) copy previous state parameters
          *   if not respawning
-         *     (1) take shots
-         *     (2) check if players are hit by bullets
-         *     (3) check for crashing into clusters
+         *     (1) check if players are hit by bullets, crash, or out of bounds
+         *     (3) take shots
          *     (4) check for tail crossings and scoring
          *     (5) move the Ship
          *   (6) optimize cropEvents
@@ -221,7 +220,47 @@ public class Simulation  implements Runnable {
           int sincePwned            = SimulationUtils.enforceByte (game.pStates[playerNo].sincePwned       +1);
           int sinceCrashed          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceCrashed     +1);
           Tail tail                 = game.pStates[playerNo].tail;
-           
+          
+
+          // (1) CHECK IF PLAYER IS HIT BY BULLETS 
+          //     OR WENT OUT OF BOUNDS
+          //     OR HIT A CLUSTER
+          if (untilRespawn == 0) {
+            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
+              Bullet b = bulletsTemp.get(k);
+              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
+                sinceHitByBullet = 0;
+                bulletsTemp.remove(k);
+              }
+            }
+            // If you were shot, set the cropEvents and untilRespawn
+            // The case where you flew way out of bounds is handled
+            // here as well (in the same way)
+            if (sinceHitByBullet == 0 ||
+                SimulationUtils.isOutOfBounds(ship, arena) &&
+                !tail.isEmpty()) {
+              timeOfRespawn[playerNo] = tail.lastKnotTime();
+              lengthUntilRespawn[playerNo] = 
+                tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
+              untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
+//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo] + " t =" + timeOfRespawn[playerNo] + "currentTime = " + newTime);
+//              Logger.println(Rep.INFREQ, tail);
+              spinWhileRespawn[playerNo] = true;
+            } 
+            else if (SimulationUtils.isInCluster(ship, arena)) {
+              lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
+              untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
+              Integer tor = tail.convertLengthToTime(
+                  tail.headTime(), lengthUntilRespawn[playerNo], false);
+              if (tor == null) tor = tail.baseTime();
+              timeOfRespawn[playerNo] = tor;
+//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.INFREQ, tail);
+              spinWhileRespawn[playerNo] = false;
+            }
+            // There still may be problems here if
+            // you also cross, score, etc. on the same round...
+          }
           
           // Special case: if you are in the process of respawning
           if (untilRespawn > 0) {
@@ -230,6 +269,11 @@ public class Simulation  implements Runnable {
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
  
             if (!tail.isEmpty()) {
+               
+//              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
+//              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "Time now: " + newTime);
               
               // Compute cropFrom
               Integer cropFrom = tail.convertLengthToTime(
@@ -237,8 +281,11 @@ public class Simulation  implements Runnable {
               // this will be null if you crash when your tail is smaller
               // that SimulationUtils.CRASHUNCOILLENGTH
               // in this case we crop the whole tail
+//              Logger.println(Rep.FEW, "cropFrom: " + cropFrom);
+              
               if (cropFrom == null) cropFrom = tail.headTime();
-                     
+              
+              
               // Get the new location and angle of the ship
               Point newLocation = tail.getPoint(cropFrom);
               Angle newDir;
@@ -271,8 +318,9 @@ public class Simulation  implements Runnable {
           }
           else {
           // Normal case when not respawning
+
             
-            // (1) TAKE SHOTS
+            // (3) TAKE SHOTS
             if (params[playerNo].shoot && 
                 SimulationUtils.canShoot(pStatesTemp[playerNo])) {
               
@@ -286,41 +334,7 @@ public class Simulation  implements Runnable {
                   game.time + 1,
                   "taking shot");
             }
-            
-            
-            // (2) CHECK IF PLAYER IS HIT BY BULLETS (OR WENT OUT OF BOUNDS)
-            for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
-              Bullet b = bulletsTemp.get(k);
-              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
-                sinceHitByBullet = 0;
-                bulletsTemp.remove(k);
-              }
-            }
-            // If you were shot, set the cropEvents and untilRespawn
-            // The case where you flew way out of bounds is handled
-            // here as well (in the same way)
-            if (sinceHitByBullet == 0 ||
-                SimulationUtils.isOutOfBounds(ship, arena)) {
-              timeOfRespawn[playerNo] = tail.lastKnotTime();
-              lengthUntilRespawn[playerNo] = 
-                tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
-              untilRespawn = 1 + (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
-//              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
-              spinWhileRespawn[playerNo] = true;
-            } 
-            
-            
-            // (3) CHECK IF PLAYER HIT A CLUSTER
-            else if (SimulationUtils.isInCluster(ship, arena)) {
-              lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
-              untilRespawn = 1 + (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
-              timeOfRespawn[playerNo] = tail.convertLengthToTime(tail.headTime(), lengthUntilRespawn[playerNo], false);
-              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]);
-              spinWhileRespawn[playerNo] = false;
-            }
-            // There still may be problems here if
-            // you also cross, score, etc. on the same round...
-  
+
             
 //            Logger.println(Rep.INFREQ, (SimulationUtils.isInCluster(ship, arena)));
   
