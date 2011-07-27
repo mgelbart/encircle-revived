@@ -15,7 +15,7 @@ public abstract class Tracker {
   private static final double DAMPINGDIST = SimulationUtils.MAXSPEED / SimulationUtils.DRAG;
   
   // acceptable radius at full speed
-  private static final double ACCEPTABLERADIOUS = SimulationUtils.ARENASIZE/25;
+  private static final double ACCEPTABLERADIOUS = SimulationUtils.ARENASIZE/15;
   
   private static final double MINDISTANCEBETWEENTARGETS = SimulationUtils.ARENASIZE/40;
   
@@ -98,34 +98,35 @@ public abstract class Tracker {
          * down in time.
          */
 
-        double avgAngle = 0;
-        double totalDist = current.location().distance(target);
+        double curvature = 0;
+        double totalDist = 0;
         for (int j=1; j<path.size(); ++j) {
           final Point p0 = (j==1) ? current.location() : path.get(j-2);
           final Point p1 = path.get(j-1);
           final Point p2 = path.get(j);
           
           // we only care about the curvature within damping distance of current location
-          totalDist += p1.distance(p2);
-          if (j>1 && totalDist > DAMPINGDIST) break;
+          final double SLOWDOWNDIST = 1.5*DAMPINGDIST;
+          totalDist += p0.distance(p1);
+          if (totalDist > SLOWDOWNDIST) break;
           
           // give less weight to the curvature the further it is from the current point.
-          final double weight = (j==1)? 1 : Math.pow((DAMPINGDIST-totalDist)/DAMPINGDIST, 0.4); // this determines how early you start to slow down before a tight curve
+          final double weight = Math.pow((SLOWDOWNDIST-totalDist)/SLOWDOWNDIST, 0.); // this determines how early you start to slow down before a tight curve
           
           final double angle = Math.abs(new Angle(p0, p1).add(-(new Angle(p1, p2).toDouble())).toDouble());
-          avgAngle = angle + (angle-avgAngle) * weight; // weighted average
+          curvature = Math.max(angle, weight*angle); // "weighted max"
         }
         
         final double MINSPEED = SimulationUtils.MAXSPEED * 0.4; // minimum speed to maintain
         final double MINACC = (speed > MINSPEED)? 0 : MINSPEED*SimulationUtils.DRAG;
-        final double MAXACCTH = Math.PI*0.15;
-        final double MINACCTH = Math.PI*0.4;
-        if (avgAngle < MAXACCTH)
+        final double MAXACCTH = Math.PI*0.08;
+        final double MINACCTH = Math.PI*0.5;
+        if (curvature < MAXACCTH)
           acc = SimulationUtils.MAXACC;
-        else if (avgAngle > MINACCTH)
+        else if (curvature > MINACCTH)
           acc = MINACC;
         else
-          acc = MINACC + (avgAngle-MAXACCTH)*(SimulationUtils.MAXACC-MINACC);
+          acc = MINACC + Math.pow((curvature-MAXACCTH)/(MINACCTH-MAXACCTH), 2)*(SimulationUtils.MAXACC-MINACC);
 
       }
     }
