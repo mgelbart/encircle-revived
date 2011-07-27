@@ -12,6 +12,9 @@ import java.util.*;
  */
 public class ClusterDatabase {
 
+  // The name of the data set... should not be hardcoded
+  public static final String CLUSTER_DATASET = "fly";
+  
   // The number of clusters to collect in order to win a round.
   public static final int SEQUENCE_LENGTH = 7;
   
@@ -52,8 +55,8 @@ public class ClusterDatabase {
   // The Clusters that have already been returned, and thus should not be used again.
   public final boolean[] alreadyUsed;
 
-  public ClusterDatabase(String datasetName) throws FileNotFoundException {
-    this.datasetName = datasetName;
+  public ClusterDatabase() throws FileNotFoundException {
+    this.datasetName = CLUSTER_DATASET;
     Vector<String> vImageFilenames = new Vector<String>();
 
     Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(

@@ -14,7 +14,7 @@ import aoi.Logger.Rep;
 public class Cluster {
 	private final NSPolygon contour; // the outline polygon, relevant for gameplay
 	private final ImageMetaData imgMetaData;
-	private Rectangle boundingBox;
+	private Rectangle boundingBox;  // cached for speed, used for optimizing intersects()
 
 
   public Cluster(NSPolygon contour, ImageMetaData imgMetaData) {

@@ -17,8 +17,6 @@ public abstract class Server {
   public static final int TCPPORT = 7601;
   public static final int UDPPORT = 7601;
 
-  private static final String CLUSTER_DATASET = "fly";  // should not be hardcoded...
-
   public static void main(String argv[]) {
 
     // Parse input options:
@@ -62,7 +60,7 @@ public abstract class Server {
 	  // (This can be moved later) Initialize ClusterDatabase;
 	  ClusterDatabase clusterDbSayWithPET;
     try {
-      clusterDbSayWithPET = new ClusterDatabase(CLUSTER_DATASET);
+      clusterDbSayWithPET = new ClusterDatabase();
     } catch (FileNotFoundException e1) {
       Logger.println(Rep.FEW, "Failed to init cluster DB.");
       e1.printStackTrace();

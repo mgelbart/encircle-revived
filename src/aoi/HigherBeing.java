@@ -4,8 +4,6 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.Vector;
 
-import aoi.Logger.Rep;
-
 /**
  *  This class decides what to do based on (the
  *  history of) the game state.
