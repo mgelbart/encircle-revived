@@ -15,6 +15,9 @@ public abstract class ClientConfiguration {
   // the control parameters.
   public static int serverPort;
   
+  // the current match id
+  public static Long matchId = null;
+  
   // The id of the UnreliableStream used to connect to the server.
   public static short unreliableStreamId;
 

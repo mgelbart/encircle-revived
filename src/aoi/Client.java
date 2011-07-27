@@ -7,6 +7,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import aoi.Logger.Rep;
+import aoi.Protocol.ClientState;
 
 import unreliablestream.UnreliableStream;
 
@@ -18,9 +19,6 @@ public class Client implements Runnable {
 
   // Path to the default configuration file.
   private static final String DEFAULTCONFIGPATH = "client.conf";
-
-  // The number of milliseconds to wait for a UDP reply before fallning back to TCP
-  private static final int UDPTIMEOUT = 4000;
   
   // The JLabel for the GUI.
   private static Canvas canvas;
@@ -44,6 +42,24 @@ public class Client implements Runnable {
       ClientConfiguration.parse(stream);
     }
 
+  }
+  
+  /**
+   * Parse the received TCP message and return the resulting client state.
+   */
+  private ClientState nextState(ClientState current, String msg) {
+    switch (current) {
+    
+//    case REQUESTEDMATCH:
+//      return (parseMatchMade(msg))? ClientState.READYFORMATCH : current;
+//      
+//    case READYFORMATCH:
+//      return (parsePlayerNo(msg))? ClientState.RECEIVEDPLAYERNO : current;
+    
+    }
+
+    assert(false);
+    return null;
   }
 
   public void run() {
@@ -73,34 +89,38 @@ public class Client implements Runnable {
 
     try {
 
-      DataInputStream stateStream = new DataInputStream(socket.getInputStream());
-      BufferedOutputStream controlStream = new BufferedOutputStream(socket.getOutputStream());
+      InputStream tcpIn = socket.getInputStream();
+      DataOutputStream tcpOut = new DataOutputStream(socket.getOutputStream());
+      String msg;
 
 
       /* Process the handshake */
 
-      // Read the player number assigned to self.
-      Byte cmd = stateStream.readByte();
-      assert(cmd == 'p');
-      ClientConfiguration.setPlayerNo(stateStream.readInt());
+      // Read the matchid, player number, and unreliable stream id assigned to self.
+      msg = Protocol.readNextMsg(tcpIn);
+      long[] matchParams = Protocol.parseMatchStarting(msg);
+      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); return; }
       
-      // Read the UnreliableStream id assigned to self.
-      cmd = stateStream.readByte();
-      assert(cmd == 'u');
-      ClientConfiguration.unreliableStreamId = stateStream.readShort();
+      ClientConfiguration.matchId = matchParams[0];
+      ClientConfiguration.setPlayerNo((int) matchParams[1]);
+      ClientConfiguration.unreliableStreamId = (short) matchParams[2];
 
+      // ack the match params
+      tcpOut.writeBytes(Protocol.ack());
+      tcpOut.flush();
+      
       // Parse the arena
-      cmd = stateStream.readByte();
-      assert(cmd == 'a');
-      int arenaSize = stateStream.readInt(); // Length of the serialized arena in bytes
-      assert(arenaSize > 0);
-
       // First read all bytes into a buffer.
-      byte[] arenaBuf = new byte[arenaSize];
-      stateStream.readFully(arenaBuf);
+      msg = Protocol.readNextMsg(tcpIn);
+      String arenaBuf = Protocol.parseSendingArena(msg);
+      if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); return; }
 
+      // ack the arena
+      tcpOut.writeBytes(Protocol.ack());
+      tcpOut.flush();
+      
       // Now parse from the buffer.
-      Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf));
+      Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf.getBytes()));
       Arena.setCurrent(arena);
       
       Logger.println(Logger.Rep.FEW, ClientConfiguration.asString());
@@ -130,7 +150,7 @@ public class Client implements Runnable {
         final long start = System.currentTimeMillis();
         while (uStream.sendSuccessRate() < 0) {
           Logger.println(Rep.FEW, "waiting for UDP reply... ");
-          if (System.currentTimeMillis() - start > UDPTIMEOUT) {
+          if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
             Logger.println(Rep.FEW, "Falling back to TCP. ");
             ClientConfiguration.tcpOnly = true;
             break;
@@ -141,7 +161,7 @@ public class Client implements Runnable {
 
       // This timer task keeps asking the intelligence for new parameters
       // and sends them to the server.
-      TimerTask sendTask = new SendParamsTask(intel, controlStream, uStream);
+      TimerTask sendTask = new SendParamsTask(intel, tcpOut, uStream);
       Timer sendTimer = new Timer("send-timer");
       sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
@@ -150,14 +170,8 @@ public class Client implements Runnable {
       GameState game = null;
 
       while (true) {
-        if (ClientConfiguration.tcpOnly) {
-          // use this thread to parse game states from the TCP stream
-          game = GameState.parse(stateStream, game);
-          intel.processGameStateUpdate(game);
-        } else {
-          // in UDP mode the GameStateReceiver handles this so there's nothing left for this thread to do!
-          Thread.sleep(10000);
-        }
+        // in UDP mode the GameStateReceiver handles this so there's nothing left for this thread to do!
+        Thread.sleep(10000);
       }
 
     } catch (Exception e) {

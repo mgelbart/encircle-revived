@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import unreliablestream.UnreliableStream;
 import aoi.Logger.Rep;
+import aoi.Protocol.ClientState;
 
 /**
  * This class is dedicated to communicating with the client
@@ -14,7 +15,7 @@ import aoi.Logger.Rep;
  */
 public class Communicator implements UnreliableStream.Receiver {
   private Thread udpSenderThread;
-  private Thread tcpListenerThread;
+  private Thread tcpNegotiatorThread;
   
   private int playerNo;
   private Socket tcpSocket = null;
@@ -28,6 +29,8 @@ public class Communicator implements UnreliableStream.Receiver {
   
   private final static int CTRLBUFFERSIZE = 200;
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
+  
+  private ClientState clientState = null;
   
   private boolean stop = false;
 
@@ -71,36 +74,18 @@ public class Communicator implements UnreliableStream.Receiver {
   /**
    * Returns true if the player still appears to be connected.
    */
-  public boolean isAlive() {
-    return !stop && udpStream != null && udpStream.isAlive();
+  public boolean stopped() {
+    return stop;
   }
   
+  /**
+   * This starts to send game data to the client.
+   * This is non-blocking.
+   */
   public void start() {
-    
-    // First shake hands:
-    try {
-      DataOutputStream ds = new DataOutputStream(tcpOut);
-
-      // Send the (dynamically assigned) player number to the client.
-      ds.writeBytes("p");
-      ds.writeInt(playerNo);
-
-      // Send the (dynamically assigned) UDP id (UnreliableStream id).
-      ds.writeBytes("u");
-      ds.writeShort(udpId);
-      
-      // Send the serialized arena.
-      String arena = sim.arena().toString();
-      ds.writeBytes("a");
-      ds.writeInt(arena.length());
-      ds.writeBytes(arena);
-
-      tcpOut.flush();
-
-    } catch (IOException ioe) {
-      Logger.println(Logger.Rep.INFREQ, ioe.toString());
-      assert(false);
-    }
+    assert(!stop);
+    assert(tcpOut != null);
+    assert(!tcpSocket.isClosed());
     
     udpSenderThread = new Thread(new Runnable() {
 
@@ -111,29 +96,68 @@ public class Communicator implements UnreliableStream.Receiver {
       
     }, "udpsender-"+sim.matchId+"-"+playerNo);
     
-    // Wait for the client to connect using UDP
-    final long startedToWait = System.currentTimeMillis();
-    while (udpStream == null){
-      
-      if (System.currentTimeMillis() - startedToWait < UnreliableStream.TIMEOUT)
+    tcpNegotiatorThread = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        // First shake hands:
         try {
-          Thread.sleep(300);
-        } catch (InterruptedException e) {
-          Logger.println(Rep.FEW, "interrupted");
-          continue;
+          final DataOutputStream dout = new DataOutputStream(tcpOut);
+          String msg;
+
+          // Send the (dynamically assigned) player number to the client.
+          dout.writeBytes(Protocol.matchStarting(sim.matchId, playerNo, udpId));
+
+          tcpOut.flush();
+          
+          msg=Protocol.readNextMsg(tcpIn);
+          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
+          clientState = ClientState.READYFORMATCH;
+          
+          // Send the serialized arena as one line.
+          final String arenastr = sim.arena().toString();
+          dout.writeBytes(Protocol.sendingArena(arenastr));
+
+          tcpOut.flush();
+          
+          msg=Protocol.readNextMsg(tcpIn);
+          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to arena."); stop(); return; }
+          clientState = ClientState.RECEIVEDARENA;
+
+        } catch (IOException ioe) {
+          Logger.println(Logger.Rep.INFREQ, ioe.toString());
+          assert(false);
         }
-      else {
-        Logger.println(Rep.FEW, "Client didn't form UDP connection.");
-        stop();
-        return;
-      }
         
-    }
-    
-    udpSenderThread.start();
+        // Wait for the client to connect using UDP
+        final long startedToWait = System.currentTimeMillis();
+        while (udpStream == null){
+          
+          if (System.currentTimeMillis() - startedToWait < UnreliableStream.TIMEOUT)
+            try {
+              Thread.sleep(300);
+            } catch (InterruptedException e) {
+              Logger.println(Rep.FEW, "interrupted");
+              continue;
+            }
+          else {
+            Logger.println(Rep.FEW, "Client didn't form UDP connection.");
+            stop();
+            return;
+          }
+            
+        }
+        
+        udpSenderThread.start();
+      }
+      
+    }, "tcpnegotiator-"+sim.matchId+"-"+playerNo);
+
+    tcpNegotiatorThread.start();
   }
   
   public void sendNewState() {
+    if (udpStream != null && clientState == ClientState.RECEIVEDARENA);
     udpSenderThread.interrupt();
   }
   
@@ -142,6 +166,14 @@ public class Communicator implements UnreliableStream.Receiver {
     if (udpStream != null) {
       udpStream.disconnect();
       udpSenderThread.interrupt();
+    }
+    if (tcpSocket != null && !tcpSocket.isClosed()) {
+      try {
+        tcpSocket.close();
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "closing socket failed.");
+        e.printStackTrace();
+      }
     }
   }
 
@@ -153,11 +185,11 @@ public class Communicator implements UnreliableStream.Receiver {
 
     GameState g;
 
-    // Sleep until interruption (triggered by Simulation
-    // when game state is updated);
     while (true) {
       
       try {
+        // Sleep until interruption (triggered by Simulation
+        // when game state is updated);
         Thread.sleep(200);
       } catch (InterruptedException e) {
         if (stop || udpStream == null) { Logger.println(Rep.FEW, "GameStateSender stopping."); return; }

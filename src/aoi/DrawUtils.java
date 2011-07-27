@@ -83,7 +83,7 @@ public class DrawUtils {
     canvas = canv;
 
     canvas.setIgnoreRepaint(true);
-    canvas.createBufferStrategy(2);
+    canvas.createBufferStrategy(2); // double buffering
     strategy = canvas.getBufferStrategy();
     
     // Transformation from overlay/game coordinates to Java graphics coordinates.
