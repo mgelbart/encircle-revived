@@ -54,7 +54,7 @@ public abstract class Protocol {
    * Client to Matchmaking server:
    */
   private static final String REQUESTMATCH = "requestMatch";
-  public static String requestMatch(String userid) { return REQUESTMATCH+" "+userid+"\n"; }
+  public static String requestMatch(String username) { return REQUESTMATCH+" "+username+"\n"; }
   public static String parseRequestMatch(String msg) { return parse1String(REQUESTMATCH, msg); }
   
   /*
