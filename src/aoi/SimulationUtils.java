@@ -54,7 +54,10 @@ public abstract class SimulationUtils {
   // The amount of time you spend uncoiling if you crash
   public static final double CRASHUNCOILLENGTH = ARENASIZE * 0.075; 
   
-  // The number of players in the game. Currently not adjustable.
+  // The number of players in the game.
+  // DefaultDrawable relies on this being <= 8 and
+  // Simulation relies on it being small because of the starting
+  // position, but this can be changed easily!
   public static final int NUMPLAYERS = 2;
   
   

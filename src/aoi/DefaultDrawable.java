@@ -7,6 +7,11 @@ import java.awt.*;
  */
 public class DefaultDrawable implements Drawable {
 
+  // Currently allow up to 8 players
+  public static final Color[] otherPlayerColors = 
+    new Color[]{Color.BLUE, Color.GREEN, Color.MAGENTA, Color.CYAN,
+                Color.YELLOW, Color.ORANGE, Color.PINK};
+  
   protected int playerNo;
   
   // default stroke, fill, and pain objects returned for all shapes
@@ -30,7 +35,9 @@ public class DefaultDrawable implements Drawable {
 
   // Returns the Color associated with the given player number.
   public static Color getColor(int playerNo) { 
-    return (playerNo == ClientConfiguration.playerNo) ? Color.RED : Color.BLUE;
+    if (playerNo == ClientConfiguration.playerNo) return Color.RED;
+    else return otherPlayerColors[
+      playerNo > ClientConfiguration.playerNo?playerNo-1:playerNo];
   }
   
   // Returns the shape to be drawn, if any.

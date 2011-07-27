@@ -99,7 +99,7 @@ public class Simulation  implements Runnable {
     assert(playerNo < SimulationUtils.NUMPLAYERS);
 
     // Always start from one of the corners of the map.
-    final int corner = (homeCorner) ? 2*playerNo : (int) (4 * Math.random());
+    final int corner = (homeCorner) ? playerNo : (int) (4 * Math.random());
 
     final int x = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==1) ?  1 : -1);
     final int y = SimulationUtils.ARENASIZE/2 * ((corner==0 || corner==3) ? -1 :  1);
