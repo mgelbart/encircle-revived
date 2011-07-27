@@ -13,6 +13,7 @@ public class Nonhuman extends DefaultIntelligence {
   private int acc = SimulationUtils.MAXACC / 2;
   private Angle dir = new Angle(0);
   
+  
   public PlayerControlParameters think(GameState gState) {
 
     double bestV, V, currentV;     // define a potential function V for decision making
