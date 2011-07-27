@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import aoi.Logger.Rep;
@@ -27,82 +28,30 @@ public class Matchmaker {
 	List<String> gameServers;
 	Queue<GameClient> clients;
 
-	// This class contains the data for one game client.
+	// This class contains the data for one game client waiting to be matched.
 	class GameClient {
-		Socket socket; 
-		String username;
-		Protocol.ClientState state; 
+		Socket socket;
+		InputStream in;
+		PrintStream out;  
 		
-		GameClient(Socket s) {
+		GameClient(Socket s) throws IOException{
 			socket = s;
-			state = null;			
+			in = socket.getInputStream();
+			out = new PrintStream(socket.getOutputStream());
 		}
 		
 		@Override
 		public String toString() {
-			String s = "GameClient addr " + socket.getRemoteSocketAddress() + " state " + state;
-			if (username != null) 
-				s += " " + username;
-			return s;
+			return "GameClient " + socket.getRemoteSocketAddress();
 		}
 	}
-	
-	// This thread manages interaction with one game client.
-	class GameClientManager implements Runnable {
-		GameClient client;
-		
-		GameClientManager(GameClient c) {
-			client = c;
-		}
-		
-		void checkForMatch() {
-        	Logger.println(Rep.FREQ, "Head of Q: " + clients.peek());
+	  		
 
-        	// Do we have a match?
-        	for (GameClient c: clients) {
-        		Logger.println(Rep.FREQ, c);
-        		
-        		if ((c != client) && (c.state == Protocol.ClientState.REQUESTEDMATCH)) {
-        			        			  	
-        		}
-        	}
-        	
-		}
-
-		@Override
-		public void run() {
-			Logger.println(Rep.FREQ, "In thread");
-			
-			try {			
-		        InputStream in = client.socket.getInputStream();
-		        PrintStream out = new PrintStream(client.socket.getOutputStream());
-
-		        while (true) {
-		        	String s = Protocol.readNextMsg(in);
-		        	Logger.println(Rep.FREQ, "Got message: '" + s + "'");
-		        	
-		        	String username = Protocol.parseRequestMatch(s);
-		        	if (username != null) {
-		        		Logger.println(Rep.FREQ, "Match requested by username: '" + username + "'");
-		        		client.username = username;
-		        		client.state = Protocol.ClientState.REQUESTEDMATCH;
-		        		
-		        		checkForMatch();
-		        	}		        	
-		        			        	
-		        }
-			} 
-		    catch (IOException e) {
-		        Logger.println(Rep.FEW, "Socket exception");
-		        e.printStackTrace();
-		        return;
-		    }	        
-		}
-		
-	}
-
-	// This thread loops listening for new game clients.
+	// This thread loops listening for new game clients, and matches them.
 	class GameClientListener implements Runnable {
+	    Random randomGenerator = new Random();
+
+	    
 		@Override
 		public void run() {
 			ServerSocket servSocket;
@@ -110,7 +59,7 @@ public class Matchmaker {
 				servSocket = new ServerSocket(Server.TCPPORT);	
 			}
 		    catch (IOException e1) {
-		        Logger.println(Rep.FEW, "Failed to init sockets.");
+		        Logger.println(Rep.FEW, "Failed to init server socket.");
 		        e1.printStackTrace();
 		        return;
 		    }
@@ -118,12 +67,10 @@ public class Matchmaker {
 			while (true) {
 			    try {
 			      Socket socket = servSocket.accept();
-			      Logger.println(Rep.FREQ, "Connected to client");
+			      Logger.println(Rep.FREQ, "Connected to client " + socket.getRemoteSocketAddress());
 			      GameClient client = new GameClient(socket);
 			      clients.add(client);
-			      GameClientManager manager = new GameClientManager(client); 
-			      Thread t = new Thread(manager, "GameClientManager");
-			      t.start();			      			     
+			      checkForMatch(client);
 			    }
 			    catch (IOException e) {
 			        Logger.println(Rep.FEW, "Socket exception");
@@ -131,7 +78,22 @@ public class Matchmaker {
 			        return;
 			    }
 			}
-		    
+		}
+		
+		void checkForMatch(GameClient client) {
+
+			// Starting from the head of the queue, look for another client
+			for (GameClient c : clients) {
+				if (c != client) {
+					Logger.println(Rep.FREQ, "Found another client in Q: " + c);
+					
+				    int matchId = randomGenerator.nextInt();
+				    
+					
+					matchMade <hostname> <matchID>\n
+				}
+			}
+
 		}		
 	}
 		
