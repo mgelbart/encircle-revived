@@ -21,8 +21,8 @@ public abstract class Protocol {
   public enum ClientState {
     REQUESTEDMATCH,
     READYFORMATCH,
-    RECEIVEDARENA,
     GAMESTARTED,
+    RECEIVEDARENA,
     GAMEENDED,
     REMATCHREQUESTPENDING
   }
@@ -32,13 +32,13 @@ public abstract class Protocol {
     while (true) {
       int b;
       StringBuilder buf = new StringBuilder();
-      do {
+      boolean end = false;
+      while (!end) {
         b = in.read();
-        buf.append((char) b);
-      } while (b != '\n' && b != -1);
-      
-      assert(buf.length() > 0);
-      buf.deleteCharAt(buf.length()-1);
+        end = (b == '\n' || b == -1);
+        if (!end) buf.append((char) b);
+      }
+
       if (buf.length() > 0) return buf.toString();
     }
   }
@@ -85,6 +85,16 @@ public abstract class Protocol {
   private static final String MATCHSTARTING = "matchStarting";
   public static String matchStarting(long gameId, long playerId, long uStreamId) { return MATCHSTARTING+" "+gameId+" "+playerId+" "+uStreamId+"\n"; }
   public static long[] parseMatchStarting(String msg)  { return parseNLongs(MATCHSTARTING, msg, 3); }
+  
+  private static final String SENDINGARENA = "sendingArena";
+  public static String sendingArena(String arena) { return SENDINGARENA+" "+arena.replace('\n', ' ')+"\n"; }
+  public static String parseSendingArena(String msg) {
+    int dataStarts = msg.indexOf(' ');
+    if (dataStarts < SENDINGARENA.length()) return null;
+    if (!msg.substring(0, dataStarts).equals(SENDINGARENA)) return null;
+    final int len = msg.length();
+    return msg.substring(dataStarts+1, len - ((msg.charAt(len-1)=='\n')? 1:0));
+  }
   
   private static final String MATCHENDED = "matchEnded";
   public static String matchEnded(long gameId) { return MATCHENDED+" "+gameId+"\n"; }
@@ -161,6 +171,9 @@ public abstract class Protocol {
     assert(args[0] == argsParsed[0]);
     assert(args[1] == argsParsed[1]);
     assert(args[2] == argsParsed[2]);
+    
+    String arenastr = "<arena> ... </arena>";
+    assert(arenastr.equals(parseSendingArena(sendingArena(arenastr))));
     
     Logger.println(Rep.FEW, "tests done.");
   }
