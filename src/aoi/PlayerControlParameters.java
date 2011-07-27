@@ -40,7 +40,8 @@ public class PlayerControlParameters implements Comparable<PlayerControlParamete
   // Helps to make sure that the client isn's out of sync with the server (due to a programming error).
   private static final boolean CHECKBYTES = true;
   
-  public PlayerControlParameters(int effectiveOn, int acceleration, Angle targetDirection,
+  public PlayerControlParameters(int effectiveOn, int acceleration, 
+                                 Angle targetDirection,
                                  boolean shoot, boolean boost) {
     this.effectiveOn = effectiveOn;
     this.acceleration = acceleration;
