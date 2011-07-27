@@ -228,7 +228,8 @@ public class Simulation  implements Runnable {
           if (untilRespawn == 0) {
             for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
               Bullet b = bulletsTemp.get(k);
-              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
+              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b) &&
+                  !tail.isEmpty()) {
                 sinceHitByBullet = 0;
                 bulletsTemp.remove(k);
               }
@@ -236,9 +237,7 @@ public class Simulation  implements Runnable {
             // If you were shot, set the cropEvents and untilRespawn
             // The case where you flew way out of bounds is handled
             // here as well (in the same way)
-            if (sinceHitByBullet == 0 ||
-                SimulationUtils.isOutOfBounds(ship, arena) &&
-                !tail.isEmpty()) {
+            if (sinceHitByBullet == 0) {
               timeOfRespawn[playerNo] = tail.lastKnotTime();
               lengthUntilRespawn[playerNo] = 
                 tail.convertTimeToLengthStartingAtHead(timeOfRespawn[playerNo]);
@@ -247,7 +246,8 @@ public class Simulation  implements Runnable {
 //              Logger.println(Rep.INFREQ, tail);
               spinWhileRespawn[playerNo] = true;
             } 
-            else if (SimulationUtils.isInCluster(ship, arena)) {
+            else if (SimulationUtils.isInCluster(ship, arena) ||
+                   SimulationUtils.isOutOfBounds(ship, arena) ) {
               lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
               untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
               Integer tor = tail.convertLengthToTime(

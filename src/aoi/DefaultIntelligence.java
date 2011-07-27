@@ -49,7 +49,8 @@ public class DefaultIntelligence implements Intelligence {
     mindreader = new MindReader(timemachine);
     MindReader.setCurrent(mindreader);
 
-    // Dummy command, just so we don't have to deal with the corner case of no control parameters in the beginning.
+    // Dummy command, just so we don't have to deal with the
+    // corner case of no control parameters in the beginning.
     queueParams(new PlayerControlParameters(0, 0, new Angle(0), false, false));
         
     cspTimer = new CspTimer();
@@ -155,8 +156,9 @@ public class DefaultIntelligence implements Intelligence {
           if (lagEstimate == null) lagEstimate = 0;
           // in the long term we would like to (on average) be this many steps ahead
           // of the latest state received from the server
-          final int targetSimulatedSteps = (int) Math.round(Math.max(ClientConfiguration.predictFuture, 100 + lagEstimate)
-                                                            / (double) SimulationUtils.TIMESTEP);
+          final int targetSimulatedSteps = (int) Math.round(
+              Math.max(ClientConfiguration.predictFuture, 
+                  100 + lagEstimate) / (double) SimulationUtils.TIMESTEP);
           
           // the next time to process
           clientTime = (latestState != null) ? clientTime + 1 : 0;
@@ -178,7 +180,8 @@ public class DefaultIntelligence implements Intelligence {
             clientTime = latestAuthoritativeState.time + targetSimulatedSteps;
           
           if (Math.abs(simulatedSteps-targetSimulatedSteps) > 3 && --warnCtr == 0) {
-            Logger.println(Rep.INFREQ, "CSP time " + simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
+            Logger.println(Rep.INFREQ, "CSP time " + 
+                simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
             warnCtr = SKIPWARNS;
           }
   
@@ -187,8 +190,10 @@ public class DefaultIntelligence implements Intelligence {
           if (clientTime%2000 == 200) {
             //Logger.println(Rep.INFREQ, "sleep: " + sleeptime + " ms");
             Logger.println(Rep.INFREQ, "avg. lag: " + lagEstimate
-                            + "  target/current CSP: " + targetSimulatedSteps*SimulationUtils.TIMESTEP
-                            + " / " + simulatedSteps*SimulationUtils.TIMESTEP + " ms");
+                            + "  target/current CSP: " + 
+                            targetSimulatedSteps*SimulationUtils.TIMESTEP
+                            + " / " + 
+                            simulatedSteps*SimulationUtils.TIMESTEP + " ms");
           }
         
         } else {
