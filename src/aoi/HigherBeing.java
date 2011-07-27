@@ -40,66 +40,55 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
 
 
   public void think() {
+    // copy the reference so it doesn't change during an iteration
+    GameState gState = latestState(); 
 
-    while (true) {
-	    
-      try {
-        Thread.sleep(1000); // Sleep when there's nothing better to do.
-      } catch (InterruptedException e) {
+    PlayerControlParameters c;
 
-        // Don't do anything before the game starts.
-        if (latestState() == null) continue;
-        
-        GameState gState = latestState(); // copy the reference so it doesn't change during an iteration
+    if (ClientConfiguration.useMouse) {
 
-        PlayerControlParameters c;
-
-        if (ClientConfiguration.useMouse) {
-          
-          // remove path from tracker if we crashed
-          if (gState.pStates[ClientConfiguration.playerNo].untilRespawn > 0) {
-            Tracker.setPathToTrack(null);
-            mousePath.setPath(null);
-          }
-          
-          // see if mousepilot has a new trajectory to track.
-          Vector<Point> path = mousePilot.trajectory();
-          if (path != null)
-            Tracker.setPathToTrack(path);
-          
-          
-          if (Tracker.pointsLeftToTrack() > 0) {
-            // let Tracker decide what to do if it still has points left to track
-            c = Tracker.nextParams(gState.time, gState.pStates[ClientConfiguration.playerNo].ship);
-            path = Tracker.remainingPath();
-            if (path != null) mousePath.setPath(path);
-          } else
-            // otherwise go towards the cursor.
-            c = mousePilot.getParams(gState);
-          
-        } else
-          // if mouse is disabled
-          c = keyboardPilot.getParams(gState);
-        
-        // auto-shooter
-        if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
-          //Logger.println(Rep.INFREQ, "could shoot");
-          c = c.shoot();
-        }
-        
-        // manual shoot
-        if (mousePilot.shoot || keyboardPilot.shoot)
-          c = c.shoot();
-        
-        // manual stop
-        if (keyboardPilot.stop)
-          c = c.stop();
-        
-        if (c != null) queueParams(c);
-
+      // remove path from tracker if we crashed
+      if (gState.pStates[ClientConfiguration.playerNo].untilRespawn > 0) {
+        Tracker.setPathToTrack(null);
+        mousePath.setPath(null);
       }
 
+      // see if mousepilot has a new trajectory to track.
+      Vector<Point> path = mousePilot.trajectory();
+      if (path != null)
+        Tracker.setPathToTrack(path);
+
+
+      if (Tracker.pointsLeftToTrack() > 0) {
+        // let Tracker decide what to do if it still has points left to track
+        c = Tracker.nextParams(gState.time, gState.pStates[ClientConfiguration.playerNo].ship);
+        path = Tracker.remainingPath();
+        if (path != null) mousePath.setPath(path);
+      } else
+        // otherwise go towards the cursor.
+        c = mousePilot.getParams(gState);
+
+    } else
+      // if mouse is disabled
+      c = keyboardPilot.getParams(gState);
+
+    // auto-shooter
+    if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
+      //Logger.println(Rep.INFREQ, "could shoot");
+      c = c.shoot();
     }
+
+    // manual shoot
+    if (mousePilot.shoot || keyboardPilot.shoot)
+      c = c.shoot();
+
+    // manual stop
+    if (keyboardPilot.stop)
+      c = c.stop();
+
+    if (c != null) queueParams(c);
+
+   
 
   }
 

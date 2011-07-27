@@ -61,7 +61,16 @@ public class DefaultIntelligence implements Intelligence {
   }
 
   public void run() {
-    think();
+    while (true) {
+      try {
+        Thread.sleep(1000); // Sleep when there's nothing better to do.
+      } catch (InterruptedException e) {
+        // Don't do anything before the game starts.
+        if (latestState == null) continue;
+        
+        think();
+      }
+    }
   }
 
   /* Store the latest game state in a queue. */
@@ -103,28 +112,15 @@ public class DefaultIntelligence implements Intelligence {
   }
 
   public void think() {
-
-    while (true) {
-      
-      try {
-        Thread.sleep(1000); // Sleep when there's nothing better to do.
-      } catch (InterruptedException e) {
-
-        // Don't do anything before the game starts.
-        if (latestState == null) continue;
+    // copy the reference so it doesn't change during an iteration
+    GameState gState = latestState; 
         
-        // copy the reference so it doesn't change during an iteration
-        GameState gState = latestState; 
-        
-        queueParams(new PlayerControlParameters(
-            clientTime, 
-            SimulationUtils.MAXACC, 
-            new Angle((Math.random()-0.5)*2*Math.PI),
-            false, false));
- 
-      }
-    }
-  }
+    queueParams(new PlayerControlParameters(
+      clientTime, 
+      SimulationUtils.MAXACC, 
+      new Angle((Math.random()-0.5)*2*Math.PI),
+      false, false));
+  } 
 
 
 

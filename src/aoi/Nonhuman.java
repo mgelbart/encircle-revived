@@ -1,8 +1,5 @@
 package aoi;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
-
  /**
  *  This class decides what to do based on (the
  *  history of) the game state.
@@ -13,93 +10,74 @@ import java.awt.geom.Point2D;
  */
 public class Nonhuman extends DefaultIntelligence {
 
-  public Nonhuman() {
-    super();    
-    Logger.println(Logger.Rep.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
-  }
-
+  private int acc = SimulationUtils.MAXACC / 2;
+  private Angle dir = new Angle(0);
+  
   public void think() {
 
-    int acc;
-    Angle dir;
-    boolean shoot;
+    double bestV, V, currentV;     // define a potential function V for decision making
+    PlayerControlParameters bestCtrl, testCtrl;
+    
+    // copy the reference so it doesn't change during an iteration
+    GameState gState = latestState(); 
 
-    acc = SimulationUtils.MAXACC / 2;
+    
+    
+    
+    currentV = potentialFunction(gState.pStates[ClientConfiguration.playerNo].ship);
+    bestV = Double.POSITIVE_INFINITY;
+    bestCtrl = null;
 
-    while (true) {
-	    
-      try {
-        Thread.sleep(1000); // Sleep when there's nothing better to do.
-      } catch (InterruptedException e) {
+    // Try different directions.
+    for (int j=-1; j<=1; ++j) {
 
-        // Don't do anything before the game starts.
-        if (latestState() == null) continue;
-        
-        GameState gState = latestState(); // copy the reference so it doesn't change during an iteration
+      dir = gState.pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
 
+      // The candidate set of control parameters.
+      testCtrl = new PlayerControlParameters(gState.time, acc, dir,
+          false, false);
 
-        // define a potential function V for decision making
-        double bestV, V, currentV;
-        PlayerControlParameters bestCtrl, testCtrl;
+      Ship intPos = SimulationUtils.nextPosition(
+          gState.pStates[ClientConfiguration.playerNo].ship, testCtrl);
 
-        
+      V = Double.NEGATIVE_INFINITY;
 
-        currentV = potentialFunction(gState.pStates[ClientConfiguration.playerNo].ship);
+      // For this given direction candidate, look ahead 1000 time 
+      // steps and take the maximum of the potential along the path.
+      for (int k=1; k < 1000/SimulationUtils.TIMESTEP; ++k) {
 
-        bestV = Double.POSITIVE_INFINITY;
-        bestCtrl = null;
+        intPos = SimulationUtils.nextPosition(intPos, testCtrl);
 
-        // Try different directions.
-        for (int j=-1; j<=1; ++j) {
-
-          dir = gState.pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
-        
-          // The candidate set of control parameters.
-          testCtrl = new PlayerControlParameters(gState.time, acc, dir,
-                                                 false, false);
-
-          Ship intPos = SimulationUtils.nextPosition(
-              gState.pStates[ClientConfiguration.playerNo].ship, testCtrl);
-
-          V = Double.NEGATIVE_INFINITY;
-
-          // For this given direction candidate, look ahead 1000 time 
-          // steps and take the maximum of the potential along the path.
-          for (int k=1; k < 1000/SimulationUtils.TIMESTEP; ++k) {
-
-            intPos = SimulationUtils.nextPosition(intPos, testCtrl);
-
-            V = Math.max(V, potentialFunction(intPos));
-          }
-
-          // Prefer going straight
-          V += Math.abs(j) * 0.05;
-
-          if (V < bestV) {
-            bestCtrl = testCtrl;
-            bestV = V;
-          }
-
-        }
-
-
-        if (bestV < currentV)
-          acc = SimulationUtils.MAXACC;
-        else {
-          acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
-                       * SimulationUtils.MAXACC);
-          //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
-        }
-
-        
-        // Use automatic shooter
-        if (Shooter.wouldHit(gState, ClientConfiguration.playerNo))
-          bestCtrl = bestCtrl.shoot();
-        
-        
-        queueParams(bestCtrl);
+        V = Math.max(V, potentialFunction(intPos));
       }
+
+      // Prefer going straight
+      V += Math.abs(j) * 0.05;
+
+      if (V < bestV) {
+        bestCtrl = testCtrl;
+        bestV = V;
+      }
+
     }
+
+
+    if (bestV < currentV)
+      acc = SimulationUtils.MAXACC;
+    else {
+      acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
+          * SimulationUtils.MAXACC);
+      //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
+    }
+
+
+    // Use automatic shooter
+    if (Shooter.wouldHit(gState, ClientConfiguration.playerNo))
+      bestCtrl = bestCtrl.shoot();
+
+
+    queueParams(bestCtrl);
+
   }
 
   /* 
