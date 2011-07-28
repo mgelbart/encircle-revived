@@ -29,6 +29,7 @@ public class Nonhuman extends DefaultIntelligence {
   private Vector<Point> repulsionCenters;
   private Vector<Integer> repulsionCenterTimes;
   private int prevSinceCrashed = 0;
+  private int prevSinceLooping = 0;
   
   public Nonhuman() throws FileNotFoundException {
     super();
@@ -74,14 +75,16 @@ public class Nonhuman extends DefaultIntelligence {
     
     
  // if Crashed, add repulsion center
-    if (pState.sinceCrashed < prevSinceCrashed) {
+    if (pState.sinceCrashed - prevSinceCrashed < 0 ||
+        pState.sinceLooping - prevSinceLooping < 0) {
       repulsionCenters.add(r);
       repulsionCenterTimes.add(gState.time);
+      Logger.println(Rep.INFREQ, "Repulsive center placed");
     }
     prevSinceCrashed = pState.sinceCrashed;
+    prevSinceLooping = pState.sinceLooping;
     
-    // get repelled by these repulsion center
-    
+    // get repelled by these repulsion centers
     for (int i = 0; i < repulsionCenters.size(); i++) {
       Point p = repulsionCenters.get(i);
       int t = repulsionCenterTimes.get(i);
@@ -99,8 +102,8 @@ public class Nonhuman extends DefaultIntelligence {
     }
 
     
-    
-    
+    // if you JUST won
+    if (pState.score >= Arena.current().sequence().length) return null;
     
     
 /* (1) FIND THE CLUSTER OF INTEREST */
@@ -167,15 +170,15 @@ public class Nonhuman extends DefaultIntelligence {
       }
     }
     if (closestTemp == null) return null;   // this shouldn't happen
+    closest = closestTemp;
     // If you have a new closest cluster, pick a new direction for it
     // Otherwise, keep the same one
-    if (closestTemp != closest) {
-      rotClockwise = Math.random() < 0.5;
-      closest = closestTemp;
-    }
-    if (closest == null) return null;  // this shouldn't happen
-    
-    // FORGET ALL THIS FOR NOW
+//    if (closestTemp != closest) {
+//      rotClockwise = Math.random() < 0.5;
+//      closest = closestTemp;
+//    }
+//    if (closest == null) return null;  // this shouldn't happen
+//    
     rotClockwise = clockwise;
      
     

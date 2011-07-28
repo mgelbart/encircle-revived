@@ -288,6 +288,7 @@ public class Simulation  implements Runnable {
 //              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
 //              Logger.println(Rep.INFREQ, tail);
               spinWhileRespawn[playerNo] = false;
+              sinceCrashed = 0;
             }
             // There still may be problems here if
             // you also cross, score, etc. on the same round...
