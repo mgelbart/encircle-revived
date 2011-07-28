@@ -93,6 +93,7 @@ public class Matchmaker {
 					boolean matchMade = true;
 					
 					try {
+
 						Logger.println(Rep.FREQ, "Before writing to " + c);
 						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
 						Logger.println(Rep.FREQ, "Closed " + c.socket.isClosed());
@@ -102,9 +103,13 @@ public class Matchmaker {
 						
 						c.out.write(msg.getBytes());
 						c.out.flush();
-						Thread.sleep(1000);
-            c.out.write(msg.getBytes());
-            c.out.flush();
+
+            c.socket.setSoTimeout(500);
+            try {
+              boolean success = c.in.read() == -1;
+            } catch (IOException ioe) {
+              // unexpected
+            }
 						
 						Logger.println(Rep.FREQ, "After writing");
 						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
