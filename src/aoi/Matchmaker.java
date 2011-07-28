@@ -80,21 +80,21 @@ public class Matchmaker {
 			}
 		}
 
-		// Tell c that a match is starting
-		boolean matchSetup(GameClient c, String matchMadeMessage) {
+		// Send to c and wait for an "ack"
+		boolean sendAcknowledgedMessage(GameClient c, String message) {
 			
-			boolean isMatchMade = true;
+			boolean successful = true;
 			
 			try {
 
-				c.out.write(matchMadeMessage.getBytes());
+				c.out.write(message.getBytes());
 				c.out.flush();
 
 				/*
 				 * 
-				 * Before we decide that we've successfully matched with c,
+				 * Before we decide that we've successfully communicated with c,
 				 * let's make sure that c didn't drop out earlier because the
-				 * user got tired of waiting. We'll do a read() to make sure.
+				 * user got tired of waiting. We'll do a read() of an "ack" to make sure.
 				 * 
 				 * There are three cases if the client has closed already:
 				 * (1) Graceful close (like the nc (netcat) command on Ubuntu) - we
@@ -109,7 +109,8 @@ public class Matchmaker {
 				 * Without an "ack", we cannot distinguish between (1) due to
 				 * the client giving up and exiting a long time ago, from (1)
 				 * due to the client closing communication with us due to the
-				 * match being made. So we wait for an "ack" from the client.
+				 * message we just sent us (which could happen if the message
+				 * is a match setup). So we wait for an "ack" from the client.
 				 */
 
 				//c.socket.setSoTimeout(750);
@@ -118,10 +119,10 @@ public class Matchmaker {
 				if ((response == null) || !Protocol.isAck(response)) {
 					Logger.println(Rep.FEW,
 							"Instead of ack, client response was: " + response);
-					isMatchMade = false;
+					successful = false;
 				}
 			} catch (Exception e) {
-				isMatchMade = false;
+				successful = false;
 				Logger.println(Rep.FEW, "Socket exception for " + c);
 				e.printStackTrace();
 			}
@@ -134,7 +135,7 @@ public class Matchmaker {
 				e.printStackTrace();				
 			}
 			
-			return isMatchMade;
+			return successful;
 		}
 
 		void checkForMatch(GameClient client) {
@@ -148,11 +149,11 @@ public class Matchmaker {
 					String matchMadeMessage = Protocol.matchMade("server",
 							matchId);
 
-					if (matchSetup(c, matchMadeMessage)) {
+					if (sendAcknowledgedMessage(c, matchMadeMessage)) {
 						// TODO - temporarily put a sleep here so we can test
 						// "client" dropping
 						// a connection after we match it to "c"
-						if (matchSetup(client, matchMadeMessage)) {
+						if (sendAcknowledgedMessage(client, matchMadeMessage)) {
 							Logger.println(Rep.FREQ,
 								"Successfully matched new client " + client
 										+ " with queue head client " + c);
