@@ -79,7 +79,7 @@ public class Ship {
   }
 
 
-  private Point[] shape() {
+  public Point[] shape() {
     double cos = Math.cos(direction.toDouble());
     double sin = Math.sin(direction.toDouble());
 

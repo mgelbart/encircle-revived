@@ -58,6 +58,10 @@ public class Angle {
     return Math.sin(toDouble());
   }
   
+  public static Angle uniformRandom() {
+    return new Angle((Math.random()-0.5)*2*Math.PI);
+  }
+  
   public String toString() {
     return String.format("%f", this.toDouble());
   }
