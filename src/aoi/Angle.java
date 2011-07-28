@@ -75,6 +75,13 @@ public class Angle {
     return new Angle(this.toDouble() + dtheta);
   }
   
+  public Angle add(Angle that) {
+    return new Angle(this.toDouble() + that.toDouble());
+  }
+  public Angle subtract(Angle that) {
+    return new Angle(this.toDouble() - that.toDouble());
+  }
+  
   /*
    * The difference between this angle and that angle.
    * Signed. In the interval -Pi...Pi.

@@ -180,7 +180,9 @@ public class Nonhuman extends DefaultIntelligence {
 //    if (closest == null) return null;  // this shouldn't happen
 //    
     rotClockwise = clockwise;
-     
+    Angle b = new Angle(ship.location(), closest.center()).subtract(
+        ship.dir());
+    rotClockwise = b.toDouble()<0;
     
     // And a small rotational force for the closest cluster
     double rotationStrength = 100.;
@@ -204,7 +206,7 @@ public class Nonhuman extends DefaultIntelligence {
     
 /* (3) REPULSION FROM ALL CLUSTERS */
     double repulsionLengthScale = SimulationUtils.ARENASIZE/30.;
-    double repulsionStrength = 100.;
+    double repulsionStrength = 130.;
     
     for (Cluster c : clusters) {
       if (dist(c, r) > repulsionLengthScale*10) continue;
@@ -240,12 +242,15 @@ public class Nonhuman extends DefaultIntelligence {
     
     
 /* (4) USE FORCE TO GENERATE ACCELERATION, DIRECTION */    
+    // want to slow down if feeling a lot of repulsion
+    // AND facing the repulsion force in the face
+    int acc = SimulationUtils.MAXACC;
+    if (FRepulsive > 3.0) {
+      Logger.println(Rep.INFREQ, b.cos());
+      if (b.cos() > 0)
+        acc = (int)(SimulationUtils.MAXACC * (1-b.cos())); 
+    }
 
-    int acc;
-    if (FRepulsive > 5.0)  // only go fast if there's a lot of attraction
-      acc = SimulationUtils.MAXACC/3;
-    else
-      acc = SimulationUtils.MAXACC;
     
     // Set the direction based on the force direction
     if (Fx == 0 && Fy == 0) return null;
