@@ -64,7 +64,7 @@ public abstract class SimulationUtils {
   // DefaultDrawable relies on this being <= 8 and
   // Simulation relies on it being small because of the starting
   // position, but this can be changed easily!
-  public static final int NUMPLAYERS = 3;
+  public static final int NUMPLAYERS = 2;
   
   
   /* Returns an array of {x, y, vx, vy, direction} after
