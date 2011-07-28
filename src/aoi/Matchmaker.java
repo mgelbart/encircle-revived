@@ -54,7 +54,7 @@ public class Matchmaker {
 		public void run() {
 			ServerSocket servSocket;
 			try {
-				servSocket = new ServerSocket(Server.TCPPORT);
+				servSocket = new ServerSocket(GameServer.TCPPORT);
 			} catch (IOException e1) {
 				Logger.println(Rep.FEW, "Failed to init server socket.");
 				e1.printStackTrace();
