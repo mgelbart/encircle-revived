@@ -49,7 +49,7 @@ public abstract class SimulationUtils {
   public static final int RELOADTIME = (int) ((1./TIMESTEP) * 200);
   
   /* Length of path required to spend in order to shoot.  */
-  public static final double BULLETCOST = ARENASIZE * 0.18;
+  public static final double BULLETCOST = ARENASIZE * 0.20;
  
   // The maximum ship speed. Special thank you to the laws of physics.
   public static final double MAXSPEED = MAXACC/DRAG;
