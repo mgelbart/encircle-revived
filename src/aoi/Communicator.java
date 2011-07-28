@@ -101,6 +101,8 @@ public class Communicator implements UnreliableStream.Receiver {
 
       @Override
       public void run() {
+        Logger.println(Rep.FEW, "starting tcpnegotiator for player "+playerNo);
+        
         // First shake hands:
         try {
           final DataOutputStream dout = new DataOutputStream(tcpOut);
@@ -108,8 +110,6 @@ public class Communicator implements UnreliableStream.Receiver {
 
           // Send the (dynamically assigned) player number to the client.
           dout.writeBytes(Protocol.matchStarting(sim.matchId, playerNo, udpId));
-
-          tcpOut.flush();
           
 //          msg=Protocol.readNextMsg(tcpIn);
 //          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
@@ -240,6 +240,7 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // nothing left to do.
         stopTcpNegotiator();
+        Logger.println(Rep.FEW, "tcpnegotiator for player "+playerNo+" finished.");
         
       }
       

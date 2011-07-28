@@ -76,35 +76,35 @@ public class Tail {
 
   public Integer headTime() {
     if (isEmpty()) return null;
-    return trajectory.lastKey();
+    return new Integer(trajectory.lastKey());
   }
   public Integer baseTime() {
     if (isEmpty()) return null;
-    return trajectory.firstKey();
+    return new Integer(trajectory.firstKey());
   }
   public Integer beforeHeadTime() {
     if (nPoints() < 2) return null;
-    return trajectory.lowerKey(headTime());
+    return new Integer(trajectory.lowerKey(headTime()));
   }
   public Integer afterBaseTime() {
     if (isEmpty()) return null;
-    return trajectory.higherKey(baseTime());
+    return new Integer(trajectory.higherKey(baseTime()));
   }
   public Point headPoint() {
     if (isEmpty()) return null;
-    return getPoint(headTime());
+    return new Point(getPoint(headTime()));
   }
   public Point basePoint() {
     if (isEmpty()) return null;
-    return getPoint(baseTime());
+    return new Point(getPoint(baseTime()));
   }
   public Point beforeHeadPoint() {
     if (nPoints() < 2) return null;
-    return getPoint(beforeHeadTime());
+    return new Point(getPoint(beforeHeadTime()));
   }
   public Point afterBasePoint() {
     if (nPoints() < 2) return null;
-    return getPoint(afterBaseTime()); 
+    return new Point(getPoint(afterBaseTime())); 
   }
   public int lastKnotTime() {
     return knots.last();
@@ -115,7 +115,7 @@ public class Tail {
   }
   
   // The Path2D returned here is not closed by default
-  public static Path2D toPath2D(Iterable<Point> points) {
+  private static Path2D toPath2D(Iterable<Point> points) {
     Path2D path = new Path2D.Double();
     
     int i = 0;

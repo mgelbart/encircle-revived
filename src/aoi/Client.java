@@ -26,6 +26,9 @@ public class Client implements Runnable {
   // The UDP stream used for receiving game states and sending control parameters.
   private static UnreliableStream uStream = null;
   
+  // The TCP socket used to communicate with the game server.
+  private static Socket socket = null;
+  
   /**
    * Constructs a new Client using the given configuration
    * and with the GUI drawn in frame.
@@ -65,8 +68,7 @@ public class Client implements Runnable {
   public void run() {
 
     StdAudio.init();
-    
-    Socket socket = null;
+
     InputStream tcpIn = null;
     DataOutputStream tcpOut = null;
 
@@ -184,7 +186,7 @@ public class Client implements Runnable {
 
     // This timer task keeps asking the intelligence for new parameters
     // and sends them to the server.
-    TimerTask sendTask = new SendParamsTask(intel, tcpOut, uStream);
+    TimerTask sendTask = new SendParamsTask(intel, uStream);
     Timer sendTimer = new Timer("send-timer");
     sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
@@ -236,43 +238,23 @@ public class Client implements Runnable {
   }
   
   public static Integer lagEstimate() {
-    if (ClientConfiguration.tcpOnly)
-      return 200; // we have no way of estimating lag for TCP
-    else {
-      assert(uStream != null);
-      return uStream.averageLag();
-    }
+    assert(uStream != null);
+    return uStream.averageLag();
   }
 
   
   private static class SendParamsTask extends TimerTask {
 
     Intelligence intelligence;
-    
-    // UDP only
     UnreliableStream udpOut;
-    
-    // TCP only
-    BufferedOutputStream tcpBufOut;
-    
-    // both UDP and TCP use this wrapper
-    DataOutputStream dataOut;
     
     PlayerControlParameters last;
     double lastUdpSendSuccessRate = Double.NEGATIVE_INFINITY;
     double lastUdpReicSuccessRate = Double.NEGATIVE_INFINITY;
     
-    public SendParamsTask(Intelligence intelligence, OutputStream tcpOut, UnreliableStream udpOut) {
+    public SendParamsTask(Intelligence intelligence, UnreliableStream udpOut) {
       this.intelligence = intelligence;
       this.udpOut = udpOut;
-      
-      if (tcpOut != null) {
-        this.tcpBufOut = new BufferedOutputStream(tcpOut);
-        this.dataOut = new DataOutputStream(this.tcpBufOut);
-      } else {
-        this.tcpBufOut = null;
-        this.dataOut = null;
-      }
     }
     
     public void run() {
@@ -280,22 +262,19 @@ public class Client implements Runnable {
       // Send all queued control parameters.
       PlayerControlParameters[] pcp = intelligence.getNewControlParameters();
       
-      ByteArrayOutputStream byteOut = null;
-      
-      // Choose UDP or TCP stream
-      if (!ClientConfiguration.tcpOnly) {
-        byteOut = new ByteArrayOutputStream();
-        dataOut = new DataOutputStream(byteOut);
+      ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+      DataOutputStream dataOut = new DataOutputStream(byteOut);
         
-        if (udpOut.hasDied()) {
-          Logger.println(Rep.FEW, "UnreliableStream has timed out. Falling back to TCP.");
-          ClientConfiguration.tcpOnly = true;
-          assert(tcpBufOut != null);
-          dataOut = new DataOutputStream(this.tcpBufOut);
+      if (udpOut.hasDied()) {
+        Logger.println(Rep.FEW, "UnreliableStream has timed out. Giving up.");
+        try {
+          socket.close();
+        } catch (IOException e) {
+          Logger.println(Rep.FEW, "couldn't close socket.");
+          e.printStackTrace();
         }
-        
-      } else {
-        assert(dataOut != null);
+        this.cancel();
+        return;
       }
       
       if (pcp.length == 0) {
@@ -324,32 +303,20 @@ public class Client implements Runnable {
         last = pcp[pcp.length-1];
       }
       
-      // Flush UDP or TCP stream
-      if (byteOut != null) {
-        
-        try {
-          udpOut.send(byteOut.toByteArray());
-        } catch (IOException e) {
-          Logger.println(Rep.INFREQ, "Failed to send using UDP.");
-          e.printStackTrace();
-        }
-        
-        final double s = udpOut.sendSuccessRate();
-        final double r = udpOut.receiveSuccessRate();
-        if ((s < 0.999 || r < 0.999) && (s < lastUdpSendSuccessRate || r < lastUdpReicSuccessRate)) Logger.println(Rep.INFREQ, "UDP send/receive success rate: " + s + " / " +r);
-        lastUdpSendSuccessRate = s;
-        lastUdpReicSuccessRate = r;
-        
-      } else {
-        
-        try {
-          tcpBufOut.flush();
-        } catch (IOException e) {
-          e.printStackTrace();
-          assert(false);
-        }
-        
+      // Flush UDP
+
+      try {
+        udpOut.send(byteOut.toByteArray());
+      } catch (IOException e) {
+        Logger.println(Rep.INFREQ, "Failed to send using UDP. Not giving up until timeout though.");
+        e.printStackTrace();
       }
+      
+      final double s = udpOut.sendSuccessRate();
+      final double r = udpOut.receiveSuccessRate();
+      if ((s < 0.999 || r < 0.999) && (s < lastUdpSendSuccessRate || r < lastUdpReicSuccessRate)) Logger.println(Rep.INFREQ, "UDP send/receive success rate: " + s + " / " +r);
+      lastUdpSendSuccessRate = s;
+      lastUdpReicSuccessRate = r;
       
     }
 
