@@ -56,6 +56,9 @@ public abstract class Protocol {
   private static final String MATCHMADE = "matchMade";
   public static String matchMade(String server, long gameId) { return MATCHMADE+" "+server+" "+gameId+"\n"; }
   
+  private static final String PING = "ping";
+  public static String ping() { return PING+"\n"; }
+  
   /*
    * Client to Game server:
    */

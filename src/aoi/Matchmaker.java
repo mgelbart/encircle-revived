@@ -80,7 +80,8 @@ public class Matchmaker {
 			}
 		}
 
-		// Send to c and wait for an "ack"
+		// Send to c and wait for an "ack".  Client will be removed
+		// from client list if there is a communication failure.
 		boolean sendAcknowledgedMessage(GameClient c, String message) {
 			
 			boolean successful = true;
@@ -126,19 +127,30 @@ public class Matchmaker {
 				Logger.println(Rep.FEW, "Socket exception for " + c);
 				e.printStackTrace();
 			}
-			clients.remove(c);
 			
+			if (!successful) {
+				closeClient(c);
+			}
+			
+			return successful;
+		}
+		
+		void closeClient(GameClient c) {
+			clients.remove(c);			
 			try {
 				c.socket.close();
 			} catch (Exception e) {
 				Logger.println(Rep.FEW, "Socket exception for " + c);
 				e.printStackTrace();				
-			}
-			
-			return successful;
+			}						
 		}
 
 		void checkForMatch(GameClient client) {
+			
+			// Remove clients that have dropped out from the client list
+			for (GameClient c : clients) {
+				sendAcknowledgedMessage(c, Protocol.ping());
+			}			
 
 			for (GameClient c : clients) {
 				if (c != client) {
@@ -150,10 +162,9 @@ public class Matchmaker {
 							matchId);
 
 					if (sendAcknowledgedMessage(c, matchMadeMessage)) {
-						// TODO - temporarily put a sleep here so we can test
-						// "client" dropping
-						// a connection after we match it to "c"
+						closeClient(c);
 						if (sendAcknowledgedMessage(client, matchMadeMessage)) {
+							closeClient(client);
 							Logger.println(Rep.FREQ,
 								"Successfully matched new client " + client
 										+ " with queue head client " + c);
