@@ -15,6 +15,9 @@ public abstract class Logger {
   // disables all logging at compile time
   private static final boolean DISABLE = false;
   
+  public synchronized static void setVerbosity(Rep rep) {
+	  verbosity = rep;
+  }
   
   public static void test() {
     println(Rep.FEW, true);

@@ -1,7 +1,10 @@
 package aoi;
 
-import java.awt.Point;
-import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
+import java.io.FileNotFoundException;
+import java.util.Vector;
+
+import aoi.Logger.Rep;
 
  /**
  *  This class decides what to do based on (the
@@ -11,198 +14,204 @@ import java.awt.geom.Point2D;
  *  not rely on any human input.
  *
  */
-public class Nonhuman implements Intelligence {
+public class Nonhuman extends DefaultIntelligence {
 
-  // A queue of latest game states.
-  GameState[] games;
-
-  // The control parameters to be sent to the server.
-  PlayerControlParameters ctrl = null;
-  PlayerControlParameters prevCtrl = null;
-
-  // Last time ctrl was changed.
-  int lastAction = -999999;
-
-  // The main thread that runs think() in an infinite loop.
-  Thread intelThread;
-
-  public Nonhuman() {
-
-    Logger.println(Logger.Rep.FEW, "Non-human intelligence for player " + ClientConfiguration.playerNo + " created.");
-
-    games = new GameState[1];
-
-    intelThread = new Thread(this, "intel");
-    intelThread.start();
+  // We cheat by taking the true values of the clusters
+  // in reality, the client should not have these
+  // Note that this will cause problems if the
+  // Arena changes (i.e., if Arena.current() changes)
+  Vector<ClusterServerSide> clusters;  
+  
+  public Nonhuman() throws FileNotFoundException {
+    super();
+    
+    // Convert the Cluster objects in arena
+    // to ClusterServerSide objects so that we know
+    // the numbers involved.
+    ClusterDatabase db = new ClusterDatabase();
+    clusters = new Vector<ClusterServerSide>();
+    for (Cluster c : Arena.current().clusters)
+      clusters.add(db.copyFromCluster(c)); 
   }
+  
+  public PlayerControlParameters think(GameState gState) {
+    PlayerState pState = gState.pStates[ClientConfiguration.playerNo];
+    Ship ship = pState.ship;
 
-  public void run() {
-    think();
-  }
-
-  /* Store the latest game state in a queue. */
-  public void processGameStateUpdate(GameState game) {
-    games[0] = game; /* Our queue consists of one element! */
-
-    intelThread.interrupt();
-  }
-
-
-  public PlayerControlParameters[] getNewControlParameters() {
-    if (ctrl != prevCtrl) {
-      prevCtrl = ctrl;
-      return new PlayerControlParameters[]{ctrl};
-    }
-
-    return new PlayerControlParameters[]{};
-  }
-
-  public void think() {
-
-    int acc;
-    Angle dir;
-    boolean shoot, boost;
-
-    acc = SimulationUtils.MAXACC / 2;
-
-    while (true) {
-	    
-      try {
-        Thread.sleep(1000); // Sleep when there's nothing better to do.
-      } catch (InterruptedException e) {
-			
-        // Shoot if appropriate, i.e., if your path is not too long and another player is in range
-        double MAX_LOOP_TO_SHOOT = 20000/SimulationUtils.TIMESTEP;
-        double MAX_ANGLE_TO_SHOOT = 0.1;
-        shoot = false;
-        if (Math.abs(games[0].time - games[0].pStates[ClientConfiguration.playerNo].tail.baseTime()) < MAX_LOOP_TO_SHOOT) { 
-          if (prevCtrl != null) {
-            Ship ComparedSayWithPET = SimulationUtils.nextPosition(
-                games[0].pStates[ClientConfiguration.playerNo].ship,
-                new PlayerControlParameters(prevCtrl.effectiveOn, 
-                    SimulationUtils.MAXACC/10, prevCtrl.targetDirection, false, false));
-            
-            for (int playerNos = 0; playerNos < SimulationUtils.NUMPLAYERS; playerNos++) {
-              if (playerNos == ClientConfiguration.playerNo) continue; // Skip yourself
-              
-              double theangle = SimulationUtils.angle(
-                  games[0].pStates[playerNos].ship.x(), 
-                  games[0].pStates[playerNos].ship.y(), 
-                  games[0].pStates[ClientConfiguration.playerNo].ship.x(), 
-                  games[0].pStates[ClientConfiguration.playerNo].ship.y(), 
-                  ComparedSayWithPET.x(), ComparedSayWithPET.y());
-              
-              // Logger.println(Logger.RepetitionRate.FREQUENT, theangle + " /    " + ComparedSayWithPET[0] + " " + ComparedSayWithPET[1]);
-              if (theangle < MAX_ANGLE_TO_SHOOT) {
-                shoot = true;
-              }
-            }
-          }
-        }
-        boost = false;
-
-
-        // define a potential function V for decision making
-        double bestV, V, currentV;
-        PlayerControlParameters bestCtrl, testCtrl;
-
-
-        currentV = potentialFunction(games[0].pStates[ClientConfiguration.playerNo].ship.x(),
-                                     games[0].pStates[ClientConfiguration.playerNo].ship.y());
-
-        bestV = Double.POSITIVE_INFINITY;
-        bestCtrl = null;
-
-        // Try different directions.
-        for (int j=-1; j<=1; ++j) {
-
-          dir = games[0].pStates[ClientConfiguration.playerNo].ship.dir().add(j*Math.PI/3);
-        
-          // The candidate set of control parameters.
-          testCtrl = new PlayerControlParameters(games[0].time, acc, dir,
-                                                 shoot, boost);
-
-          Ship intPos = SimulationUtils.nextPosition(
-              games[0].pStates[ClientConfiguration.playerNo].ship, testCtrl);
-
-          V = Double.NEGATIVE_INFINITY;
-
-          // For this given direction candidate, look ahead 1000 time 
-          // steps and take the maximum of the potential along the path.
-          for (int k=1; k < 1000/SimulationUtils.TIMESTEP; ++k) {
-
-            intPos = SimulationUtils.nextPosition(intPos, testCtrl);
-
-            V = Math.max(V, potentialFunction(intPos.x(), intPos.y()));
-          }
-
-          // Prefer going straight
-          V += Math.abs(j) * 0.05;
-
-          if (V < bestV) {
-            bestCtrl = testCtrl;
-            bestV = V;
-          }
-
-        }
-
-
-        if (bestV < currentV)
-          acc = SimulationUtils.MAXACC;
-        else {
-          acc = (int) ((10. - Math.max(1., Math.min(5., bestV))) / 9.
-                       * SimulationUtils.MAXACC);
-          //Logger.println(Logger.RepetitionRate.FREQUENT, bestV + "   " + (int) ((25. - Math.max(5., Math.min(20., bestV))) / 20));
-        }
-        // if (Math.random() < .9) acc=0;
-        //Logger.println(Logger.RepetitionRate.FREQUENT, "acc: " + acc);
-
-        lastAction = games[0].time;
-
-        ctrl = bestCtrl;
+    double Fx = 0;
+    double Fy = 0;
+    double prefactor;
+    Angle theta;
+    // Compute forces on the ship caused by the clusters
+    // The clusters containing the next score send a 
+    // perpendicular force encouraging circular motion
+    // They also have long-rang attraction.
+    // All clusters have short range repuslion.
+    
+    
+    // FIND THE CLUSTER OF INTEREST
+    // easier this way
+    double minDist = Double.MAX_VALUE;
+    ClusterServerSide closestAcceptable = null;
+    for (ClusterServerSide css : clusters) {
+      if (!css.acceptable(Arena.current().sequence()[pState.score]))
+        continue;
+      if (css.center().distance(ship.location()) < minDist) {
+        minDist = css.center().distance(ship.location());
+        closestAcceptable = css;
       }
-
     }
+    if (closestAcceptable == null) return null; // shouldn't happen
+    
+    
+    // FORCES FROM CLOSEST ACCEPTABLE CLUSTER
+//      // Rotational force
+      prefactor = 50000./minDist;  
+      theta = new Angle(
+          closestAcceptable.center().x, 
+          closestAcceptable.center().y, 
+          ship.x(), ship.y());
+      Fx += prefactor * theta.sin();
+      Fy += prefactor * theta.cos();
+      
+      // Attraction force
+      prefactor = -30000./minDist;
+      Fx += prefactor * theta.cos();
+      Fy += prefactor * theta.sin();
 
+    Logger.println(Rep.INFREQ, "att |F| = " + Math.sqrt(Fx*Fx+Fy*Fy));
+    
+    // REPULSION FROM ALL CLUSTERS
+    for (Cluster c : clusters) {
+      
+      prefactor = 30*truncatedExp(c.center().distance(ship.location()), 
+          SimulationUtils.ARENASIZE/20);      
+      theta = new Angle(c.center().x, c.center().y, ship.x(), ship.y());
+      
+      Fx += prefactor * theta.cos();
+      Fy += prefactor * theta.sin();
+    }
+    Logger.println(Rep.INFREQ, "rep+att |F| = " + Math.sqrt(Fx*Fx+Fy*Fy));
+    
+    
+//    double bestV, V; 
+//    // (above) define a potential function V for decision making
+//    PlayerControlParameters bestCtrl, testCtrl;//    
+//    
+//    bestV = Double.POSITIVE_INFINITY;
+//    bestCtrl = null;
+//
+//    // Try different directions.
+//    for (int j=-1; j<=1; ++j) {
+//
+//      Angle dir = ship.dir().add(j*Math.PI/3);
+//
+//      // The candidate set of control parameters.
+//      testCtrl = new PlayerControlParameters(gState.time, 
+//          SimulationUtils.MAXACC, 
+//          dir,
+//          false, false);
+//
+//      Ship intPos = SimulationUtils.nextPosition(ship, testCtrl);
+//
+//      V = Double.NEGATIVE_INFINITY;
+//
+//      // For this given direction candidate, look ahead 1000 time 
+//      // steps and take the maximum of the potential along the path.
+//      for (int k=1; k < 1000/SimulationUtils.TIMESTEP; ++k) {
+//
+//        intPos = SimulationUtils.nextPosition(intPos, testCtrl);
+//
+//        V = Math.max(V, potentialFunction(intPos));
+//      }
+//
+//      // Prefer going straight
+//      V += Math.abs(j) * 0.05;
+//
+//      if (V < bestV) {
+//        bestCtrl = testCtrl;
+//        bestV = V;
+//      }
+//
+//    }
+//    
+//
+//    // Use automatic shooter
+//    if (Shooter.wouldHit(gState, ClientConfiguration.playerNo))
+//      bestCtrl = bestCtrl.shoot();
+//
+//
+//    return bestCtrl;
+    
+
+    
+    // Set the acceleration based on the force magnitude
+    double forceMagnitude = Math.sqrt(Fx*Fx+Fy*Fy);
+    double maxForce = 1; // if 0 then always MAXACC
+    int acc;
+    if (forceMagnitude >= maxForce)
+      acc = SimulationUtils.MAXACC;
+    else
+      acc = (int) (forceMagnitude / maxForce * SimulationUtils.MAXACC);
+    
+    // Set the direction based on the force direction
+    Angle dir = new Angle(Fx, Fy);
+
+    Logger.println(Rep.INFREQ, "Fx = " + Fx + ",  Fy = " + Fy);
+    Logger.println(Rep.INFREQ, "|F| = " + forceMagnitude);
+    
+    Logger.println(Rep.INFREQ, "Acc = " + acc);
+    Logger.println(Rep.INFREQ, "Dir = " + dir);
+    
+    return new PlayerControlParameters(
+        gState.time,
+        acc,
+        dir,
+        Shooter.wouldHit(gState, ClientConfiguration.playerNo),
+        false);
   }
 
-  /* Evaluate the desirability of a given position (x, y)
-     on the arena.
+  /* 
+   * Evaluate the desirability of a given position (x, y)
+   * on the arena.
   */
-  private double potentialFunction(int x, int y) {
+  private double potentialFunction(Ship s) {
     double V = 0;
 
-    Point2D loc = new Point(x, y);
-
     double range = 500 / SimulationUtils.TIMESTEP
-      * Math.sqrt( Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vx(), 2)
-                   + Math.pow(games[0].pStates[ClientConfiguration.playerNo].ship.vy(), 2));
+      * Math.sqrt( Math.pow(s.vx(), 2)
+                   + Math.pow(s.vy(), 2));
 
     range = Math.max(range, SimulationUtils.ARENASIZE/20);
 
     // Repuslive terms pushing you away from the arena boundaries
-    V += Math.exp((Math.abs(x) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
-    V += Math.exp((Math.abs(y) - SimulationUtils.ARENASIZE/2) / (SimulationUtils.ARENASIZE/50));
+    V += Math.exp((Math.abs(s.x()) - SimulationUtils.ARENASIZE/2) / 
+        (SimulationUtils.ARENASIZE/50));
+    V += Math.exp((Math.abs(s.y()) - SimulationUtils.ARENASIZE/2) / 
+        (SimulationUtils.ARENASIZE/50));
 
-    for (Cluster clust : Arena.current().clusters) {
-
-      V += -truncatedLog(loc.distance(clust.center().x, clust.center().y + clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.center().x, clust.center().y - clust.height()/2), range);
-      V += -truncatedLog(loc.distance(clust.center().x + clust.width()/2, clust.center().y), range);
-      V += -truncatedLog(loc.distance(clust.center().x + clust.width()/2, clust.center().y), range);
-
+    // Repulsive terms pushing you away from the clusters
+    for (Cluster clust : clusters) {
+      V += -truncatedLog(s.location().distance(
+          clust.center().x, clust.center().y + clust.height()/2), range);
+      V += -truncatedLog(s.location().distance(
+          clust.center().x, clust.center().y - clust.height()/2), range);
+      V += -truncatedLog(s.location().distance(
+          clust.center().x + clust.width()/2, clust.center().y), range);
+      V += -truncatedLog(s.location().distance(
+          clust.center().x + clust.width()/2, clust.center().y), range);
     }
 
     return V;
   }
 
-//  private double truncatedExp(double x, double range) {
-//    if (Math.abs(x) > 3*range) return 0.0;
-//
-//    return Math.exp(-Math.abs(x/range));
-//  }
+  private double truncatedExp(double x, double range) {
+    if (Math.abs(x) > 3*range) return 0.0;
 
-  private double truncatedLog(double x, double range) {
+    return Math.exp(-Math.abs(x/range));
+  }
+
+  private static double truncatedLog(double x, double range) {
     if (Math.abs(x) > range) return 0.0;
 
     return Math.log(Math.abs(x/range));

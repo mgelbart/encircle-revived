@@ -264,7 +264,7 @@ public class PlayerState {
 
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == '#'); }
     playerNo = i.read();
-    assert(playerNo == 0 || playerNo == 1);
+    assert(playerNo >= 0 && playerNo < SimulationUtils.NUMPLAYERS);
 
     if (CHECKBYTES) { cmd = i.readByte(); assert(cmd == 'x'); }
     x = i.readInt();

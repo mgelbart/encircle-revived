@@ -41,28 +41,11 @@ public abstract class Protocol {
       if (buf.length() > 0) return buf.toString();
     }
   }
-  
-  /*
-   * General purpose messages.
-   */
-  private static final String ACK = "ack";
-  public static String ack() { return ACK+"\n"; }
-  public static boolean isAck(String msg) { return msg.matches("\\s*"+ACK+"\\s*"); }
-  
-  /*
-   * Client to Matchmaking server:
-   */
-  private static final String REQUESTMATCH = "requestMatch";
-  public static String requestMatch(String username) { return REQUESTMATCH+" "+username+"\n"; }
-  public static String parseRequestMatch(String msg) { return parse1String(REQUESTMATCH, msg); }
+    
   
   /*
    * Matchmaking server to Client:
    */
-  private static final String PING = "ping";
-  public static String ping() { return PING+"\n"; }
-  public static boolean isPing(String msg) { return msg.matches("\\s*"+PING+"\\s*"); }
-  
   private static final String MATCHMADE = "matchMade";
   public static String matchMade(long gameId) { return MATCHMADE+" "+gameId+"\n"; }
   public static Long parseMatchMade(String msg)  { return parse1Long(MATCHMADE, msg); }

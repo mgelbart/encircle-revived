@@ -7,10 +7,12 @@ import java.awt.*;
  */
 public class DefaultDrawable implements Drawable {
 
+  public static final Color thisPlayerColor = Color.RED;
+  
   // Currently allow up to 8 players
   public static final Color[] otherPlayerColors = 
-    new Color[]{Color.BLUE, Color.GREEN, Color.MAGENTA, Color.CYAN,
-                Color.YELLOW, Color.ORANGE, Color.PINK};
+    new Color[]{Color.BLUE, Color.MAGENTA, Color.CYAN,
+                Color.YELLOW, Color.ORANGE, Color.PINK, Color.LIGHT_GRAY};
   
   protected int playerNo;
   
@@ -35,7 +37,7 @@ public class DefaultDrawable implements Drawable {
 
   // Returns the Color associated with the given player number.
   public static Color getColor(int playerNo) { 
-    if (playerNo == ClientConfiguration.playerNo) return Color.RED;
+    if (playerNo == ClientConfiguration.playerNo) return thisPlayerColor;
     else return otherPlayerColors[
       playerNo > ClientConfiguration.playerNo?playerNo-1:playerNo];
   }

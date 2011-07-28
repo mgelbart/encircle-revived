@@ -26,8 +26,17 @@ public class Angle {
   /*
    * The polar angle of the vector from point p1 to p2
    */
+  public Angle(double x1, double y1, double x2, double y2) {
+    this(Math.atan2(y2-y1, x2-x1));
+  }
   public Angle(Point2D p1, Point2D p2) {
-    this(Math.atan2(p2.getY()-p1.getY(), p2.getX()-p1.getX())); 
+    this(p1.getX(), p1.getY(), p2.getX(), p2.getY()); 
+  }
+  public Angle (Point2D p) {
+    this(p.getX(), p.getY());
+  }
+  public Angle(double x, double y) {
+    this(0, 0, x, y);
   }
   
   public boolean equals(Angle that) {

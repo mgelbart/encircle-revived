@@ -149,21 +149,25 @@ public class Tail {
   // the first time at which the path from 
   // "startTime" to that time has at least the specified length
   public Integer convertLengthToTime(int startTime, double minLength, boolean forwardDir) {
-    assert(!isEmpty());
+    assert(getPoint(startTime) != null);
+    if (isEmpty())      return null;
     if (minLength <= 0) return startTime;
-     
+    if (nPoints() < 2)  return startTime;
+    // (above) needed to avoid bug in which the loop below
+    // will caller higher/lowerKey and hit null pointer when
+    // tail has only 1 point
+    
     double length = 0;
-    int nextTime = startTime;
-    for (int time = startTime; nextTime <= headTime() && nextTime >= baseTime(); time = nextTime) {
-      nextTime = forwardDir?trajectory.higherKey(time):trajectory.lowerKey(time);
+    int time = startTime;
+    Integer nextTime = forwardDir?trajectory.higherKey(startTime):trajectory.lowerKey(startTime);
+    while (nextTime != null) {
       length += getPoint(time).distance(getPoint(nextTime));
       if (length >= minLength)
         return new Integer(nextTime);
+      time = nextTime;
+      nextTime = forwardDir?trajectory.higherKey(time):trajectory.lowerKey(time);
     }
     // what to do if the entire path is not long enough
-    // here we use lastElement()+1 so that if the whole path
-    // is not long enough, you don't crop anything
-    // when the output of this function is used as cropTailFrom
     return null; 
   }
    

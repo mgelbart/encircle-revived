@@ -13,7 +13,7 @@ runopts := -classpath $(classpath) -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -X
 
 serverFiles := $(srcdir)Communicator.java $(srcdir)Simulation.java $(srcdir)ClusterServerSide.java $(srcdir)ClusterDatabase.java $(srcdir)Server.java
 
-clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DefaultDrawable.java $(srcdir)DrawableFPS.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)ScoringEffect.java $(srcdir)DrawableScoreboard.java $(srcdir)DrawableBullets.java $(srcdir)App.java $(srcdir)StdAudio.java $(srcdir)Audible.java $(srcdir)AudibleShot.java $(srcdir)AudibleCrash.java $(srcdir)KeyboardPilot.java $(srcdir)MousePilot.java $(srcdir)Shooter.java $(srcdir)DrawablePath.java $(srcdir)Tracker.java
+clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DefaultDrawable.java $(srcdir)DrawableFPS.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)ScoringEffect.java $(srcdir)DrawableScoreboard.java $(srcdir)DrawableBullets.java $(srcdir)App.java $(srcdir)StdAudio.java $(srcdir)Audible.java $(srcdir)AudibleShot.java $(srcdir)AudibleCrash.java $(srcdir)KeyboardPilot.java $(srcdir)MousePilot.java $(srcdir)Shooter.java $(srcdir)DrawablePath.java $(srcdir)Tracker.java $(srcdir)DefaultIntelligence.java $(srcdir)DefaultIntelligenceWithGUI.java
 
 commonFiles := $(srcdir)Angle.java $(srcdir)PlayerState.java $(srcdir)Ship.java $(srcdir)PlayerControlParameters.java $(srcdir)GameState.java $(srcdir)Bullet.java $(srcdir)Cluster.java $(srcdir)Tail.java $(srcdir)NSPath.java $(srcdir)Arena.java $(srcdir)SimulationUtils.java $(srcdir)Drawable.java $(srcdir)DrawUtils.java $(srcdir)DrawableCluster.java $(srcdir)NSPolygon.java $(srcdir)ImageMetaData.java $(srcdir)Logger.java $(srcdir)CropEvent.java $(srcdir)CropEventGroup.java $(srcdir)Protocol.java
 
@@ -63,10 +63,10 @@ jar:
 	jar cfm aoi.jar Manifest.txt client.conf -C bin/ .
 
 push_jar: jar
-	scp aoi.jar aoiserv@vps6609.inmotionhosting.com:public_html/
+	scp -i ~/.ssh/encircle.pem aoi.jar ec2-user@50.16.200.221:/var/www/html/aoi.jar
 
 push_bin:
-	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@ec2-50-17-115-154.compute-1.amazonaws.com:aoirun/
+	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@50.16.200.221:aoirun/
 
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer

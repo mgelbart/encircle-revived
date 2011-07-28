@@ -99,40 +99,43 @@ public class DrawableScoreboard implements Drawable {
       
       double xL = box.getX()-margin;
       double yT = box.getY()-margin;
- 
-      if (game.pStates[0].score != game.pStates[1].score) {
-        double xR = box.getWidth()+2*margin;
-        double yB = box.getHeight()+2*margin;
-        
-        box = new Rectangle2D.Double(xL, yT, xR, yB);
-        shapes[j+1] = toOverlayCoords().createTransformedShape(box); 
-      }
-      else {  // make these lines instead of rectangles
-        
-        double xR = box.getX()+box.getWidth()+margin;
-        double yB = box.getY()+box.getHeight()+margin;
-        
-        Path2D scorePath = new Path2D.Double();
-        if (j == 0) {
-          // top and left
+      double xR = box.getX()+box.getWidth()+margin;
+      double yB = box.getY()+box.getHeight()+margin;
+      Path2D scorePath = new Path2D.Double();
+      
+      switch (j) {
+      case 0:
+        if (SimulationUtils.NUMPLAYERS == 2) {
           scorePath.moveTo(xR, yT);
           scorePath.lineTo(xL, yT);
+          scorePath.moveTo(xR, yB);
           scorePath.lineTo(xL, yB);
-//  	      scoreLine0 = new Line2D.Double(xL, yT, xR, yT);
-//          scoreLine1 = new Line2D.Double(xL, yT, xL, yB);
+        } else {
+          scorePath.moveTo(xL, yB);
+          scorePath.lineTo(xL, yT);
         }
-        else if (j == 1) { 
-          // bottom and right
+        break;
+      case 1:
+        if (SimulationUtils.NUMPLAYERS == 2) {
           scorePath.moveTo(xR, yT);
           scorePath.lineTo(xR, yB);
+          scorePath.moveTo(xL, yT);
           scorePath.lineTo(xL, yB);
-//          scoreLine0 = new Line2D.Double(xL, yB, xR, yB);
-//          scoreLine1 = new Line2D.Double(xR, yT, xR, yB);
+        } else {
+          scorePath.moveTo(xR, yB);
+          scorePath.lineTo(xR, yT);
         }
-        shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);
-//        shapes[shapeCount++] = at.createTransformedShape(scoreLine0);
-//        shapes[shapeCount++] = at.createTransformedShape(scoreLine1);
+        break;
+      case 2:
+        scorePath.moveTo(xL, yB);
+        scorePath.lineTo(xR, yB);
+        break;
+      case 3:
+        scorePath.moveTo(xL, yT);
+        scorePath.lineTo(xR, yT);
+        break;
       }
+      shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);
     }
 	
     return shapes;
