@@ -154,6 +154,8 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // wait for the game to end
         while (sim.gameEnded == null) {
+          if (stop) return;  // or for the player to disconnect
+          
           try {
             Thread.sleep(10000000);
           } catch (InterruptedException e) {
@@ -281,12 +283,14 @@ public class Communicator implements UnreliableStream.Receiver {
   private void stopTcpNegotiator() {
     if (tcpSocket != null && !tcpSocket.isClosed()) {
       try {
+        tcpSocket.setSoLinger(false, 0); // close immediately with a RST.
         tcpSocket.close();
       } catch (IOException e) {
         Logger.println(Rep.FEW, "closing socket failed.");
         e.printStackTrace();
       }
     }
+    if (tcpNegotiatorThread != null) tcpNegotiatorThread.interrupt();
   }
 
   /**

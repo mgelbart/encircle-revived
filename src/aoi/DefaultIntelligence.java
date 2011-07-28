@@ -41,6 +41,9 @@ public class DefaultIntelligence implements Intelligence {
   // The main thread that runs think() in an infinite loop.
   private Thread intelThread;
   
+  // Indicates whether the intelligence should terminate execution.
+  protected boolean stop = false;
+  
   public DefaultIntelligence() {
 
     timemachine = new TimeMachine();
@@ -66,11 +69,29 @@ public class DefaultIntelligence implements Intelligence {
       try {
         Thread.sleep(1000); // Sleep when there's nothing better to do.
       } catch (InterruptedException e) {
+        if (stop) return; // done
+        
         // Don't do anything before the game starts.
         if (latestState == null) continue;
         
         queueParams(think(latestState));
       }
+    }
+  }
+  
+  /**
+   * This function should gracefully terminate all threads associated with this
+   * Intelligence.
+   */
+  public void stop() {
+    stop = true;
+    cspTimer.stop = true;
+    intelThread.interrupt();
+    cspTimerThread.interrupt();
+    
+    if (gui != null && guiThread != null) {
+      gui.stop();
+      guiThread.interrupt();
     }
   }
 
@@ -138,6 +159,8 @@ public class DefaultIntelligence implements Intelligence {
     public void run() {
       
       while (true) {
+        if (stop) return; // done
+        
         latestAuthoritativeState = timemachine.getAuthorativeState();
   
         // This can happen before the game actually starts.

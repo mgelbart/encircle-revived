@@ -29,7 +29,7 @@ public abstract class Protocol {
   
   public static String readNextMsg(InputStream in) throws IOException {
     while (true) {
-      int b;
+      int b = -2;
       StringBuilder buf = new StringBuilder();
       boolean end = false;
       while (!end) {
@@ -39,6 +39,7 @@ public abstract class Protocol {
       }
 
       if (buf.length() > 0) return buf.toString();
+      if (b == -1) return null;
     }
   }
     

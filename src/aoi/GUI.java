@@ -43,6 +43,9 @@ public class GUI implements Runnable {
   private int[] lastScore;
   private int[] lastScoringTime;
   
+  // stop updating the GUI.
+  private boolean stop = false;
+  
   @SuppressWarnings("unchecked")
   public GUI() {
     game = null;
@@ -108,6 +111,8 @@ public class GUI implements Runnable {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
+        
+        if (stop) return; // done
 
         drawGameState(game);
 
@@ -117,6 +122,10 @@ public class GUI implements Runnable {
 
   }
 
+  public void stop() {
+    stop = true;
+  }
+  
   // Set the game state to be drawn next.
   public void setGameState(GameState game) {
     this.game = game;
