@@ -199,7 +199,7 @@ public class UnreliableStreamServer implements Runnable {
   
   // for testing
   public static void main(String argv[]) throws Exception {
-    final int port = aoi.Server.UDPPORT;
+    final int port = aoi.GameServer.UDPPORT;
     
     UnreliableStreamServer serv = new UnreliableStreamServer(port);
     

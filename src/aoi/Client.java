@@ -87,7 +87,7 @@ public class Client implements Runnable {
      * TEMP: tell the game server to expect a match.
      */
     try {
-      Socket tSock = new Socket(ClientConfiguration.serverUrl, Server.MATHMAKERCOMMPORT);
+      Socket tSock = new Socket(ClientConfiguration.serverUrl, GameServer.MATHMAKERCOMMPORT);
       tSock.getOutputStream().write(Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS).getBytes());
       tSock.close();
     } catch (UnknownHostException e3) {
@@ -201,7 +201,7 @@ public class Client implements Runnable {
     if (! ClientConfiguration.tcpOnly) {
       Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
       try {
-        uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
+        uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), GameServer.UDPPORT, ClientConfiguration.unreliableStreamId);
 
         // This passes received game states to the intelligence.
         uStream.registerReceiver(new GameStateReceiver(intel));
@@ -279,6 +279,14 @@ public class Client implements Runnable {
    * This functions tries to stop all the client threads ASAP.
    */
   public static void stop() {
+    stopCurrent();
+  }
+  
+  /**
+   * This functions tries to stop all the client threads associated
+   * with the  currently running game ASAP.
+   */
+  public static void stopCurrent() {
     stop = true;
     
     if (uStream != null)

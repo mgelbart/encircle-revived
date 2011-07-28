@@ -13,7 +13,7 @@ import unreliablestream.*;
  * connections to the clients and starts the
  * Simulation.
  */
-public abstract class Server {
+public abstract class GameServer {
   
   public static final int TCPPORT = 7601;
   public static final int UDPPORT = 7601;

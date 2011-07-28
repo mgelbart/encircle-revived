@@ -583,7 +583,7 @@ public class Simulation  implements Runnable {
     boolean accepted = true;
     for (Boolean b : wantToRematch)
       if (b == null || b == false) accepted = false;
-    if (accepted) Server.expectRematch(matchId);
+    if (accepted) GameServer.expectRematch(matchId);
     Logger.println(Rep.FEW, "expect rematch: "+accepted);
     rematchAccepted = accepted;
 
