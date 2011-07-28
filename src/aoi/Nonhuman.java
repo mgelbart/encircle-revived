@@ -246,7 +246,7 @@ public class Nonhuman extends DefaultIntelligence {
     // AND facing the repulsion force in the face
     int acc = SimulationUtils.MAXACC;
     if (FRepulsive > 3.0) {
-      Logger.println(Rep.INFREQ, b.cos());
+//      Logger.println(Rep.FREQ, b.cos());
       if (b.cos() > 0)
         acc = (int)(SimulationUtils.MAXACC * (1-b.cos())); 
     }
