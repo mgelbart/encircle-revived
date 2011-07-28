@@ -45,7 +45,7 @@ clean:
 	rm -rf doc
 
 run_serv:
-	java $(runopts) -Xloggc:out/serv.mem $(package).Server < server.conf
+	java $(runopts) -Xloggc:out/serv.mem $(package).GameServer < server.conf
 
 run_client0:
 	java $(runopts) -Xloggc:out/client0.mem $(package).Client < client0local.conf
