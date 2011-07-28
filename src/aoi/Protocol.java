@@ -26,7 +26,14 @@ public abstract class Protocol {
     REMATCHREQUESTPENDING
   }
 
-  
+  /**
+   * Reads the next line from the stream.
+   * 
+   * @param in the stream to read from
+   * @return the string up to but excluding the next '\n'.
+   *          null if the stream was closed gracefully.
+   * @throws IOException if reading from the stream fails
+   */
   public static String readNextMsg(InputStream in) throws IOException {
     while (true) {
       int b = -2;
@@ -99,11 +106,16 @@ public abstract class Protocol {
   public static String poll() { return POLL+"\n"; }
   public static boolean isPoll(String msg) { return msg.matches("\\s*"+POLL+"\\s*"); }
   
+  private static final String EXPECTMATCH = "expectMatch";
+  public static String expectMatch(long gameId, int numOfPlayers) { return EXPECTMATCH+" "+gameId+" "+numOfPlayers+"\n";}
+  public static long[] parseExpectMatch(String msg)  { return parseNLongs(EXPECTMATCH, msg, 2); }
+
+  
   /*
    * Game server to Matchmaking server:
    */
   private static final String MATCHCOUNT = "matchCount";
-  public static String matches(int n) { return MATCHCOUNT+" "+n+"\n";}
+  public static String matchCount(int n) { return MATCHCOUNT+" "+n+"\n";}
   public static Long parseMatchCount(String msg)  { return parse1Long(MATCHCOUNT, msg); }
 
   
