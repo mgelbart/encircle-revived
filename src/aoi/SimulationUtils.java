@@ -11,6 +11,11 @@ import java.awt.Point;
  */
 public abstract class SimulationUtils {
   
+  // The amount of time clients have to connect to
+  // the game server after they've received the match
+  // info from the match maker, in ms.
+  public static final int TIMETOCONNECTTOGAMESERV = 5000;
+  
   // The amount of time given to the players between sending the
   // initial game state and starting the game, in ms.
   public static final int PREPARATIONTIME = 1000;

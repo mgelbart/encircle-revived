@@ -24,8 +24,15 @@ public class Simulation  implements Runnable {
   // a unique identifier for this match
   public final long matchId;
   
+  // the number of players we are still waiting to connect.
+  public int numConnectedPlayers = 0;
+  
+  // The time when the Simulation was first created.
+  public long created;
+  // The time the game was actually started.
+  public Long started;
   // The time when the game ended.
-  public Long gameEnded = null;
+  public Long ended = null;
   // Whether the players want to rematch
   public Boolean[] wantToRematch = new Boolean[SimulationUtils.NUMPLAYERS];
   
@@ -58,6 +65,7 @@ public class Simulation  implements Runnable {
     this.matchId = matchId;
     this.arena = arena;
     this.clusterDB = clusterDB;
+    this.created = System.currentTimeMillis();
     
     if (VISUALIZE) {
       VISUALIZE = false; // don't visualize more than one
@@ -542,9 +550,9 @@ public class Simulation  implements Runnable {
     /*
      * CLEANUP after somebody won.
      */
-    gameEnded = System.currentTimeMillis();
+    ended = System.currentTimeMillis();
     
-    while (System.currentTimeMillis() - gameEnded < SimulationUtils.REMATCHCONSIDERATIONTIME) {
+    while (System.currentTimeMillis() - ended < SimulationUtils.REMATCHCONSIDERATIONTIME) {
       if (!rematchPossible()) break; // if someone already said no
       
       boolean waiting = false;

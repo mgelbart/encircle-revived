@@ -153,7 +153,7 @@ public class Communicator implements UnreliableStream.Receiver {
         udpSenderThread.start();
         
         // wait for the game to end
-        while (sim.gameEnded == null) {
+        while (sim.ended == null) {
           if (stop) return;  // or for the player to disconnect
           
           try {
@@ -193,7 +193,7 @@ public class Communicator implements UnreliableStream.Receiver {
         }
         
         Boolean accepted = null;
-        while (System.currentTimeMillis() - sim.gameEnded < SimulationUtils.REMATCHCONSIDERATIONTIME
+        while (System.currentTimeMillis() - sim.ended < SimulationUtils.REMATCHCONSIDERATIONTIME
                && accepted == null && sim.rematchPossible()) {
           
           String msg;

@@ -81,7 +81,7 @@ public class Client implements Runnable {
     InputStream tcpIn = null;
     DataOutputStream tcpOut = null;
 
-    // Read input options from stdin.
+    // connect to the game server
     try {
       socket = new Socket(ClientConfiguration.serverUrl, ClientConfiguration.serverPort);
       tcpIn = socket.getInputStream();
