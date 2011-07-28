@@ -106,8 +106,8 @@ public class Client implements Runnable {
       ClientConfiguration.unreliableStreamId = (short) matchParams[2];
 
       // ack the match params
-      tcpOut.writeBytes(Protocol.ack());
-      tcpOut.flush();
+//      tcpOut.writeBytes(Protocol.ack());
+//      tcpOut.flush();
       
       // Parse the arena
       // First read all bytes into a buffer.
@@ -116,8 +116,8 @@ public class Client implements Runnable {
       if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); return; }
 
       // ack the arena
-      tcpOut.writeBytes(Protocol.ack());
-      tcpOut.flush();
+//      tcpOut.writeBytes(Protocol.ack());
+//      tcpOut.flush();
       
       // Now parse from the buffer.
       Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf.getBytes()));
@@ -134,9 +134,14 @@ public class Client implements Runnable {
 
     /* Run the intelligence in a separate thread so that parsing/serializing
        doesn't block thinking. */
-    Intelligence intel;
+    Intelligence intel = null;
     if (ClientConfiguration.nonhuman)
-      intel = new Nonhuman();
+      try {
+        intel = new Nonhuman();
+      } catch (FileNotFoundException e2) {
+        Logger.println(Rep.FEW, "couldn't instantiate nonhuman.");
+        e2.printStackTrace();
+      }
     else
       intel = new HigherBeing();
 

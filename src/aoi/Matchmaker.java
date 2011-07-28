@@ -90,7 +90,7 @@ public class Matchmaker {
 				    int matchId = randomGenerator.nextInt();
 				    
 					
-					matchMade <hostname> <matchID>\n
+//					matchMade <hostname> <matchID>\n
 				}
 			}
 

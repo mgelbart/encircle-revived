@@ -143,12 +143,12 @@ public abstract class Protocol {
   
   // for testing
   public static void main(String argv[]) throws Exception {
-    assert(isAck(ack()));
-    assert(isAck(" "+ack()+"   "));
-    assert(isPing(ping()));
-    assert(isPing(" "+ping()+"   "));
-    assert("foo".equals(parseRequestMatch(requestMatch("foo"))));
-    assert(null == parseRequestMatch(requestMatch("")));
+//    assert(isAck(ack()));
+//    assert(isAck(" "+ack()+"   "));
+//    assert(isPing(ping()));
+//    assert(isPing(" "+ping()+"   "));
+//    assert("foo".equals(parseRequestMatch(requestMatch("foo"))));
+//    assert(null == parseRequestMatch(requestMatch("")));
     assert(0 == parseMatchMade(matchMade(0)));
     assert(7 == parseMatchMade(matchMade(7)));
     assert(123 == parseMatchMade(matchMade(123)));

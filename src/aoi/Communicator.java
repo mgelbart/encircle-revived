@@ -111,8 +111,8 @@ public class Communicator implements UnreliableStream.Receiver {
 
           tcpOut.flush();
           
-          msg=Protocol.readNextMsg(tcpIn);
-          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
+//          msg=Protocol.readNextMsg(tcpIn);
+//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
           clientState = ClientState.READYFORMATCH;
           
           // Send the serialized arena as one line.
@@ -121,8 +121,8 @@ public class Communicator implements UnreliableStream.Receiver {
 
           tcpOut.flush();
           
-          msg=Protocol.readNextMsg(tcpIn);
-          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to arena."); stop(); return; }
+//          msg=Protocol.readNextMsg(tcpIn);
+//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to arena."); stop(); return; }
           clientState = ClientState.RECEIVEDARENA;
 
         } catch (IOException ioe) {
@@ -170,8 +170,8 @@ public class Communicator implements UnreliableStream.Receiver {
 
           tcpOut.flush();
           
-          String msg=Protocol.readNextMsg(tcpIn);
-          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
+//          String msg=Protocol.readNextMsg(tcpIn);
+//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
           clientState = ClientState.GAMEENDED;
           
           stopUdpSender();
@@ -202,14 +202,14 @@ public class Communicator implements UnreliableStream.Receiver {
           }
           
           accepted = Protocol.parseRequestRematch(msg);
-          if (accepted != null)
-            try {
-              dout.writeBytes(Protocol.ack());
-            } catch (IOException e) {
-              Logger.println(Rep.FEW, "couldn't ack requestRematch");
-              e.printStackTrace();
-              return;
-            }
+//          if (accepted != null)
+//            try {
+//              dout.writeBytes(Protocol.ack());
+//            } catch (IOException e) {
+//              Logger.println(Rep.FEW, "couldn't ack requestRematch");
+//              e.printStackTrace();
+//              return;
+//            }
         }
         
         try {
