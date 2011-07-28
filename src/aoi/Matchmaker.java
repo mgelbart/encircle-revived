@@ -104,12 +104,34 @@ public class Matchmaker {
 						c.out.write(msg.getBytes());
 						c.out.flush();
 
+
+						TODO TODO TODO 
+						/* 
+						 * 
+						 
+						  
+						 There are two cases if the client has closed already:
+						 1) Graceful close (like the nc (netcat) command on Ubuntu) - we 
+						    have received a FIN after the write() above, so now when we
+						    read, read will return -1
+						 2) Ungraceful close (like the OpenBSD nc ported to Cygwin) - the write() above
+						    will return a RESET, so read will throw a  
+						    java.net.SocketException: Software caused connection abort: recv failed
+						    
+						Without an "ack",  
+						we cannot distinguish 1) due to the client giving up and exiting a long time ago, from 
+						1) due to the client closing communication with us due to the match being made. 
+						So we wait for an "ack" from the client, with a timeout in case the client 
+						has given up and exited earlier.
+												
             c.socket.setSoTimeout(500);
             try {
               boolean success = c.in.read() == -1;
+              TODO TODO TODO
             } catch (IOException ioe) {
               // unexpected
             }
+						*/
 						
 						Logger.println(Rep.FREQ, "After writing");
 						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());

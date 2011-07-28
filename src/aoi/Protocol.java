@@ -43,7 +43,13 @@ public abstract class Protocol {
     }
   }
     
-  
+  /*
+   * General purpose messages
+   */
+  private static final String ACK = "ack";
+  public static String ack() { return ACK+"\n"; }
+  public static boolean isAck(String msg) { return msg.matches("\\s*"+ACK+"\\s*"); }
+  	 	  
   /*
    * Matchmaking server to Client:
    */
