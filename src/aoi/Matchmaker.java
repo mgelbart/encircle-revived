@@ -20,9 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import aoi.Logger.Rep;
 
-
 /**
- * The matchmaking server. 
+ * The matchmaking server.
  */
 public class Matchmaker {
 
@@ -33,147 +32,162 @@ public class Matchmaker {
 	class GameClient {
 		Socket socket;
 		InputStream in;
-		OutputStream out;  
-		
-		GameClient(Socket s) throws IOException{
+		OutputStream out;
+
+		GameClient(Socket s) throws IOException {
 			socket = s;
 			in = socket.getInputStream();
 			out = socket.getOutputStream();
 		}
-		
+
 		@Override
 		public String toString() {
 			return "GameClient " + socket.getRemoteSocketAddress();
 		}
 	}
-	  		
 
 	// This thread loops listening for new game clients, and matches them.
 	class GameClientListener implements Runnable {
-	    Random randomGenerator = new Random();
+		Random randomGenerator = new Random();
 
-	    
 		@Override
 		public void run() {
 			ServerSocket servSocket;
 			try {
-				servSocket = new ServerSocket(Server.TCPPORT);	
+				servSocket = new ServerSocket(Server.TCPPORT);
+			} catch (IOException e1) {
+				Logger.println(Rep.FEW, "Failed to init server socket.");
+				e1.printStackTrace();
+				return;
 			}
-		    catch (IOException e1) {
-		        Logger.println(Rep.FEW, "Failed to init server socket.");
-		        e1.printStackTrace();
-		        return;
-		    }
-			
+
 			while (true) {
-			    try {
-			      Socket socket = servSocket.accept();
-			      socket.setTcpNoDelay(true);
-			      Logger.println(Rep.FREQ, "Connected to client " + socket.getRemoteSocketAddress());
-			      GameClient client = new GameClient(socket);	
-			      clients.add(client);
-			      checkForMatch(client);
-			    }
-			    catch (IOException e) {
-			        Logger.println(Rep.FEW, "Socket exception");
-			        e.printStackTrace();
-			        return;
-			    }
-			}
-		}
-		
-		void checkForMatch(GameClient client) {
-					
-			for (GameClient c : clients) {
-				if (c != client) {
-					Logger.println(Rep.FREQ, "Found a client in queue to match with: " + c);
-
-				    int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);				    
-					String msg = Protocol.matchMade("server", matchId);					
-					boolean matchMade = true;
-					
-					try {
-
-						Logger.println(Rep.FREQ, "Before writing to " + c);
-						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
-						Logger.println(Rep.FREQ, "Closed " + c.socket.isClosed());
-						Logger.println(Rep.FREQ, "Connected " + c.socket.isConnected());
-						Logger.println(Rep.FREQ, "InputShutdown " + c.socket.isInputShutdown());
-						Logger.println(Rep.FREQ, "OutputShutdown " + c.socket.isOutputShutdown());
-						
-						c.out.write(msg.getBytes());
-						c.out.flush();
-
-            c.socket.setSoTimeout(500);
-            try {
-              boolean success = c.in.read() == -1;
-            } catch (IOException ioe) {
-              // unexpected
-            }
-						
-						Logger.println(Rep.FREQ, "After writing");
-						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
-						Logger.println(Rep.FREQ, "Closed " + c.socket.isClosed());
-						Logger.println(Rep.FREQ, "Connected " + c.socket.isConnected());
-						Logger.println(Rep.FREQ, "InputShutdown " + c.socket.isInputShutdown());
-						Logger.println(Rep.FREQ, "OutputShutdown " + c.socket.isOutputShutdown());
-						
-						Logger.println(Rep.FREQ, "Now trying a read");
-						int i = c.in.read();
-						Logger.println(Rep.FREQ, "i = " + i);
-						
-					} catch (Exception e) {
-				        Logger.println(Rep.FEW, "Removing client from queue due to exception " + c);
-				        e.printStackTrace();							
-				        clients.remove(c);
-				        matchMade = false;
-					}
-					
-					// TODO - temporarily put a sleep here so we can test "client" dropping
-					// a connection after we match it to "c" 
-					
-					if (matchMade) {
-						try {
-							client.out.write(msg.getBytes());
-							client.out.flush();						
-						} catch (Exception e) {
-					        Logger.println(Rep.FEW, "That's odd - socket exception writing to a newly connected client " + c);
-					        e.printStackTrace();
-					        clients.remove(client);
-					        matchMade = false;
-						}
-					}
-					
-					if (matchMade) {
-					    Logger.println(Rep.FREQ, "Successfully matched new client " + client + " with queue head client " + c);
-	
-					    // Forget about these clients now that they are matched.
-					    clients.remove(client);
-					    clients.remove(c);
-					}
+				try {
+					Socket socket = servSocket.accept();
+					socket.setTcpNoDelay(true);
+					Logger.println(
+							Rep.FREQ,
+							"Connected to client "
+									+ socket.getRemoteSocketAddress());
+					GameClient client = new GameClient(socket);
+					clients.add(client);
+					checkForMatch(client);
+				} catch (IOException e) {
+					Logger.println(Rep.FEW, "Socket exception");
+					e.printStackTrace();
+					return;
 				}
 			}
 		}
+
+		// Tell c that a match is starting
+		boolean matchSetup(GameClient c, String matchMadeMessage) {
+			
+			boolean isMatchMade = true;
+			
+			try {
+
+				c.out.write(matchMadeMessage.getBytes());
+				c.out.flush();
+
+				/*
+				 * 
+				 * Before we decide that we've successfully matched with c,
+				 * let's make sure that c didn't drop out earlier because the
+				 * user got tired of waiting. We'll do a read() to make sure.
+				 * 
+				 * There are three cases if the client has closed already:
+				 * (1) Graceful close (like the nc (netcat) command on Ubuntu) - we
+				 * have received a FIN, so now when we read, read will return -1
+				 * (2) Ungraceful close (like the OpenBSD nc ported to Cygwin) -
+				 * the write() above will result in a RST being sent back, so
+				 * read will throw a java.net.SocketException: Software caused
+				 * connection abort: recv failed
+				 * (3) Close by turning client machine physically off.  The
+				 * read will timeout.
+				 *  
+				 * Without an "ack", we cannot distinguish between (1) due to
+				 * the client giving up and exiting a long time ago, from (1)
+				 * due to the client closing communication with us due to the
+				 * match being made. So we wait for an "ack" from the client.
+				 */
+
+				//c.socket.setSoTimeout(750);
+				c.socket.setSoTimeout(5000);
+				String response = Protocol.readNextMsg(c.in);
+				if ((response == null) || !Protocol.isAck(response)) {
+					Logger.println(Rep.FEW,
+							"Instead of ack, client response was: " + response);
+					isMatchMade = false;
+				}
+			} catch (Exception e) {
+				isMatchMade = false;
+				Logger.println(Rep.FEW, "Socket exception for " + c);
+				e.printStackTrace();
+			}
+			clients.remove(c);
+			
+			try {
+				c.socket.close();
+			} catch (Exception e) {
+				Logger.println(Rep.FEW, "Socket exception for " + c);
+				e.printStackTrace();				
+			}
+			
+			return isMatchMade;
+		}
+
+		void checkForMatch(GameClient client) {
+
+			for (GameClient c : clients) {
+				if (c != client) {
+					Logger.println(Rep.FREQ,
+							"Found a client in queue to match with: " + c);
+
+					int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);
+					String matchMadeMessage = Protocol.matchMade("server",
+							matchId);
+
+					if (matchSetup(c, matchMadeMessage)) {
+						// TODO - temporarily put a sleep here so we can test
+						// "client" dropping
+						// a connection after we match it to "c"
+						if (matchSetup(client, matchMadeMessage)) {
+							Logger.println(Rep.FREQ,
+								"Successfully matched new client " + client
+										+ " with queue head client " + c);
+						}
+					}
+				}
+			}
+			
+			for (GameClient c : clients) {
+				Logger.println(Rep.FREQ, "Queue contains: " + c);
+			}
+		}
 	}
-		
-	Matchmaker() {			
+
+	Matchmaker() {
 		Logger.setVerbosity(Rep.FREQ);
 
 		readListOfGameServers();
 		clients = new LinkedBlockingQueue<GameClient>();
-		
-	    GameClientListener listener = new GameClientListener(); 
-	    Thread t = new Thread(listener, "GameClientListener");
-	    t.start();		
+
+		GameClientListener listener = new GameClientListener();
+		Thread t = new Thread(listener, "GameClientListener");
+		t.start();
 	}
 
 	void readListOfGameServers() {
-		// NOTE: In multi-threaded code we must use synchronized keyword when iterating over the list.
-		// See http://download.oracle.com/javase/6/docs/api/java/util/Collections.html#synchronizedList(java.util.List)
+		// NOTE: In multi-threaded code we must use synchronized keyword when
+		// iterating over the list.
+		// See
+		// http://download.oracle.com/javase/6/docs/api/java/util/Collections.html#synchronizedList(java.util.List)
 		gameServers = Collections.synchronizedList(new ArrayList<String>());
 
 		Logger.println(Rep.FEW, "Reading game server list from stdin");
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				System.in));
 		try {
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -184,21 +198,21 @@ public class Matchmaker {
 			Logger.println(Rep.FEW, "Couldn't read server conf file.");
 			e1.printStackTrace();
 			return;
-		}	
-		
+		}
+
 		if (gameServers.size() < 1) {
 			throw new RuntimeException("No game server names found");
 		}
-		
-		synchronized(gameServers) {
+
+		synchronized (gameServers) {
 			for (String server : gameServers) {
-				Logger.println(Rep.FEW, "Game server '" + server + "' found in conf file");
+				Logger.println(Rep.FEW, "Game server '" + server
+						+ "' found in conf file");
 			}
 		}
 	}
-	  
+
 	public static void main(String argv[]) throws Exception {
-		Matchmaker m = new Matchmaker(); 
+		new Matchmaker();
 	}
 }
-

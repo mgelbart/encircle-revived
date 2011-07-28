@@ -58,6 +58,10 @@ public class Angle {
     return Math.sin(toDouble());
   }
   
+  public static Angle uniformRandom() {
+    return new Angle((Math.random()-0.5)*2*Math.PI);
+  }
+  
   public String toString() {
     return String.format("%f", this.toDouble());
   }
@@ -69,6 +73,13 @@ public class Angle {
    */
   public Angle add(double dtheta) {
     return new Angle(this.toDouble() + dtheta);
+  }
+  
+  public Angle add(Angle that) {
+    return new Angle(this.toDouble() + that.toDouble());
+  }
+  public Angle subtract(Angle that) {
+    return new Angle(this.toDouble() - that.toDouble());
   }
   
   /*

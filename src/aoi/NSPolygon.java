@@ -87,16 +87,7 @@ public class NSPolygon extends Polygon implements Iterable<Line2D> {
     coords[1] = y;
     return coords;
   }
-
-  public int[][] coordsTranspose() {
-    int[][] coords = new int[n][2];
-    for (int i = 0; i < n; i++) {
-      coords[i][0] = x[i];
-      coords[i][1] = y[i];
-    }
-    return coords;
-  }
-	
+  
   private Line2D getLine(int i) {
     if (i < 0 || i >= n) return null;
     else if (i == n-1) return new Line2D.Double(x[n-1], y[n-1], x[0], y[0]); 

@@ -23,9 +23,20 @@ public class Nonhuman extends DefaultIntelligence {
   // Arena changes (i.e., if Arena.current() changes)
   private Vector<ClusterServerSide> clusters;  
   private ClusterServerSide currentTarget;
+  private boolean clockwise; // which direction to encircle currentTarget
+  private Cluster closest = null;
+  private boolean rotClockwise;
+  private Vector<Point> repulsionCenters;
+  private Vector<Integer> repulsionCenterTimes;
+  private int prevSinceCrashed = 0;
+  private int prevSinceLooping = 0;
   
   public Nonhuman() throws FileNotFoundException {
     super();
+    
+    clockwise = true;
+    repulsionCenters = new Vector<Point>();
+    repulsionCenterTimes = new Vector<Integer>();
     
     // Convert the Cluster objects in arena
     // to ClusterServerSide objects so that we know
@@ -37,22 +48,65 @@ public class Nonhuman extends DefaultIntelligence {
   }
   
   public PlayerControlParameters think(GameState gState) {
+    /* TABLE OF CONTENTS
+     * (1) FIND THE CLUSTER TO CURRENTLY TARGET (IF NEEDED)
+     * (2) TARGET CLUSTER CAUSES ATTRACTION AND ROTATION
+     * (3) ALL CLUSTERS CAUSE (SHORT-RANGE) REPULSION AND ROTATION
+     * (4) USE FORCE TO GENERATE ACCELERATION, DIRECTION
+     * (5) DECIDE WHETHER OR NOT TO SHOOT
+     */
+       
     PlayerState pState = gState.pStates[ClientConfiguration.playerNo];
     Ship ship = pState.ship;
 
-    double Fx = 0;
-    double Fy = 0;
+    
+    double FxAttractive = 0;
+    double FyAttractive = 0;
+    double FxRepulsive = 0;
+    double FyRepulsive = 0;
+    double FxRotational = 0;
+    double FyRotational = 0;
     double prefactor;
     Angle theta;
     double distToTarget;
-    // Compute forces on the ship caused by the clusters
-    // The clusters containing the next score send a 
-    // perpendicular force encouraging circular motion
-    // They also have long-rang attraction.
-    // All clusters have short range repuslion.
+    
+    Point r = ship.shape()[1]; // the front of the ship
     
     
-    // FIND THE CLUSTER OF INTEREST
+    
+ // if Crashed, add repulsion center
+    if (pState.sinceCrashed - prevSinceCrashed < 0 ||
+        pState.sinceLooping - prevSinceLooping < 0) {
+      repulsionCenters.add(r);
+      repulsionCenterTimes.add(gState.time);
+      Logger.println(Rep.INFREQ, "Repulsive center placed");
+    }
+    prevSinceCrashed = pState.sinceCrashed;
+    prevSinceLooping = pState.sinceLooping;
+    
+    // get repelled by these repulsion centers
+    for (int i = 0; i < repulsionCenters.size(); i++) {
+      Point p = repulsionCenters.get(i);
+      int t = repulsionCenterTimes.get(i);
+    
+      if (dist(p, r) > SimulationUtils.ARENASIZE / 5) continue;
+      if (gState.time - t > 100) continue;
+      // (above) for speed, only consider nearby centers
+      
+      prefactor = (100-(gState.time-t))*
+      Math.exp(-dist(p, ship.location()) /
+          (SimulationUtils.ARENASIZE/30)); // length scale of repulsion
+      theta = new Angle(p, ship.location());
+      FxRepulsive += prefactor * theta.cos();
+      FyRepulsive += prefactor * theta.sin();
+    }
+
+    
+    // if you JUST won
+    if (pState.score >= Arena.current().sequence().length) return null;
+    
+    
+/* (1) FIND THE CLUSTER OF INTEREST */
     if (currentTarget == null || 
         !currentTarget.acceptable(
             Arena.current().sequence()[pState.score])) {
@@ -64,18 +118,23 @@ public class Nonhuman extends DefaultIntelligence {
       for (ClusterServerSide css : clusters) {
         if (!css.acceptable(Arena.current().sequence()[pState.score]))
           continue;
-        if (css.center().distance(ship.location()) < minDist) {
-          minDist = dist(css, ship);
+        if (dist(css, ship.location()) < minDist) {
+          minDist = dist(css, r);
           currentTarget = css;
         }
       }
       distToTarget = minDist;
-      Logger.println(Rep.INFREQ, "Targeting cluster at (" + 
+      clockwise = Math.random() < 0.5; // pick randomly for now
+      
+      Logger.println(Rep.INFREQ, "Targeting (" + 
+          (clockwise?"CLOCKWISE":"COUNTERCLOCKWISE") +
+          " at distance) " + minDist + 
+              " cluster at (" + 
           currentTarget.center().getX()/SimulationUtils.ARENASIZE +
           ", " +
           currentTarget.center().getY()/SimulationUtils.ARENASIZE + ")");
     } else {
-      distToTarget = dist(currentTarget, ship);
+      distToTarget = dist(currentTarget, ship.location());
     }
     if (currentTarget == null) {
       Logger.println(Rep.FEW, "***FAILURE TO FIND TARGET CLUSTER!!!***");
@@ -83,68 +142,141 @@ public class Nonhuman extends DefaultIntelligence {
     }
     
     
-    // FORCES FROM CLOSEST ACCEPTABLE CLUSTER
-//      // Rotational force
-      prefactor = 50000./distToTarget;  
-      theta = new Angle(
-          currentTarget.center().x, 
-          currentTarget.center().y, 
-          ship.x(), ship.y());
-      Fx += prefactor * -theta.sin();
-      Fy += prefactor * theta.cos();
-      
-      // Attraction force
-      prefactor = -30000./distToTarget;
-      Fx += prefactor * theta.cos();
-      Fy += prefactor * theta.sin();
-
-//    Logger.println(Rep.INFREQ, "att |F| = " + Math.sqrt(Fx*Fx+Fy*Fy));
+    theta = new Angle(currentTarget.center(), ship.location());
+  /* (2) FORCES FROM CLOSEST ACCEPTABLE CLUSTER */
+      // Rotational force
+      prefactor = 200000./distToTarget;
+//      prefactor = 50./(distToTarget*distToTarget);
+      FxRotational += prefactor * -theta.sin() * (clockwise?-1:1);
+      FyRotational += prefactor *  theta.cos() * (clockwise?-1:1);
     
-    // REPULSION FROM ALL CLUSTERS
-    double repulsionLengthScale = SimulationUtils.ARENASIZE/20.;
-    double repulsionStrength = 30;
+      // Attraction force
+//      prefactor = 10 * distToTarget / SimulationUtils.ARENASIZE;
+      prefactor = -4;
+      FxAttractive += prefactor * theta.cos();
+      FyAttractive += prefactor * theta.sin();
+  //    Logger.println(Rep.INFREQ, "att |F| = " + Math.sqrt(Fx*Fx+Fy*Fy));
+      
+      
+      
+   // (2.5) Find the closest cluster to you
+      // and have a small rotational force
+    double minDist = Double.MAX_VALUE;
+    Cluster closestTemp = null;
+    for (Cluster c : clusters) {
+      if (dist(c, r) < minDist) {
+        minDist = dist(c, ship.location());
+        closestTemp = c;
+      }
+    }
+    if (closestTemp == null) return null;   // this shouldn't happen
+    closest = closestTemp;
+    // If you have a new closest cluster, pick a new direction for it
+    // Otherwise, keep the same one
+//    if (closestTemp != closest) {
+//      rotClockwise = Math.random() < 0.5;
+//      closest = closestTemp;
+//    }
+//    if (closest == null) return null;  // this shouldn't happen
+//    
+    rotClockwise = clockwise;
+    Angle b = new Angle(ship.location(), closest.center()).subtract(
+        ship.dir());
+    rotClockwise = b.toDouble()<0;
+    
+    // And a small rotational force for the closest cluster
+    double rotationStrength = 100.;
+    double rotationLengthScale = SimulationUtils.ARENASIZE/30.;
+    int[][] coords = closest.contour().coords();
+    int n = coords[0].length;
+    for (int i = 0; i < n; i++) {
+      prefactor = Math.exp(-dist(coords[0][i], coords[1][i], r) /
+           rotationLengthScale) // length scale of repulsion
+           / n * rotationStrength;  // normalize and multiply by strength
+      theta = new Angle(coords[0][i], coords[1][i], ship.x(), ship.y());
+      FxRotational += prefactor * -theta.sin() * (rotClockwise?-1:1);
+      FyRotational += prefactor *  theta.cos() * (rotClockwise?-1:1);      
+    }
+    
+  
+      
+    
+    
+    
+    
+/* (3) REPULSION FROM ALL CLUSTERS */
+    double repulsionLengthScale = SimulationUtils.ARENASIZE/30.;
+    double repulsionStrength = 130.;
     
     for (Cluster c : clusters) {
-      if (dist(c, ship) > repulsionLengthScale*3) continue;
-      // to save time, only take into account fairly nearby clusters
+      if (dist(c, r) > repulsionLengthScale*10) continue;
+      // (above) for speed, only consider nearby clusters
       
-      prefactor = 0;
-      int[][] coords = c.contour().coords();
-      int n = coords.length;
+      // Mix things up a bit
+//      if (Math.random() < 0.1) continue;
+      
+      // Repulsion
+      coords = c.contour().coords();
+      n = coords[0].length;
       for (int i = 0; i < n; i++) {
-         prefactor += Math.exp(-dist(coords[i][0], coords[i][1], ship) /
+        prefactor = Math.exp(-dist(coords[0][i], coords[1][i], r) /
              repulsionLengthScale) // length scale of repulsion
              / n * repulsionStrength;  // normalize and multiply by strength
-        theta = new Angle(c.center().x, c.center().y, ship.x(), ship.y());
-        Fx += prefactor * theta.cos();
-        Fy += prefactor * theta.sin();
+        theta = new Angle(coords[0][i], coords[1][i], ship.x(), ship.y());
+        FxRepulsive += prefactor * theta.cos();
+        FyRepulsive += prefactor * theta.sin();
       }
-            
-      
+
     }
 //    Logger.println(Rep.INFREQ, "rep+att |F| = " + Math.sqrt(Fx*Fx+Fy*Fy));
 
-    
-    // Set the acceleration based on the force magnitude
+    double Fx = FxAttractive + FxRepulsive + FxRotational;
+    double Fy = FyAttractive + FyRepulsive + FyRotational;
     double forceMagnitude = Math.sqrt(Fx*Fx+Fy*Fy);
-    double maxForce = 1; // if 0 then always MAXACC
-    int acc;
-    if (forceMagnitude >= maxForce)
-      acc = SimulationUtils.MAXACC;
-    else
-      acc = (int) (forceMagnitude / maxForce * SimulationUtils.MAXACC);
+    
+    // the point of this is that if there's a lot of attraction going on,
+    // you should go fast, and if there's a lot of repulsion, you should go slow
+    double FAttractive = Math.sqrt(FxAttractive*FxAttractive+FyAttractive*FyAttractive);
+    double FRepulsive = Math.sqrt(FxRepulsive*FxRepulsive+FyRepulsive*FyRepulsive);
+    double FRotational = Math.sqrt(FxRotational*FxRotational+FyRotational*FyRotational);
+    
+    
+/* (4) USE FORCE TO GENERATE ACCELERATION, DIRECTION */    
+    // want to slow down if feeling a lot of repulsion
+    // AND facing the repulsion force in the face
+    int acc = SimulationUtils.MAXACC;
+    if (FRepulsive > 3.0) {
+//      Logger.println(Rep.FREQ, b.cos());
+      if (b.cos() > 0)
+        acc = (int)(SimulationUtils.MAXACC * (1-b.cos())); 
+    }
+
     
     // Set the direction based on the force direction
+    if (Fx == 0 && Fy == 0) return null;
+    
     Angle dir = new Angle(Fx, Fy);
 
+    // Keep going straight once in a while, to close loops
+    if (Math.random() < 0.15)
+      return null;
+    
 //    Logger.println(Rep.INFREQ, "Fx = " + Fx + ",  Fy = " + Fy);
 //    Logger.println(Rep.INFREQ, "|F| = " + forceMagnitude);
 //    
-//    Logger.println(Rep.INFREQ, "Acc = " + acc);
-//    Logger.println(Rep.INFREQ, "Dir = " + dir);
+    if (gState.time % 50 == 0) {
+      Logger.println(Rep.INFREQ, "FRepulsive = " + FRepulsive);
+      Logger.println(Rep.INFREQ, "FAttractive = " + FAttractive);
+      Logger.println(Rep.INFREQ, "FRotational = " + FRotational);
+      Logger.println(Rep.INFREQ, "Acc = " + acc);
+      Logger.println(Rep.INFREQ, "Dir = " + dir);
+    }
+    
+
     
     
-    // Decide whether or not to shoot
+    
+/* (5) DECIDE WHETHER OR NOT TO SHOOT */
     boolean shoot = Shooter.wouldHit(gState, ClientConfiguration.playerNo); 
     // Eventually, should not shoot if about to score
     
@@ -154,14 +286,25 @@ public class Nonhuman extends DefaultIntelligence {
   }
 
 
-  private static double dist(Point p, Ship s) {
-    return p.distance(s.location());
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  private static double dist(Point p, Point q) {
+    return p.distance(q);
   }
-  private static double dist(Cluster c, Ship s) {
-    return dist(c.center(), s);
+  private static double dist(Cluster c, Point q) {
+    return dist(c.center(), q);
   }
-  private static double dist(int x, int y, Ship s) {
-    return dist(new Point(x, y), s); 
+  private static double dist(int x, int y, Point q) {
+    return dist(new Point(x, y), q); 
   }
   
   /* 
