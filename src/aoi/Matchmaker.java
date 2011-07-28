@@ -102,6 +102,9 @@ public class Matchmaker {
 						
 						c.out.write(msg.getBytes());
 						c.out.flush();
+						Thread.sleep(1000);
+            c.out.write(msg.getBytes());
+            c.out.flush();
 						
 						Logger.println(Rep.FREQ, "After writing");
 						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
