@@ -29,6 +29,15 @@ public class Client implements Runnable {
   // The TCP socket used to communicate with the game server.
   private static Socket socket = null;
   
+  // Indicates that the client should exit.
+  private static boolean stop = false;
+  
+  // The intelligence that decides what control params to send.
+  private static Intelligence intel = null;
+  
+  // A timer that keeps sending new control parameters periodically.
+  private static Timer sendTimer;
+  
   /**
    * Constructs a new Client using the given configuration
    * and with the GUI drawn in frame.
@@ -83,6 +92,7 @@ public class Client implements Runnable {
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "failed to connect to game server");
       e1.printStackTrace();
+      stop();
       return;
     }
 
@@ -101,7 +111,7 @@ public class Client implements Runnable {
       String msg = Protocol.readNextMsg(tcpIn);
 
       long[] matchParams = Protocol.parseMatchStarting(msg);
-      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); return; }
+      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); stop(); return; }
       
       ClientConfiguration.matchId = matchParams[0];
       ClientConfiguration.setPlayerNo((int) matchParams[1]);
@@ -115,7 +125,7 @@ public class Client implements Runnable {
       // First read all bytes into a buffer.
       msg = Protocol.readNextMsg(tcpIn);
       String arenaBuf = Protocol.parseSendingArena(msg);
-      if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); return; }
+      if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); stop(); return; }
 
       // ack the arena
 //      tcpOut.writeBytes(Protocol.ack());
@@ -129,6 +139,7 @@ public class Client implements Runnable {
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "handshake failed.");
       e1.printStackTrace();
+      stop();
       return;
     }
     /* End of handshake. */
@@ -136,13 +147,14 @@ public class Client implements Runnable {
 
     /* Run the intelligence in a separate thread so that parsing/serializing
        doesn't block thinking. */
-    Intelligence intel = null;
     if (ClientConfiguration.nonhuman)
       try {
         intel = new Nonhuman();
       } catch (FileNotFoundException e2) {
         Logger.println(Rep.FEW, "couldn't instantiate nonhuman.");
         e2.printStackTrace();
+        stop();
+        return;
       }
     else
       intel = new HigherBeing();
@@ -161,10 +173,12 @@ public class Client implements Runnable {
       } catch (SocketException e) {
         Logger.println(Rep.FEW, "couldn't instantiate uStream.");
         e.printStackTrace();
+        stop();
         return;
       } catch (IOException e) {
         Logger.println(Rep.FEW, "couldn't connect uStream.");
         e.printStackTrace();
+        stop();
         return;
       }
 
@@ -174,6 +188,7 @@ public class Client implements Runnable {
         Logger.println(Rep.FEW, "waiting for UDP reply... ");
         if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
           Logger.println(Rep.FEW, "Failed to get a UDP reply. ");
+          stop();
           return;
         }
         try {
@@ -187,7 +202,7 @@ public class Client implements Runnable {
     // This timer task keeps asking the intelligence for new parameters
     // and sends them to the server.
     TimerTask sendTask = new SendParamsTask(intel, uStream);
-    Timer sendTimer = new Timer("send-timer");
+    sendTimer = new Timer("send-timer");
     sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
     Logger.println(Logger.Rep.FEW, "Ready...");
@@ -198,8 +213,10 @@ public class Client implements Runnable {
       String msg = Protocol.readNextMsg(tcpIn);
       assert(Protocol.isMatchEnded(msg));
     } catch (IOException e1) {
-      Logger.println(Logger.Rep.FEW, "Ready...");
+      Logger.println(Logger.Rep.FEW, "TCP read failed before game ended.");
       e1.printStackTrace();
+      stop();
+      return;
     }
 
     Logger.println(Logger.Rep.FEW, "Game ended.");
@@ -208,16 +225,33 @@ public class Client implements Runnable {
     
     Logger.println(Logger.Rep.FEW, "Game ended.");
     
-    uStream.disconnect();
+    stop();
+
+  }
+  
+  /**
+   * This functions tries to stop all the client threads.
+   */
+  public static void stop() {
+    stop = true;
+    
+    if (uStream != null)
+      uStream.disconnect();
     
     try {
+      socket.setSoLinger(false, 0); // close immediately with a RST.
       socket.close();
     } catch (IOException e) {
       Logger.println(Rep.FEW, "couldn't close TCP socket.");
       e.printStackTrace();
     }
-
+    
+    if (intel != null) intel.stop();
+    
+    if (sendTimer != null)
+      sendTimer.cancel();
   }
+  
 
   /**
    * main() for running the client directly outside an Applet.
@@ -267,6 +301,7 @@ public class Client implements Runnable {
         
       if (udpOut.hasDied()) {
         Logger.println(Rep.FEW, "UnreliableStream has timed out. Giving up.");
+        stop();
         try {
           socket.close();
         } catch (IOException e) {

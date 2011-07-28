@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -32,12 +33,12 @@ public class Matchmaker {
 	class GameClient {
 		Socket socket;
 		InputStream in;
-		PrintStream out;  
+		OutputStream out;  
 		
 		GameClient(Socket s) throws IOException{
 			socket = s;
 			in = socket.getInputStream();
-			out = new PrintStream(socket.getOutputStream());
+			out = socket.getOutputStream();
 		}
 		
 		@Override
@@ -67,8 +68,9 @@ public class Matchmaker {
 			while (true) {
 			    try {
 			      Socket socket = servSocket.accept();
+			      socket.setTcpNoDelay(true);
 			      Logger.println(Rep.FREQ, "Connected to client " + socket.getRemoteSocketAddress());
-			      GameClient client = new GameClient(socket);
+			      GameClient client = new GameClient(socket);	
 			      clients.add(client);
 			      checkForMatch(client);
 			    }
@@ -81,20 +83,77 @@ public class Matchmaker {
 		}
 		
 		void checkForMatch(GameClient client) {
-
-			// Starting from the head of the queue, look for another client
+					
 			for (GameClient c : clients) {
 				if (c != client) {
-					Logger.println(Rep.FREQ, "Found another client in Q: " + c);
+					Logger.println(Rep.FREQ, "Found a client in queue to match with: " + c);
+
+				    int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);				    
+					String msg = Protocol.matchMade("server", matchId);					
+					boolean matchMade = true;
 					
-				    int matchId = randomGenerator.nextInt();
-				    
+					try {
+
+						Logger.println(Rep.FREQ, "Before writing to " + c);
+						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
+						Logger.println(Rep.FREQ, "Closed " + c.socket.isClosed());
+						Logger.println(Rep.FREQ, "Connected " + c.socket.isConnected());
+						Logger.println(Rep.FREQ, "InputShutdown " + c.socket.isInputShutdown());
+						Logger.println(Rep.FREQ, "OutputShutdown " + c.socket.isOutputShutdown());
+						
+						c.out.write(msg.getBytes());
+						c.out.flush();
+
+            c.socket.setSoTimeout(500);
+            try {
+              boolean success = c.in.read() == -1;
+            } catch (IOException ioe) {
+              // unexpected
+            }
+						
+						Logger.println(Rep.FREQ, "After writing");
+						Logger.println(Rep.FREQ, "bound " + c.socket.isBound());
+						Logger.println(Rep.FREQ, "Closed " + c.socket.isClosed());
+						Logger.println(Rep.FREQ, "Connected " + c.socket.isConnected());
+						Logger.println(Rep.FREQ, "InputShutdown " + c.socket.isInputShutdown());
+						Logger.println(Rep.FREQ, "OutputShutdown " + c.socket.isOutputShutdown());
+						
+						Logger.println(Rep.FREQ, "Now trying a read");
+						int i = c.in.read();
+						Logger.println(Rep.FREQ, "i = " + i);
+						
+					} catch (Exception e) {
+				        Logger.println(Rep.FEW, "Removing client from queue due to exception " + c);
+				        e.printStackTrace();							
+				        clients.remove(c);
+				        matchMade = false;
+					}
 					
-//					matchMade <hostname> <matchID>\n
+					// TODO - temporarily put a sleep here so we can test "client" dropping
+					// a connection after we match it to "c" 
+					
+					if (matchMade) {
+						try {
+							client.out.write(msg.getBytes());
+							client.out.flush();						
+						} catch (Exception e) {
+					        Logger.println(Rep.FEW, "That's odd - socket exception writing to a newly connected client " + c);
+					        e.printStackTrace();
+					        clients.remove(client);
+					        matchMade = false;
+						}
+					}
+					
+					if (matchMade) {
+					    Logger.println(Rep.FREQ, "Successfully matched new client " + client + " with queue head client " + c);
+	
+					    // Forget about these clients now that they are matched.
+					    clients.remove(client);
+					    clients.remove(c);
+					}
 				}
 			}
-
-		}		
+		}
 	}
 		
 	Matchmaker() {			

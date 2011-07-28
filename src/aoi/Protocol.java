@@ -29,7 +29,7 @@ public abstract class Protocol {
   
   public static String readNextMsg(InputStream in) throws IOException {
     while (true) {
-      int b;
+      int b = -2;
       StringBuilder buf = new StringBuilder();
       boolean end = false;
       while (!end) {
@@ -39,6 +39,7 @@ public abstract class Protocol {
       }
 
       if (buf.length() > 0) return buf.toString();
+      if (b == -1) return null;
     }
   }
     
@@ -47,14 +48,13 @@ public abstract class Protocol {
    * Matchmaking server to Client:
    */
   private static final String MATCHMADE = "matchMade";
-  public static String matchMade(long gameId) { return MATCHMADE+" "+gameId+"\n"; }
-  public static Long parseMatchMade(String msg)  { return parse1Long(MATCHMADE, msg); }
+  public static String matchMade(String server, long gameId) { return MATCHMADE+" "+server+" "+gameId+"\n"; }
   
   /*
    * Client to Game server:
    */
   private static final String READYFORMATCH = "readyForMatch";
-  public static String readyForMatch(long gameId) { return READYFORMATCH+" "+gameId+"\n"; }
+  public static String readyForMatch(int gameId) { return READYFORMATCH+" "+gameId+"\n"; }
   public static Long parseReadyForMatch(String msg)  { return parse1Long(READYFORMATCH, msg); }
   
   private static final String REQUESTREMATCH = "requestRematch";
@@ -149,10 +149,10 @@ public abstract class Protocol {
 //    assert(isPing(" "+ping()+"   "));
 //    assert("foo".equals(parseRequestMatch(requestMatch("foo"))));
 //    assert(null == parseRequestMatch(requestMatch("")));
-    assert(0 == parseMatchMade(matchMade(0)));
-    assert(7 == parseMatchMade(matchMade(7)));
-    assert(123 == parseMatchMade(matchMade(123)));
-    assert(-123 == parseMatchMade(matchMade(-123)));
+//    assert(0 == parseMatchMade(matchMade(0)));
+    //assert(7 == parseMatchMade(matchMade(7)));
+    //assert(123 == parseMatchMade(matchMade(123)));
+    //assert(-123 == parseMatchMade(matchMade(-123)));
     
     long[] args = new long[]{ 123l, 4l, 567l};
     long[] argsParsed = parseMatchStarting(matchStarting(args[0], args[1], args[2]));

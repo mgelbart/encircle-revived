@@ -11,7 +11,7 @@ compileopts := -g -classpath $(classpath) -d bin/
 
 runopts := -classpath $(classpath) -Xmx64m -verbose:gc -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -ea
 
-serverFiles := $(srcdir)Communicator.java $(srcdir)Simulation.java $(srcdir)ClusterServerSide.java $(srcdir)ClusterDatabase.java $(srcdir)Server.java
+serverFiles := $(srcdir)Communicator.java $(srcdir)Simulation.java $(srcdir)ClusterServerSide.java $(srcdir)ClusterDatabase.java $(srcdir)Server.java $(srcdir)Matchmaker.java $(srcdir)Protocol.java
 
 clientFiles := $(srcdir)Client.java $(srcdir)Intelligence.java $(srcdir)HigherBeing.java $(srcdir)GUI.java $(srcdir)ClientConfiguration.java $(srcdir)Nonhuman.java $(srcdir)TimeMachine.java $(srcdir)MindReader.java $(srcdir)DefaultDrawable.java $(srcdir)DrawableFPS.java $(srcdir)DrawableShip.java $(srcdir)DrawableTail.java $(srcdir)ScoringEffect.java $(srcdir)DrawableScoreboard.java $(srcdir)DrawableBullets.java $(srcdir)App.java $(srcdir)StdAudio.java $(srcdir)Audible.java $(srcdir)AudibleShot.java $(srcdir)AudibleCrash.java $(srcdir)KeyboardPilot.java $(srcdir)MousePilot.java $(srcdir)Shooter.java $(srcdir)DrawablePath.java $(srcdir)Tracker.java $(srcdir)DefaultIntelligence.java $(srcdir)DefaultIntelligenceWithGUI.java
 
