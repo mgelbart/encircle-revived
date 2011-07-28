@@ -26,11 +26,16 @@ public class Nonhuman extends DefaultIntelligence {
   private boolean clockwise; // which direction to encircle currentTarget
   private Cluster closest = null;
   private boolean rotClockwise;
+  private Vector<Point> repulsionCenters;
+  private Vector<Integer> repulsionCenterTimes;
+  private int prevSinceCrashed = 0;
   
   public Nonhuman() throws FileNotFoundException {
     super();
     
     clockwise = true;
+    repulsionCenters = new Vector<Point>();
+    repulsionCenterTimes = new Vector<Integer>();
     
     // Convert the Cluster objects in arena
     // to ClusterServerSide objects so that we know
@@ -53,6 +58,7 @@ public class Nonhuman extends DefaultIntelligence {
     PlayerState pState = gState.pStates[ClientConfiguration.playerNo];
     Ship ship = pState.ship;
 
+    
     double FxAttractive = 0;
     double FyAttractive = 0;
     double FxRepulsive = 0;
@@ -64,6 +70,37 @@ public class Nonhuman extends DefaultIntelligence {
     double distToTarget;
     
     Point r = ship.shape()[1]; // the front of the ship
+    
+    
+    
+ // if Crashed, add repulsion center
+    if (pState.sinceCrashed < prevSinceCrashed) {
+      repulsionCenters.add(r);
+      repulsionCenterTimes.add(gState.time);
+    }
+    prevSinceCrashed = pState.sinceCrashed;
+    
+    // get repelled by these repulsion center
+    
+    for (int i = 0; i < repulsionCenters.size(); i++) {
+      Point p = repulsionCenters.get(i);
+      int t = repulsionCenterTimes.get(i);
+    
+      if (dist(p, r) > SimulationUtils.ARENASIZE / 5) continue;
+      if (gState.time - t > 100) continue;
+      // (above) for speed, only consider nearby centers
+      
+      prefactor = (100-(gState.time-t))*
+      Math.exp(-dist(p, ship.location()) /
+          (SimulationUtils.ARENASIZE/30)); // length scale of repulsion
+      theta = new Angle(p, ship.location());
+      FxRepulsive += prefactor * theta.cos();
+      FyRepulsive += prefactor * theta.sin();
+    }
+
+    
+    
+    
     
     
 /* (1) FIND THE CLUSTER OF INTEREST */
@@ -87,7 +124,7 @@ public class Nonhuman extends DefaultIntelligence {
       clockwise = Math.random() < 0.5; // pick randomly for now
       
       Logger.println(Rep.INFREQ, "Targeting (" + 
-          (clockwise?"clockwise":"counterclockwise") +
+          (clockwise?"CLOCKWISE":"COUNTERCLOCKWISE") +
           " at distance) " + minDist + 
               " cluster at (" + 
           currentTarget.center().getX()/SimulationUtils.ARENASIZE +
@@ -105,10 +142,10 @@ public class Nonhuman extends DefaultIntelligence {
     theta = new Angle(currentTarget.center(), ship.location());
   /* (2) FORCES FROM CLOSEST ACCEPTABLE CLUSTER */
       // Rotational force
-//      prefactor = 200000./distToTarget;
-      prefactor = 50./(distToTarget*distToTarget);
-      FxRotational += prefactor * -theta.sin() * (clockwise?1:-1);
-      FyRotational += prefactor *  theta.cos() * (clockwise?1:-1);
+      prefactor = 200000./distToTarget;
+//      prefactor = 50./(distToTarget*distToTarget);
+      FxRotational += prefactor * -theta.sin() * (clockwise?-1:1);
+      FyRotational += prefactor *  theta.cos() * (clockwise?-1:1);
     
       // Attraction force
 //      prefactor = 10 * distToTarget / SimulationUtils.ARENASIZE;
@@ -152,8 +189,8 @@ public class Nonhuman extends DefaultIntelligence {
            rotationLengthScale) // length scale of repulsion
            / n * rotationStrength;  // normalize and multiply by strength
       theta = new Angle(coords[0][i], coords[1][i], ship.x(), ship.y());
-      FxRotational += prefactor * -theta.sin() * (rotClockwise?1:-1);
-      FyRotational += prefactor *  theta.cos() * (rotClockwise?1:-1);      
+      FxRotational += prefactor * -theta.sin() * (rotClockwise?-1:1);
+      FyRotational += prefactor *  theta.cos() * (rotClockwise?-1:1);      
     }
     
   
@@ -213,8 +250,8 @@ public class Nonhuman extends DefaultIntelligence {
     Angle dir = new Angle(Fx, Fy);
 
     // Keep going straight once in a while, to close loops
-//    if (Math.random() < 0.15)
-//      return null;
+    if (Math.random() < 0.15)
+      return null;
     
 //    Logger.println(Rep.INFREQ, "Fx = " + Fx + ",  Fy = " + Fy);
 //    Logger.println(Rep.INFREQ, "|F| = " + forceMagnitude);
