@@ -85,8 +85,9 @@ public class Communicator implements UnreliableStream.Receiver {
    */
   public void start() {
     assert(!stop);
-    assert(tcpOut != null);
-    assert(!tcpSocket.isClosed());
+    
+    // don't start if the player never connected at all.
+    if (tcpOut == null) return;
     
     udpSenderThread = new Thread(new Runnable() {
 
@@ -186,9 +187,9 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // wait for the player to decide whether to rematch
         try {
-          tcpSocket.setSoTimeout(200); // don't wait forever
+          tcpSocket.setSoTimeout(300); // don't wait forever
         } catch (SocketException e) {
-          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=200");
+          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=300");
           e.printStackTrace();
         }
         
@@ -223,17 +224,16 @@ public class Communicator implements UnreliableStream.Receiver {
         }
         
         // wait for the decision
-        while (sim.rematchPossible() && !sim.rematchAccepted()) {
+        while (sim.rematchAccepted() == null) {
           try {
-            Thread.sleep(200);
+            Thread.sleep(300);
           } catch (InterruptedException e) {
-            Logger.println(Rep.FEW, "interrupted.");
+            continue;
           }
         }
-        
 
         try {
-          dout.writeBytes(Protocol.didOthersAcceptRematch(accepted));
+          dout.writeBytes(Protocol.didOthersAcceptRematch(sim.rematchAccepted()));
         } catch (IOException e) {
           Logger.println(Rep.FEW, "couldn't send didOthersAcceptRematch "+accepted);
           e.printStackTrace();
@@ -252,8 +252,8 @@ public class Communicator implements UnreliableStream.Receiver {
   }
   
   public void sendNewState() {
-    if (udpStream != null && clientState == ClientState.RECEIVEDARENA);
-    udpSenderThread.interrupt();
+    if (udpStream != null && clientState == ClientState.RECEIVEDARENA)
+      udpSenderThread.interrupt();
   }
   
   public void sendGameEnded() {
@@ -261,10 +261,6 @@ public class Communicator implements UnreliableStream.Receiver {
       tcpNegotiatorThread.interrupt();
 
     stopUdpSender();
-  }
-  
-  public void sendDidOthersAcceptRematch(boolean accepted) {
-
   }
   
   public void stop() {
@@ -298,7 +294,8 @@ public class Communicator implements UnreliableStream.Receiver {
    * using the UnreliableStream.
    */
   private void sendGameStates() {
-
+    if (tcpSocket == null) return; // the client never showed up
+    
     GameState g;
 
     while (true) {

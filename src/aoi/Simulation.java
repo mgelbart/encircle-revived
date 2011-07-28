@@ -33,8 +33,10 @@ public class Simulation  implements Runnable {
   public Long started;
   // The time when the game ended.
   public Long ended = null;
-  // Whether the players want to rematch
+  // Whether the players want to rematch.
   public Boolean[] wantToRematch = new Boolean[SimulationUtils.NUMPLAYERS];
+  // Whether everyone accepted the rematch.
+  private Boolean rematchAccepted = null;
   
   // The current game state.
   private GameState game;
@@ -125,6 +127,7 @@ public class Simulation  implements Runnable {
   }
 
   public void run() {
+    started = System.currentTimeMillis();
 
     // start the client communicators
     for (Communicator c : communicators) c.start();
@@ -553,6 +556,9 @@ public class Simulation  implements Runnable {
      */
     ended = System.currentTimeMillis();
     
+    for (Communicator c : communicators) c.sendGameEnded();
+    
+    Logger.println(Rep.FEW, "waiting for clients to decide on rematch.");
     while (System.currentTimeMillis() - ended < SimulationUtils.REMATCHCONSIDERATIONTIME) {
       if (!rematchPossible()) break; // if someone already said no
       
@@ -567,11 +573,19 @@ public class Simulation  implements Runnable {
         try {
           Thread.sleep(200);
         } catch (InterruptedException e) {
-          Logger.println(Rep.FEW, "interrupted");
+          continue;
         }
         continue;
       }
     }
+    
+    
+    boolean accepted = true;
+    for (Boolean b : wantToRematch)
+      if (b == null || b == false) accepted = false;
+    if (accepted) Server.expectRematch(matchId);
+    Logger.println(Rep.FEW, "expect rematch: "+accepted);
+    rematchAccepted = accepted;
 
   }  // end this function
 
@@ -584,10 +598,7 @@ public class Simulation  implements Runnable {
   
   // returns true if everybody has accepted the rematch
   public Boolean rematchAccepted() {
-    boolean rematchAccepted = true;
-    for (Boolean b : wantToRematch)
-      if (b == null || b == false) rematchAccepted = false;
-    return true;
+    return rematchAccepted;
   }
 
   private class InterruptThreadsTask extends TimerTask {

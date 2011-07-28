@@ -73,8 +73,45 @@ public class Client implements Runnable {
     assert(false);
     return null;
   }
-
+  
   public void run() {
+    
+    /* TODO:
+     * Ask the matchmaker for the matchId.
+     */
+    Long matchId = 1234l;
+    
+    
+    
+    /*
+     * TEMP: tell the game server to expect a match.
+     */
+    try {
+      Socket tSock = new Socket(ClientConfiguration.serverUrl, Server.MATHMAKERCOMMPORT);
+      tSock.getOutputStream().write(Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS).getBytes());
+      tSock.close();
+    } catch (UnknownHostException e3) {
+      // TODO Auto-generated catch block
+      e3.printStackTrace();
+      return;
+    } catch (IOException e3) {
+      // TODO Auto-generated catch block
+      e3.printStackTrace();
+      return;
+    }
+    /*
+     * END TEMP.
+     */
+    
+    connectToGameServer(matchId);
+  }
+
+  /**
+   * Connect to the game server and start playing.
+   * 
+   * @return true if everyone accepted a rematch.
+   */
+  public boolean connectToGameServer(long matchId) {
 
     StdAudio.init();
 
@@ -88,12 +125,12 @@ public class Client implements Runnable {
       tcpOut = new DataOutputStream(socket.getOutputStream());
     } catch (UnknownHostException e1) {
       Logger.println(Rep.FEW, "unknown host: "+ClientConfiguration.serverUrl+":"+ClientConfiguration.serverPort);
-      return;
+      return false;
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "failed to connect to game server");
       e1.printStackTrace();
       stop();
-      return;
+      return false;
     }
 
 
@@ -106,12 +143,13 @@ public class Client implements Runnable {
 
     try {
       /* Process the handshake */
+      tcpOut.writeBytes(Protocol.readyForMatch(matchId));
 
       // Read the matchid, player number, and unreliable stream id assigned to self.
       String msg = Protocol.readNextMsg(tcpIn);
 
       long[] matchParams = Protocol.parseMatchStarting(msg);
-      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); stop(); return; }
+      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); stop(); return false; }
       
       ClientConfiguration.matchId = matchParams[0];
       ClientConfiguration.setPlayerNo((int) matchParams[1]);
@@ -125,7 +163,7 @@ public class Client implements Runnable {
       // First read all bytes into a buffer.
       msg = Protocol.readNextMsg(tcpIn);
       String arenaBuf = Protocol.parseSendingArena(msg);
-      if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); stop(); return; }
+      if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); stop(); return false; }
 
       // ack the arena
 //      tcpOut.writeBytes(Protocol.ack());
@@ -140,7 +178,7 @@ public class Client implements Runnable {
       Logger.println(Rep.FEW, "handshake failed.");
       e1.printStackTrace();
       stop();
-      return;
+      return false;
     }
     /* End of handshake. */
 
@@ -154,7 +192,7 @@ public class Client implements Runnable {
         Logger.println(Rep.FEW, "couldn't instantiate nonhuman.");
         e2.printStackTrace();
         stop();
-        return;
+        return false;
       }
     else
       intel = new HigherBeing();
@@ -174,12 +212,12 @@ public class Client implements Runnable {
         Logger.println(Rep.FEW, "couldn't instantiate uStream.");
         e.printStackTrace();
         stop();
-        return;
+        return false;
       } catch (IOException e) {
         Logger.println(Rep.FEW, "couldn't connect uStream.");
         e.printStackTrace();
         stop();
-        return;
+        return false;
       }
 
       
@@ -189,7 +227,7 @@ public class Client implements Runnable {
         if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
           Logger.println(Rep.FEW, "Failed to get a UDP reply. ");
           stop();
-          return;
+          return false;
         }
         try {
           Thread.sleep(500);
@@ -216,21 +254,29 @@ public class Client implements Runnable {
       Logger.println(Logger.Rep.FEW, "TCP read failed before game ended.");
       e1.printStackTrace();
       stop();
-      return;
+      return false;
     }
 
     Logger.println(Logger.Rep.FEW, "Game ended.");
 
     // don't request a rematch.
+    try {
+      tcpOut.writeBytes(Protocol.requestRematch(false));
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "failed to send requestRematch.");
+      e.printStackTrace();
+    }
     
     Logger.println(Logger.Rep.FEW, "Game ended.");
     
-    stop();
+    stopGracefully();
+    
+    return false;
 
   }
   
   /**
-   * This functions tries to stop all the client threads.
+   * This functions tries to stop all the client threads ASAP.
    */
   public static void stop() {
     stop = true;
@@ -240,6 +286,28 @@ public class Client implements Runnable {
     
     try {
       socket.setSoLinger(false, 0); // close immediately with a RST.
+      socket.close();
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "couldn't close TCP socket.");
+      e.printStackTrace();
+    }
+    
+    if (intel != null) intel.stop();
+    
+    if (sendTimer != null)
+      sendTimer.cancel();
+  }
+  
+  /**
+   * This functions tries to stop all the client threads gracefully.
+   */
+  public static void stopGracefully() {
+    stop = true;
+    
+    if (uStream != null)
+      uStream.disconnect();
+    
+    try {
       socket.close();
     } catch (IOException e) {
       Logger.println(Rep.FEW, "couldn't close TCP socket.");

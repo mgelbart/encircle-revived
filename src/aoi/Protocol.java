@@ -67,7 +67,7 @@ public abstract class Protocol {
    * Client to Game server:
    */
   private static final String READYFORMATCH = "readyForMatch";
-  public static String readyForMatch(int gameId) { return READYFORMATCH+" "+gameId+"\n"; }
+  public static String readyForMatch(long gameId) { return READYFORMATCH+" "+gameId+"\n"; }
   public static Long parseReadyForMatch(String msg)  { return parse1Long(READYFORMATCH, msg); }
   
   private static final String REQUESTREMATCH = "requestRematch";
@@ -77,6 +77,10 @@ public abstract class Protocol {
   /*
    * Game server to Client:
    */
+  private static final String MATCHFULL = "matchFull";
+  public static String matchFull() { return MATCHFULL+"\n"; }
+  public static boolean isMatchFull(String msg) { return msg.matches("\\s*"+MATCHFULL+"\\s*"); }
+  
   private static final String MATCHSTARTING = "matchStarting";
   public static String matchStarting(long gameId, long playerId, long uStreamId) { return MATCHSTARTING+" "+gameId+" "+playerId+" "+uStreamId+"\n"; }
   public static long[] parseMatchStarting(String msg)  { return parseNLongs(MATCHSTARTING, msg, 3); }

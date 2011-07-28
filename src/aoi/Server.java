@@ -55,7 +55,6 @@ public abstract class Server {
     // Contact the matchmaking server so that it can tell us when to expect clients to
     // connect and what match ids they'll use.
     Thread matchMakerListener = new Thread(new Runnable() {
-      @SuppressWarnings("unchecked")
       @Override
       public void run() {
         ServerSocket listener;
@@ -101,6 +100,7 @@ public abstract class Server {
                 
                 // add the match to the list so we expect clients to connect using the id
                 matches.put(matchId, createFreshSimulation(matchId));
+                Logger.println(Rep.FEW, "expecting match: "+matchId);
                 
               }
               
@@ -120,6 +120,7 @@ public abstract class Server {
     // start a task that starts matches if people don't connect on time
     // or removes them if nobody connected.
     Thread cleanerThread = new Thread(new Runnable() {
+      @SuppressWarnings("unchecked")
       @Override
       public void run() {
         while (true) {
@@ -128,12 +129,13 @@ public abstract class Server {
           synchronized (matches) {
             for (Long m : ((TreeMap<Long, Simulation>) matches.clone()).keySet()) {
               Simulation s = matches.get(m);
+              
               final long untilTimeout = SimulationUtils.TIMETOCONNECTTOGAMESERV
                                         -(System.currentTimeMillis() - s.created);
               
-              if (s.started == null && untilTimeout < 0) {
+              if (untilTimeout < 0) {
                 if (s.numConnectedPlayers == 0) {
-                  // nobody evver connected
+                  // nobody ever connected
                   matches.remove(m);
                   continue;
                 } else {
@@ -143,6 +145,7 @@ public abstract class Server {
                   // Start simulating the game with the connected people
                   Thread t = new Thread(s, "simulation-"+s.matchId);
                   t.start();
+                  matches.remove(m);
                 }
               } else {
                 sleeptime = Math.min(sleeptime, untilTimeout+30);
@@ -201,16 +204,27 @@ public abstract class Server {
           socket.close();
           continue;
         }
+        
+        synchronized (matches) {
+          simulation = matches.get(matchId);
           
-        simulation = matches.get(matchId);
-        simulation.communicators[simulation.numConnectedPlayers].setTCPSocket(socket);
-        Logger.println(Logger.Rep.FEW, "Player " + simulation.numConnectedPlayers + " connected.");
-        simulation.numConnectedPlayers++;
+          if (simulation == null || simulation.started != null
+              || simulation.numConnectedPlayers == SimulationUtils.NUMPLAYERS) {
+            // the match cannot be joined.
+            // tell the client to go back to matchmaker
+            OutputStream out = socket.getOutputStream();
+            out.write(Protocol.matchFull().getBytes());
+          }
+          
+          simulation.communicators[simulation.numConnectedPlayers].setTCPSocket(socket);
+          Logger.println(Logger.Rep.FEW, "Player " + simulation.numConnectedPlayers + " connected.");
+          simulation.numConnectedPlayers++;
+        }
 
       } catch (IOException e) {
         Logger.println(Rep.FEW, "Failed to accept client connection.");
         e.printStackTrace();
-        return;
+        continue;
       }
       
       if (simulation.numConnectedPlayers == SimulationUtils.NUMPLAYERS) {
@@ -218,8 +232,16 @@ public abstract class Server {
           // Start simulating the game if everyone has connected!
           Thread t = new Thread(simulation, "simulation-"+simulation.matchId);
           t.start();
+          matches.remove(simulation.matchId);
         }
       }
+    }
+  }
+  
+  public static void expectRematch(long matchId) {
+    synchronized (matches) {
+      matches.remove(matchId); // make sure the old game isn't there
+      matches.put(matchId, createFreshSimulation(matchId));
     }
   }
 
