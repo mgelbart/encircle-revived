@@ -12,9 +12,15 @@ import java.awt.Point;
 public abstract class SimulationUtils {
   
   // The amount of time given to the players between sending the
-  // initial game state and starting the game.
+  // initial game state and starting the game, in ms.
   public static final int PREPARATIONTIME = 1000;
 
+  // The number of rounds it takes to win a match.
+  public static final int ROUNDSPERMATCH = 2;
+  
+  // The time to wait for players to decide if they want to rematch, in ms.
+  public static final int REMATCHCONSIDERATIONTIME = 10000;
+  
   // Advance the simulation every TIMESTEP milliseconds.
   // This will not be respected if the computation takes longer
   // than TIMESTEP.

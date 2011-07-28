@@ -110,12 +110,28 @@ public class PlayerState {
         sinceHitByBullet, sincePwned, sinceCrashed,
         tail);
   }
-  public PlayerState cloneAndPwn() {
+  public PlayerState pwn() {
     int score        = 0;
     int sincePwned   = 0;
 
     return new PlayerState(playerNo, ship, 
         cropEvents,
+        score, untilReload, untilRespawn,
+        sinceScoring, sinceLooping, sinceCrossing,
+        sinceHitByBullet, sincePwned, sinceCrashed,
+        tail);
+  }
+  public PlayerState reset(int currentTime) {
+    int score        = 0;
+    int sincePwned   = 0;
+    CropEventGroup cevents = cropEvents.addEvent(
+        tail.baseTime(), // from
+        currentTime,   // to
+        currentTime,
+        "state reset");
+
+    return new PlayerState(playerNo, ship, 
+        cevents,
         score, untilReload, untilRespawn,
         sinceScoring, sinceLooping, sinceCrossing,
         sinceHitByBullet, sincePwned, sinceCrashed,

@@ -1,7 +1,6 @@
 package aoi;
 
 import java.io.*;
-import java.util.Vector;
 
 import aoi.Logger.Rep;
 
@@ -75,9 +74,9 @@ public abstract class Protocol {
   public static String readyForMatch(long gameId) { return READYFORMATCH+" "+gameId+"\n"; }
   public static Long parseReadyForMatch(String msg)  { return parse1Long(READYFORMATCH, msg); }
   
-  private static final String REMATCHREQUEST = "rematchRequest";
-  public static String requestRematch(long gameId) { return REMATCHREQUEST+" "+gameId+"\n"; }
-  public static Long parseRequestRematch(String msg)  { return parse1Long(REMATCHREQUEST, msg); }
+  private static final String REQUESTREMATCH = "requestRematch";
+  public static String requestRematch(boolean request) { return REQUESTREMATCH+" "+((request)? 1:0)+"\n"; }
+  public static Boolean parseRequestRematch(String msg) { return parse1Boolean(REQUESTREMATCH, msg); }
   
   /*
    * Game server to Client:
@@ -97,12 +96,18 @@ public abstract class Protocol {
   }
   
   private static final String MATCHENDED = "matchEnded";
-  public static String matchEnded(long gameId) { return MATCHENDED+" "+gameId+"\n"; }
-  public static Long parseMatchEnded(String msg)  { return parse1Long(MATCHENDED, msg); }
+  public static String matchEnded(long gameId) { return MATCHENDED+"\n"; }
+  public static boolean isMatchEnded(String msg)  { return msg.matches("\\s*"+MATCHENDED+"\\s*"); }
   
-  private static final String OTHERPLAYERREQUESTEDREMATCH = "otherPlayerRequestedRematch";
-  public static String otherPlayerRequestedRematch(long gameId) { return OTHERPLAYERREQUESTEDREMATCH+" "+gameId+"\n"; }
-  public static Long parseOtherPlayerRequestedRematch(String msg)  { return parse1Long(OTHERPLAYERREQUESTEDREMATCH, msg); }
+  private static final String DIDOTHERSACCEPTREMATCH = "didOthersAcceptRematch";
+  public static String didOthersAcceptRematch(boolean accepted) { return DIDOTHERSACCEPTREMATCH+" "+((accepted)? 1:0)+"\n"; }
+  public static Boolean parseDidOthersAcceptRematch(String msg)  { return parse1Boolean(DIDOTHERSACCEPTREMATCH, msg); }
+  
+  private static Boolean parse1Boolean(String cmd, String msg) {
+    Long accepted = parse1Long(cmd, msg);
+    if (accepted == null) return null;
+    return accepted!=0;
+  }
   
   /*
    * Matchmaking server to Game server:

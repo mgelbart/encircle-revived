@@ -24,6 +24,11 @@ public class Simulation  implements Runnable {
   // a unique identifier for this match
   public final long matchId;
   
+  // The time when the game ended.
+  public Long gameEnded = null;
+  // Whether the players want to rematch
+  public Boolean[] wantToRematch = new Boolean[SimulationUtils.NUMPLAYERS];
+  
   // The current game state.
   private GameState game;
 
@@ -31,7 +36,6 @@ public class Simulation  implements Runnable {
   private Arena arena;
   
   private ClusterDatabase clusterDB;
-  private int pointsPerRound;
   
 
   // References to the senders/listeners threads so we can interrupt them.
@@ -50,11 +54,10 @@ public class Simulation  implements Runnable {
   /* ----------------------------------------------------------------- */
   
   
-  public Simulation(long matchId, Arena arena, ClusterDatabase clusterDB, int pointsPerRound) {
+  public Simulation(long matchId, Arena arena, ClusterDatabase clusterDB) {
     this.matchId = matchId;
     this.arena = arena;
     this.clusterDB = clusterDB;
-    this.pointsPerRound = pointsPerRound;
     
     if (VISUALIZE) {
       VISUALIZE = false; // don't visualize more than one
@@ -150,6 +153,10 @@ public class Simulation  implements Runnable {
     double[] lengthUntilRespawn = new double[SimulationUtils.NUMPLAYERS];
     boolean[] spinWhileRespawn = new boolean[SimulationUtils.NUMPLAYERS];
     
+    // persistent values regarding scoring
+    int[] roundsWon = new int[SimulationUtils.NUMPLAYERS];
+    int matchWinner = -1;
+    
     while (true) {
 
       // Sleep until next time step.
@@ -160,9 +167,10 @@ public class Simulation  implements Runnable {
           Logger.println(Rep.INFREQ, "Current local time: " + game.time);
 
         
-        int newTime  = game.time + 1;
+        final int newTime  = game.time + 1;
         /* TABLE OF CONTENTS
          * 
+         * (-2) check if anyone won the round
          * (-1) move bullets
          * for each player
          *   (0) copy previous state parameters
@@ -175,10 +183,33 @@ public class Simulation  implements Runnable {
          *   (6) optimize cropEvents
          *   (7) update Tail
          *   (8) update the temporary player state
-         * (9) check if anyone one (temporary)
+         * (9) ----
          * (10) update the real game state
          */
-          
+        
+        // (-2) CHECK IF ONE OF THE PLAYERS WON THE ROUND
+        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+          final int pointsPerRound = arena.sequence().length;
+          assert(pStatesTemp[j].score <= pointsPerRound);
+          if (pStatesTemp[j].score == pointsPerRound) {
+            roundsWon[j]++;
+            
+            if (roundsWon[j] > SimulationUtils.ROUNDSPERMATCH/2.) {
+              // TODO: this isn't necessarily a good condition with NUMPLAYERS>2
+              matchWinner = j;
+              break;
+            }
+            
+            for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
+              // set scores to zero and remove tails and knots
+              pStatesTemp[k] = pStatesTemp[k].reset(newTime);
+            }
+            break;
+          }
+        } 
+        
+        // somebody won the whole match.
+        if (matchWinner >= 0) break;
         
         
         // (-1) MOVE BULLETS
@@ -209,18 +240,18 @@ public class Simulation  implements Runnable {
  /* ----------------------  "main" loop for each player  --------------------- */ 
           
           // (0) COPY THE PREVIOUS STATE'S PARAMETERS AND UPDATE BYTE FLAGS
-          Ship ship                 = game.pStates[playerNo].ship;
-          CropEventGroup cropEvents = game.pStates[playerNo].cropEvents;
-          int score                 = game.pStates[playerNo].score;
-          int untilReload           = SimulationUtils.enforceByte (game.pStates[playerNo].untilReload      -1);
-          int untilRespawn          = SimulationUtils.enforceShort(game.pStates[playerNo].untilRespawn     -1);
-          int sinceScoring          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceScoring     +1);
-          int sinceLooping          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceLooping     +1);
-          int sinceCrossing         = SimulationUtils.enforceByte (game.pStates[playerNo].sinceCrossing    +1);
-          int sinceHitByBullet      = SimulationUtils.enforceShort(game.pStates[playerNo].sinceHitByBullet +1);
-          int sincePwned            = SimulationUtils.enforceByte (game.pStates[playerNo].sincePwned       +1);
-          int sinceCrashed          = SimulationUtils.enforceByte (game.pStates[playerNo].sinceCrashed     +1);
-          Tail tail                 = game.pStates[playerNo].tail;
+          Ship ship                 = pStatesTemp[playerNo].ship;
+          CropEventGroup cropEvents = pStatesTemp[playerNo].cropEvents;
+          int score                 = pStatesTemp[playerNo].score;
+          int untilReload           = SimulationUtils.enforceByte (pStatesTemp[playerNo].untilReload      -1);
+          int untilRespawn          = SimulationUtils.enforceShort(pStatesTemp[playerNo].untilRespawn     -1);
+          int sinceScoring          = SimulationUtils.enforceByte (pStatesTemp[playerNo].sinceScoring     +1);
+          int sinceLooping          = SimulationUtils.enforceByte (pStatesTemp[playerNo].sinceLooping     +1);
+          int sinceCrossing         = SimulationUtils.enforceByte (pStatesTemp[playerNo].sinceCrossing    +1);
+          int sinceHitByBullet      = SimulationUtils.enforceShort(pStatesTemp[playerNo].sinceHitByBullet +1);
+          int sincePwned            = SimulationUtils.enforceByte (pStatesTemp[playerNo].sincePwned       +1);
+          int sinceCrashed          = SimulationUtils.enforceByte (pStatesTemp[playerNo].sinceCrashed     +1);
+          Tail tail                 = pStatesTemp[playerNo].tail;
            
           
           // Special case: if you are in the process of respawning
@@ -428,20 +459,8 @@ public class Simulation  implements Runnable {
         // if player j pwned someone else, not if player j got pwned.
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j)
           if (gotPwned[j])
-            pStatesTemp[j] = pStatesTemp[j].cloneAndPwn();
+            pStatesTemp[j] = pStatesTemp[j].pwn();
 
-        // (9) CHECK IF ONE OF THE PLAYERS WON
-        // (This is a temporary hack).
-        for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-          assert(pStatesTemp[j].score <= pointsPerRound);
-          if (pStatesTemp[j].score == pointsPerRound) {
-            for (int k=0; k<SimulationUtils.NUMPLAYERS; ++k) {
-              pStatesTemp[k] = pStatesTemp[k].cloneAndPwn();
-            }
-            break;
-          }
-        }        
-        
         
         // (10) UPDATE THE GAME STATE WITH THE NEW PLAYER STATES
         GameState newGState = new GameState(
@@ -501,8 +520,49 @@ public class Simulation  implements Runnable {
         
       }  // end catch
     }  // end infinite while loop
+    
+    
+    /*
+     * CLEANUP after somebody won.
+     */
+    gameEnded = System.currentTimeMillis();
+    
+    while (System.currentTimeMillis() - gameEnded < SimulationUtils.REMATCHCONSIDERATIONTIME) {
+      if (!rematchPossible()) break; // if someone already said no
+      
+      boolean waiting = false;
+      for (Boolean b : wantToRematch)
+        if (b == null) waiting = true;
+      
+      if (!waiting)
+        break;
+      else {
+        // sleep if we are still waiting for a reply
+        try {
+          Thread.sleep(200);
+        } catch (InterruptedException e) {
+          Logger.println(Rep.FEW, "interrupted");
+        }
+        continue;
+      }
+    }
+
   }  // end this function
 
+  // returns true if nobody has refused the rematch yet.
+  public boolean rematchPossible() {
+    for (Boolean b : wantToRematch)
+      if (b != null && b == false) return false;
+    return true;
+  }
+  
+  // returns true if everybody has accepted the rematch
+  public Boolean rematchAccepted() {
+    boolean rematchAccepted = true;
+    for (Boolean b : wantToRematch)
+      if (b == null || b == false) rematchAccepted = false;
+    return true;
+  }
 
   private class InterruptThreadsTask extends TimerTask {
 

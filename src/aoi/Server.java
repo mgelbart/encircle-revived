@@ -114,7 +114,7 @@ public abstract class Server {
 	    
       Logger.println(Logger.Rep.FEW, "Arena generated.");
 
-      Simulation simulation = new Simulation(matchId, arena, clusterDbSayWithPET, maxSegmentNumber);
+      Simulation simulation = new Simulation(matchId, arena, clusterDbSayWithPET);
 
       simulation.initGameState();
 

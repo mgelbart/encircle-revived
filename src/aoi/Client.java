@@ -67,19 +67,23 @@ public class Client implements Runnable {
     StdAudio.init();
     
     Socket socket = null;
+    InputStream tcpIn = null;
+    DataOutputStream tcpOut = null;
 
+    // Read input options from stdin.
     try {
-
-      // Read input options from stdin.
       socket = new Socket(ClientConfiguration.serverUrl, ClientConfiguration.serverPort);
+      tcpIn = socket.getInputStream();
+      tcpOut = new DataOutputStream(socket.getOutputStream());
+    } catch (UnknownHostException e1) {
+      Logger.println(Rep.FEW, "unknown host: "+ClientConfiguration.serverUrl+":"+ClientConfiguration.serverPort);
+      return;
+    } catch (IOException e1) {
+      Logger.println(Rep.FEW, "failed to connect to game server");
+      e1.printStackTrace();
+      return;
+    }
 
-      // Don't buffer data before sending TCP packets.
-      socket.setTcpNoDelay(true);
-
-    } catch (Exception e) {
-      Logger.println(Logger.Rep.FEW, e.toString());
-      assert(false);
-    } 
 
     // Initialize the GUI for human players
     if (!ClientConfiguration.nonhuman) {
@@ -87,17 +91,13 @@ public class Client implements Runnable {
     }
 
 
+
     try {
-
-      InputStream tcpIn = socket.getInputStream();
-      DataOutputStream tcpOut = new DataOutputStream(socket.getOutputStream());
-      String msg;
-
-
       /* Process the handshake */
 
       // Read the matchid, player number, and unreliable stream id assigned to self.
-      msg = Protocol.readNextMsg(tcpIn);
+      String msg = Protocol.readNextMsg(tcpIn);
+
       long[] matchParams = Protocol.parseMatchStarting(msg);
       if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); return; }
       
@@ -124,69 +124,92 @@ public class Client implements Runnable {
       Arena.setCurrent(arena);
       
       Logger.println(Logger.Rep.FEW, ClientConfiguration.asString());
-      
-      /* End of handshake. */
+    } catch (IOException e1) {
+      Logger.println(Rep.FEW, "handshake failed.");
+      e1.printStackTrace();
+      return;
+    }
+    /* End of handshake. */
 
 
-      /* Run the intelligence in a separate thread so that parsing/serializing
-         doesn't block thinking. */
-      Intelligence intel;
-      if (ClientConfiguration.nonhuman)
-        intel = new Nonhuman();
-      else
-        intel = new HigherBeing();
+    /* Run the intelligence in a separate thread so that parsing/serializing
+       doesn't block thinking. */
+    Intelligence intel;
+    if (ClientConfiguration.nonhuman)
+      intel = new Nonhuman();
+    else
+      intel = new HigherBeing();
 
-      /* Set up the UDP connection */
-      if (! ClientConfiguration.tcpOnly) {
-        Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+    /* Set up the UDP connection */
+    if (! ClientConfiguration.tcpOnly) {
+      Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+      try {
         uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), Server.UDPPORT, ClientConfiguration.unreliableStreamId);
-      
+
         // This passes received game states to the intelligence.
         uStream.registerReceiver(new GameStateReceiver(intel));
         
         // connect and wait until we start getting some replies.
         uStream.connect();
-        
-        final long start = System.currentTimeMillis();
-        while (uStream.sendSuccessRate() < 0) {
-          Logger.println(Rep.FEW, "waiting for UDP reply... ");
-          if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
-            Logger.println(Rep.FEW, "Falling back to TCP. ");
-            ClientConfiguration.tcpOnly = true;
-            break;
-          }
-          Thread.sleep(500);
+      } catch (SocketException e) {
+        Logger.println(Rep.FEW, "couldn't instantiate uStream.");
+        e.printStackTrace();
+        return;
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "couldn't connect uStream.");
+        e.printStackTrace();
+        return;
+      }
+
+      
+      final long start = System.currentTimeMillis();
+      while (uStream.sendSuccessRate() < 0) {
+        Logger.println(Rep.FEW, "waiting for UDP reply... ");
+        if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
+          Logger.println(Rep.FEW, "Failed to get a UDP reply. ");
+          return;
         }
+        try {
+          Thread.sleep(500);
+        } catch (InterruptedException e) {
+          continue;
+        }
+      }
     }
 
-      // This timer task keeps asking the intelligence for new parameters
-      // and sends them to the server.
-      TimerTask sendTask = new SendParamsTask(intel, tcpOut, uStream);
-      Timer sendTimer = new Timer("send-timer");
-      sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
+    // This timer task keeps asking the intelligence for new parameters
+    // and sends them to the server.
+    TimerTask sendTask = new SendParamsTask(intel, tcpOut, uStream);
+    Timer sendTimer = new Timer("send-timer");
+    sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
+    Logger.println(Logger.Rep.FEW, "Ready...");
+
+
+    // wait for the server to tell that the game is over
+    try {
+      String msg = Protocol.readNextMsg(tcpIn);
+      assert(Protocol.isMatchEnded(msg));
+    } catch (IOException e1) {
       Logger.println(Logger.Rep.FEW, "Ready...");
-      
-      GameState game = null;
-
-      while (true) {
-        // in UDP mode the GameStateReceiver handles this so there's nothing left for this thread to do!
-        Thread.sleep(10000);
-      }
-
-    } catch (Exception e) {
-
-      try {
-        socket.close();
-      } catch (Exception ee) {
-      }
-      
-      Logger.println(Logger.Rep.FEW, e.toString());
-      e.printStackTrace(System.err);
-      assert(false);
+      e1.printStackTrace();
     }
 
-    //socket.close();
+    Logger.println(Logger.Rep.FEW, "Game ended.");
+
+    // don't request a rematch.
+    
+    Logger.println(Logger.Rep.FEW, "Game ended.");
+    
+    uStream.disconnect();
+    
+    try {
+      socket.close();
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "couldn't close TCP socket.");
+      e.printStackTrace();
+    }
+
   }
 
   /**

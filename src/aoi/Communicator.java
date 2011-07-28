@@ -2,6 +2,7 @@ package aoi;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Vector;
 
 import unreliablestream.UnreliableStream;
@@ -125,7 +126,8 @@ public class Communicator implements UnreliableStream.Receiver {
           clientState = ClientState.RECEIVEDARENA;
 
         } catch (IOException ioe) {
-          Logger.println(Logger.Rep.INFREQ, ioe.toString());
+          Logger.println(Rep.FEW, "hand shake failed.");
+          ioe.printStackTrace();
           assert(false);
         }
         
@@ -149,6 +151,96 @@ public class Communicator implements UnreliableStream.Receiver {
         }
         
         udpSenderThread.start();
+        
+        // wait for the game to end
+        while (sim.gameEnded == null) {
+          try {
+            Thread.sleep(10000000);
+          } catch (InterruptedException e) {
+            Logger.println(Rep.FEW, "interrupted.");
+          }
+        }
+        
+        final DataOutputStream dout = new DataOutputStream(tcpOut);
+
+        try {
+
+          // Send the (dynamically assigned) player number to the client.
+          dout.writeBytes(Protocol.matchEnded(sim.matchId));
+
+          tcpOut.flush();
+          
+          String msg=Protocol.readNextMsg(tcpIn);
+          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
+          clientState = ClientState.GAMEENDED;
+          
+          stopUdpSender();
+
+        } catch (IOException ioe) {
+          Logger.println(Rep.FEW, "failed to send matchEnded.");
+          ioe.printStackTrace();
+          assert(false);
+        }
+        
+        // wait for the player to decide whether to rematch
+        try {
+          tcpSocket.setSoTimeout(200); // don't wait forever
+        } catch (SocketException e) {
+          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=200");
+          e.printStackTrace();
+        }
+        
+        Boolean accepted = null;
+        while (System.currentTimeMillis() - sim.gameEnded < SimulationUtils.REMATCHCONSIDERATIONTIME
+               && accepted == null && sim.rematchPossible()) {
+          
+          String msg;
+          try {
+            msg=Protocol.readNextMsg(tcpIn);
+          } catch (IOException ioe) {
+            continue;
+          }
+          
+          accepted = Protocol.parseRequestRematch(msg);
+          if (accepted != null)
+            try {
+              dout.writeBytes(Protocol.ack());
+            } catch (IOException e) {
+              Logger.println(Rep.FEW, "couldn't ack requestRematch");
+              e.printStackTrace();
+              return;
+            }
+        }
+        
+        try {
+          tcpSocket.setSoTimeout(0); // wait forever again (default)
+        } catch (SocketException e) {
+          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=0");
+          e.printStackTrace();
+          return;
+        }
+        
+        // wait for the decision
+        while (sim.rematchPossible() && !sim.rematchAccepted()) {
+          try {
+            Thread.sleep(200);
+          } catch (InterruptedException e) {
+            Logger.println(Rep.FEW, "interrupted.");
+          }
+        }
+        
+
+        try {
+          dout.writeBytes(Protocol.didOthersAcceptRematch(accepted));
+        } catch (IOException e) {
+          Logger.println(Rep.FEW, "couldn't send didOthersAcceptRematch "+accepted);
+          e.printStackTrace();
+          return;
+        }
+        
+        // nothing left to do.
+        stopTcpNegotiator();
+        
       }
       
     }, "tcpnegotiator-"+sim.matchId+"-"+playerNo);
@@ -161,12 +253,31 @@ public class Communicator implements UnreliableStream.Receiver {
     udpSenderThread.interrupt();
   }
   
+  public void sendGameEnded() {
+    if (clientState == ClientState.RECEIVEDARENA)
+      tcpNegotiatorThread.interrupt();
+
+    stopUdpSender();
+  }
+  
+  public void sendDidOthersAcceptRematch(boolean accepted) {
+
+  }
+  
   public void stop() {
     stop = true; 
+    stopUdpSender();
+    stopTcpNegotiator();
+  }
+  
+  private void stopUdpSender() {
     if (udpStream != null) {
       udpStream.disconnect();
       udpSenderThread.interrupt();
     }
+  }
+  
+  private void stopTcpNegotiator() {
     if (tcpSocket != null && !tcpSocket.isClosed()) {
       try {
         tcpSocket.close();
