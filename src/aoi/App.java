@@ -14,7 +14,7 @@ public class App extends JApplet {
 
   public void init() {
 
-    final Canvas canvas = new Canvas();
+    final GameCanvas canvas = new GameCanvas();
     //canvas.setBorder(null);
     add(canvas);
     
