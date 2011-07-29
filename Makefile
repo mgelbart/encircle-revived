@@ -60,7 +60,7 @@ run_client1r:
 	java $(runopts) -Xloggc:out/client1.mem $(package).Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt client.conf -C bin/ .
+	jar cfm aoi.jar Manifest.txt client.conf guiimg -C bin/ .
 
 push_jar: jar
 	scp -i ~/.ssh/encircle.pem aoi.jar ec2-user@50.16.200.221:/var/www/html/aoi.jar
