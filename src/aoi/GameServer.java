@@ -18,7 +18,7 @@ public abstract class GameServer {
   public static final int TCPPORT = 7601;
   public static final int UDPPORT = 7601;
   
-  static final int MATHMAKERCOMMPORT = 23099;
+  public static final int MATCHMAKERCOMMPORT = 23099;
   
   private static final TreeMap<Long, Simulation> matches = new TreeMap<Long, Simulation>();
   
