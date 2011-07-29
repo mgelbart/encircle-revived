@@ -21,7 +21,7 @@ public class Client implements Runnable {
   private static final String DEFAULTCONFIGPATH = "client.conf";
   
   // The JLabel for the GUI.
-  private static Canvas canvas;
+  private static GameCanvas canvas;
 
   // The UDP stream used for receiving game states and sending control parameters.
   private static UnreliableStream uStream = null;
@@ -45,7 +45,7 @@ public class Client implements Runnable {
    * If config is null, the default configuration file
    * is used.
    */
-  public Client(Canvas canvas) {
+  public Client(GameCanvas canvas) {
     this.canvas = canvas;
 
     // Load the default config file if none has been loaded so far. Used in the Applet.
@@ -53,7 +53,6 @@ public class Client implements Runnable {
       InputStream stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
       ClientConfiguration.parse(stream);
     }
-
   }
   
   /**
@@ -80,7 +79,6 @@ public class Client implements Runnable {
      * Ask the matchmaker for the matchId.
      */
     Long matchId = 1234l;
-    
     
     
     /*
@@ -134,12 +132,6 @@ public class Client implements Runnable {
     }
 
 
-    // Initialize the GUI for human players
-    if (!ClientConfiguration.nonhuman) {
-      DrawUtils.initialize(canvas);
-    }
-
-
 
     try {
       /* Process the handshake */
@@ -154,7 +146,7 @@ public class Client implements Runnable {
       ClientConfiguration.matchId = matchParams[0];
       ClientConfiguration.setPlayerNo((int) matchParams[1]);
       ClientConfiguration.unreliableStreamId = (short) matchParams[2];
-
+      
       // ack the match params
 //      tcpOut.writeBytes(Protocol.ack());
 //      tcpOut.flush();
@@ -183,6 +175,22 @@ public class Client implements Runnable {
     /* End of handshake. */
 
 
+    // Initialize the GUI for human players
+    if (!ClientConfiguration.nonhuman) {
+      // TEMP
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      // END TEMP
+      
+      
+      GameCanvas.toGameMode();
+      DrawUtils.initialize(canvas);
+    }
+    
     /* Run the intelligence in a separate thread so that parsing/serializing
        doesn't block thinking. */
     if (ClientConfiguration.nonhuman)

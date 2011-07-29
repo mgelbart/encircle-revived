@@ -75,7 +75,9 @@ public class Simulation  implements Runnable {
       // init GUI
       ClientConfiguration.setPlayerNo(1);  // sketch-ball
       Arena.setCurrent(arena);
-      DrawUtils.initialize(DrawUtils.createDefaultCanvas());
+      GameCanvas canvas  = DrawUtils.createDefaultCanvas();
+      canvas.toGameMode();
+      DrawUtils.initialize(canvas);
       gui = new GUI();
       guiThread = new Thread(gui, "gui");
       guiThread.setDaemon(true);

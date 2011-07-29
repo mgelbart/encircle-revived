@@ -62,44 +62,20 @@ public class DrawUtils {
 
   // The Paint object currently in use.
   private static Paint paint = DEFAULTPAINT;
-  
-  // Double buffered graphics.
-  // offscreen stores the buffered image that will be showed when show()
-  // is next called.
-  private static BufferStrategy strategy;
-  private static Graphics2D offscreen = null;
 
-  // The JLabel that the objects are drawn on.
-  private static Canvas canvas;
+  // The canvas the objects are drawn on.
+  private static GameCanvas canvas;
 
   // the minimal area of game coordinates that will be rendered.
   private static Rectangle renderedGameCoords;
   
   // Initialize the module to draw objects on the specified canvas.
-  public static void initialize(Canvas canv) {
+  public static void initialize(GameCanvas canv) {
     assert(!initialized);
-
-    assert(canv != null);
     canvas = canv;
-
-    canvas.setIgnoreRepaint(true);
-    canvas.createBufferStrategy(2); // double buffering
-    strategy = canvas.getBufferStrategy();
     
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
-    
-    initBuffer();
-    
-    setPaint(DEFAULTPAINT);
-    setStroke(DEFAULTSTROKE);
-    clear(Color.BLACK);
-    show();
-    
-    BufferCapabilities cab = strategy.getCapabilities();
-    Logger.println(Rep.FEW, "page flipping: " + cab.isPageFlipping());
-    Logger.println(Rep.FEW, "HW accelerated front/back buffer: " + cab.getFrontBufferCapabilities().isAccelerated()
-                                + " / " + cab.getBackBufferCapabilities().isAccelerated());
     
     initialized = true;
   }
@@ -109,7 +85,6 @@ public class DrawUtils {
 
     assert(initialized);
 
-    if (offscreen != null) offscreen.dispose();
     initialized = false;
   }
   
@@ -128,7 +103,7 @@ public class DrawUtils {
    */
   public static void setPaint(Paint p) {
     paint = p;
-    offscreen.setPaint(p);
+    GameCanvas.offscreen().setPaint(p);
   }
 
 
@@ -136,7 +111,7 @@ public class DrawUtils {
    * Set the Stroke object used to draw the outlines of Shapes.
    */
   public static void setStroke(Stroke s) {
-    offscreen.setStroke(s);
+    GameCanvas.offscreen().setStroke(s);
   }
 
 
@@ -154,9 +129,9 @@ public class DrawUtils {
    * @param c the Color to make the background
    */
   public static void clear(Color c) {
-    offscreen.setColor(c);
-    offscreen.fillRect(0, 0, canvasWidth(), canvasHeight());
-    offscreen.setPaint(paint);
+    GameCanvas.offscreen().setColor(c);
+    GameCanvas.offscreen().fillRect(0, 0, canvasWidth(), canvasHeight());
+    GameCanvas.offscreen().setPaint(paint);
   }
 
 
@@ -176,9 +151,9 @@ public class DrawUtils {
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + "). gameCoordinates: " + gameCoordinates);
     if (fill)
-      offscreen.fill(ss);
+      GameCanvas.offscreen().fill(ss);
     else
-      offscreen.draw(ss);
+      GameCanvas.offscreen().draw(ss);
   }
 
 
@@ -210,7 +185,7 @@ public class DrawUtils {
       b = fromOverlayCoords().createTransformedShape(box).getBounds2D();
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Picture at (" + xs + ", " + ys + ")");
-    offscreen.drawImage(image,
+    GameCanvas.offscreen().drawImage(image,
                         (int) Math.round((b.getX())),
                         (int) Math.round((b.getY())),
                         (int) Math.round((b.getWidth())),
@@ -223,29 +198,8 @@ public class DrawUtils {
    * Render the currently buffered "off-screen" image to the screen.
    */
   public static void show() {   
-    /*
-     *  Paint the buffered image
-     */
-    assert(offscreen != null);
-    offscreen.dispose();
-    strategy.show();
-    
-    initBuffer();
-    
-  }
-  
-  /**
-   * Get the new offscreen image to buffer to.
-   */
-  private static void initBuffer() {
-    // this cast seems sketchy but it is apparently commonly used.
-    offscreen = (Graphics2D) strategy.getDrawGraphics();
-
-    // add antialiasing
-    //RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
-    //                                          RenderingHints.VALUE_ANTIALIAS_ON);
-    //hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-    //offscreen.addRenderingHints(hints);
+    if (GameCanvas.mode != GameCanvas.Mode.INGAME) return;
+    GameCanvas.showBuffered();
   }
 
 
@@ -314,12 +268,12 @@ public class DrawUtils {
     canvas.addKeyListener(l);
   }
   
-  public static Canvas createDefaultCanvas() {
+  public static GameCanvas createDefaultCanvas() {
     // The main application window
     JFrame frame = new JFrame();
 
     // The JLabel on which the whole GUI is drawn.
-    Canvas canvas = new Canvas();
+    GameCanvas canvas = new GameCanvas();
     //canvas.setBorder(null);
     canvas.setPreferredSize(new Dimension(700, 700));
 

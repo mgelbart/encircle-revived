@@ -97,8 +97,6 @@ public class GUI implements Runnable {
 
     /* Canvas parameters: */
     DrawUtils.setRenderedGameCoords(0, 0, SimulationUtils.ARENASIZE, SimulationUtils.ARENASIZE);
-    DrawUtils.clear(Color.BLACK);
-    DrawUtils.show();
 
   }
 
