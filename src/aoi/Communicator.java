@@ -34,6 +34,7 @@ public class Communicator implements UnreliableStream.Receiver {
   private ClientState clientState = null;
   
   private boolean stop = false;
+  private boolean wasStarted = false;
 
 
   public Communicator(int playerNo, Simulation sim, short udpId) {
@@ -79,15 +80,25 @@ public class Communicator implements UnreliableStream.Receiver {
     return stop;
   }
   
+  
+  /**
+   * Returns true if the player still appears to be connected.
+   */
+  public boolean wasStarted() {
+    return wasStarted;
+  }
+  
   /**
    * This starts to send game data to the client.
    * This is non-blocking.
    */
   public void start() {
     assert(!stop);
+    assert(!wasStarted);
     
     // don't start if the player never connected at all.
     if (tcpOut == null) return;
+    wasStarted = true;
     
     udpSenderThread = new Thread(new Runnable() {
 
@@ -129,7 +140,8 @@ public class Communicator implements UnreliableStream.Receiver {
         } catch (IOException ioe) {
           Logger.println(Rep.FEW, "hand shake failed.");
           ioe.printStackTrace();
-          assert(false);
+          stop();
+          return;
         }
         
         // Wait for the client to connect using UDP

@@ -537,7 +537,7 @@ public class Simulation  implements Runnable {
         // end game if both players have disconnected.
         boolean livePlayers = false;
         for (Communicator  c: communicators)
-          if (!c.stopped()) { livePlayers = true; break; }
+          if (!c.stopped() && c.wasStarted()) { livePlayers = true; break; }
         
         if (!livePlayers) {
           Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");

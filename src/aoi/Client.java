@@ -268,18 +268,19 @@ public class Client implements Runnable {
     Logger.println(Logger.Rep.FEW, "Game ended.");
 
     // don't request a rematch.
+    boolean rematch = false;
     try {
-      tcpOut.writeBytes(Protocol.requestRematch(false));
+      tcpOut.writeBytes(Protocol.requestRematch(rematch));
     } catch (IOException e) {
       Logger.println(Rep.FEW, "failed to send requestRematch.");
       e.printStackTrace();
     }
     
-    Logger.println(Logger.Rep.FEW, "Game ended.");
-    
     stopGracefully();
     
-    return false;
+    GameCanvas.toPostGame();
+    
+    return rematch;
 
   }
   
