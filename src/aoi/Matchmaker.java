@@ -84,16 +84,12 @@ public class Matchmaker {
 		void checkForMatch(GameClient newClient) {
 
 			// Remove clients that have dropped out from the client list.
-			// We don't bother checking the new client because they have
-			// just connected.
 			for (GameClient c : clients) {
-				if (c != newClient) {
 					if (!acknowledgedMessage(c.socket, Protocol.ping())) {
 						doneWithClient(c);
 					}
-				}
 			}
-
+			
 			// Now look for a match.
 			for (GameClient c : clients) {
 				if (c != newClient) {
@@ -104,11 +100,12 @@ public class Matchmaker {
 					String server = null;
 					boolean success = false;
 					while (!success) {
-						server = gsm.getNextGameServer();					
+						server = gsm.getNextGameServer();		
+						Logger.println(Rep.FREQ, "contacting game server: "+server+" "+matchId);
 						success = gsm.notifyServerOfMatch(server, matchId);
 						if (!success) {							
 							try {
-								Thread.sleep(100);  // wait a while so we don't thrash looking for a server  
+								Thread.sleep(700);  // wait a while so we don't thrash looking for a server  
 							} catch (InterruptedException e) {
 								Logger.println(Rep.FEW, "Sleep interrupted");
 								e.printStackTrace();
@@ -154,8 +151,9 @@ public class Matchmaker {
 				s = new Socket(server, GameServer.MATCHMAKERCOMMPORT);			    
 				success = acknowledgedMessage(s, Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS)); 
 			} catch (Exception e) {
-				Logger.println(Rep.FEW, "Socket exception for server " + server + " at " + s.getRemoteSocketAddress());
+				Logger.println(Rep.FEW, "Socket exception for server " + server + " at " + ((s!=null)? s.getRemoteSocketAddress():null));
 				e.printStackTrace();
+				success = false;
 			}
 			if (s != null)
 				closeSocket(s);
