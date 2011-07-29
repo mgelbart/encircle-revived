@@ -85,7 +85,7 @@ public class Client implements Runnable {
      * TEMP: tell the game server to expect a match.
      */
     try {
-      Socket tSock = new Socket(ClientConfiguration.serverUrl, GameServer.MATHMAKERCOMMPORT);
+      Socket tSock = new Socket(ClientConfiguration.serverUrl, GameServer.MATCHMAKERCOMMPORT);
       tSock.getOutputStream().write(Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS).getBytes());
       tSock.close();
     } catch (UnknownHostException e3) {

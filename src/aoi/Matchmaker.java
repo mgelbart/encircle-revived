@@ -101,12 +101,19 @@ public class Matchmaker {
 
 					int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);
 					
+					String server = null;
 					boolean success = false;
 					while (!success) {
-						String server = gsm.getNextGameServer();					
+						server = gsm.getNextGameServer();					
 						success = gsm.notifyServerOfMatch(server, matchId);
 						if (!success) {							
-							Thread.sleep(100);  // wait a while so we don't thrash looking for a server  
+							try {
+								Thread.sleep(100);  // wait a while so we don't thrash looking for a server  
+							} catch (InterruptedException e) {
+								Logger.println(Rep.FEW, "Sleep interrupted");
+								e.printStackTrace();
+								return;
+							}
 						}
 					}
 					

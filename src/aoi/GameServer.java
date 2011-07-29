@@ -59,7 +59,7 @@ public abstract class GameServer {
       public void run() {
         ServerSocket listener;
         try {
-          listener = new ServerSocket(MATHMAKERCOMMPORT);
+          listener = new ServerSocket(MATCHMAKERCOMMPORT);
         } catch (IOException e1) {
           Logger.println(Rep.FEW, "failed to bind the matchmaker communication port.");
           e1.printStackTrace();
