@@ -43,7 +43,7 @@ save temp;
 load temp
 
 if WRITE_DATA
-%    meta_file = fopen('../meta/fly.txt', 'w');
+%    meta_file = fopen(fullfile('..', 'meta', 'fly.txt'), 'w');
 else
     disp('You have selected NOT to write any data!');
 end
@@ -150,12 +150,12 @@ for i = 1:size(s, 1)
     
 %     fprintf(meta_file, '%04u\n', i);
     % write the image to a file
-    imwrite(patch_crop, sprintf('../images/fly/%04u.%s', i, IMAGE_FORMAT), IMAGE_FORMAT, 'Alpha', mask_crop);
+    imwrite(patch_crop, fullfile('..', 'images', 'fly', sprintf('%04u.%s', i, IMAGE_FORMAT)), IMAGE_FORMAT, 'Alpha', mask_crop);
   
 %     keyboard
-    continue  
+%   continue 
     % write the contour to a file
-    polygon_file = fopen(sprintf('../polygons/fly/%04u.txt', i), 'w');
+    polygon_file = fopen(fullfile('..', 'polygons', 'fly', sprintf('%04u.txt', i)), 'w');
     
     % write the size of the image ((x, y) not (y, x))
     % because this information is not implicit in the contour given that
@@ -177,7 +177,7 @@ for i = 1:size(s, 1)
     fclose(polygon_file);
     
     % write an initial database entry to a file
-    nsegments_file = fopen(sprintf('../segment_likelihoods/fly/%04u.txt', i), 'w');
+    nsegments_file = fopen(fullfile('..', 'segment_likelihoods', 'fly', sprintf('%04u.txt', i)), 'w');
     fprintf(nsegments_file, '%u:%.2f,\n', label, LABELING_RELIABILITY);
     fprintf(nsegments_file, '\n');
     fclose(nsegments_file);
