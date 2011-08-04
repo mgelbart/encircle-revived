@@ -19,8 +19,12 @@ public abstract class Protocol {
 
   // the client is expected to send keepAlives while
   // waiting for a match. The client will be disconnected
-  // if one doesn't arrive within this period.
-  public static final int MATCHMAKERTIMEOUT = 4000;
+  // if one doesn't arrive within this period. In ms.
+  public static final int MATCHMAKERKEEPALIVETIMEOUT = 3000;
+  
+  // The time the client has to send a readyForMatch after
+  // connecting to the game server.
+  public static final int GAMESERVERMATCHREQUESTTIMEOUT = 1000;
   
   /*
    * The client goes through the following states
@@ -146,6 +150,9 @@ public abstract class Protocol {
   public static String matchCount(int n) { return MATCHCOUNT+" "+n+"\n";}
   public static Long parseMatchCount(String msg)  { return parse1Long(MATCHCOUNT, msg); }
 
+  private static final String MATCHREJECTED = "matchRejected";
+  public static String matchRejected(long matchId) { return MATCHREJECTED+" "+matchId+"\n";}
+  public static Long parseMatchRejected(String msg)  { return parse1Long(MATCHREJECTED, msg); }
   
   // parse a request with one long argument.
   private static long[] parseNLongs(String cmd, String msg, int n) {

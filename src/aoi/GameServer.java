@@ -88,6 +88,8 @@ public abstract class GameServer {
                   continue;
                 }
                 
+                // TODO: reject the new match if the server is already overloaded.
+                
                 final long matchId = matchDetails[0];
                 final long numOfPlayers = matchDetails[1];
                 if (matches.containsKey(matchId)) {
@@ -190,40 +192,68 @@ public abstract class GameServer {
     
     while (true) {
       Simulation simulation = null;
+      Socket socket = null;
+      
+      try {        
+        socket = servSocket.accept(); // Wait for a client to connect
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "Failed to accept a new client connection.");
+        e.printStackTrace();
+        continue;
+      }
+      
+      Long matchId;
       
       try {
-        
-        Socket socket = servSocket.accept(); // Wait for a client to connect
-        
         // figure out which simulation the client is trying to connect
+        final int oldTimeout = socket.getSoTimeout();
+        socket.setSoTimeout(Protocol.GAMESERVERMATCHREQUESTTIMEOUT);
         String msg = Protocol.readNextMsg(socket.getInputStream());
-        final Long matchId = Protocol.parseReadyForMatch(msg);
+        socket.setSoTimeout(oldTimeout);
+        
+        matchId = Protocol.parseReadyForMatch(msg);
         if (matchId == null) {
           Logger.println(Rep.FEW, "Client sent garbage: "+msg);
           socket.close();
           continue;
         }
-        
-        synchronized (matches) {
-          simulation = matches.get(matchId);
-          
-          if (simulation == null || simulation.started != null
-              || simulation.numConnectedPlayers == SimulationUtils.NUMPLAYERS) {
-            // the match cannot be joined.
-            // tell the client to go back to matchmaker
-            OutputStream out = socket.getOutputStream();
-            out.write(Protocol.matchFull().getBytes());
-          }
-          
-          simulation.communicators[simulation.numConnectedPlayers].setTCPSocket(socket);
-          Logger.println(Logger.Rep.FEW, "Player " + simulation.numConnectedPlayers + " connected.");
-          simulation.numConnectedPlayers++;
-        }
-
       } catch (IOException e) {
-        Logger.println(Rep.FEW, "Failed to accept client connection.");
+        Logger.println(Rep.FEW, "Failed to read readyForMatch from "
+            + ((socket==null)? null:socket.getInetAddress()));
         e.printStackTrace();
         continue;
+      }
+      
+      synchronized (matches) {
+        simulation = matches.get(matchId);
+
+        if (simulation == null || simulation.started != null
+            || simulation.numConnectedPlayers == SimulationUtils.NUMPLAYERS) {
+          // the match cannot be joined.
+          // tell the client to go back to matchmaker
+          try {              
+            OutputStream out = socket.getOutputStream();
+            out.write(Protocol.matchFull().getBytes());
+          } catch (IOException e) {
+            Logger.println(Rep.FEW, "Failed to send matchFull to "
+                + ((socket==null)? null:socket.getInetAddress()));
+            e.printStackTrace();
+            continue;
+          }
+        }
+  
+        
+        try {
+          simulation.communicators[simulation.numConnectedPlayers].setTCPSocket(socket);
+        } catch (IOException e) {
+          Logger.println(Rep.FEW, "Failed to set communicator TCP socket for "
+              + ((socket==null)? null:socket.getInetAddress()));
+          e.printStackTrace();
+          continue;
+        }
+        Logger.println(Logger.Rep.FEW, "Player " + simulation.numConnectedPlayers
+            + " connected to match " + simulation.matchId);
+        simulation.numConnectedPlayers++;
       }
       
       if (simulation.numConnectedPlayers == SimulationUtils.NUMPLAYERS) {

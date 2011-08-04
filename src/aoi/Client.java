@@ -55,24 +55,6 @@ public class Client implements Runnable {
     }
   }
   
-  /**
-   * Parse the received TCP message and return the resulting client state.
-   */
-  private ClientState nextState(ClientState current, String msg) {
-    switch (current) {
-    
-//    case REQUESTEDMATCH:
-//      return (parseMatchMade(msg))? ClientState.READYFORMATCH : current;
-//      
-//    case READYFORMATCH:
-//      return (parsePlayerNo(msg))? ClientState.RECEIVEDPLAYERNO : current;
-    
-    }
-
-    assert(false);
-    return null;
-  }
-  
   public void run() {
     StdAudio.init();
     
@@ -103,9 +85,9 @@ public class Client implements Runnable {
     
     try {
       // keep sending keep alives until we get a response
-      long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERTIMEOUT;
+      long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
       while (mmIn.available() == 0) {
-        if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERTIMEOUT/2)
+        if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
           mmOut.write(Protocol.keepAlive().getBytes());
         
         try { Thread.sleep(200); }
@@ -302,6 +284,8 @@ public class Client implements Runnable {
     }
 
     Logger.println(Logger.Rep.FEW, "Game ended.");
+    
+    GameCanvas.toPostGame();
 
     // don't request a rematch.
     boolean rematch = false;
@@ -313,8 +297,6 @@ public class Client implements Runnable {
     }
     
     stopGracefully();
-    
-    GameCanvas.toPostGame();
     
     return rematch;
 

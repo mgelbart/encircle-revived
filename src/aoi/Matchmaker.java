@@ -8,11 +8,11 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
-import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import aoi.Logger.Rep;
@@ -206,9 +206,9 @@ public class Matchmaker {
 			}
 			
 		  // Print out remaining queue
-			for (GameClient c : clients) {
-				Logger.println(Rep.FREQ, "Queue contains: " + c);
-			}
+		  synchronized (clients) {
+		    Logger.println(Rep.FREQ, "Queue contains:\n" + join(clients, "\n"));
+		  }
 		}
 	}
 
@@ -221,7 +221,7 @@ public class Matchmaker {
 			readListOfGameServers();
 		}
 		
-		synchronized boolean notifyServerOfMatch(String server, int matchId) {
+		boolean notifyServerOfMatch(String server, int matchId) {
 			boolean success = true;
 			Socket s = null;
 			
@@ -325,10 +325,9 @@ public class Matchmaker {
         
   			gameServers = newServers;
   
-  			if (listChanged) {
-          Logger.println(Rep.FEW, "Game servers updated:");
-    			for (String server : gameServers) Logger.println(Rep.FEW, server);
-  			}
+  			if (listChanged)
+          Logger.println(Rep.FEW, "Game servers updated:\n"
+              + join(gameServers, "\n"));
       }
 		}
 
@@ -371,8 +370,7 @@ public class Matchmaker {
 			 */
 
 			final int oldTimeout = socket.getSoTimeout();
-			// TODO Speed up: c.socket.setSoTimeout(750);
-			socket.setSoTimeout(6500);
+			socket.setSoTimeout(750);
 			String response = Protocol.readNextMsg(in);
 			if ((response == null) || !Protocol.isAck(response)) {
 				Logger.println(Rep.FEW,
@@ -435,6 +433,7 @@ public class Matchmaker {
           
           // also remove dead clients.
           if (!c.isAlive()) {
+            Logger.println(Rep.INFREQ, "Removing dead client: " + c);
             closeSocket(c.socket);
             i.remove();
           }
@@ -452,5 +451,15 @@ public class Matchmaker {
 
 	public static void main(String argv[]) throws Exception {
 		new Matchmaker();
+	}
+	
+	private static String join(Collection<?> set, String delimiter) {
+	  if (set.size() == 0) return "(empty)";
+    StringBuilder s = new StringBuilder();
+    for (Iterator<?> i=set.iterator(); i.hasNext();) {
+      s.append(i.next());
+      if (i.hasNext()) s.append(delimiter);
+    }
+    return s.toString();
 	}
 }
