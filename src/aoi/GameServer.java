@@ -15,9 +15,6 @@ import unreliablestream.*;
  */
 public abstract class GameServer {
   
-  public static final int TCPPORT = 7601;
-  public static final int UDPPORT = 7601;
-  
   public static final int MATCHMAKERCOMMPORT = 23099;
   
   private static final TreeMap<Long, Simulation> matches = new TreeMap<Long, Simulation>();
@@ -102,6 +99,8 @@ public abstract class GameServer {
                 matches.put(matchId, createFreshSimulation(matchId));
                 Logger.println(Rep.FEW, "expecting match: "+matchId);
                 
+                // tell the matchmaker we're ready to accept clients
+                out.write(Protocol.ack().getBytes());
               }
               
             } // end synchronized (matches)
@@ -168,8 +167,8 @@ public abstract class GameServer {
     ServerSocket servSocket;
     
     try {
-      servSocket = new ServerSocket(TCPPORT);
-      udpServ = new UnreliableStreamServer(UDPPORT);
+      servSocket = new ServerSocket(Protocol.GAMESERVERTCPPORT);
+      udpServ = new UnreliableStreamServer(Protocol.GAMESERVERUDPPORT);
       udpServ.start();
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "Failed to init sockets.");

@@ -13,8 +13,17 @@ import aoi.Logger.Rep;
  */
 public abstract class Protocol {
 
+  public static final int MATCHMAKERTCPPORT = 7602;
+  public static final int GAMESERVERTCPPORT = 7601;
+  public static final int GAMESERVERUDPPORT = 7601;
+
+  // the client is expected to send keepAlives while
+  // waiting for a match. The client will be disconnected
+  // if one doesn't arrive within this period.
+  public static final int MATCHMAKERTIMEOUT = 4000;
+  
   /*
-   * The client goes through the following state
+   * The client goes through the following states
    * during the matchmaking and game play stages.
    */
   public enum ClientState {
@@ -25,7 +34,7 @@ public abstract class Protocol {
     GAMEENDED,
     REMATCHREQUESTPENDING
   }
-
+  
   /**
    * Reads the next line from the stream.
    * 
@@ -56,15 +65,21 @@ public abstract class Protocol {
   private static final String ACK = "ack";
   public static String ack() { return ACK+"\n"; }
   public static boolean isAck(String msg) { return msg.matches("\\s*"+ACK+"\\s*"); }
+  
+  private static final String KEEPALIVE = "keepAlive";
+  public static String keepAlive() { return KEEPALIVE+"\n"; }
+  public static boolean isKeepAlive(String msg) { return msg.matches("\\s*"+KEEPALIVE+"\\s*"); }
   	 	  
   /*
    * Matchmaking server to Client:
    */
   private static final String MATCHMADE = "matchMade";
   public static String matchMade(String server, long gameId) { return MATCHMADE+" "+server+" "+gameId+"\n"; }
-  
-  private static final String PING = "ping";
-  public static String ping() { return PING+"\n"; }
+  public static String[] parseMatchMade(String msg)  {
+    String[] s = parseStrings(MATCHMADE, msg);
+    if (s.length != 3) return null;
+    return new String[]{s[1], s[2]};
+  }
   
   /*
    * Client to Game server:

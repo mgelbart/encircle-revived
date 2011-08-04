@@ -1,44 +1,95 @@
 package aoi;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import aoi.Logger.Rep;
+import aoi.Protocol.ClientState;
 
 /**
  * The matchmaking server.
  */
 public class Matchmaker {
 
+  private static final String GAMESERVERLIST = "gameservers.txt";
+  
 	GameServerManager gsm;
 	Queue<GameClient> clients;
 
 	// This class contains the data for one game client waiting to be matched.
 	class GameClient {
+	  // The client is expected to keep sending keepAlives until
+	  // a match is made.
+	  static final int TIMEOUT = 4000;
+	  
 		Socket socket;
+		long lastReceived; // time of last message
+		ClientState state;
 
 		GameClient(Socket s) throws IOException {
 			socket = s;
+			lastReceived = System.currentTimeMillis();
+			state = ClientState.REQUESTEDMATCH;
 		}
 
 		@Override
 		public String toString() {
-			return "GameClient " + socket.getRemoteSocketAddress();
+			return "GameClient " + socket.getRemoteSocketAddress()
+			        + " (state: " + state + ")";
+		}
+		
+		boolean isAlive() {
+		  return System.currentTimeMillis() - lastReceived < TIMEOUT;
+		}
+		
+		/**
+		 * Read and process any pending messages from the client.
+		 * @throws IOException 
+		 */
+		synchronized void processPendingMessages() throws IOException {
+		  InputStream in = socket.getInputStream(); 
+		  if (in.available() == 0) return;
+		  
+		  final int timeout = 10;
+  		final int oldTimeout = socket.getSoTimeout();
+  		socket.setSoTimeout(timeout);
+
+  		String msg;
+		  while (in.available() > 0) {
+		    msg = Protocol.readNextMsg(socket.getInputStream());
+		    lastReceived = System.currentTimeMillis();
+		    
+		    if (msg != null) {
+  		    if (state == ClientState.REQUESTEDMATCH && Protocol.isKeepAlive(msg))
+  	        // the client is waiting to be matched:
+  		      continue;
+  
+  		    if (state == ClientState.REQUESTEDMATCH && Protocol.isAck(msg)) {
+  	        // the client acknowledged the sent matchMade
+  		      state = ClientState.READYFORMATCH;
+  		      continue;
+  		    }
+		    }
+		    
+		    // unknown msg:
+		    Logger.println(Rep.FEW, "unexpected msg: "+msg
+		        +"\nfrom: "+this);
+		  }
+		  
+		  socket.setSoTimeout(oldTimeout);
+      return;
 		}
 	}
 
@@ -50,7 +101,7 @@ public class Matchmaker {
 		public void run() {
 			ServerSocket servSocket;
 			try {
-				servSocket = new ServerSocket(GameServer.TCPPORT);
+				servSocket = new ServerSocket(Protocol.MATCHMAKERTCPPORT);
 			} catch (IOException e1) {
 				Logger.println(Rep.FEW, "Failed to init server socket.");
 				e1.printStackTrace();
@@ -66,8 +117,8 @@ public class Matchmaker {
 							"Connected to client "
 									+ socket.getRemoteSocketAddress());
 					GameClient client = new GameClient(socket);
-					clients.add(client);
-					checkForMatch(client);
+					synchronized (clients) { clients.add(client); }
+					checkForMatch();
 				} catch (IOException e) {
 					Logger.println(Rep.FEW, "Socket exception");
 					e.printStackTrace();
@@ -76,58 +127,85 @@ public class Matchmaker {
 			}
 		}
 
-		void doneWithClient(GameClient c) {
-			clients.remove(c);
-			closeSocket(c.socket);
-		}
+		void checkForMatch() {
 
-		void checkForMatch(GameClient newClient) {
+      GameClient[] matchedClients = null;
 
-			// Remove clients that have dropped out from the client list.
-			for (GameClient c : clients) {
-					if (!acknowledgedMessage(c.socket, Protocol.ping())) {
-						doneWithClient(c);
-					}
+		  synchronized (clients) {
+  			// take the first NUMPLAYERS players from the queue.
+  			if (clients.size() >= SimulationUtils.NUMPLAYERS) {
+  			  matchedClients = new GameClient[SimulationUtils.NUMPLAYERS];
+          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
+            matchedClients[j] = clients.remove();
+          }
+  			}
+      } // end synchronized (clients)
+		  
+		  if (matchedClients != null) {
+		    Logger.println(Rep.FREQ, "Matching first " + matchedClients.length + " clients.");
+
+		    // TODO: generate a long id.
+        int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);
+        
+        // find a working server
+        String server = null;
+        boolean success = false;
+        while (!success) {
+          server = gsm.getNextGameServer();   
+          Logger.println(Rep.FREQ, "contacting game server: "+server+" "+matchId);
+          success = gsm.notifyServerOfMatch(server, matchId);
+          if (!success) {             
+            try {
+              Thread.sleep(700);  // wait a while so we don't thrash looking for a server  
+            } catch (InterruptedException e) {
+              Logger.println(Rep.FEW, "Sleep interrupted");
+              e.printStackTrace();
+              return;
+            }
+          }
+        }
+        
+        String matchMadeMessage = Protocol.matchMade(server, matchId);
+        
+        // send matchMade to all clients
+        for (GameClient c : matchedClients) {
+          try {
+            c.socket.getOutputStream().write(matchMadeMessage.getBytes());
+          } catch (IOException e) {
+            Logger.println(Rep.FEW, "Failed to write matchMade to client "+c);
+            e.printStackTrace();
+          }
+        }
+        
+        // check whether everyone acked the match
+        final long started = System.currentTimeMillis();
+        final int ACKTIMEOUT = 2000;
+        while (System.currentTimeMillis() - started < ACKTIMEOUT) {
+          for (GameClient c : matchedClients) {
+            try { c.processPendingMessages(); }
+            catch (IOException e) { continue; }
+          }
+
+          boolean waitingForAck = false;
+          for (GameClient c : matchedClients)
+            if (c.state != ClientState.READYFORMATCH)
+              waitingForAck = true;
+          
+          if (!waitingForAck) break;
+          
+          try { Thread.sleep(300); }
+          catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
+        }
+
+        for (GameClient c : matchedClients)
+          if (c.state != ClientState.READYFORMATCH)
+            Logger.println(Rep.FEW, "did not get ack for matchMade from client "+c);
+
+        // close matched client connections
+        for (GameClient c : matchedClients) closeSocket(c.socket);
 			}
 			
-			// Now look for a match.
-			for (GameClient c : clients) {
-				if (c != newClient) {
-					Logger.println(Rep.FREQ, "Found a client in queue to match with: " + c);
-
-					int matchId = randomGenerator.nextInt(Integer.MAX_VALUE);
-					
-					String server = null;
-					boolean success = false;
-					while (!success) {
-						server = gsm.getNextGameServer();		
-						Logger.println(Rep.FREQ, "contacting game server: "+server+" "+matchId);
-						success = gsm.notifyServerOfMatch(server, matchId);
-						if (!success) {							
-							try {
-								Thread.sleep(700);  // wait a while so we don't thrash looking for a server  
-							} catch (InterruptedException e) {
-								Logger.println(Rep.FEW, "Sleep interrupted");
-								e.printStackTrace();
-								return;
-							}
-						}
-					}
-					
-					String matchMadeMessage = Protocol.matchMade(server, matchId);
-					success = acknowledgedMessage(c.socket, matchMadeMessage);
-					doneWithClient(c);
-					
-					if (success) {
-						success = acknowledgedMessage(newClient.socket, matchMadeMessage);
-						if (success) {
-							Logger.println(Rep.FREQ, "Successfully matched new client " + newClient + " with queue head client " + c);
-						}
-						doneWithClient(newClient);					
-					}												
-				}
-			}
-
+		  // Print out remaining queue
 			for (GameClient c : clients) {
 				Logger.println(Rep.FREQ, "Queue contains: " + c);
 			}
@@ -136,7 +214,7 @@ public class Matchmaker {
 
 	// This class maintains the list of game servers for load balancing.
 	class GameServerManager {
-		List<String> gameServers;
+		List<String> gameServers = new ArrayList<String>();
 		int listPosition = 0;
 
 		GameServerManager() {
@@ -162,45 +240,96 @@ public class Matchmaker {
 		}
 								
 		
-		synchronized String getNextGameServer() {
+		String getNextGameServer() {
 			// Round-robin load balancing
-			String server = gameServers.get(listPosition);						
-			listPosition++;
-			if (listPosition >= gameServers.size()) 
-				listPosition = 0;
-			
-			return server;
+		  synchronized (gameServers) {
+		    // note: this needs to be within the same synchronized block
+		    //       and before the gameServers.get(listPosition) call
+		    //       since gameServers could otherwise be reread in the
+		    //       meanwhile.
+		    if (listPosition >= gameServers.size()) listPosition = 0;
+		    
+		    if (!gameServers.isEmpty()) {
+		      final String server = gameServers.get(listPosition);						
+		      listPosition++;
+		      return server;
+		    } else {
+		      Logger.println(Rep.FEW, "gameServers is empty!");
+		      return "localhost";
+		    }
+		  }
 		}
 
-		synchronized void readListOfGameServers() {
-			// NOTE: In multi-threaded code we must use synchronized keyword
-			// when iterating over the list. See
-			// http://download.oracle.com/javase/6/docs/api/java/util/Collections.html#synchronizedList(java.util.List)
-			gameServers = Collections.synchronizedList(new ArrayList<String>());
+		void readListOfGameServers() {
+      if (gameServers.isEmpty())
+        Logger.println(Rep.FEW, "Reading game server list from " + GAMESERVERLIST);
 
-			Logger.println(Rep.FEW, "Reading game server list from stdin");
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
-					System.in));
-			try {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					if (line.length() > 0)
-						gameServers.add(line);
-				}
-			} catch (IOException e1) {
-				Logger.println(Rep.FEW, "Couldn't read server conf file.");
-				e1.printStackTrace();
-				return;
-			}
+      BufferedReader reader = new BufferedReader(new InputStreamReader(
+          Matchmaker.class.getClassLoader().getResourceAsStream(GAMESERVERLIST)));
 
-			if (gameServers.size() < 1) {
-				throw new RuntimeException("No game server names found");
-			}
+      /*
+       *  first read the whole file to make sure it contains the start and end tags
+       */
+      final String STARTTAG = "start-of-list";
+      final String ENDTAG = "end-of-list";
+      
+      boolean listStarted = false;
+      boolean listEnded = false;
+      ArrayList<String> newServers = new ArrayList<String>();
+      try {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          //Logger.println(Rep.FEW, line + " " + listStarted + " " + listEnded);
+          if (line.startsWith(ENDTAG)) {
+            listEnded = true;
+            break;
+          } else if (line.startsWith(STARTTAG))
+            listStarted = true;
+          else if (!line.isEmpty() && listStarted && !listEnded)
+            newServers.add(line);
+        }
+        reader.close();
+      } catch (IOException e1) {
+        Logger.println(Rep.FEW, "Couldn't read server conf file.");
+        e1.printStackTrace();
+        return;
+      }
+      
+      if (!listStarted) {
+        Logger.println(Rep.FEW, GAMESERVERLIST + " did not contain " + STARTTAG);
+        return;
+      }
+      
+      if (!listEnded) {
+        Logger.println(Rep.FEW, GAMESERVERLIST + " did not contain " + ENDTAG);
+        return;
+      }
 
-			for (String server : gameServers) {
-				Logger.println(Rep.FEW, "Game server '" + server
-						+ "' found in conf file");
-			}
+      if (newServers.isEmpty()) {
+        Logger.println(Rep.FEW, GAMESERVERLIST + " did not contain any servers.");
+        return;
+      }
+      
+      /*
+       * Now update the actual gameServers list in use.
+       */
+      synchronized (gameServers) {
+        boolean listChanged = false;
+        if (gameServers.size() != newServers.size())
+          listChanged = true;
+        else {
+          for (int j=0; j<newServers.size(); ++j)
+            if (!newServers.get(j).equals(gameServers.get(j)))
+              listChanged = true;
+        }
+        
+  			gameServers = newServers;
+  
+  			if (listChanged) {
+          Logger.println(Rep.FEW, "Game servers updated:");
+    			for (String server : gameServers) Logger.println(Rep.FEW, server);
+  			}
+      }
 		}
 
 	}
@@ -241,14 +370,16 @@ public class Matchmaker {
 			 * a match setup). So we wait for an "ack" from the client.
 			 */
 
+			final int oldTimeout = socket.getSoTimeout();
 			// TODO Speed up: c.socket.setSoTimeout(750);
 			socket.setSoTimeout(6500);
 			String response = Protocol.readNextMsg(in);
 			if ((response == null) || !Protocol.isAck(response)) {
 				Logger.println(Rep.FEW,
-						"Instead of ack, client response was: " + response);
+						"Instead of ack, response was: " + response);
 				successful = false;
 			}
+			socket.setSoTimeout(oldTimeout);
 		} catch (Exception e) {
 			successful = false;
 			Logger.println(Rep.FEW, "Socket exception for " + socket.getRemoteSocketAddress());
@@ -257,7 +388,11 @@ public class Matchmaker {
 
 		return successful;
 	}
-	
+
+	/*
+	 * Close the given connection.
+	 * Log errors but ignore them otherwise.
+	 */
 	void closeSocket(Socket socket) {
 		try {
 			socket.close();
@@ -271,11 +406,48 @@ public class Matchmaker {
 		Logger.setVerbosity(Rep.FREQ);
 		
 		gsm = new GameServerManager();
+		long lastServListRead = System.currentTimeMillis();
 
+		// Start listening for connections
 		clients = new LinkedBlockingQueue<GameClient>();
 		GameClientListener listener = new GameClientListener();
 		Thread t = new Thread(listener, "GameClientListener");
 		t.start();
+		
+		while (true) {
+	    // Keep processing incoming messages from the clients
+		  try {
+		    final int READPERIOD = 1000;
+        Thread.sleep(READPERIOD);
+      } catch (InterruptedException e) { Logger.println(Rep.FEW, "Interrupted."); }
+      
+      synchronized (clients) {
+        for (Iterator<GameClient> i = clients.iterator(); i.hasNext();) {
+          GameClient c = i.next();
+
+          try {
+            c.processPendingMessages();
+          } catch (IOException e) {
+            Logger.println(Rep.FEW, "Failed to process messages for client "+c);
+            e.printStackTrace();
+            clients.remove(c);
+          }
+          
+          // also remove dead clients.
+          if (!c.isAlive()) {
+            closeSocket(c.socket);
+            i.remove();
+          }
+        }
+      }
+      
+      // also occasionally reread the server list
+      final int SERVERLISTREADPERIOD = 20000;
+      if (System.currentTimeMillis() - lastServListRead > SERVERLISTREADPERIOD) {
+        gsm.readListOfGameServers();
+        lastServListRead = System.currentTimeMillis();
+      }
+		}
 	}
 
 	public static void main(String argv[]) throws Exception {

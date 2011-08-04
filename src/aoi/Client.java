@@ -74,34 +74,68 @@ public class Client implements Runnable {
   }
   
   public void run() {
+    StdAudio.init();
     
-    /* TODO:
+    /*
      * Ask the matchmaker for the matchId.
      */
-    Long matchId = 1234l;
-    
-    
-    /*
-     * TEMP: tell the game server to expect a match.
-     */
+    Socket mmSock;
+    OutputStream mmOut;
+    InputStream mmIn;
     try {
-      Socket tSock = new Socket(ClientConfiguration.serverUrl, GameServer.MATCHMAKERCOMMPORT);
-      tSock.getOutputStream().write(Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS).getBytes());
-      tSock.close();
-    } catch (UnknownHostException e3) {
-      // TODO Auto-generated catch block
-      e3.printStackTrace();
+      mmSock = new Socket(ClientConfiguration.serverUrl, Protocol.MATCHMAKERTCPPORT);
+      mmOut = mmSock.getOutputStream();
+      mmIn = mmSock.getInputStream();
+    } catch (UnknownHostException e) {
+      Logger.println(Rep.FEW, "Unknown matchmaker.");
+      e.printStackTrace();
       return;
-    } catch (IOException e3) {
-      // TODO Auto-generated catch block
-      e3.printStackTrace();
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "Failed to connect to matchmaker.");
+      e.printStackTrace();
       return;
     }
-    /*
-     * END TEMP.
-     */
+
+    // The game server address and match id that we are going
+    // to receive from the matchmaker.
+    String gameServ = null;
+    long matchId = 0;
     
-    connectToGameServer(matchId);
+    try {
+      // keep sending keep alives until we get a response
+      long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERTIMEOUT;
+      while (mmIn.available() == 0) {
+        if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERTIMEOUT/2)
+          mmOut.write(Protocol.keepAlive().getBytes());
+        
+        try { Thread.sleep(200); }
+        catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
+      }
+      
+      // parse the server name and match id.
+      String msg = Protocol.readNextMsg(mmIn);
+      String[] matchMade = Protocol.parseMatchMade(msg);
+      if (matchMade == null
+          || matchMade[0] == null
+          || matchMade[1] == null
+          || matchMade[0].isEmpty()) {
+        Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
+        return;
+      }
+      gameServ = matchMade[0];
+      matchId = Long.parseLong(matchMade[1]);
+      
+      // let the server know we received and parsed the matchMade.
+      mmOut.write(Protocol.ack().getBytes());
+
+      // done with the matchmaker.
+      mmSock.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+    connectToGameServer(gameServ, matchId);
   }
 
   /**
@@ -109,23 +143,22 @@ public class Client implements Runnable {
    * 
    * @return true if everyone accepted a rematch.
    */
-  public boolean connectToGameServer(long matchId) {
-
-    StdAudio.init();
+  public boolean connectToGameServer(String gameServ, long matchId) {
+    Logger.println(Rep.FEW, "Connecting to game server "+gameServ+" "+matchId);
 
     InputStream tcpIn = null;
     DataOutputStream tcpOut = null;
 
     // connect to the game server
     try {
-      socket = new Socket(ClientConfiguration.serverUrl, ClientConfiguration.serverPort);
+      socket = new Socket(gameServ, Protocol.GAMESERVERTCPPORT);
       tcpIn = socket.getInputStream();
       tcpOut = new DataOutputStream(socket.getOutputStream());
     } catch (UnknownHostException e1) {
       Logger.println(Rep.FEW, "unknown host: "+ClientConfiguration.serverUrl+":"+ClientConfiguration.serverPort);
       return false;
     } catch (IOException e1) {
-      Logger.println(Rep.FEW, "failed to connect to game server");
+      Logger.println(Rep.FEW, "TCP connection to game server "+gameServ+" failed.");
       e1.printStackTrace();
       stop();
       return false;
@@ -209,7 +242,10 @@ public class Client implements Runnable {
     if (! ClientConfiguration.tcpOnly) {
       Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
       try {
-        uStream = new UnreliableStream(new DatagramSocket(), socket.getInetAddress(), GameServer.UDPPORT, ClientConfiguration.unreliableStreamId);
+        uStream = new UnreliableStream(new DatagramSocket(),
+            socket.getInetAddress(),
+            Protocol.GAMESERVERUDPPORT,
+            ClientConfiguration.unreliableStreamId);
 
         // This passes received game states to the intelligence.
         uStream.registerReceiver(new GameStateReceiver(intel));

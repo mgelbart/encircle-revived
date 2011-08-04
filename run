@@ -6,7 +6,8 @@ rm -f out/*
 STARTTIME=$(date +%s);
 
 
-make run_serv > out/serv.out 2> out/serv.err &
+make run_gameserv > out/gameserv.out 2> out/gameserv.err &
+make run_matchmaker > out/matchmaker.out 2> out/matchmaker.err &
 sleep 3
 make run_client1 > out/client1.out 2> out/client1.err &
 make run_client0 2>&1 | tee out/client0.out

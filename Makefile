@@ -44,8 +44,11 @@ clean:
 	rm -f *~ *.class $(srcdir)*~ bin/aoi/*~ bin/aoi/*.class stdlib/*~ stdlib/*.class
 	rm -rf doc
 
-run_serv:
-	java $(runopts) -Xloggc:out/serv.mem $(package).GameServer < server.conf
+run_matchmaker:
+	java $(runopts) -Xloggc:out/matchmaker.mem $(package).Matchmaker
+
+run_gameserv:
+	java $(runopts) -Xloggc:out/gameserv.mem $(package).GameServer < gameserver.conf
 
 run_client0:
 	java $(runopts) -Xloggc:out/client0.mem $(package).Client < client0local.conf

@@ -14,6 +14,7 @@ import java.util.Map;
 import unreliablestream.UnreliableStream.Packet;
 
 import aoi.Logger;
+import aoi.Protocol;
 import aoi.Logger.Rep;
 
 /**
@@ -199,7 +200,7 @@ public class UnreliableStreamServer implements Runnable {
   
   // for testing
   public static void main(String argv[]) throws Exception {
-    final int port = aoi.GameServer.UDPPORT;
+    final int port = Protocol.GAMESERVERUDPPORT;
     
     UnreliableStreamServer serv = new UnreliableStreamServer(port);
     
