@@ -42,10 +42,10 @@ public abstract class SimulationUtils {
   public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
-  public static final int MAXACC = (int) (ARENASIZE / 1e7 * TIMESTEP * TIMESTEP * 5.) ;
+  public static final int MAXACC = (int) (ARENASIZE / 1e7 * TIMESTEP * TIMESTEP * 9.) ;
  
   // Drag coefficient.
-  public static final double DRAG = TIMESTEP * 0.0020;
+  public static final double DRAG = TIMESTEP * 0.0030;
 
   /* The bullet speed is a universal constant. */
   public static final double BULLETSPEED = ARENASIZE / 1000 * TIMESTEP * 1.4;
