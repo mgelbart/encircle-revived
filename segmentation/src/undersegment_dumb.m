@@ -10,7 +10,7 @@ IMAGE_FORMAT = 'png';
 
 % delete all existing output files!!!
 if ERASE_EXISTING && WRITE_DATA
-%     make_clean(DATASET);
+    make_clean(DATASET);
 end
 
 
@@ -43,7 +43,7 @@ save temp;
 load temp
 
 if WRITE_DATA
-%    meta_file = fopen(fullfile('..', 'meta', 'fly.txt'), 'w');
+   meta_file = fopen(fullfile('..', 'meta', 'fly.txt'), 'w');
 else
     disp('You have selected NOT to write any data!');
 end
@@ -110,28 +110,28 @@ for i = 1:size(s, 1)
     plot([C(1,end) C(1,:)], [C(2,end) C(2,:)],'*-b', 'LineWidth', 2);
     plot([Corig(1,end) Corig(1,:)], [Corig(2,end) Corig(2,:)], '--r');
         
-%     skip = 0;
-%     label = [];
-%     while isempty(label)
-%         k = waitforbuttonpress;
-%         label = get(h1, 'CurrentCharacter');
-%         if label == ' ' % if you want to discard the image
-%             label = NaN;
-%             skip = 1;
-%             break;
-%         end
-%         label = str2double(label);
-%         if ((label < 0) || (label > 10)) || ~(label > 0 && label < 10)
-%             label = [];
-%         end
-%     end    
-%     cla;
-%     title(sprintf('You labeled the last image with: %d',label), 'FontSize', 30);   
-%     drawnow;
-%     
-%     if skip
-%         continue
-%     end
+    skip = 0;
+    label = [];
+    while isempty(label)
+        k = waitforbuttonpress;
+        label = get(h1, 'CurrentCharacter');
+        if label == ' ' % if you want to discard the image
+            label = NaN;
+            skip = 1;
+            break;
+        end
+        label = str2double(label);
+        if ((label < 0) || (label > 10)) || ~(label > 0 && label < 10)
+            label = [];
+        end
+    end    
+    cla;
+    title(sprintf('You labeled the last image with: %d',label), 'FontSize', 30);   
+    drawnow;
+    
+    if skip
+        continue
+    end
     
     % change the coordinate system of the countour so that zero is at the
     % center of the image
@@ -144,11 +144,11 @@ for i = 1:size(s, 1)
     % also, flip the y-coordinate to get the normal convention for drawing
     C(2,:) = -C(2,:);
    
-%     if ~WRITE_DATA
-%         continue
-%     end
+    if ~WRITE_DATA
+        continue
+    end
     
-%     fprintf(meta_file, '%04u\n', i);
+    fprintf(meta_file, '%04u\n', i);
     % write the image to a file
     imwrite(patch_crop, fullfile('..', 'images', 'fly', sprintf('%04u.%s', i, IMAGE_FORMAT)), IMAGE_FORMAT, 'Alpha', mask_crop);
   
@@ -184,7 +184,7 @@ for i = 1:size(s, 1)
     
 end
 close(1)
-% if WRITE_DATA
-%     fclose(meta_file);
-% end
+if WRITE_DATA
+    fclose(meta_file);
+end
    
