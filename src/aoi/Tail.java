@@ -213,21 +213,13 @@ public class Tail {
   }  
 
   // ------------- end access functions --------------- //
-  
-  
-  // Adds a point to the tail directly, modifying the calling tail.
-  // Do not make public.
-  // The reason for this is to optimize the parse() function,
-  // which would have to copy the Tail twice if crop() and addPoint()
-  // both copied the tail. Actually since you rarely crop,
-  // this is not a big deal, and it would be fine to copy
-  // twice just in those cases where you need to crop something.
-  // But in that case we should at least fix the fact that the server
-  // is currently cropping 20 times (...) just like the Client.
-  // After this is fixed it would make sense to get rid of this
-  // mutatingAdd() function because it's risky and causes crazy bugs. 
-  private void mutatingAdd(int time, Point p) {  
+  @SuppressWarnings("unchecked")
+  public Tail addPoint(int time, Point p) {  
     assert(isValid());
+    
+    TreeMap<Integer, Point> newTrajectory = (TreeMap<Integer, Point>) trajectory.clone();
+    TreeSet<Integer> newKnots = (TreeSet<Integer>) knots.clone();
+    
     // Always add the latest position to the trajectory
     // but combine it with the previous segment if both are short.
     // we need the second part after "||" for a special case when there
@@ -235,19 +227,15 @@ public class Tail {
     // a point at the same location
     if ((beforeHeadPoint() != null && p.distance(beforeHeadPoint()) < MINTRAJECTORYSEGMENT)
            || (headPoint() != null && p.equals(headPoint()))) {
-      if (knots.contains(headTime())) {
-        knots.remove(headTime());
-        knots.add(time);
+      if (newKnots.contains(headTime())) {
+        newKnots.remove(headTime());
+        newKnots.add(time);
       }
-      trajectory.remove(headTime());
+      newTrajectory.remove(headTime());
     }
-    trajectory.put(time, p);
-    assert(isValid());
-  }
-  public Tail addPoint(int time, Point p) {
-    Tail newTail = clone();
-    newTail.mutatingAdd(time, p);
-    return newTail;
+    newTrajectory.put(time, p);
+    
+    return new Tail(newTrajectory, newKnots);
   }
 
   // crop the tail using all the CropEvents in
@@ -304,7 +292,7 @@ public class Tail {
     // the server to not crop things many times.
     Tail newTail = prev.tail;
     if (cropEvents.hasEvents(time))
-      newTail = prev.tail.crop(cropEvents);
+      newTail = prev.tail.crop(cropEvents);  // this copies the Tail
     
     // If you were not going to crop the current point, then add it
     if (!cropEvents.contains(time)) {
@@ -317,8 +305,8 @@ public class Tail {
         newTail.knots.add(newTail.headTime());
       }
       
-      // Add the latest point
-      newTail.mutatingAdd(time, p);
+      // Add the latest point (this now copies the Tail)
+      newTail = newTail.addPoint(time, p);
     }
     
     assert(newTail.isValid());
