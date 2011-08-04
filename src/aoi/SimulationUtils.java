@@ -60,7 +60,7 @@ public abstract class SimulationUtils {
   public static final double MAXSPEED = MAXACC/DRAG;
   
   // The rate at which you recoil backwards after crashing.
-  public static final double UNCOILSPEED = MAXSPEED * 2.;
+  public static final double UNCOILSPEED = (int) (ARENASIZE * TIMESTEP * 0.00065);
   
   // The amount of time you spend uncoiling if you crash
   public static final double CRASHUNCOILLENGTH = ARENASIZE * 0.075; 

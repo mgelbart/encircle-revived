@@ -101,7 +101,7 @@ public class CropEventGroup {
   }
   
   public boolean hasEvents(int time) {
-    //return !events.isEmpty();
+    //return !events.isEmpty();  // use this to have Server also crop 20 times
     for (CropEvent ce : events)
       if (ce.toExecute(time)) return true;
     return false;
