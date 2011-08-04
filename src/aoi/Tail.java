@@ -257,12 +257,8 @@ public class Tail {
   // the entire tail, this function keeps a point at the head
   private Tail crop(CropEventGroup ceg) {
     assert(isValid());  
-    if (ceg.isEmpty()) return clone();
-    // One might think to "return this" instead of "return clone()" because
-    // the Tail is immutable. Actually, the Tail is NOT immutable if you do not
-    // clone here because parse() crops and then calls mutatingAdd()
-    // on the output of crop() to avoid copying the tail twice.
-    // Therefore we need to do it this way. 
+    //if (ceg.isEmpty()) return clone(); 
+    // This should never be called on an empty ceg anyway.
 
     TreeMap<Integer, Point> newTrajectory = new TreeMap<Integer, Point>();
     TreeSet<Integer> newKnots = new TreeSet<Integer>();
@@ -286,7 +282,8 @@ public class Tail {
   }
   public Tail crop(int cropFrom, int cropTo) {
     return crop(new CropEvent(cropFrom, cropTo,
-        "DoesntMatter".hashCode()));
+        "DoesntMatter".hashCode(),
+        "DoesntMatter"));
   }
   // (above) this is a bit slow, but only used by ScoringEffect
   
@@ -301,7 +298,13 @@ public class Tail {
       return new Tail(time, p);
 
     // Execute all the pending crop events
-    Tail newTail = prev.tail.crop(cropEvents);
+    // We use hasEvents() which only returns true
+    // once on the server side, but many times on
+    // the client side. This is a little tricky but it allows
+    // the server to not crop things many times.
+    Tail newTail = prev.tail;
+    if (cropEvents.hasEvents(time))
+      newTail = prev.tail.crop(cropEvents);
     
     // If you were not going to crop the current point, then add it
     if (!cropEvents.contains(time)) {

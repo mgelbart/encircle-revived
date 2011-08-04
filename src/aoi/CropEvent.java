@@ -12,19 +12,21 @@ public class CropEvent {
   public final int cropFrom;
   public final int cropTo;
   private final int timeCreated;
-  public String cause = null;
-  
-  public CropEvent(int cropFrom, int cropTo, int timeCreated) {
+  public String cause = null; 
+  // (above) This must be set to null here so that it remains null on
+  // the client side indefinitely. 
+
+  // The client must never call this constructor (see toExecute())
+  public CropEvent(int cropFrom, int cropTo, int timeCreated, String cause) {
+    assert(cause != null);
     this.cropFrom = cropFrom;
     this.cropTo = cropTo;
     this.timeCreated = timeCreated;
-  }
-  public CropEvent(int cropFrom, int cropTo, int timeCreated, String cause) {
-    this(cropFrom, cropTo, timeCreated);
     this.cause = cause;
   }
   
   // Parse for a single event, in a constructor
+  // Client only
   public CropEvent(DataInputStream i) throws IOException {
     Byte cmd;
     
@@ -51,6 +53,18 @@ public class CropEvent {
   
   public boolean toRemove(int time) { 
     return time - timeCreated >= TIMES_TO_TRANSMIT;
+  }
+  
+  // The server only wants to execute this event at the
+  // time of creation, not TIMES_TO_TRANSMIT times.
+  // We check if this CropEvent lives on the server or the client
+  // by the cause string, which should be null only on the client
+  // side (since the client only uses the constructor that takes 
+  // a DataInputStream, and this constructor does not set
+  // the cause String).
+  public boolean toExecute(int time) {
+    if (cause == null) return true;
+    else return time == timeCreated;
   }
   
   public int timeCreated() {

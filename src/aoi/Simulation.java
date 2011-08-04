@@ -394,7 +394,7 @@ public class Simulation  implements Runnable {
                   cropEvents = cropEvents.addEvent(
                       tail.baseTime(),              // from  
                       tail.cropToForCrossing(),     // to
-                      game.time + 1,
+                      newTime,
                       "crossed path");
                 } else {
                   // If this player intersected his own Tail
@@ -402,7 +402,7 @@ public class Simulation  implements Runnable {
                   cropEvents = cropEvents.addEvent(
                       intersection.baseTime()+1,      // from 
                       game.time,                      // to
-                      game.time + 1,
+                      newTime,
                       "made loop");
                   
                   // Check for scoring
@@ -454,8 +454,8 @@ public class Simulation  implements Runnable {
           // (6) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
           // (if want speedup, combine these into one function so
           //  that cropEvents doesn't clone twice)
-          cropEvents = cropEvents.removeExpired(game.time + 1);
-          cropEvents = cropEvents.optimizeEvents(game.time + 1);
+          cropEvents = cropEvents.removeExpired(newTime);
+          cropEvents = cropEvents.optimizeEvents(newTime);
           
           
 //          if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, (game.time+1) + "  " + cropEvents);
@@ -463,7 +463,7 @@ public class Simulation  implements Runnable {
           
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
-              game.time+1, cropEvents, sinceScoring);
+              newTime, cropEvents, sinceScoring);
           
           
           //  (8) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS
