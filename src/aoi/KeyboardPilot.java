@@ -30,7 +30,7 @@ public class KeyboardPilot implements KeyListener {
     //Logger.println(Logger.RepetitionRate.INFREQUENT, "pressed " + e.getKeyCode());
     switch (e.getKeyCode()) {
     case (KeyEvent.VK_UP):
-      acc = SimulationUtils.MAXACC * FRACTION_OF_MAXACC_THAT_YOU_ACTUALLY_GO;
+      acc = (int) (SimulationUtils.MAXACC * FRACTION_OF_MAXACC_THAT_YOU_ACTUALLY_GO);
       break;
     
     case (KeyEvent.VK_DOWN):

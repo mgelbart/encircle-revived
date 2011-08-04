@@ -371,11 +371,14 @@ public class Simulation  implements Runnable {
               bulletsTemp.add(SimulationUtils.nextPosition(new Bullet(playerNo, pStatesTemp[playerNo])));
               untilReload = SimulationUtils.RELOADTIME;
               Integer cropTo = tail.convertLengthToTime(tail.baseTime(), SimulationUtils.BULLETCOST, true);
-              assert(cropTo != null);
+              //assert(cropTo != null);
+              if (cropTo == null) cropTo = tail.headTime();
+              // (above) should never happen, the assert is ok too, but just for extra stability...
+              
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),    // from
-                  cropTo + 1,         // to
-                  game.time + 1,
+                  cropTo,             // to
+                  newTime,
                   "taking shot");
             }
 

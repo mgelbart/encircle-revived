@@ -74,6 +74,7 @@ public class Tail {
     return trajectory.size();
   }
   public Point getPoint(int time) {
+    assert(trajectory.containsKey(time));
     return new Point(trajectory.get(time)); 
   }
   
@@ -156,13 +157,16 @@ public class Tail {
   // "startTime" to that time has at least the specified length
   public Integer convertLengthToTime(int startTime, double minLength, boolean forwardDir) {
     assert(isValid());
+    if (trajectory.get(startTime) == null) return null;
     
-    assert(trajectory.get(startTime) != null);
     if (minLength <= 0) return startTime;
-    if (nPoints() < 2)  return startTime;
+    if (nPoints() == 1) return startTime; // here startTime == baseTime == headTime
     // (above) needed to avoid bug in which the loop below
-    // will caller higher/lowerKey and hit null pointer when
+    // will call higher/lowerKey and hit null pointer when
     // tail has only 1 point
+    
+    // The order and details of these three statements above is important
+    // and bugs will come if they are not very carefully checked.
     
     double length = 0;
     int time = startTime;
@@ -270,7 +274,7 @@ public class Tail {
   }
   public Tail crop(int cropFrom, int cropTo) {
     return crop(new CropEvent(cropFrom, cropTo,
-        "DoesntMatter".hashCode(),
+        cropTo,  // <-- this doesn't matter either
         "DoesntMatter"));
   }
   // (above) this is a bit slow, but only used by ScoringEffect
@@ -281,35 +285,48 @@ public class Tail {
   // This works even if prev.tail is empty
   public static Tail parse(PlayerState prev, Point p, int time, 
       CropEventGroup cropEvents, int sinceScoring) {
-    
     if (prev == null)
       return new Tail(time, p);
 
+    // Add the latest point (this now copies the Tail)
+    Tail newTail = prev.tail.addPoint(time, p);
+
+    // Note: we use this instead of checking if the score is 
+    // incremented because of a bug with scoring and getting
+    // pwned on the same turn
+    if ((sinceScoring - prev.sinceScoring < 0 ||
+        sinceScoring == 0))
+      newTail.knots.add(prev.tail.headTime());
+    // Could also be      newTail.headTime()
+    // As long as the scoring crop event in Simulation doesn't crop
+    // the point that is made by the loop, the knot will be safe.
+    // If the knot doesn't get made, change this to newTail.headTime()
+    // and it might fix the problem following a change elsewhere.
+
+    
     // Execute all the pending crop events
     // We use hasEvents() which only returns true
     // once on the server side, but many times on
     // the client side. This is a little tricky but it allows
     // the server to not crop things many times.
-    Tail newTail = prev.tail;
+    // We save time by not copying the Tail again (it's already copied
+    // by addPoint()) if there are no pending CropEvents.
     if (cropEvents.hasEvents(time))
-      newTail = prev.tail.crop(cropEvents);  // this copies the Tail
+      newTail = newTail.crop(cropEvents);  // this copies the Tail
+	
+  
+    // The order here is for a reason. A weird bug can occur crop() is suppsed
+    // to crop everything and thus is forced to add an extra point to prevent
+    // the tail from being empty. If it does this, it can add a point at game.time
+    // and then this will get cropped by the CLIENT at the next step but never by
+    // the server since the server only executes each cropEvent once. (This bug
+    // (happens when a CropEvent has cropTo exactly equal to timeCreated). But if we 
+    // do it this way and call newTail.addPoint BEFORE newTail.crop(), then even
+    // if the entire tail gets cropped, the dummy point will get added at headTime
+    // which is now NEWTIME (i.e. game.time + 1, not game.time). Then the client
+    // will not crop this thing later on, so long as the cropEvents are well-behaved
+    // and don't do stupid things like have cropTo strictly greater than timeCreated.
     
-    // If you were not going to crop the current point, then add it
-    if (!cropEvents.contains(time)) {
-      
-      // Note: we use this instead of checking if the score is 
-      // incremented because of a bug with scoring and getting
-      // pwned on the same turn
-      if ((sinceScoring - prev.sinceScoring < 0 ||
-          sinceScoring == 0)) {
-        newTail.knots.add(newTail.headTime());
-      }
-      
-      // Add the latest point (this now copies the Tail)
-      newTail = newTail.addPoint(time, p);
-    }
-    
-    assert(newTail.isValid());
     return newTail;
   }
   

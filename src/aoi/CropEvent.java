@@ -23,6 +23,13 @@ public class CropEvent {
     this.cropTo = cropTo;
     this.timeCreated = timeCreated;
     this.cause = cause;
+    
+    if (cropTo - timeCreated > 0) 
+      Logger.println(Logger.Rep.INFREQ, 
+        "SKETCHY CROP EVENT: cropTo greater than timeCreated for cause " + cause);
+    // (above) this is an issue because the client crops TIMES_TO_TRANSMIT times
+    // but the server only crops once. so if cropTo is in the future, then the
+    // client might later on crop a future point but the server won't do that. 
   }
   
   // Parse for a single event, in a constructor

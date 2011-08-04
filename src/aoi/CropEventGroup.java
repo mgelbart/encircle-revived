@@ -84,8 +84,8 @@ public class CropEventGroup {
  // public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
  //   return addEvent(new CropEvent(cropFrom, cropTo, time));
   //}
-  public CropEventGroup addEvent(int cropFrom, int cropTo, int time, String cause) {
-    return addEvent(new CropEvent(cropFrom, cropTo, time, cause));
+  public CropEventGroup addEvent(int cropFrom, int cropTo, int timeCreated, String cause) {
+    return addEvent(new CropEvent(cropFrom, cropTo, timeCreated, cause));
   }
   
   public void serialize(DataOutputStream o) throws IOException {
@@ -101,6 +101,7 @@ public class CropEventGroup {
   }
   
   public boolean hasEvents(int time) {
+    //return !events.isEmpty();
     for (CropEvent ce : events)
       if (ce.toExecute(time)) return true;
     return false;
