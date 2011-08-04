@@ -272,8 +272,7 @@ public class Simulation  implements Runnable {
           if (untilRespawn == 0) {
             for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
               Bullet b = bulletsTemp.get(k);
-              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b) &&
-                  !tail.isEmpty()) {
+              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
                 sinceHitByBullet = 0;
                 bulletsTemp.remove(k);
               }
@@ -313,7 +312,7 @@ public class Simulation  implements Runnable {
 
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
  
-            if (!tail.isEmpty()) {
+//            if (!tail.isEmpty()) {
                
 //              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
 //              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
@@ -351,13 +350,13 @@ public class Simulation  implements Runnable {
               cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
        
               
-            } else {
-              Logger.println(Rep.FEW, "Empty tail during respawn..."); 
-              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
-              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
-              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
-              Logger.println(Rep.FEW, "Time now: " + newTime);
-            }
+//            } else {
+//              Logger.println(Rep.FEW, "Empty tail during respawn..."); 
+//              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
+//              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "Time now: " + newTime);
+//            }
      
             
           }

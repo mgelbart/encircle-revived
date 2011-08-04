@@ -16,10 +16,7 @@ public class DrawableTail extends DefaultDrawable {
 
 
   public void prepare(GameState gState) {
-    if (gState.pStates[playerNo].tail.isEmpty())
-      nShapes = 0;
-    else
-      nShapes = 1+2*gState.pStates[playerNo].tail.nKnots();
+      nShapes = 1+2*gState.pStates[playerNo].tail.getKnotTimes().size();
   }
   
   // Return the path to be drawn.
