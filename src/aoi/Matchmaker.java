@@ -122,17 +122,21 @@ public class Matchmaker {
         for (GameClient c : clients)
           if (c.wantsAI) startMatch = true;
       
-      if (startMatch && clients.size()+ais.size() >= SimulationUtils.NUMPLAYERS) {
+      if (startMatch) {
+        if (clients.size()+ais.size() < SimulationUtils.NUMPLAYERS) {
+          Logger.println(Rep.INFREQ, "not enough clients in queue: "
+              +clients.size()+"+"+ais.size());
+          return;
+        }
+        
         // take the first NUMPLAYERS players from the queue.
         matchedClients = new GameClient[SimulationUtils.NUMPLAYERS];
         for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
           matchedClients[j] = (!clients.isEmpty())?
               clients.remove() : ais.remove();
         }
-      }
-      
-      // Print out remaining queue
-      if (!clients.isEmpty()) {
+
+        // Print out remaining queue
         Logger.println(Rep.FREQ, "Client queue ("+clients.size()+"): "
             + join(clients, ", "));
         Logger.println(Rep.FREQ, "AI queue ("+ais.size()+"): "
@@ -178,7 +182,7 @@ public class Matchmaker {
       
       // check whether everyone acked the match
       final long started = System.currentTimeMillis();
-      final int ACKTIMEOUT = 2000;
+      final int ACKTIMEOUT = 2500;
       while (System.currentTimeMillis() - started < ACKTIMEOUT) {
         for (GameClient c : matchedClients) {
           try { c.processPendingMessages(); }
@@ -383,12 +387,16 @@ public class Matchmaker {
         try {
           Socket socket = servSocket.accept();
           socket.setTcpNoDelay(true);
+          GameClient client = new GameClient(socket);
+          synchronized (clients) { queue.add(client); }
+
           Logger.println(
               Rep.FREQ,
-              "Connected to client "
-                  + socket.getRemoteSocketAddress());
-          GameClient client = new GameClient(socket);
-          synchronized (queue) { queue.add(client); }
+              "Connected: "
+                  + socket.getRemoteSocketAddress()
+                  + " (clients: " + clients.size() + ")"
+                  + " (ais: " + ais.size() + ")");
+
           checkForMatch();
         } catch (IOException e) {
           Logger.println(Rep.FEW, "Socket exception");

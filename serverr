@@ -1,3 +1,3 @@
 #!/bin/bash
 
-tail -F out/gameserv.err out/matchmaker.err
+tail -F out/gameserv.out out/matchmaker.out out/spawnais.out

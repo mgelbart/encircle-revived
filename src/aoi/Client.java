@@ -1,6 +1,7 @@
 package aoi;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -83,13 +84,18 @@ public class Client implements Runnable {
     long matchId = 0;
     
     // this file is created while the client is in queue
+    // so that we can monitor the number of queueing clients
+    // from a shell script.
     File inQueue = null;
     if (ClientConfiguration.nonhuman)
       inQueue = new File("out/queueing_"
+          + ManagementFactory.getRuntimeMXBean().getName() + "_"
           + (int) (Integer.MAX_VALUE*Math.random()));
 
     
     try {
+      Logger.println(Rep.FEW, "Waiting in the matchmaker queue. server: "+mmSock.getInetAddress());
+      
       // keep sending keep alives until we get a response
       long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
       boolean sentAIRequest = false;
@@ -106,7 +112,7 @@ public class Client implements Runnable {
         
         if (inQueue != null) inQueue.createNewFile();
         
-        try { Thread.sleep(200); }
+        try { Thread.sleep(500); }
         catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
       }
 
@@ -130,6 +136,8 @@ public class Client implements Runnable {
 
       // done with the matchmaker.
       mmSock.close();
+      
+      Logger.println(Rep.FEW, "Parsed "+msg);
     } catch (IOException e) {
       Logger.println(Rep.FEW, "Failed to read matchMade.");
       e.printStackTrace();

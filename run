@@ -1,32 +1,44 @@
 #!/bin/bash
 
-rm -f out/*
-
-# get the current time so we can limit the processes we kill in the end by their age
+# get the current time so we can limit the processes
+# we kill in the end by their age
 STARTTIME=$(date +%s);
 
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
 
-make run_gameserv > out/gameserv.out 2> out/gameserv.err &
-make run_matchmaker > out/matchmaker.out 2> out/matchmaker.err &
+function ctrl_c() {
+        echo "** Trapped CTRL-C";
+}
+
+function cleanup() {
+    ENDTIME=$(date +%s);
+    LIFETIME=$((ENDTIME-STARTTIME+2));
+
+    if [[ "$(uname)" =~ Darwin ]]
+    then
+	OPTS=;
+    else
+	OPTS=-y"$LIFETIME"s;
+    fi
+
+    killall spawnais;
+    killall "$OPTS" java;
+    killall "$OPTS" make;
+    echo "Killed all java and make processes younger than $LIFETIME seconds. Remaining:";
+    sleep 1;
+    ps -e | grep java;
+}
+
+rm -f out/*
+
+
+make run_gameserv > out/gameserv.out 2>&1 &
+make run_matchmaker > out/matchmaker.out 2>&1 &
 sleep 3
-make run_client1 > out/client1.out 2> out/client1.err &
-make run_client0 2>&1 | tee out/client0.out
+./spawnais > out/spawnais.out  2>&1 &
+make run_client0 | tee out/client0.out 2>&1
 
 # The above code can leave processes runnning so use killall...
 # check with "ps -A | grep java"
-
-ENDTIME=$(date +%s);
-LIFETIME=$((ENDTIME-STARTTIME+2));
-
-if [[ "$(uname)" =~ Darwin ]]
-then
-	OPTS=;
-else
-	OPTS=-y"$LIFETIME"s;
-fi
-
-killall "$OPTS" java
-killall "$OPTS" make
-echo "Killed all java and make processes younger than $LIFETIME seconds. Remaining:";
-sleep 1;
-ps -e | grep java
+cleanup

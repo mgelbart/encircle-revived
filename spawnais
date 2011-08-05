@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# the minimum number of AI's to keep in the AI queue.
+minaicount=3;
+
+rm -f out/queueing_*;
+sleep 2;
+
+while true
+do
+    # count the number of AIs currently running
+    count=0;
+    for f in `find out/ -name queueing_*`; do count=$((count+1)); done;
+
+    tospawn=$((minaicount-count));
+    if [ $tospawn -gt 0 ]; then
+	echo -n "spawning $tospawn new ai(s)...";
+	for((i=0;i<$tospawn;i+=1)); do
+	    ( make run_client1 > out/ai_"$BASHPID".out 2>&1 ) &
+	done
+	echo " done."
+	# wait for the AIs to connect to the matchmaker
+	# before trying to spawn more AIs
+	sleep 10;
+    fi
+
+    # The AIs keep recreating these files during
+    # the sleep that follows. This way we don't
+    # see phantom files left over from AIs that
+    # died while queueing without deleting their
+    # file.
+    rm -f out/queueing_*;
+    sleep 3;
+done
