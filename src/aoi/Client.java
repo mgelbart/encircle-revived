@@ -314,6 +314,7 @@ public class Client implements Runnable {
    * This functions tries to stop all the client threads ASAP.
    */
   public static void stop() {
+    if (GameCanvas.isInitialized()) GameCanvas.toError();
     stopCurrent();
   }
   

@@ -16,7 +16,7 @@ import javax.imageio.ImageIO;
 import aoi.Logger.Rep;
 
 public class GameCanvas extends Canvas {
-  enum Mode { PREGAME, INGAME, POSTGAME };
+  enum Mode { PREGAME, INGAME, POSTGAME, ERROR };
   
   static Mode mode = null;
   
@@ -32,7 +32,7 @@ public class GameCanvas extends Canvas {
   private static String BKGIMGPATH = "guiimg/bkg.png";
   private static Image bkgImg;
   
-  private static GameCanvas theCanvas;
+  private static GameCanvas theCanvas = null;
   
   GameCanvas() {
     assert(theCanvas == null);
@@ -48,6 +48,8 @@ public class GameCanvas extends Canvas {
     theCanvas = this;
     toPreGame();
   }
+  
+  static boolean isInitialized() { return theCanvas != null; }
   
   static void toGameMode() {
     // remove all existing listeners
@@ -143,6 +145,17 @@ public class GameCanvas extends Canvas {
     theCanvas.repaint();
   }
   
+  static void toError() {
+    mode = Mode.ERROR;
+    theCanvas.setIgnoreRepaint(false);
+    
+    // remove all existing listeners
+    for (MouseListener l : theCanvas.getMouseListeners())
+      theCanvas.removeMouseListener(l);
+
+    theCanvas.repaint();
+  }
+  
   /*
    *  return the current 'offscreen' buffer image
    */
@@ -189,7 +202,7 @@ public class GameCanvas extends Canvas {
         g.drawString(tired, (int) (w/2-tired.length()*horOffsetPerChar), h/2);
         g.drawString(ai, (int) (w/2-ai.length()*horOffsetPerChar), h/2+20);
       } else {
-        String waiting = "Waiting for the game to start...";
+        String waiting = "Ok. The game will start in a moment...";
         
         g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2);
       }
@@ -200,6 +213,15 @@ public class GameCanvas extends Canvas {
       String again = (wantsAnotherGame)? "Connecting..." : "Click here to play again.";
       g.drawString(again, (int) (w/2-again.length()*horOffsetPerChar), h/2);
     }
+
+    if (mode == Mode.ERROR) {
+      String error = "Oops... An error has occured.";
+      String restart = "Reload the page for a new game.";
+      
+      g.drawString(error, (int) (w/2-error.length()*horOffsetPerChar), h/2-10);
+      g.drawString(restart, (int) (w/2-restart.length()*horOffsetPerChar), h/2+10);
+    }
+
   }
   
   /**
