@@ -7,6 +7,9 @@ import java.awt.event.KeyListener;
  * A simple interface for controlling your ship based on keyboard events.
  */
 public class KeyboardPilot implements KeyListener {
+
+  public static final double FRACTION_OF_MAXACC_THAT_YOU_ACTUALLY_GO = 0.8; 
+
   private int acc = 0;
   private boolean left = false;
   private boolean right = false;
@@ -27,7 +30,7 @@ public class KeyboardPilot implements KeyListener {
     //Logger.println(Logger.RepetitionRate.INFREQUENT, "pressed " + e.getKeyCode());
     switch (e.getKeyCode()) {
     case (KeyEvent.VK_UP):
-      acc = SimulationUtils.MAXACC;
+      acc = (int) (SimulationUtils.MAXACC * FRACTION_OF_MAXACC_THAT_YOU_ACTUALLY_GO);
       break;
     
     case (KeyEvent.VK_DOWN):

@@ -275,8 +275,7 @@ public class Simulation  implements Runnable {
           if (untilRespawn == 0) {
             for (int k = bulletsTemp.size() - 1; k >= 0; --k) {
               Bullet b = bulletsTemp.get(k);
-              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b) &&
-                  !tail.isEmpty()) {
+              if (SimulationUtils.gotShot(pStatesTemp[playerNo], b)) {
                 sinceHitByBullet = 0;
                 bulletsTemp.remove(k);
               }
@@ -316,7 +315,7 @@ public class Simulation  implements Runnable {
 
             lengthUntilRespawn[playerNo] -= SimulationUtils.UNCOILSPEED;
  
-            if (!tail.isEmpty()) {
+//            if (!tail.isEmpty()) {
                
 //              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
 //              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
@@ -354,13 +353,13 @@ public class Simulation  implements Runnable {
               cropEvents = cropEvents.addEvent(cropFrom, newTime, newTime, "respawn");
        
               
-            } else {
-              Logger.println(Rep.FEW, "Empty tail during respawn..."); 
-              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
-              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
-              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
-              Logger.println(Rep.FEW, "Time now: " + newTime);
-            }
+//            } else {
+//              Logger.println(Rep.FEW, "Empty tail during respawn..."); 
+//              Logger.println(Rep.FEW, "TOR: " + timeOfRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "untilRespawn: " + untilRespawn);
+//              Logger.println(Rep.FEW, "lengthUR: " + lengthUntilRespawn[playerNo]);
+//              Logger.println(Rep.FEW, "Time now: " + newTime);
+//            }
      
             
           }
@@ -375,11 +374,14 @@ public class Simulation  implements Runnable {
               bulletsTemp.add(SimulationUtils.nextPosition(new Bullet(playerNo, pStatesTemp[playerNo])));
               untilReload = SimulationUtils.RELOADTIME;
               Integer cropTo = tail.convertLengthToTime(tail.baseTime(), SimulationUtils.BULLETCOST, true);
-              assert(cropTo != null);
+              //assert(cropTo != null);
+              if (cropTo == null) cropTo = tail.headTime();
+              // (above) should never happen, the assert is ok too, but just for extra stability...
+              
               cropEvents = cropEvents.addEvent(
                   tail.baseTime(),    // from
-                  cropTo + 1,         // to
-                  game.time + 1,
+                  cropTo,             // to
+                  newTime,
                   "taking shot");
             }
 
@@ -398,7 +400,7 @@ public class Simulation  implements Runnable {
                   cropEvents = cropEvents.addEvent(
                       tail.baseTime(),              // from  
                       tail.cropToForCrossing(),     // to
-                      game.time + 1,
+                      newTime,
                       "crossed path");
                 } else {
                   // If this player intersected his own Tail
@@ -406,7 +408,7 @@ public class Simulation  implements Runnable {
                   cropEvents = cropEvents.addEvent(
                       intersection.baseTime()+1,      // from 
                       game.time,                      // to
-                      game.time + 1,
+                      newTime,
                       "made loop");
                   
                   // Check for scoring
@@ -458,8 +460,8 @@ public class Simulation  implements Runnable {
           // (6) REMOVE EXPIRED CROP EVENTS AND OPTIMIZE EVENTGROUP
           // (if want speedup, combine these into one function so
           //  that cropEvents doesn't clone twice)
-          cropEvents = cropEvents.removeExpired(game.time + 1);
-          cropEvents = cropEvents.optimizeEvents(game.time + 1);
+          cropEvents = cropEvents.removeExpired(newTime);
+          cropEvents = cropEvents.optimizeEvents(newTime);
           
           
 //          if (!cropEvents.isEmpty()) Logger.println(Rep.INFREQ, (game.time+1) + "  " + cropEvents);
@@ -467,7 +469,7 @@ public class Simulation  implements Runnable {
           
           // (7) UPDATE TAIL BY ADDING NEW POINT AND CROPPING
           tail = Tail.parse(game.pStates[playerNo], ship.location(),
-              game.time+1, cropEvents, sinceScoring);
+              newTime, cropEvents, sinceScoring);
           
           
           //  (8) SET THE PLAYER STATE TO ALL THE NEW PARAMETERS

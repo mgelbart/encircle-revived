@@ -81,11 +81,11 @@ public class CropEventGroup {
     newEvents.add(ce);
     return new CropEventGroup(newEvents);
   }
-  public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
-    return addEvent(new CropEvent(cropFrom, cropTo, time));
-  }
-  public CropEventGroup addEvent(int cropFrom, int cropTo, int time, String cause) {
-    return addEvent(new CropEvent(cropFrom, cropTo, time, cause));
+ // public CropEventGroup addEvent(int cropFrom, int cropTo, int time) {
+ //   return addEvent(new CropEvent(cropFrom, cropTo, time));
+  //}
+  public CropEventGroup addEvent(int cropFrom, int cropTo, int timeCreated, String cause) {
+    return addEvent(new CropEvent(cropFrom, cropTo, timeCreated, cause));
   }
   
   public void serialize(DataOutputStream o) throws IOException {
@@ -99,19 +99,23 @@ public class CropEventGroup {
   public boolean equals(CropEventGroup that) {
     return this.events.equals(that.events);
   }
-  public boolean isEmpty() {
-    return events.isEmpty();
-  }
   
+  public boolean hasEvents(int time) {
+    //return !events.isEmpty();  // use this to have Server also crop 20 times
+    for (CropEvent ce : events)
+      if (ce.toExecute(time)) return true;
+    return false;
+  }
+
+  // Here we don't care about who the caller is
+  // (client or server)
   public boolean contains(int time) {
     for (CropEvent ce : events)
       if (ce.contains(time)) return true;
     return false;
   }
   
-  public int nEvents() {
-    return events.size();
-  }
+
   
   public String toString() {
     String s = "";
