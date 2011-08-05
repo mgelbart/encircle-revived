@@ -132,8 +132,12 @@ public class Matchmaker {
       }
       
       // Print out remaining queue
-      if (!clients.isEmpty())
-        Logger.println(Rep.FREQ, "Queue contains:\n" + join(clients, "\n"));
+      if (!clients.isEmpty()) {
+        Logger.println(Rep.FREQ, "Client queue ("+clients.size()+"): "
+            + join(clients, ", "));
+        Logger.println(Rep.FREQ, "AI queue ("+ais.size()+"): "
+            + join(ais, ", "));
+      }
     } // end synchronized (clients)
     
     if (matchedClients != null) {
@@ -332,11 +336,13 @@ public class Matchmaker {
   
           if (state == ClientState.REQUESTEDMATCH && Protocol.isAck(msg)) {
             // the client acknowledged the sent matchMade
+            Logger.println(Rep.FREQ, "client "+this+" acked the matchMade.");
             state = ClientState.READYFORMATCH;
             continue;
           }
           
           if (state == ClientState.REQUESTEDMATCH && Protocol.isRequestAI(msg)) {
+            Logger.println(Rep.FREQ, "client "+this+" wants an AI opponent.");
             wantsAI = true;
             continue;
           }
@@ -412,7 +418,7 @@ public class Matchmaker {
         s = new Socket(server, GameServer.MATCHMAKERCOMMPORT);          
         success = acknowledgedMessage(s, Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS), 3000); 
       } catch (Exception e) {
-        Logger.println(Rep.FEW, "Socket exception for server " + server + " at " + ((s!=null)? s.getRemoteSocketAddress():null));
+        Logger.println(Rep.INFREQ, "Socket exception for server " + server + " at " + ((s!=null)? s.getRemoteSocketAddress():null));
         e.printStackTrace();
         success = false;
       }

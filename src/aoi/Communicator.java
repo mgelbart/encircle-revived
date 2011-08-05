@@ -211,9 +211,9 @@ public class Communicator implements UnreliableStream.Receiver {
           e.printStackTrace();
         }
         
-        Boolean accepted = null;
+        Boolean wantsToRematch = null;
         while (System.currentTimeMillis() - sim.ended < SimulationUtils.REMATCHCONSIDERATIONTIME
-               && accepted == null && sim.rematchPossible()) {
+               && wantsToRematch == null && sim.rematchPossible()) {
           
           String msg;
           try {
@@ -222,7 +222,13 @@ public class Communicator implements UnreliableStream.Receiver {
             continue;
           }
           
-          accepted = Protocol.parseRequestRematch(msg);
+          if (msg == null) {
+            // this happens if the client disconnects gracefully (with a FIN).
+            stop();
+            return;
+          }
+          
+          wantsToRematch = Protocol.parseRequestRematch(msg);
 //          if (accepted != null)
 //            try {
 //              dout.writeBytes(Protocol.ack());
@@ -232,6 +238,7 @@ public class Communicator implements UnreliableStream.Receiver {
 //              return;
 //            }
         }
+        sim.wantToRematch[playerNo] = wantsToRematch;
         
         try {
           tcpSocket.setSoTimeout(0); // wait forever again (default)
@@ -253,14 +260,14 @@ public class Communicator implements UnreliableStream.Receiver {
         try {
           dout.writeBytes(Protocol.didOthersAcceptRematch(sim.rematchAccepted()));
         } catch (IOException e) {
-          Logger.println(Rep.FEW, "couldn't send didOthersAcceptRematch "+accepted);
+          Logger.println(Rep.FEW, "couldn't send didOthersAcceptRematch "+sim.rematchAccepted());
           e.printStackTrace();
           return;
         }
         
         // nothing left to do.
         stopTcpNegotiator();
-        Logger.println(Rep.FEW, "tcpnegotiator for player "+playerNo+" finished.");
+        Logger.println(Rep.FEW, "tcpnegotiator for player "+playerNo+" terminated normally.");
         
       }
       
@@ -285,6 +292,8 @@ public class Communicator implements UnreliableStream.Receiver {
     stop = true; 
     stopUdpSender();
     stopTcpNegotiator();
+    if (sim != null)
+      sim.wantToRematch[playerNo] = false;
   }
   
   private void stopUdpSender() {

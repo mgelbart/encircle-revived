@@ -1,13 +1,11 @@
 package aoi;
 
-import java.awt.Canvas;
 import java.io.*;
 import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import aoi.Logger.Rep;
-import aoi.Protocol.ClientState;
 
 import unreliablestream.UnreliableStream;
 
@@ -65,7 +63,8 @@ public class Client implements Runnable {
     OutputStream mmOut;
     InputStream mmIn;
     try {
-      mmSock = new Socket(ClientConfiguration.serverUrl, Protocol.MATCHMAKERTCPPORT);
+      mmSock = new Socket(ClientConfiguration.serverUrl,
+          (ClientConfiguration.nonhuman)? Matchmaker.AIPORT : Protocol.MATCHMAKERTCPPORT);
       mmOut = mmSock.getOutputStream();
       mmIn = mmSock.getInputStream();
     } catch (UnknownHostException e) {
@@ -86,9 +85,17 @@ public class Client implements Runnable {
     try {
       // keep sending keep alives until we get a response
       long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
+      boolean sentAIRequest = false;
       while (mmIn.available() == 0) {
         if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
           mmOut.write(Protocol.keepAlive().getBytes());
+        
+        if (GameCanvas.wantsAI && !sentAIRequest) {
+          // optionally send a request for an AI opponent
+          Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
+          mmOut.write(Protocol.requestAI().getBytes());
+          sentAIRequest = true;
+        }
         
         try { Thread.sleep(200); }
         catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }

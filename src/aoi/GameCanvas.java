@@ -18,7 +18,7 @@ import aoi.Logger.Rep;
 public class GameCanvas extends Canvas {
   enum Mode { PREGAME, INGAME, POSTGAME };
   
-  static Mode mode = Mode.PREGAME;
+  static Mode mode = null;
   
   static boolean wantsAI = false;
   static boolean wantsAnotherGame = false;
@@ -46,6 +46,7 @@ public class GameCanvas extends Canvas {
     }
 
     theCanvas = this;
+    toPreGame();
   }
   
   static void toGameMode() {
@@ -67,6 +68,44 @@ public class GameCanvas extends Canvas {
     mode = Mode.INGAME;
   }
   
+  static void toPreGame() {
+    mode = Mode.PREGAME;
+    theCanvas.setIgnoreRepaint(false);
+    wantsAI = false;
+    wantsAnotherGame = false;
+    
+    for (MouseListener l : theCanvas.getMouseListeners())
+      theCanvas.removeMouseListener(l);
+    
+    // add a listener that allows the user to request an AI opponent.
+    class PreGameMouseListener implements MouseListener {
+      long timeCreated;
+      PreGameMouseListener(long timeCreated) { this.timeCreated = timeCreated; }
+      
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        // ignore clicks for the first second
+        if (System.currentTimeMillis() - timeCreated > 1000) {
+          Logger.println(Rep.FEW, "user wants to play against the AI.");
+          GameCanvas.wantsAI = true;
+          theCanvas.repaint();
+        }
+        e.consume();
+      }
+      @Override
+      public void mouseEntered(MouseEvent e) {}
+      @Override
+      public void mouseExited(MouseEvent e) {}
+      @Override
+      public void mousePressed(MouseEvent e) {}
+      @Override
+      public void mouseReleased(MouseEvent e) {}
+    };
+    
+    theCanvas.addMouseListener(new PreGameMouseListener(System.currentTimeMillis()));
+    theCanvas.repaint();
+  }
+  
   static void toPostGame() {
     mode = Mode.POSTGAME;
     theCanvas.setIgnoreRepaint(false);
@@ -81,61 +120,27 @@ public class GameCanvas extends Canvas {
       PostGameMouseListener(long timeCreated) { this.timeCreated = timeCreated; }
       
       @Override
-      public void mouseClicked(MouseEvent arg0) {}
-      @Override
-      public void mouseEntered(MouseEvent arg0) {}
-      @Override
-      public void mouseExited(MouseEvent arg0) {}
-      @Override
-      public void mousePressed(MouseEvent arg0) {}
-      @Override
-      public void mouseReleased(MouseEvent arg0) {
+      public void mouseClicked(MouseEvent e) {
         // ignore clicks for the first second
         if (System.currentTimeMillis() - timeCreated > 1000) {
           Logger.println(Rep.FEW, "user wants another game.");
           GameCanvas.wantsAnotherGame = true;
+          theCanvas.repaint();
         }
+        e.consume();
       }
+      @Override
+      public void mouseEntered(MouseEvent e) {}
+      @Override
+      public void mouseExited(MouseEvent e) {}
+      @Override
+      public void mousePressed(MouseEvent e) {}
+      @Override
+      public void mouseReleased(MouseEvent e) {}
     };
     
     theCanvas.addMouseListener(new PostGameMouseListener(System.currentTimeMillis()));
-    
-  }
-  
-  static void toPreGame() {
-    mode = Mode.PREGAME;
-    theCanvas.setIgnoreRepaint(false);
-    wantsAI = false;
-    wantsAnotherGame = false;
-    
-    for (MouseListener l : theCanvas.getMouseListeners())
-      theCanvas.removeMouseListener(l);
-    
-    // add a listener that allows the user to 
-    class PreGameMouseListener implements MouseListener {
-      long timeCreated;
-      PreGameMouseListener(long timeCreated) { this.timeCreated = timeCreated; }
-      
-      @Override
-      public void mouseClicked(MouseEvent arg0) {}
-      @Override
-      public void mouseEntered(MouseEvent arg0) {}
-      @Override
-      public void mouseExited(MouseEvent arg0) {}
-      @Override
-      public void mousePressed(MouseEvent arg0) {}
-      @Override
-      public void mouseReleased(MouseEvent arg0) {
-        Logger.println(Rep.FEW, "mouse released.");
-        // ignore clicks for the first second
-        if (System.currentTimeMillis() - timeCreated > 1000) {
-          GameCanvas.wantsAI = true;
-          Logger.println(Rep.FEW, "user wants to play against the AI.");
-        }
-      }
-    };
-    
-    theCanvas.addMouseListener(new PreGameMouseListener(System.currentTimeMillis()));
+    theCanvas.repaint();
   }
   
   /*
@@ -175,17 +180,24 @@ public class GameCanvas extends Canvas {
     final double horOffsetPerChar = 3.;
     
     if (mode == Mode.PREGAME) {
-      String waiting = "Waiting for other players...";
-      String tired = "Tired of waiting?";
-      String ai = "Click here to play against the computer";
-      
-      g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2-20);
-      g.drawString(tired, (int) (w/2-tired.length()*horOffsetPerChar), h/2);
-      g.drawString(ai, (int) (w/2-ai.length()*horOffsetPerChar), h/2+20);
+      if (!wantsAI) {
+        String waiting = "Waiting for other players...";
+        String tired = "Tired of waiting?";
+        String ai = "Click here to play against the computer";
+        
+        g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2-20);
+        g.drawString(tired, (int) (w/2-tired.length()*horOffsetPerChar), h/2);
+        g.drawString(ai, (int) (w/2-ai.length()*horOffsetPerChar), h/2+20);
+      } else {
+        String waiting = "Waiting for the game to start...";
+        
+        g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2);
+      }
     }
+
     
     if (mode == Mode.POSTGAME) {
-      String again = "Click here to play again.";
+      String again = (wantsAnotherGame)? "Connecting..." : "Click here to play again.";
       g.drawString(again, (int) (w/2-again.length()*horOffsetPerChar), h/2);
     }
   }

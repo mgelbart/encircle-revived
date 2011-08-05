@@ -207,7 +207,7 @@ public class Simulation  implements Runnable {
             roundsWon[j]++;
             Logger.println(Rep.INFREQ, "Player "+j+" won a round. Total: "+roundsWon[j]);
             
-            if (roundsWon[j] > SimulationUtils.ROUNDSPERMATCH) {
+            if (roundsWon[j] >= SimulationUtils.ROUNDSPERMATCH) {
               matchWinner = j;
               break;
             }
