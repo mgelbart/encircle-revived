@@ -73,7 +73,14 @@ public abstract class Protocol {
   private static final String KEEPALIVE = "keepAlive";
   public static String keepAlive() { return KEEPALIVE+"\n"; }
   public static boolean isKeepAlive(String msg) { return msg.matches("\\s*"+KEEPALIVE+"\\s*"); }
-  	 	  
+  
+  /*
+   * Client to Matchmaking server:
+   */
+  private static final String REQUESTAI = "requestAI";
+  public static String requestAI() { return REQUESTAI+"\n"; }
+  public static boolean isRequestAI(String msg) { return msg.matches("\\s*"+REQUESTAI+"\\s*"); }
+  
   /*
    * Matchmaking server to Client:
    */

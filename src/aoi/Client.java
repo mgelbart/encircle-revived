@@ -113,8 +113,9 @@ public class Client implements Runnable {
       // done with the matchmaker.
       mmSock.close();
     } catch (IOException e) {
-      // TODO Auto-generated catch block
+      Logger.println(Rep.FEW, "Failed to read matchMade.");
       e.printStackTrace();
+      return;
     }
     
     connectToGameServer(gameServ, matchId);
