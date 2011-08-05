@@ -562,6 +562,8 @@ public class Simulation  implements Runnable {
      * CLEANUP after somebody won.
      */
     ended = System.currentTimeMillis();
+
+    advanceSimTimer.cancel();
     
     for (Communicator c : communicators) c.sendGameEnded();
     
@@ -594,6 +596,16 @@ public class Simulation  implements Runnable {
     Logger.println(Rep.FEW, "expect rematch: "+accepted);
     rematchAccepted = accepted;
 
+    // make sure the communicators actually stop after giving
+    // them some time to send expectRematch.
+    try {
+      Thread.sleep(5000);
+    } catch (InterruptedException e) {
+      Logger.println(Rep.FEW, "interrupted.");
+    }
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { communicators[j].stop(); }
+
+    Logger.println(Rep.FEW, "Simulation terminated normally.");
   }  // end this function
 
   // returns true if nobody has refused the rematch yet.

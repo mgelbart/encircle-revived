@@ -8,6 +8,8 @@ import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.*;
 
+import aoi.Logger.Rep;
+
 /**
  * A class for the static map information,
  *  namely about the clusters.
@@ -45,7 +47,10 @@ public class Arena {
   }
 
   // Static convenience methods for accessing the Arena from various classes in the client.
-  public static void setCurrent(Arena a) { assert(current==null); current = a; }
+  public static void setCurrent(Arena a) {
+    if (current != null) Logger.println(Rep.FEW, "Overriding current arena.");
+    current = a;
+  }
   public static Arena current() { return current; }
   
   public String toString() {

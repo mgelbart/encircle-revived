@@ -267,6 +267,7 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // nothing left to do.
         stopTcpNegotiator();
+        stopUdpSender();
         Logger.println(Rep.FEW, "tcpnegotiator for player "+playerNo+" terminated normally.");
         
       }
@@ -332,7 +333,7 @@ public class Communicator implements UnreliableStream.Receiver {
         // when game state is updated);
         Thread.sleep(200);
       } catch (InterruptedException e) {
-        if (stop || udpStream == null) { Logger.println(Rep.FEW, "GameStateSender stopping."); return; }
+        if (stop || udpStream == null || udpStream.hasDied()) { Logger.println(Rep.FEW, "GameStateSender stopping."); return; }
 
         assert(udpStream != null);
 

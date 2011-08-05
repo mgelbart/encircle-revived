@@ -21,7 +21,7 @@ public abstract class SimulationUtils {
   public static final int PREPARATIONTIME = 1000;
 
   // The number of rounds it takes to win a match.
-  public static final int ROUNDSPERMATCH = 2;
+  public static final int ROUNDSPERMATCH = 1;
   
   // The time to wait for players to decide if they want to rematch, in ms.
   public static final int REMATCHCONSIDERATIONTIME = 10000;

@@ -57,94 +57,102 @@ public class Client implements Runnable {
   public void run() {
     StdAudio.init();
     
-    /*
-     * Ask the matchmaker for the matchId.
-     */
-    Socket mmSock;
-    OutputStream mmOut;
-    InputStream mmIn;
-    try {
-      mmSock = new Socket(ClientConfiguration.serverUrl,
-          (ClientConfiguration.nonhuman)? Matchmaker.AIPORT : Protocol.MATCHMAKERTCPPORT);
-      mmOut = mmSock.getOutputStream();
-      mmIn = mmSock.getInputStream();
-    } catch (UnknownHostException e) {
-      Logger.println(Rep.FEW, "Unknown matchmaker.");
-      e.printStackTrace();
-      return;
-    } catch (IOException e) {
-      Logger.println(Rep.FEW, "Failed to connect to matchmaker.");
-      e.printStackTrace();
-      return;
-    }
-
-    // The game server address and match id that we are going
-    // to receive from the matchmaker.
-    String gameServ = null;
-    long matchId = 0;
+    while (true) {
     
-    // this file is created while the client is in queue
-    // so that we can monitor the number of queueing clients
-    // from a shell script.
-    File inQueue = null;
-    if (ClientConfiguration.nonhuman)
-      inQueue = new File("out/queueing_"
-          + ManagementFactory.getRuntimeMXBean().getName() + "_"
-          + (int) (Integer.MAX_VALUE*Math.random()));
-
-    
-    try {
-      Logger.println(Rep.FEW, "Waiting in the matchmaker queue. server: "+mmSock.getInetAddress());
-      
-      // keep sending keep alives until we get a response
-      long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
-      boolean sentAIRequest = false;
-      while (mmIn.available() == 0) {
-        if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
-          mmOut.write(Protocol.keepAlive().getBytes());
-        
-        if (GameCanvas.wantsAI && !sentAIRequest) {
-          // optionally send a request for an AI opponent
-          Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
-          mmOut.write(Protocol.requestAI().getBytes());
-          sentAIRequest = true;
-        }
-        
-        if (inQueue != null) inQueue.createNewFile();
-        
-        try { Thread.sleep(500); }
-        catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
-      }
-
-      if (inQueue != null) inQueue.delete();
-
-      // parse the server name and match id.
-      String msg = Protocol.readNextMsg(mmIn);
-      String[] matchMade = Protocol.parseMatchMade(msg);
-      if (matchMade == null
-          || matchMade[0] == null
-          || matchMade[1] == null
-          || matchMade[0].isEmpty()) {
-        Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
+      /*
+       * Ask the matchmaker for the matchId.
+       */
+      Socket mmSock;
+      OutputStream mmOut;
+      InputStream mmIn;
+      try {
+        mmSock = new Socket(ClientConfiguration.serverUrl,
+            (ClientConfiguration.nonhuman)? Matchmaker.AIPORT : Protocol.MATCHMAKERTCPPORT);
+        mmOut = mmSock.getOutputStream();
+        mmIn = mmSock.getInputStream();
+      } catch (UnknownHostException e) {
+        Logger.println(Rep.FEW, "Unknown matchmaker.");
+        e.printStackTrace();
+        return;
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "Failed to connect to matchmaker.");
+        e.printStackTrace();
         return;
       }
-      gameServ = matchMade[0];
-      matchId = Long.parseLong(matchMade[1]);
+  
+      // The game server address and match id that we are going
+      // to receive from the matchmaker.
+      String gameServ = null;
+      long matchId = 0;
       
-      // let the server know we received and parsed the matchMade.
-      mmOut.write(Protocol.ack().getBytes());
-
-      // done with the matchmaker.
-      mmSock.close();
+      // this file is created while the client is in queue
+      // so that we can monitor the number of queueing clients
+      // from a shell script.
+      File inQueue = null;
+      if (ClientConfiguration.nonhuman)
+        inQueue = new File("out/queueing_"
+            + ManagementFactory.getRuntimeMXBean().getName() + "_"
+            + (int) (Integer.MAX_VALUE*Math.random()));
+  
       
-      Logger.println(Rep.FEW, "Parsed "+msg);
-    } catch (IOException e) {
-      Logger.println(Rep.FEW, "Failed to read matchMade.");
-      e.printStackTrace();
-      return;
+      try {
+        Logger.println(Rep.FEW, "Waiting in the matchmaker queue. server: "+mmSock.getInetAddress());
+        
+        // keep sending keep alives until we get a response
+        long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
+        boolean sentAIRequest = false;
+        while (mmIn.available() == 0) {
+          if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
+            mmOut.write(Protocol.keepAlive().getBytes());
+          
+          if (GameCanvas.wantsAI && !sentAIRequest) {
+            // optionally send a request for an AI opponent
+            Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
+            mmOut.write(Protocol.requestAI().getBytes());
+            sentAIRequest = true;
+          }
+          
+          if (inQueue != null) inQueue.createNewFile();
+          
+          try { Thread.sleep(500); }
+          catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
+        }
+  
+        if (inQueue != null) inQueue.delete();
+  
+        // parse the server name and match id.
+        String msg = Protocol.readNextMsg(mmIn);
+        String[] matchMade = Protocol.parseMatchMade(msg);
+        if (matchMade == null
+            || matchMade[0] == null
+            || matchMade[1] == null
+            || matchMade[0].isEmpty()) {
+          Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
+          return;
+        }
+        gameServ = matchMade[0];
+        matchId = Long.parseLong(matchMade[1]);
+        
+        // let the server know we received and parsed the matchMade.
+        mmOut.write(Protocol.ack().getBytes());
+  
+        // done with the matchmaker.
+        mmSock.close();
+        
+        Logger.println(Rep.FEW, "Parsed "+msg);
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "Failed to read matchMade.");
+        e.printStackTrace();
+        return;
+      }
+      
+      // connect to the game server
+      if(!connectToGameServer(gameServ, matchId))
+        // quit
+        return;
+      // otherwise start everything from the beginning.
+      GameCanvas.toPreGame();
     }
-    
-    connectToGameServer(gameServ, matchId);
   }
 
   /**
@@ -302,7 +310,8 @@ public class Client implements Runnable {
     // wait for the server to tell that the game is over
     try {
       String msg = Protocol.readNextMsg(tcpIn);
-      assert(Protocol.isMatchEnded(msg));
+      if (!Protocol.isMatchEnded(msg))
+        Logger.println(Rep.FEW, "Expected matchEnded. Got "+msg);
     } catch (IOException e1) {
       Logger.println(Logger.Rep.FEW, "TCP read failed before game ended.");
       e1.printStackTrace();
@@ -311,7 +320,8 @@ public class Client implements Runnable {
     }
 
     Logger.println(Logger.Rep.FEW, "Game ended.");
-    
+
+    stopUdp();
     GameCanvas.toPostGame();
 
     // don't request a rematch.
@@ -327,7 +337,18 @@ public class Client implements Runnable {
     
     stopGracefully();
     
-    return rematch;
+    // quit if AI
+    if (ClientConfiguration.nonhuman) return false;
+
+    // wait (forever) for the client to decide whether
+    // to request another match
+    while (GameCanvas.wantsAnotherGame == false) {
+      try { Thread.sleep(500); }
+      catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted."); }
+    }
+
+    // request another match.
+    return true;
 
   }
   
@@ -346,9 +367,22 @@ public class Client implements Runnable {
   public static void stopCurrent() {
     stop = true;
     
+    stopUdp();
+
+    stopTcp();
+    
+    if (intel != null) intel.stop();
+  }
+  
+  public static void stopUdp() {
     if (uStream != null)
       uStream.disconnect();
-    
+
+    if (sendTimer != null)
+      sendTimer.cancel();
+  }
+
+  public static void stopTcp() {
     try {
       //socket.setSoLinger(false, 0); // close immediately with a RST.
       socket.close();
@@ -356,11 +390,6 @@ public class Client implements Runnable {
       Logger.println(Rep.FEW, "couldn't close TCP socket.");
       e.printStackTrace();
     }
-    
-    if (intel != null) intel.stop();
-    
-    if (sendTimer != null)
-      sendTimer.cancel();
   }
   
   /**
@@ -419,7 +448,7 @@ public class Client implements Runnable {
         
       if (udpOut.hasDied()) {
         Logger.println(Rep.FEW, "UnreliableStream has timed out. Giving up.");
-        stop();
+        stopUdp();
         try {
           socket.close();
         } catch (IOException e) {

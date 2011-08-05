@@ -71,21 +71,12 @@ public class DrawUtils {
   
   // Initialize the module to draw objects on the specified canvas.
   public static void initialize(GameCanvas canv) {
-    assert(!initialized);
     canvas = canv;
     
     // Transformation from overlay/game coordinates to Java graphics coordinates.
     setRenderedGameCoords(0, 0, DEFAULTRENDEREDGAMEWIDTH, DEFAULTRENDEREDGAMEHEIGHT);
     
     initialized = true;
-  }
-  
-  public static void freeResources() {
-    assert(false); // Not supported yet.
-
-    assert(initialized);
-
-    initialized = false;
   }
   
   // Set the minimal region of game coordinates that is rendered.

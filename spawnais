@@ -14,7 +14,8 @@ do
 
     tospawn=$((minaicount-count));
     if [ $tospawn -gt 0 ]; then
-	echo -n "spawning $tospawn new ai(s)...";
+	echo -n $(date +%s);
+	echo -n " spawning $tospawn new ai(s)...";
 	for((i=0;i<$tospawn;i+=1)); do
 	    ( make run_client1 > out/ai_"$BASHPID".out 2>&1 ) &
 	done
