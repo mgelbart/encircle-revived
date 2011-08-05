@@ -82,6 +82,13 @@ public class Client implements Runnable {
     String gameServ = null;
     long matchId = 0;
     
+    // this file is created while the client is in queue
+    File inQueue = null;
+    if (ClientConfiguration.nonhuman)
+      inQueue = new File("out/queueing_"
+          + (int) (Integer.MAX_VALUE*Math.random()));
+
+    
     try {
       // keep sending keep alives until we get a response
       long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
@@ -97,10 +104,14 @@ public class Client implements Runnable {
           sentAIRequest = true;
         }
         
+        if (inQueue != null) inQueue.createNewFile();
+        
         try { Thread.sleep(200); }
         catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
       }
-      
+
+      if (inQueue != null) inQueue.delete();
+
       // parse the server name and match id.
       String msg = Protocol.readNextMsg(mmIn);
       String[] matchMade = Protocol.parseMatchMade(msg);
@@ -302,6 +313,8 @@ public class Client implements Runnable {
     } catch (IOException e) {
       Logger.println(Rep.FEW, "failed to send requestRematch.");
       e.printStackTrace();
+      stop();
+      return false;
     }
     
     stopGracefully();
@@ -346,7 +359,7 @@ public class Client implements Runnable {
    * This functions tries to stop all the client threads gracefully.
    */
   public static void stopGracefully() {
-    stop();
+    stopCurrent();
   }
   
 
