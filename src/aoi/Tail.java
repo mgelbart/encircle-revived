@@ -296,12 +296,14 @@ public class Tail {
     // pwned on the same turn
     if ((sinceScoring - prev.sinceScoring < 0 ||
         sinceScoring == 0))
-      newTail.knots.add(prev.tail.headTime());
-    // Could also be      newTail.headTime()
-    // As long as the scoring crop event in Simulation doesn't crop
-    // the point that is made by the loop, the knot will be safe.
-    // If the knot doesn't get made, change this to newTail.headTime()
-    // and it might fix the problem following a change elsewhere.
+      newTail.knots.add(newTail.headTime());
+    // Don't want to use prev.tail.headTime()
+	// because newTail might not contain this time anymore,
+	// since addPoint might have removed that latest point.
+	// The alternative would be to add the knot before adding
+	// the point, but that's not good because addPoint copies
+	// the Tail and thus should be the first command in this
+	// function. Therefore this is the best thing to do.
 
     
     // Execute all the pending crop events
@@ -327,6 +329,7 @@ public class Tail {
     // will not crop this thing later on, so long as the cropEvents are well-behaved
     // and don't do stupid things like have cropTo strictly greater than timeCreated.
     
+	assert(newTail.isValid());
     return newTail;
   }
   
@@ -398,14 +401,17 @@ public class Tail {
   
   public boolean isValid() {
     if (trajectory.isEmpty()) {
+	  Logger.println(Rep.INFREQ, this);
       Logger.println(Rep.INFREQ, "Tail is empty");
       return false;
     }
     if (knots.isEmpty()) {
+	  Logger.println(Rep.INFREQ, this);
       Logger.println(Rep.INFREQ, "No knot at base");
       return false;
     }
     if (!knots.first().equals(baseTime())) {
+	  Logger.println(Rep.INFREQ, this);
       Logger.println(Rep.INFREQ, "First knot not at base");
       Logger.println(Rep.INFREQ, "First knot at " + knots.first());
       Logger.println(Rep.INFREQ, "Basetime = " + baseTime());
@@ -413,6 +419,7 @@ public class Tail {
     }
     for (int knotTime : knots) {
       if (!trajectory.containsKey(knotTime)) {
+	    Logger.println(Rep.INFREQ, this);
         Logger.println(Rep.INFREQ, "Knot at " + knotTime + " not in tail");
         return false;
       }
