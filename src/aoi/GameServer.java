@@ -202,7 +202,8 @@ public abstract class GameServer {
         continue;
       }
       
-      Long matchId;
+      long matchId;
+      boolean isAI;
       
       try {
         // figure out which simulation the client is trying to connect
@@ -211,11 +212,14 @@ public abstract class GameServer {
         String msg = Protocol.readNextMsg(socket.getInputStream());
         socket.setSoTimeout(oldTimeout);
         
-        matchId = Protocol.parseReadyForMatch(msg);
-        if (matchId == null) {
+        long[] matchDetails = Protocol.parseReadyForMatch(msg); 
+        if (matchDetails == null) {
           Logger.println(Rep.FEW, "Client sent garbage: "+msg);
           socket.close();
           continue;
+        } else {
+          matchId = matchDetails[0];
+          isAI = matchDetails[1]!=0;
         }
       } catch (IOException e) {
         Logger.println(Rep.FEW, "Failed to read readyForMatch from "
@@ -242,6 +246,7 @@ public abstract class GameServer {
           }
         }
   
+        simulation.communicators[simulation.numConnectedPlayers].setIsAI(isAI);
         
         try {
           simulation.communicators[simulation.numConnectedPlayers].setTCPSocket(socket);

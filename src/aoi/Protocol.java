@@ -96,8 +96,8 @@ public abstract class Protocol {
    * Client to Game server:
    */
   private static final String READYFORMATCH = "readyForMatch";
-  public static String readyForMatch(long gameId) { return READYFORMATCH+" "+gameId+"\n"; }
-  public static Long parseReadyForMatch(String msg)  { return parse1Long(READYFORMATCH, msg); }
+  public static String readyForMatch(long gameId, boolean ai) { return READYFORMATCH+" "+gameId+" "+((ai)?1:0)+"\n"; }
+  public static long[] parseReadyForMatch(String msg)  { return parseNLongs(READYFORMATCH, msg, 2); }
   
   private static final String REQUESTREMATCH = "requestRematch";
   public static String requestRematch(boolean request) { return REQUESTREMATCH+" "+((request)? 1:0)+"\n"; }

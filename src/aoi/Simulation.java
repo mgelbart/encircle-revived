@@ -205,9 +205,9 @@ public class Simulation  implements Runnable {
           assert(pStatesTemp[j].score <= pointsPerRound);
           if (pStatesTemp[j].score == pointsPerRound) {
             roundsWon[j]++;
+            Logger.println(Rep.INFREQ, "Player "+j+" won a round. Total: "+roundsWon[j]);
             
-            if (roundsWon[j] > SimulationUtils.ROUNDSPERMATCH/2.) {
-              // TODO: this isn't necessarily a good condition with NUMPLAYERS>2
+            if (roundsWon[j] > SimulationUtils.ROUNDSPERMATCH) {
               matchWinner = j;
               break;
             }
@@ -221,7 +221,10 @@ public class Simulation  implements Runnable {
         } 
         
         // somebody won the whole match.
-        if (matchWinner >= 0) break;
+        if (matchWinner >= 0) {
+          Logger.println(Rep.INFREQ, "Player "+matchWinner+" won the match.");
+          break;
+        }
         
         
         // (-1) MOVE BULLETS
@@ -534,10 +537,10 @@ public class Simulation  implements Runnable {
           guiThread.interrupt();
         }
         
-        // end game if both players have disconnected.
+        // end game if all human players have disconnected.
         boolean livePlayers = false;
         for (Communicator  c: communicators)
-          if (!c.stopped() && c.wasStarted()) { livePlayers = true; break; }
+          if (!c.isAI() && !c.stopped() && c.wasStarted()) { livePlayers = true; break; }
         
         if (!livePlayers) {
           Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");

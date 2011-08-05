@@ -151,7 +151,7 @@ public class Client implements Runnable {
 
     try {
       /* Process the handshake */
-      tcpOut.writeBytes(Protocol.readyForMatch(matchId));
+      tcpOut.writeBytes(Protocol.readyForMatch(matchId, ClientConfiguration.nonhuman));
 
       // Read the matchid, player number, and unreliable stream id assigned to self.
       String msg = Protocol.readNextMsg(tcpIn);
@@ -321,7 +321,7 @@ public class Client implements Runnable {
       uStream.disconnect();
     
     try {
-      socket.setSoLinger(false, 0); // close immediately with a RST.
+      //socket.setSoLinger(false, 0); // close immediately with a RST.
       socket.close();
     } catch (IOException e) {
       Logger.println(Rep.FEW, "couldn't close TCP socket.");
@@ -338,22 +338,7 @@ public class Client implements Runnable {
    * This functions tries to stop all the client threads gracefully.
    */
   public static void stopGracefully() {
-    stop = true;
-    
-    if (uStream != null)
-      uStream.disconnect();
-    
-    try {
-      socket.close();
-    } catch (IOException e) {
-      Logger.println(Rep.FEW, "couldn't close TCP socket.");
-      e.printStackTrace();
-    }
-    
-    if (intel != null) intel.stop();
-    
-    if (sendTimer != null)
-      sendTimer.cancel();
+    stop();
   }
   
 

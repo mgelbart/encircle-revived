@@ -338,6 +338,7 @@ public class Matchmaker {
           
           if (state == ClientState.REQUESTEDMATCH && Protocol.isRequestAI(msg)) {
             wantsAI = true;
+            continue;
           }
         }
         

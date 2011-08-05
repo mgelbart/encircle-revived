@@ -35,7 +35,7 @@ public class Communicator implements UnreliableStream.Receiver {
   
   private boolean stop = false;
   private boolean wasStarted = false;
-
+  private boolean isAI = false;
 
   public Communicator(int playerNo, Simulation sim, short udpId) {
     this.playerNo = playerNo;
@@ -73,6 +73,9 @@ public class Communicator implements UnreliableStream.Receiver {
     }
   }
   
+  public void setIsAI(boolean isAI) { this.isAI = isAI; }
+  public boolean isAI() { return isAI; }
+  
   /**
    * Returns true if the player still appears to be connected.
    */
@@ -95,10 +98,13 @@ public class Communicator implements UnreliableStream.Receiver {
   public void start() {
     assert(!stop);
     assert(!wasStarted);
+    wasStarted = true;
     
     // don't start if the player never connected at all.
-    if (tcpOut == null) return;
-    wasStarted = true;
+    if (tcpOut == null) {
+      stop = true;
+      return;
+    }
     
     udpSenderThread = new Thread(new Runnable() {
 
@@ -291,7 +297,7 @@ public class Communicator implements UnreliableStream.Receiver {
   private void stopTcpNegotiator() {
     if (tcpSocket != null && !tcpSocket.isClosed()) {
       try {
-        tcpSocket.setSoLinger(false, 0); // close immediately with a RST.
+        //tcpSocket.setSoLinger(false, 0); // close immediately with a RST.
         tcpSocket.close();
       } catch (IOException e) {
         Logger.println(Rep.FEW, "closing socket failed.");
