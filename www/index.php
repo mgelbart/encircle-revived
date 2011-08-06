@@ -53,7 +53,7 @@ if (in_array($received_code, $acceptable_codes)) {
      <applet code = 'aoi.App' 
              archive = 'aoi8888.jar'
 	     width = '650'
-	     height = '650'/>
+	     height = '650'>The Game</applet>
   </div>
 
 <?php
