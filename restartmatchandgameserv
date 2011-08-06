@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# note this really kills _all_ java processes
+killall java
+sleep 3;
+
+echo 'expect 0 processes here:';
+ps -e | grep java
+
+echo 'starting gameserv';
+
+cd ~/gameserv/
+java -classpath .:bin/ aoi.GameServer < gameserver.conf > out/gameserv.out 2>&1 &
+disown java
+
+echo 'expect 1 process here';
+ps -e | grep java
+
+echo 'starting matchmaker';
+
+cd ~/matchmaker/
+java -classpath .:bin/ aoi.Matchmaker > out/matchmaker.out 2>&1 &
+disown java
+
+# pause for a while in case one of the java processes quits immediately
+sleep 5;
+
+echo 'expect 2 processes here:';
+ps -e | grep java

@@ -17,7 +17,7 @@ do
 	echo -n $(date +%s);
 	echo -n " spawning $tospawn new ai(s)...";
 	for((i=0;i<$tospawn;i+=1)); do
-	    ( make run_client1 > out/ai_"$BASHPID".out 2>&1 ) &
+	    ( java -classpath .:bin/ aoi.Client < ai.conf > out/ai_"$BASHPID".out 2>&1 ) &
 	done
 	echo " done."
 	# wait for the AIs to connect to the matchmaker

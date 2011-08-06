@@ -190,7 +190,7 @@ public abstract class Protocol {
   // parse a request with one or more string arguments.
   private static String[] parseStrings(String cmd, String msg) {
     // parts[0] should be the command and parts[1] the first arg
-    String[] parts = msg.split("[^-\\w]+");
+    String[] parts = msg.split("[^-\\.\\w]+");
     if (parts.length < 2 || !parts[0].equals(cmd)) return null;
     return parts;
   }

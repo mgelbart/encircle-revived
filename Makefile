@@ -65,12 +65,6 @@ run_client1r:
 jar:
 	jar cfm aoi.jar Manifest.txt client.conf guiimg -C bin/ .
 
-push_jar: jar
-	scp -i ~/.ssh/encircle.pem aoi.jar ec2-user@50.16.200.221:/var/www/html/aoi.jar
-
-push_bin:
-	scp -i ~/.ssh/encircle.pem -r bin server.conf ec2-user@50.16.200.221:aoirun/
-
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer
 

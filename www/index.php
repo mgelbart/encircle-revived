@@ -39,6 +39,7 @@ if (in_array($received_code, $acceptable_codes)) {
    }
 ?>
 
+  <div id="applet">
 <!--
     <h1>The applet</h1>
     <script src="http://www.java.com/js/deployJava.js"></script>
@@ -50,10 +51,10 @@ if (in_array($received_code, $acceptable_codes)) {
 -->
 
      <applet code = 'aoi.App' 
-             archive = 'aoi8888.jar', 
-             width = 700, 
-             height = 700 />
-
+             archive = 'aoi8888.jar'
+	     width = '650'
+	     height = '650'/>
+  </div>
 
 <?php
 } else {

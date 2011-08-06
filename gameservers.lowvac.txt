@@ -1,0 +1,18 @@
+# This file contains the list of game servers
+# available to the matchmaker.
+#
+# The matchmaker rereads this file periodically
+# so it can be updated while the matchmaker is
+# running.
+#
+# Note that the game servers must be reachable
+# from both the matchmaker and the clients using
+# the addresses listed here so don't use 'localhost'
+# or private IPs (unless you're testing on localhost).
+#
+# Everything before 'start-of-list' and after
+# 'end-of-list' is ignored.
+
+start-of-list
+www.example.com
+end-of-list

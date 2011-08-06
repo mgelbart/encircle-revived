@@ -1,0 +1,19 @@
+#!/bin/bash
+
+killall spawnais
+sleep 3;
+echo 'expect 0 processes here';
+ps -e | grep spawnais
+
+echo 'starting spawnais';
+
+cd aiserv
+./spawnais > out/spawnais.out 2>&1 &
+# i don't entirely understand why the following isn't necessary...
+#disown spawnais
+
+# pause for a while in case one of the java processes quits immediately
+sleep 5;
+
+echo 'expect 1 process here';
+ps -e | grep spawnais

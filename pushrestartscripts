@@ -1,0 +1,4 @@
+#!/bin/bash
+
+scp -i ~/.ssh/encircle.pem restart* follow* ec2-user@www.example.com:~/
+scp -i ~/.ssh/encircle.pem restart* follow* ec2-user@dev.example.com:~/
