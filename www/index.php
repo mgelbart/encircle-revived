@@ -80,8 +80,8 @@ if (in_array($received_code, $acceptable_codes)) {
     <p>Please enter your access code to <em>play</em> the game:</p>
 
     <form name="input" method="get">
-      Access code: <input type="text" name="ac" />
-      <input type="submit" value="Go!" />
+      Access code: <input type="text" name="ac" /><br/>
+      <input type="submit" value="Play!" id="playbutton" />
     </form>
     </div>
 

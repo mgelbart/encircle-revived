@@ -95,6 +95,13 @@ body {
     margin: 50px;
 }
 
+#playbutton
+{
+    margin: 8px;
+    font-size: 2em;
+    padding: 0.3em 1em;
+}
+
 #register
 {
     //font-size: 95%;
