@@ -8,3 +8,5 @@ resources/
 segmentation/game_output/*
 arena.xml
 *.DS_Store
+www/registered/*
+www/accesses/*
