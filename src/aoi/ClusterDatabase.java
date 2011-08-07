@@ -16,7 +16,7 @@ public class ClusterDatabase {
   public static final String CLUSTER_DATASET = "fly";
   
   // The number of clusters to collect in order to win a round.
-  public static final int SEQUENCE_LENGTH = 2;
+  public static final int SEQUENCE_LENGTH = 9;
   
   /* ----------------------------------------------------------------------- */
   
