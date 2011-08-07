@@ -1,8 +1,7 @@
 package aoi;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 import java.util.Vector;
 
 import unreliablestream.UnreliableStream;
@@ -32,7 +31,8 @@ public class Communicator implements UnreliableStream.Receiver {
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
   
   private ClientState clientState = null;
-  
+
+  private long lastParamsReceived;
   private boolean stop = false;
   private boolean wasStarted = false;
   private boolean isAI = false;
@@ -80,7 +80,8 @@ public class Communicator implements UnreliableStream.Receiver {
    * Returns true if the player still appears to be connected.
    */
   public boolean stopped() {
-    return stop;
+    return stop || System.currentTimeMillis() - lastParamsReceived
+                     > UnreliableStream.TIMEOUT;
   }
   
   
@@ -105,6 +106,9 @@ public class Communicator implements UnreliableStream.Receiver {
       stop = true;
       return;
     }
+
+    // initialize
+    lastParamsReceived = System.currentTimeMillis();
     
     udpSenderThread = new Thread(new Runnable() {
 
@@ -171,12 +175,17 @@ public class Communicator implements UnreliableStream.Receiver {
         
         udpSenderThread.start();
         
-        // wait for the game to end
+        // wait for the game to en
         while (sim.ended == null) {
-          if (stop) return;  // or for the player to disconnect
+          if (stop || udpStream.hasDied() || tcpSocket.isClosed()) {
+            // or for the client to disconnect
+            Logger.println(Rep.FEW, "Client disconnected before game ended.");
+            stop();
+            return;
+          }
           
           try {
-            Thread.sleep(10000000);
+            Thread.sleep(50000);
           } catch (InterruptedException e) {
             Logger.println(Rep.FEW, "interrupted.");
           }
@@ -195,20 +204,23 @@ public class Communicator implements UnreliableStream.Receiver {
 //          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
           clientState = ClientState.GAMEENDED;
           
+          Logger.println(Rep.FEW, "Game ended so stopping udpsender.");
           stopUdpSender();
 
         } catch (IOException ioe) {
           Logger.println(Rep.FEW, "failed to send matchEnded.");
           ioe.printStackTrace();
           assert(false);
+          return;
         }
         
         // wait for the player to decide whether to rematch
         try {
-          tcpSocket.setSoTimeout(300); // don't wait forever
+          tcpSocket.setSoTimeout(1000); // don't wait forever
         } catch (SocketException e) {
-          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=300");
+          Logger.println(Rep.FEW, "couldn't set SOTIMEOUT=500");
           e.printStackTrace();
+          return;
         }
         
         Boolean wantsToRematch = null;
@@ -217,9 +229,16 @@ public class Communicator implements UnreliableStream.Receiver {
           
           String msg;
           try {
-            msg=Protocol.readNextMsg(tcpIn);
+            try {
+              msg=Protocol.readNextMsg(tcpIn);
+            } catch (SocketTimeoutException ioe) {
+              continue;
+            }
           } catch (IOException ioe) {
-            continue;
+	    // the client disconnected without closing the stream with a FIN
+            Logger.println(Rep.FEW, "Client disconnected without sending rematchRequest.");
+            stop();
+            return;
           }
           
           if (msg == null) {
@@ -250,11 +269,8 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // wait for the decision
         while (sim.rematchAccepted() == null) {
-          try {
-            Thread.sleep(300);
-          } catch (InterruptedException e) {
-            continue;
-          }
+          try { Thread.sleep(300); }
+	  catch (InterruptedException e) { continue; }
         }
 
         try {
@@ -283,8 +299,7 @@ public class Communicator implements UnreliableStream.Receiver {
   }
   
   public void sendGameEnded() {
-    if (clientState == ClientState.RECEIVEDARENA)
-      tcpNegotiatorThread.interrupt();
+    tcpNegotiatorThread.interrupt();
 
     stopUdpSender();
   }
@@ -333,7 +348,11 @@ public class Communicator implements UnreliableStream.Receiver {
         // when game state is updated);
         Thread.sleep(200);
       } catch (InterruptedException e) {
-        if (stop || udpStream == null || udpStream.hasDied()) { Logger.println(Rep.FEW, "GameStateSender stopping."); return; }
+        if (stop || udpStream == null || udpStream.hasDied()) {
+	    Logger.println(Rep.FEW, "GameStateSender stopping.");
+	    if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
+	    return;
+	}
 
         assert(udpStream != null);
 
@@ -343,14 +362,6 @@ public class Communicator implements UnreliableStream.Receiver {
         g = sim.gameState();
 
         if (previousTime != g.time) {
-          
-          // Check whether the UnreliableStream is still alive.
-          if (udpStream != null && udpStream.hasDied()) {
-            Logger.println(Rep.FEW, "UnreliableStream has timed out for player " + playerNo);
-            stop();
-            continue;
-          }
-          
           
           // send using UDP if available. otherwise fall back to TCP.
           synchronized (sendingLock) {  
@@ -375,7 +386,7 @@ public class Communicator implements UnreliableStream.Receiver {
               Logger.println(Rep.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time);
               Logger.println(Rep.FEW, "The socket must be invalid. Ending GameStateSender execution.");
               e1.printStackTrace();
-              stop();
+	      if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
               return;
             }
 
@@ -425,6 +436,8 @@ public class Communicator implements UnreliableStream.Receiver {
       Logger.println(Rep.FEW, "too many controls buffered for player " + playerNo);
       return true;
     }
+
+    lastParamsReceived = System.currentTimeMillis();
 
     // Keep ctrls ordered by effectiveOn.
     synchronized (ctrls) {

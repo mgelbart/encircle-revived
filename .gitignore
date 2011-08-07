@@ -1,4 +1,5 @@
 *.class
+*.tar
 aoi.jar
 doc/
 out/
