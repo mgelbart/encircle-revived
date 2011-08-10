@@ -76,19 +76,23 @@ public abstract class SimulationUtils {
      a single time step given an initial state and
      control parameters.
 
-     Note that this in particular does not tell you
-     if you hit something (a boundary, cluster, bullet).
+     Note that this does not tell you hit something a bullet.
   */
-  public static Ship nextPosition(Ship ship, PlayerControlParameters params) {
+  public static Ship nextPosition(Ship ship, PlayerControlParameters params, Arena arena) {
     assert(ship != null);
     assert(params != null);
-
+    
     // Acceleration
     double a = Math.max(0.0, Math.min(MAXACC, params.acceleration));
 
+    // velocity components
+    int vx = ship.vx();
+    int vy = ship.vy();
+
     // Currently, turning does not "slow you down". This might not be good
-    int vx = ship.vx() + (int) (a * Math.cos(ship.dir().toDouble()));
-    int vy = ship.vy() + (int) (a * Math.sin(ship.dir().toDouble()));
+    vx += (int) (a * Math.cos(ship.dir().toDouble()));
+    vy += (int) (a * Math.sin(ship.dir().toDouble()));
+
 /*
     // Drag increases with the angle between your current direction and the direction you're facing,
     // to represent the fact that you are more aerodynamic facing forwards. This also helps to slow 
@@ -109,8 +113,15 @@ public abstract class SimulationUtils {
     vx -= drag * vx;
     vy -= drag * vy;
     
-    final int x = ship.x() + vx;
-    final int y = ship.y() + vy;
+    int x = ship.x() + vx;
+    int y = ship.y() + vy;
+    
+    if (!isInArena(x, y, arena)) {
+      x = ship.x();
+      y = ship.y();
+      vx = 0;
+      vy = 0;
+    }
 
     // Figure out whether to turn clockwise or counterclockwise.
     final boolean turnCcw =   Math.abs(ship.dir().add(OMEGA).dtheta(params.targetDirection))
@@ -167,7 +178,8 @@ public abstract class SimulationUtils {
   
   public static boolean isInCluster(Ship s, Arena a) {
     for (Cluster c : a.clusters)
-      if (c.intersects(s))
+      //if (c.intersects(s)) // use the outline of the ship
+      if (c.contains(s.x(), s.y())) // use the center point of the ship
         return true;
     return false;
   }

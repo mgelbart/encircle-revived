@@ -145,7 +145,9 @@ public class TimeMachine {
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
         ctrl[k] = getParamsAt(k, cached.time+j, reader);
-        ship[k] = (cached.pStates[k].untilRespawn == 0)? SimulationUtils.nextPosition(ship[k], ctrl[k]) : ship[k];
+        ship[k] = (cached.pStates[k].untilRespawn == 0)?
+            SimulationUtils.nextPosition(ship[k], ctrl[k], Arena.current())
+              : ship[k];
         
         boolean tookShot = false;
         // Take shots

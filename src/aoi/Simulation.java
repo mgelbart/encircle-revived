@@ -294,15 +294,15 @@ public class Simulation  implements Runnable {
             } 
             else if (SimulationUtils.isInCluster(ship, arena) ||
                    SimulationUtils.isOutOfBounds(ship, arena) ) {
-              lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
-              untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
-              Integer tor = tail.convertLengthToTime(
-                  tail.headTime(), lengthUntilRespawn[playerNo], false);
-              if (tor == null) tor = tail.baseTime();
-              timeOfRespawn[playerNo] = tor;
-//              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
-//              Logger.println(Rep.INFREQ, tail);
-              spinWhileRespawn[playerNo] = false;
+//              lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
+//              untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
+//              Integer tor = tail.convertLengthToTime(
+//                  tail.headTime(), lengthUntilRespawn[playerNo], false);
+//              if (tor == null) tor = tail.baseTime();
+//              timeOfRespawn[playerNo] = tor;
+////              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
+////              Logger.println(Rep.INFREQ, tail);
+//              spinWhileRespawn[playerNo] = false;
               sinceCrashed = 0;
             }
             // There still may be problems here if
@@ -452,7 +452,7 @@ public class Simulation  implements Runnable {
             
           
             // (5) CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
-              ship = SimulationUtils.nextPosition(ship, params[playerNo]);
+              ship = SimulationUtils.nextPosition(ship, params[playerNo], arena);
             
           }   // end if not respawning
           
