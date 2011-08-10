@@ -69,6 +69,7 @@ public class MousePilot implements MouseInputListener {
 
   @Override
   public void mouseDragged(MouseEvent e) {
+    target = e.getPoint();
     if (trajectory != null) trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));
     e.consume();
   }

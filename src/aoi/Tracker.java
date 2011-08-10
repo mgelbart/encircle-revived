@@ -173,7 +173,7 @@ public abstract class Tracker {
     // Set the acceleration based on the distance between the ship and mouse.
     
     // the decay length^2
-    final double lsq = Math.pow(SimulationUtils.ARENASIZE / 20, 2);
+    final double lsq = Math.pow(DAMPINGDIST, 2);
     
     // use only the distance parallel to the direction of the ship
     final Line2D perpLine = new Line2D.Double(
@@ -185,9 +185,9 @@ public abstract class Tracker {
         target.getX(), target.getY()) > 0;
     
     int acc;
-    if (distsq < lsq/2 || !infront) acc = 0; 
+    if (!infront) acc = 0; 
     else acc = (int) (SimulationUtils.MAXACC * 
-        (1.-Math.exp(-distsq/lsq)));
+        Math.min(1., Math.pow(distsq/lsq, 1.)));
     
     return new PlayerControlParameters(
         time, acc, new Angle(loc, target), false, false);
