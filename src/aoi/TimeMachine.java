@@ -145,8 +145,9 @@ public class TimeMachine {
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
         ctrl[k] = getParamsAt(k, cached.time+j, reader);
+        Boolean crashed = new Boolean(false);
         ship[k] = (cached.pStates[k].untilRespawn == 0)?
-            SimulationUtils.nextPosition(ship[k], ctrl[k], Arena.current())
+            SimulationUtils.nextPosition(ship[k], ctrl[k], Arena.current(), crashed)
               : ship[k];
         
         boolean tookShot = false;
@@ -166,7 +167,7 @@ public class TimeMachine {
                                       players[k].sinceCrossing+1,
                                       players[k].sinceHitByBullet+1,
                                       players[k].sincePwned+1,
-                                      players[k].sinceCrashed+1,
+                                      (crashed)? 0 : players[k].sinceCrashed+1,
                                       players[k].tail.addPoint(timej, ship[k].location()));
       
       }

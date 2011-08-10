@@ -76,9 +76,9 @@ public abstract class SimulationUtils {
      a single time step given an initial state and
      control parameters.
 
-     Note that this does not tell you hit something a bullet.
+     Note that this does not tell you hit a bullet.
   */
-  public static Ship nextPosition(Ship ship, PlayerControlParameters params, Arena arena) {
+  public static Ship nextPosition(Ship ship, PlayerControlParameters params, Arena arena, Boolean crashed) {
     assert(ship != null);
     assert(params != null);
     
@@ -116,7 +116,9 @@ public abstract class SimulationUtils {
     int x = ship.x() + vx;
     int y = ship.y() + vy;
     
-    if (!isInArena(x, y, arena)) {
+    crashed = !isInArena(x, y, arena);
+    
+    if (crashed) {
       x = ship.x();
       y = ship.y();
       vx = 0;

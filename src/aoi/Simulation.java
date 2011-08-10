@@ -291,19 +291,6 @@ public class Simulation  implements Runnable {
 //              Logger.println(Rep.INFREQ, "Shot respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo] + " t =" + timeOfRespawn[playerNo] + "currentTime = " + newTime);
 //              Logger.println(Rep.INFREQ, tail);
               spinWhileRespawn[playerNo] = true;
-            } 
-            else if (SimulationUtils.isInCluster(ship, arena) ||
-                   SimulationUtils.isOutOfBounds(ship, arena) ) {
-//              lengthUntilRespawn[playerNo] = SimulationUtils.CRASHUNCOILLENGTH;
-//              untilRespawn = (int) Math.ceil(lengthUntilRespawn[playerNo] / SimulationUtils.UNCOILSPEED);
-//              Integer tor = tail.convertLengthToTime(
-//                  tail.headTime(), lengthUntilRespawn[playerNo], false);
-//              if (tor == null) tor = tail.baseTime();
-//              timeOfRespawn[playerNo] = tor;
-////              Logger.println(Rep.INFREQ, "Crash respawn. t =" + untilRespawn + " l = " + lengthUntilRespawn[playerNo]  + " t =" + timeOfRespawn[playerNo]);
-////              Logger.println(Rep.INFREQ, tail);
-//              spinWhileRespawn[playerNo] = false;
-              sinceCrashed = 0;
             }
             // There still may be problems here if
             // you also cross, score, etc. on the same round...
@@ -452,7 +439,9 @@ public class Simulation  implements Runnable {
             
           
             // (5) CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
-              ship = SimulationUtils.nextPosition(ship, params[playerNo], arena);
+            Boolean crashed = new Boolean(false);
+            ship = SimulationUtils.nextPosition(ship, params[playerNo], arena, crashed);
+            if (crashed) sinceCrashed = 0;
             
           }   // end if not respawning
           
