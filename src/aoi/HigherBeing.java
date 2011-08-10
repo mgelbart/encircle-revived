@@ -42,6 +42,8 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
 
     if (ClientConfiguration.useMouse) {
 
+      final boolean ENABLETRACKER = false;
+      
       // remove path from tracker if we crashed
       if (gState.pStates[ClientConfiguration.playerNo].untilRespawn > 0) {
         Tracker.setPathToTrack(null);
@@ -49,15 +51,17 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
       }
 
       // see if mousepilot has a new trajectory to track.
-      Vector<Point> path = mousePilot.trajectory();
-      if (path != null)
-        Tracker.setPathToTrack(path);
+      if (ENABLETRACKER) {
+        Vector<Point> path = mousePilot.trajectory();
+        if (path != null)
+          Tracker.setPathToTrack(path);
+      }
 
 
       if (Tracker.pointsLeftToTrack() > 0) {
         // let Tracker decide what to do if it still has points left to track
         c = Tracker.nextParams(gState.time, gState.pStates[ClientConfiguration.playerNo].ship);
-        path = Tracker.remainingPath();
+        Vector<Point> path = Tracker.remainingPath();
         if (path != null) mousePath.setPath(path);
       } else
         // otherwise go towards the cursor.
@@ -68,7 +72,10 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
       c = keyboardPilot.getParams(gState);
 
     // auto-shooter
-    if (c != null && !keyboardPilot.dontShoot && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
+    final boolean ENABLESHOOTER = false;
+    if (ENABLESHOOTER && c != null
+        && !keyboardPilot.dontShoot
+        && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
       //Logger.println(Rep.INFREQ, "could shoot");
       c = c.shoot();
     }

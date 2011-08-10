@@ -9,7 +9,7 @@ import aoi.Logger.Rep;
  * at a given moment would be a good idea.
  */
 public class Shooter {
-
+  
   /*
    *  Returns true if shooting on the current turn would be likely to hit another player.
    *  
