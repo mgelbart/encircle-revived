@@ -20,11 +20,11 @@ public abstract class Protocol {
   // the client is expected to send keepAlives while
   // waiting for a match. The client will be disconnected
   // if one doesn't arrive within this period. In ms.
-  public static final int MATCHMAKERKEEPALIVETIMEOUT = 3000;
+  public static final int MATCHMAKERKEEPALIVETIMEOUT = 8000;
   
   // The time the client has to send a readyForMatch after
   // connecting to the game server.
-  public static final int GAMESERVERMATCHREQUESTTIMEOUT = 1000;
+  public static final int GAMESERVERMATCHREQUESTTIMEOUT = 8000;
   
   /*
    * The client goes through the following states
