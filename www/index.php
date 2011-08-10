@@ -4,7 +4,7 @@
 
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>Encricle</title>
+    <title>Encircle</title>
     <meta name="Description" content="Encircle --- the game" /> 
     <meta name="robots" content="all, index, follow" />
     <link rel="stylesheet" href="style.css" type="text/css" />
