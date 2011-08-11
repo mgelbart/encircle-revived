@@ -197,7 +197,10 @@ public class GameCanvas extends JComponent {
         onscreenImage = offscreenImage;
         offscreen = t;
         offscreenImage = tImg;
-  
+
+        // disable anti-aliasing on the new offscreen image
+        setAntialiasing(false);
+        
         theCanvas.repaint();
       }
 
@@ -255,6 +258,20 @@ public class GameCanvas extends JComponent {
 
   }
   
+  public static void setAntialiasing(boolean on) {
+    if (on) {
+      RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                                                RenderingHints.VALUE_ANTIALIAS_ON);
+      //hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+      offscreen.addRenderingHints(hints);
+    } else {
+      RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
+                                                RenderingHints.VALUE_ANTIALIAS_OFF);
+      //hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+      offscreen.addRenderingHints(hints);
+    }
+  }
+  
   /**
    * Get the new offscreen image to buffer to.
    */
@@ -287,4 +304,6 @@ public class GameCanvas extends JComponent {
     public void componentShown(ComponentEvent arg0) {}
   }
   
+  @Override
+  public boolean isFocusTraversable() { return true; }
 }
