@@ -3,6 +3,8 @@ package aoi;
 import java.io.*;
 import java.util.Vector;
 import java.util.Arrays;
+
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import org.xml.sax.helpers.DefaultHandler;
@@ -86,21 +88,13 @@ public class Arena {
 
   }
 
-  public static Arena parse(InputStream i) {
+  public static Arena parse(InputStream i) throws ParserConfigurationException, SAXException, IOException {
 
-    try {
+    SAXParser sax = SAXParserFactory.newInstance().newSAXParser();
+    ArenaParser arena = new ArenaParser();
+    sax.parse(i, arena);
 
-      SAXParser sax = SAXParserFactory.newInstance().newSAXParser();
-      ArenaParser arena = new ArenaParser();
-      sax.parse(i, arena);
-
-      return new Arena(arena.clusters, arena.sequence);
-
-    } catch (Exception e) {
-      Logger.println(Logger.Rep.FEW, e.toString());
-      assert(false);
-      return null;
-    }
+    return new Arena(arena.clusters, arena.sequence);
 
   }
 

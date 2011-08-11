@@ -1,6 +1,7 @@
 *.class
 *.tar
 aoi.jar
+compiletime
 doc/
 out/
 resources/

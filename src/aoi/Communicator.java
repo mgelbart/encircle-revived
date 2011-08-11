@@ -156,6 +156,7 @@ public class Communicator implements UnreliableStream.Receiver {
         
         // Wait for the client to connect using UDP
         final long startedToWait = System.currentTimeMillis();
+        lastParamsReceived = System.currentTimeMillis();
         while (udpStream == null){
           
           if (System.currentTimeMillis() - startedToWait < UnreliableStream.TIMEOUT)
@@ -174,8 +175,9 @@ public class Communicator implements UnreliableStream.Receiver {
         }
         
         udpSenderThread.start();
+        lastParamsReceived = System.currentTimeMillis();
         
-        // wait for the game to en
+        // wait for the game to end
         while (sim.ended == null) {
           if (stop || udpStream.hasDied() || tcpSocket.isClosed()) {
             // or for the client to disconnect

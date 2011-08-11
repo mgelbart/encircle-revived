@@ -44,6 +44,19 @@ public class Matchmaker {
   
   Matchmaker() {
     Logger.setVerbosity(Rep.FREQ);
+
+    // print out the compile time stored in the
+    // compiletime file, which is recreated every time
+    // make is run.
+    try {
+      InputStream stream = Client.class.getClassLoader().getResourceAsStream("compiletime");
+      BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+      Logger.println(Rep.FEW, "compile time: " + reader.readLine());
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "failed to read compile time.");
+      e.printStackTrace();
+    }
+    
     
     gsm = new GameServerManager();
     long lastServListRead = System.currentTimeMillis();

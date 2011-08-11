@@ -55,35 +55,26 @@ public abstract class ClientConfiguration {
   }
 
 
-  public static void parse(InputStream in) {
+  public static void parse(InputStream in) throws IOException {
     BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-    try {
+    reader.readLine();
+    serverUrl = reader.readLine();
 
-      reader.readLine();
-      serverUrl = reader.readLine();
+    reader.readLine();
+    serverPort = Integer.parseInt(reader.readLine());
 
-      reader.readLine();
-      serverPort = Integer.parseInt(reader.readLine());
+    reader.readLine();
+    tcpOnly = Boolean.parseBoolean(reader.readLine());
 
-      reader.readLine();
-      tcpOnly = Boolean.parseBoolean(reader.readLine());
+    reader.readLine();
+    nonhuman = Boolean.parseBoolean(reader.readLine());
 
-      reader.readLine();
-      nonhuman = Boolean.parseBoolean(reader.readLine());
+    reader.readLine();
+    predictFuture = Integer.parseInt(reader.readLine());
 
-      reader.readLine();
-      predictFuture = Integer.parseInt(reader.readLine());
-
-      reader.readLine();
-      useMouse = Boolean.parseBoolean(reader.readLine());
-
-    } catch (Exception e) {
-
-      Logger.println(Logger.Rep.FEW, e.toString());
-      assert(false);
-
-    }
+    reader.readLine();
+    useMouse = Boolean.parseBoolean(reader.readLine());
   
     assert(serverPort > 1023);
     assert(serverPort < 65536);

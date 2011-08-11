@@ -6,6 +6,11 @@ import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.imageio.ImageIO;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.xml.sax.SAXException;
+
 import aoi.Logger.Rep;
 
 import unreliablestream.UnreliableStream;
@@ -47,10 +52,28 @@ public class Client implements Runnable {
   public Client(GameCanvas canvas) {
     this.canvas = canvas;
 
+    // print out the compile time stored in the
+    // compiletime file, which is recreated every time
+    // make is run.
+    try {
+      InputStream stream = Client.class.getClassLoader().getResourceAsStream("compiletime");
+      BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+      Logger.println(Rep.FEW, "compile time: " + reader.readLine());
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "failed to read compile time.");
+      e.printStackTrace();
+    }
+    
     // Load the default config file if none has been loaded so far. Used in the Applet.
     if (!ClientConfiguration.isLoaded()) {
       InputStream stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
-      ClientConfiguration.parse(stream);
+      try {
+        ClientConfiguration.parse(stream);
+        stream.close();
+      } catch (IOException e) {
+        Logger.println(Rep.FEW, "failed to read default config file.");
+        e.printStackTrace();
+      }
     }
   }
   
@@ -73,10 +96,12 @@ public class Client implements Runnable {
       } catch (UnknownHostException e) {
         Logger.println(Rep.FEW, "Unknown matchmaker.");
         e.printStackTrace();
+        stop();
         return;
       } catch (IOException e) {
         Logger.println(Rep.FEW, "Failed to connect to matchmaker.");
         e.printStackTrace();
+        stop();
         return;
       }
   
@@ -128,6 +153,7 @@ public class Client implements Runnable {
             || matchMade[1] == null
             || matchMade[0].isEmpty()) {
           Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
+          stop();
           return;
         }
         gameServ = matchMade[0];
@@ -143,6 +169,7 @@ public class Client implements Runnable {
       } catch (IOException e) {
         Logger.println(Rep.FEW, "Failed to read matchMade.");
         e.printStackTrace();
+        stop();
         return;
       }
       
@@ -173,6 +200,7 @@ public class Client implements Runnable {
       tcpOut = new DataOutputStream(socket.getOutputStream());
     } catch (UnknownHostException e1) {
       Logger.println(Rep.FEW, "unknown host: "+ClientConfiguration.serverUrl+":"+ClientConfiguration.serverPort);
+      stop();
       return false;
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "TCP connection to game server "+gameServ+" failed.");
@@ -191,7 +219,11 @@ public class Client implements Runnable {
       String msg = Protocol.readNextMsg(tcpIn);
 
       long[] matchParams = Protocol.parseMatchStarting(msg);
-      if (matchParams==null) { Logger.println(Rep.FEW, "couldn't parse match params."); stop(); return false; }
+      if (matchParams==null) {
+        Logger.println(Rep.FEW, "couldn't parse match params.");
+        stop();
+        return false;
+      }
       
       ClientConfiguration.matchId = matchParams[0];
       ClientConfiguration.setPlayerNo((int) matchParams[1]);
@@ -212,7 +244,20 @@ public class Client implements Runnable {
 //      tcpOut.flush();
       
       // Now parse from the buffer.
-      Arena arena = Arena.parse(new ByteArrayInputStream(arenaBuf.getBytes()));
+      Arena arena;
+      try {
+        arena = Arena.parse(new ByteArrayInputStream(arenaBuf.getBytes()));
+      } catch (ParserConfigurationException e) {
+        Logger.println(Rep.FEW, "Failed to parse the arena.");
+        e.printStackTrace();
+        stop();
+        return false;
+      } catch (SAXException e) {
+        Logger.println(Rep.FEW, "Failed to parse the arena.");
+        e.printStackTrace();
+        stop();
+        return false;
+      }
       Arena.setCurrent(arena);
       
       Logger.println(Logger.Rep.FEW, ClientConfiguration.asString());
@@ -310,8 +355,11 @@ public class Client implements Runnable {
     // wait for the server to tell that the game is over
     try {
       String msg = Protocol.readNextMsg(tcpIn);
-      if (!Protocol.isMatchEnded(msg))
+      if (msg == null || !Protocol.isMatchEnded(msg)) {
         Logger.println(Rep.FEW, "Expected matchEnded. Got "+msg);
+        stop();
+        return false;
+      }
     } catch (IOException e1) {
       Logger.println(Logger.Rep.FEW, "TCP read failed before game ended.");
       e1.printStackTrace();
@@ -343,7 +391,7 @@ public class Client implements Runnable {
     // wait (forever) for the client to decide whether
     // to request another match
     while (GameCanvas.wantsAnotherGame == false) {
-      try { Thread.sleep(500); }
+      try { Thread.sleep(700); }
       catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted."); }
     }
 

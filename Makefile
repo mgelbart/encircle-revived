@@ -21,6 +21,7 @@ UDPFiles := $(streamsrcdir)UnreliableStream.java $(streamsrcdir)UnreliableStream
 
 default:
 	javac $(compileopts) $(serverFiles) $(clientFiles) $(commonFiles) $(UDPFiles)
+	date +%s > compiletime
 
 dirs:
 	mkdir -p out bin segmentation/game_output/fly
@@ -63,7 +64,7 @@ run_client1r:
 	java $(runopts) -Xloggc:out/client1.mem $(package).Client < client1remote.conf
 
 jar:
-	jar cfm aoi.jar Manifest.txt client.conf guiimg -C bin/ .
+	jar cfm aoi.jar Manifest.txt compiletime client.conf guiimg -C bin/ .
 
 test_stream: unreliablestream
 	java $(runopts) unreliablestream/UnreliableStreamServer
