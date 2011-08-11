@@ -1,21 +1,21 @@
 package aoi;
 
-import java.awt.BufferCapabilities;
-import java.awt.Canvas;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
+import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferStrategy;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 
 import aoi.Logger.Rep;
 
-public class GameCanvas extends Canvas {
+public class GameCanvas extends JComponent {
   enum Mode { PREGAME, INGAME, POSTGAME, ERROR };
   
   static Mode mode = null;
@@ -23,12 +23,19 @@ public class GameCanvas extends Canvas {
   static boolean wantsAI = false;
   static boolean wantsAnotherGame = false;
   
-  // Double buffered graphics.
-  // offscreen stores the buffered image that will be showed when show()
-  // is next called.
-  private static BufferStrategy strategy;
-  private static Graphics2D offscreen = null;
-  
+  // Double buffered graphics
+  // Offscreen stores the currently buffered image that
+  // methods like shape() and image() draw on.
+  // Calling show() switches this buffered image to the screen.
+  private static BufferedImage offscreenImage, onscreenImage;
+  private static Graphics2D offscreen, onscreen;
+  private static GraphicsConfiguration graphicsConfig;
+  private static Object switchingBuffersLock = new Object();
+
+  // Set to true if the canvas is resized.
+  // Need to reallocate the buffer images when this happens.
+  private static boolean canvasResized = false;  
+
   private static String BKGIMGPATH = "guiimg/bkg.png";
   private static Image bkgImg;
   
@@ -36,6 +43,11 @@ public class GameCanvas extends Canvas {
   
   GameCanvas() {
     assert(theCanvas == null);
+    theCanvas = this;
+    
+    graphicsConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+    
+    addComponentListener(new ResizeListener());
     
     // load bkgImg from a file.
     try {
@@ -45,7 +57,6 @@ public class GameCanvas extends Canvas {
       e.printStackTrace();
     }
 
-    theCanvas = this;
     toPreGame();
   }
   
@@ -56,16 +67,16 @@ public class GameCanvas extends Canvas {
     for (MouseListener l : theCanvas.getMouseListeners())
       theCanvas.removeMouseListener(l);
     
-    theCanvas.setIgnoreRepaint(true);
-    theCanvas.createBufferStrategy(2); // double buffering
-    strategy = theCanvas.getBufferStrategy();
+    //theCanvas.setIgnoreRepaint(true);
+    //theCanvas.createBufferStrategy(2); // double buffering
+    //strategy = theCanvas.getBufferStrategy();
 
     initBuffer();
     
-    BufferCapabilities cab = strategy.getCapabilities();
-    Logger.println(Rep.FEW, "page flipping: " + cab.isPageFlipping());
-    Logger.println(Rep.FEW, "HW accelerated front/back buffer: " + cab.getFrontBufferCapabilities().isAccelerated()
-                                + " / " + cab.getBackBufferCapabilities().isAccelerated());
+//    BufferCapabilities cab = strategy.getCapabilities();
+//    Logger.println(Rep.FEW, "page flipping: " + cab.isPageFlipping());
+//    Logger.println(Rep.FEW, "HW accelerated front/back buffer: " + cab.getFrontBufferCapabilities().isAccelerated()
+//                                + " / " + cab.getBackBufferCapabilities().isAccelerated());
     
     mode = Mode.INGAME;
   }
@@ -165,22 +176,42 @@ public class GameCanvas extends Canvas {
   
   static void showBuffered() {
     if (mode != Mode.INGAME) return;
-    
-    /*
-     *  Paint the buffered image
-     */
-    assert(offscreen != null);
-    if (offscreen != null) {
-      offscreen.dispose();
-      strategy.show();
+
+    synchronized(switchingBuffersLock) {
+
+      if (canvasResized) {
+        // reallocate the buffer images and skip frame.
+        canvasResized = false;
+        initBuffer();
+        return;
+      }
+      
+      /*
+       *  Paint the buffered image
+       */
+      assert(offscreen != null);
+      if (offscreen != null) {
+        Graphics2D t = onscreen;
+        BufferedImage tImg = onscreenImage;
+        onscreen = offscreen;
+        onscreenImage = offscreenImage;
+        offscreen = t;
+        offscreenImage = tImg;
+  
+        theCanvas.repaint();
+      }
+
     }
-    
-    initBuffer();
   }
 
   @Override
-  public void paint(Graphics g) {
-    if (mode == Mode.INGAME) return;
+  public void paintComponent(Graphics g) {
+    if (mode == Mode.INGAME) {
+      synchronized(switchingBuffersLock) {
+        g.drawImage(onscreenImage, 0, 0, null);
+      }
+      return;
+    }
     
     // paint the background image
     final int h = getSize().height;
@@ -228,13 +259,32 @@ public class GameCanvas extends Canvas {
    * Get the new offscreen image to buffer to.
    */
   private static void initBuffer() {
-    // this cast seems sketchy but it is apparently commonly used.
-    offscreen = (Graphics2D) strategy.getDrawGraphics();
+    // Initialize the off and onscreen buffers.
+    Dimension s = theCanvas.getSize();
+    offscreenImage = graphicsConfig.createCompatibleImage(s.width, s.height, Transparency.TRANSLUCENT);
+    onscreenImage  = graphicsConfig.createCompatibleImage(s.width, s.height, Transparency.TRANSLUCENT);
+    offscreen = offscreenImage.createGraphics();
+    onscreen = onscreenImage.createGraphics();
 
     // add antialiasing
     //RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
     //                                          RenderingHints.VALUE_ANTIALIAS_ON);
     //hints.put(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
     //offscreen.addRenderingHints(hints);
+    //onscreen.addRenderingHints(hints);
   }
+  
+  private static class ResizeListener implements ComponentListener {
+    
+    public void componentResized(ComponentEvent e) {
+      canvasResized = true;
+    }
+
+    public void componentHidden(ComponentEvent arg0) {}
+
+    public void componentMoved(ComponentEvent arg0) {}
+
+    public void componentShown(ComponentEvent arg0) {}
+  }
+  
 }
