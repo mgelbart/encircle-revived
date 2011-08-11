@@ -19,6 +19,8 @@ public class KeyboardPilot implements KeyListener {
   public boolean stop = false;
   public boolean dontShoot = false;
   
+  public long lastAction = 0;
+  
   public PlayerControlParameters getParams(GameState currentGameState) {
     return new PlayerControlParameters(currentGameState.time, acc,
          currentGameState.pStates[ClientConfiguration.playerNo].ship.dir().add(Math.PI/2*( ((left)? 1:0) - ((right)? 1:0) )),
@@ -59,6 +61,7 @@ public class KeyboardPilot implements KeyListener {
     }
 
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
   
   @Override
@@ -96,6 +99,7 @@ public class KeyboardPilot implements KeyListener {
     }
 
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
   
   @Override

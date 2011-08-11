@@ -40,7 +40,7 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
   public PlayerControlParameters think(GameState gState) {
     PlayerControlParameters c;
 
-    if (ClientConfiguration.useMouse) {
+    if (mousePilot.lastAction > keyboardPilot.lastAction) {
 
       final boolean ENABLETRACKER = false;
       

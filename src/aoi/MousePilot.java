@@ -17,6 +17,7 @@ public class MousePilot implements MouseInputListener {
   private Vector<Point> trajectory = null;
   private Vector<Point> finishedTrajectory;
 
+  public long lastAction = 0;
   
   public PlayerControlParameters getParams(GameState currentGameState) {
     if (target == null) return null;
@@ -41,6 +42,7 @@ public class MousePilot implements MouseInputListener {
   public void mouseMoved(MouseEvent e) {
     target = e.getPoint();
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
  
 
@@ -53,6 +55,7 @@ public class MousePilot implements MouseInputListener {
       shoot = true;
     }
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
 
 
@@ -65,6 +68,7 @@ public class MousePilot implements MouseInputListener {
       shoot = false;
     }
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
 
   @Override
@@ -72,6 +76,7 @@ public class MousePilot implements MouseInputListener {
     target = e.getPoint();
     if (trajectory != null) trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));
     e.consume();
+    lastAction = System.currentTimeMillis();
   }
   
   @Override
