@@ -47,5 +47,32 @@ public class ClusterServerSide extends Cluster {
     return (ClusterServerSide) moveTo(x, y);    
   }
 
+  public ClusterServerSide randomizeLocationSpread(Vector<ClusterServerSide> alreadyPlaced) {
+    int x, y;
+    ClusterServerSide newCluster = null;
+    do {
+      x = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
+      y = (int) (SimulationUtils.ARENASIZE * 0.85*(0.5 - Math.random()));
+      final int ARBITRARY_FACTOR = 10; // the larger this is, the less the clusters will spread apart
+      final int ARBITRARY_FACT0R = 5;  // the larger this is, the less the clusters will spread apart
+      for (ClusterServerSide css : alreadyPlaced) {
+        x += Math.signum(x-css.center().x) * SimulationUtils.ARENASIZE / ARBITRARY_FACTOR *
+               Math.exp(-(Math.abs(x-css.center().x) / SimulationUtils.ARENASIZE) * 
+               ARBITRARY_FACT0R);
+        y += Math.signum(y-css.center().y) * SimulationUtils.ARENASIZE / ARBITRARY_FACTOR *
+               Math.exp(-(Math.abs(y-css.center().y) / SimulationUtils.ARENASIZE) * 
+               ARBITRARY_FACT0R);
+      }
+      newCluster = (ClusterServerSide) moveTo(x, y);
+    } while (x >  SimulationUtils.ARENASIZE * 0.5 * 0.85 ||
+           x < -SimulationUtils.ARENASIZE * 0.5 * 0.85 ||
+           y >  SimulationUtils.ARENASIZE * 0.5 * 0.85 ||
+           y < -SimulationUtils.ARENASIZE * 0.5 * 0.85);
+    //x = (int) Math.min(x,  SimulationUtils.ARENASIZE * 0.5 * 0.85);
+    //x = (int) Math.max(x, -SimulationUtils.ARENASIZE * 0.5 * 0.85);
+    //y = (int) Math.min(y,  SimulationUtils.ARENASIZE * 0.5 * 0.85);
+    //y = (int) Math.max(y, -SimulationUtils.ARENASIZE * 0.5 * 0.85);
+    return newCluster;
+  }
 
 }
