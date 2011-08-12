@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tar cf aiserv.tar bin ai.aiserv.conf spawnais segmentation
+tar cf aiserv.tar compiletime bin ai.aiserv.conf spawnais segmentation
 ssh -i ~/.ssh/encircle.pem ec2-user@dev.example.com 'rm -rf aiserv; mkdir aiserv; cd aiserv; mkdir -p out segmentation/game_output/fly'
 scp -i ~/.ssh/encircle.pem aiserv.tar ec2-user@dev.example.com:~/aiserv/
 ssh -i ~/.ssh/encircle.pem ec2-user@dev.example.com 'cd aiserv; tar xf aiserv.tar; ln -s ai.aiserv.conf ai.conf'
