@@ -279,7 +279,7 @@ public class Tail {
   }
   // (above) this is a bit slow, but only used by ScoringEffect
   
-  
+
   // Add p, then crop with ceg. Do this all at once
   // To avoid cloning twice per turn in PlayerState parsing
   // This works even if prev.tail is empty
@@ -298,14 +298,14 @@ public class Tail {
         sinceScoring == 0))
       newTail.knots.add(newTail.headTime());
     // Don't want to use prev.tail.headTime()
-	// because newTail might not contain this time anymore,
-	// since addPoint might have removed that latest point.
-	// The alternative would be to add the knot before adding
-	// the point, but that's not good because addPoint copies
-	// the Tail and thus should be the first command in this
-	// function. Therefore this is the best thing to do.
+    // because newTail might not contain this time anymore,
+    // since addPoint might have removed that latest point.
+    // The alternative would be to add the knot before adding
+    // the point, but that's not good because addPoint copies
+    // the Tail and thus should be the first command in this
+    // function. Therefore this is the best thing to do.
 
-    
+
     // Execute all the pending crop events
     // We use hasEvents() which only returns true
     // once on the server side, but many times on
@@ -315,8 +315,8 @@ public class Tail {
     // by addPoint()) if there are no pending CropEvents.
     if (cropEvents.hasEvents(time))
       newTail = newTail.crop(cropEvents);  // this copies the Tail
-	
-  
+
+
     // The order here is for a reason. A weird bug can occur crop() is suppsed
     // to crop everything and thus is forced to add an extra point to prevent
     // the tail from being empty. If it does this, it can add a point at game.time
@@ -328,8 +328,8 @@ public class Tail {
     // which is now NEWTIME (i.e. game.time + 1, not game.time). Then the client
     // will not crop this thing later on, so long as the cropEvents are well-behaved
     // and don't do stupid things like have cropTo strictly greater than timeCreated.
-    
-	assert(newTail.isValid());
+
+    assert(newTail.isValid());
     return newTail;
   }
   
