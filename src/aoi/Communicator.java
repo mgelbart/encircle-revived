@@ -197,8 +197,8 @@ public class Communicator implements UnreliableStream.Receiver {
 
         try {
 
-          // Send the (dynamically assigned) player number to the client.
-          dout.writeBytes(Protocol.matchEnded(sim.matchId));
+          // Send winner to the client.
+          dout.writeBytes(Protocol.matchEnded(sim.matchWinner));
 
           tcpOut.flush();
           

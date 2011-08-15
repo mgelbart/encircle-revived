@@ -353,9 +353,17 @@ public class Client implements Runnable {
 
 
     // wait for the server to tell that the game is over
+    Long winner;
     try {
       String msg = Protocol.readNextMsg(tcpIn);
-      if (msg == null || !Protocol.isMatchEnded(msg)) {
+      if (msg == null) {
+        Logger.println(Rep.FEW, "readNextMsg() returned null. " +
+        		"This means that the TCP connection was closed gracefully with a FIN.");
+        stop();
+        return false;
+      }
+      winner = Protocol.parseMatchEnded(msg);
+      if (winner == null || winner < 0 || winner >= SimulationUtils.NUMPLAYERS) {
         Logger.println(Rep.FEW, "Expected matchEnded. Got "+msg);
         stop();
         return false;
@@ -370,7 +378,7 @@ public class Client implements Runnable {
     Logger.println(Logger.Rep.FEW, "Game ended.");
 
     stopUdp();
-    GameCanvas.toPostGame();
+    GameCanvas.toPostGame((int) (long) winner);
 
     // don't request a rematch.
     boolean rematch = false;

@@ -8,12 +8,17 @@ import java.awt.*;
 public class DefaultDrawable implements Drawable {
 
   public static final Color thisPlayerColor = Color.RED;
+  public static final String thisPlayerColorName = "Red";
   
   // Currently allow up to 8 players
   public static final Color[] otherPlayerColors = 
     new Color[]{Color.BLUE, Color.MAGENTA, Color.CYAN,
                 Color.YELLOW, Color.ORANGE, Color.PINK, Color.LIGHT_GRAY};
-  
+
+  public static final String[] otherPlayerColorNames = 
+    new String[]{"Blue", "Magenta", "Cyan",
+                "Yellow", "Orange", "Pink", "Gray"};
+
   protected int playerNo;
   
   // default stroke, fill, and pain objects returned for all shapes
@@ -39,6 +44,13 @@ public class DefaultDrawable implements Drawable {
   public static Color getColor(int playerNo) { 
     if (playerNo == ClientConfiguration.playerNo) return thisPlayerColor;
     else return otherPlayerColors[
+      playerNo > ClientConfiguration.playerNo?playerNo-1:playerNo];
+  }
+
+  // Returns the name of the Color associated with the given player number.
+  public static String getColorName(int playerNo) { 
+    if (playerNo == ClientConfiguration.playerNo) return thisPlayerColorName;
+    else return otherPlayerColorNames[
       playerNo > ClientConfiguration.playerNo?playerNo-1:playerNo];
   }
   

@@ -98,7 +98,7 @@ public abstract class Protocol {
   private static final String READYFORMATCH = "readyForMatch";
   public static String readyForMatch(long gameId, boolean ai) { return READYFORMATCH+" "+gameId+" "+((ai)?1:0)+"\n"; }
   public static long[] parseReadyForMatch(String msg)  { return parseNLongs(READYFORMATCH, msg, 2); }
-  
+
   private static final String REQUESTREMATCH = "requestRematch";
   public static String requestRematch(boolean request) { return REQUESTREMATCH+" "+((request)? 1:0)+"\n"; }
   public static Boolean parseRequestRematch(String msg) { return parse1Boolean(REQUESTREMATCH, msg); }
@@ -125,8 +125,8 @@ public abstract class Protocol {
   }
   
   private static final String MATCHENDED = "matchEnded";
-  public static String matchEnded(long gameId) { return MATCHENDED+"\n"; }
-  public static boolean isMatchEnded(String msg)  { return msg.matches("\\s*"+MATCHENDED+"\\s*"); }
+  public static String matchEnded(int winner) { return MATCHENDED+" "+winner+"\n"; }
+  public static Long parseMatchEnded(String msg)  { return parse1Long(MATCHENDED, msg); }
   
   private static final String DIDOTHERSACCEPTREMATCH = "didOthersAcceptRematch";
   public static String didOthersAcceptRematch(boolean accepted) { return DIDOTHERSACCEPTREMATCH+" "+((accepted)? 1:0)+"\n"; }

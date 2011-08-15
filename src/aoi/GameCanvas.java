@@ -127,7 +127,7 @@ public class GameCanvas extends JComponent {
         "Click here to play against the computer"});
   }
   
-  static void toPostGame() {
+  static void toPostGame(int winner) {
     mode = Mode.POSTGAME;
     theCanvas.setIgnoreRepaint(false);
     
@@ -162,7 +162,9 @@ public class GameCanvas extends JComponent {
     
     theCanvas.addMouseListener(new PostGameMouseListener(System.currentTimeMillis()));
 
-    setCurrentMsg(new String[] { "Click here to play again." });
+    setCurrentMsg(new String[] {
+        DefaultDrawable.getColorName(winner) + " won.",
+        "Click here to play again." });
   }
   
   static void toError() {

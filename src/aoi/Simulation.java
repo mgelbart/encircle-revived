@@ -33,6 +33,8 @@ public class Simulation  implements Runnable {
   public Long started;
   // The time when the game ended.
   public Long ended = null;
+  // Winner of the match
+  public int matchWinner = -1;
   // Whether the players want to rematch.
   public Boolean[] wantToRematch = new Boolean[SimulationUtils.NUMPLAYERS];
   // Whether everyone accepted the rematch.
@@ -168,7 +170,6 @@ public class Simulation  implements Runnable {
     
     // persistent values regarding scoring
     int[] roundsWon = new int[SimulationUtils.NUMPLAYERS];
-    int matchWinner = -1;
     
     while (true) {
 
