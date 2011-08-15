@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
 import aoi.Logger.Rep;
@@ -39,7 +38,9 @@ public class GameCanvas extends JComponent {
   private static String BKGIMGPATH = "guiimg/bkg.png";
   private static Image bkgImg;
   
-  private static GameCanvas theCanvas = null;
+  private static GameCanvas theCanvas;
+
+  private static String[] currentMsg;
   
   GameCanvas() {
     assert(theCanvas == null);
@@ -101,7 +102,7 @@ public class GameCanvas extends JComponent {
         if (System.currentTimeMillis() - timeCreated > 1000) {
           Logger.println(Rep.FEW, "user wants to play against the AI.");
           GameCanvas.wantsAI = true;
-          theCanvas.repaint();
+          setCurrentMsg(new String[] { "Asking for a match against the computer..." });
         }
         e.consume();
       }
@@ -116,7 +117,11 @@ public class GameCanvas extends JComponent {
     };
     
     theCanvas.addMouseListener(new PreGameMouseListener(System.currentTimeMillis()));
-    theCanvas.repaint();
+    
+    setCurrentMsg(new String[] {
+        "Waiting for other players...",
+        "Tired of waiting?",
+        "Click here to play against the computer"});
   }
   
   static void toPostGame() {
@@ -138,7 +143,7 @@ public class GameCanvas extends JComponent {
         if (System.currentTimeMillis() - timeCreated > 1000) {
           Logger.println(Rep.FEW, "user wants another game.");
           GameCanvas.wantsAnotherGame = true;
-          theCanvas.repaint();
+          setCurrentMsg(new String[] { "Connecting..." });
         }
         e.consume();
       }
@@ -153,7 +158,8 @@ public class GameCanvas extends JComponent {
     };
     
     theCanvas.addMouseListener(new PostGameMouseListener(System.currentTimeMillis()));
-    theCanvas.repaint();
+
+    setCurrentMsg(new String[] { "Click here to play again." });
   }
   
   static void toError() {
@@ -164,7 +170,9 @@ public class GameCanvas extends JComponent {
     for (MouseListener l : theCanvas.getMouseListeners())
       theCanvas.removeMouseListener(l);
 
-    theCanvas.repaint();
+    setCurrentMsg(new String[] {
+        "Oops... An error has occured.",
+        "Reload the page for a new game."});
   }
   
   /*
@@ -224,38 +232,24 @@ public class GameCanvas extends JComponent {
     g.drawImage(bkgImg, 0, 0, maxhw, maxhw, null);
     
     // approximate average pixels per char.
-    final double horOffsetPerChar = 3.;
-    
-    if (mode == Mode.PREGAME) {
-      if (!wantsAI) {
-        String waiting = "Waiting for other players...";
-        String tired = "Tired of waiting?";
-        String ai = "Click here to play against the computer";
-        
-        g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2-20);
-        g.drawString(tired, (int) (w/2-tired.length()*horOffsetPerChar), h/2);
-        g.drawString(ai, (int) (w/2-ai.length()*horOffsetPerChar), h/2+20);
-      } else {
-        String waiting = "Ok. The game will start in a moment...";
-        
-        g.drawString(waiting, (int) (w/2-waiting.length()*horOffsetPerChar), h/2);
+    final double hOffsetPerChar = 3.;
+    final int vOffsetPerLine = 20;
+
+    // Copy the reference to make this thread safe.
+    String[] msg = currentMsg;
+    if (currentMsg != null) {
+      int vOffset = -msg.length * vOffsetPerLine/2;
+      for (String l : msg) {
+        g.drawString(l, (int) (w/2-l.length()*hOffsetPerChar), h/2+vOffset);
+        vOffset += vOffsetPerLine;
       }
     }
 
-    
-    if (mode == Mode.POSTGAME) {
-      String again = (wantsAnotherGame)? "Connecting..." : "Click here to play again.";
-      g.drawString(again, (int) (w/2-again.length()*horOffsetPerChar), h/2);
-    }
-
-    if (mode == Mode.ERROR) {
-      String error = "Oops... An error has occured.";
-      String restart = "Reload the page for a new game.";
-      
-      g.drawString(error, (int) (w/2-error.length()*horOffsetPerChar), h/2-10);
-      g.drawString(restart, (int) (w/2-restart.length()*horOffsetPerChar), h/2+10);
-    }
-
+  }
+  
+  public static void setCurrentMsg(String[] msg) {
+    currentMsg = msg.clone();
+    theCanvas.repaint();
   }
   
   public static void setAntialiasing(boolean on) {
