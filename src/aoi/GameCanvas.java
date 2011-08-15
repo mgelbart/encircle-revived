@@ -58,6 +58,9 @@ public class GameCanvas extends JComponent {
       e.printStackTrace();
     }
 
+    Font f = new Font("Monospaced", Font.BOLD, 18);
+    setFont(f);
+    
     toPreGame();
   }
   
@@ -232,8 +235,8 @@ public class GameCanvas extends JComponent {
     g.drawImage(bkgImg, 0, 0, maxhw, maxhw, null);
     
     // approximate average pixels per char.
-    final double hOffsetPerChar = 3.;
-    final int vOffsetPerLine = 20;
+    final double hOffsetPerChar = 5.;
+    final int vOffsetPerLine = 30;
 
     // Copy the reference to make this thread safe.
     String[] msg = currentMsg;
