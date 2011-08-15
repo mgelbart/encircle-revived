@@ -105,7 +105,9 @@ public class GameCanvas extends JComponent {
         if (System.currentTimeMillis() - timeCreated > 1000) {
           Logger.println(Rep.FEW, "user wants to play against the AI.");
           GameCanvas.wantsAI = true;
-          setCurrentMsg(new String[] { "Asking for a match against the computer..." });
+          setCurrentMsg(new String[] {
+              "Connecting...",
+              "[Asking for a match against the computer.]" });
         }
         e.consume();
       }
@@ -124,7 +126,7 @@ public class GameCanvas extends JComponent {
     setCurrentMsg(new String[] {
         "Waiting for other players...",
         "Tired of waiting?",
-        "Click here to play against the computer"});
+        "Click here to play against the computer."});
   }
   
   static void toPostGame(int winner) {
@@ -254,10 +256,13 @@ public class GameCanvas extends JComponent {
   
   public static void setCurrentMsg(String[] msg) {
     currentMsg = msg.clone();
-    theCanvas.repaint();
+    if (theCanvas != null)
+      theCanvas.repaint();
   }
   
   public static void setAntialiasing(boolean on) {
+    if (mode != Mode.INGAME) return;
+    
     if (on) {
       RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING,
                                                 RenderingHints.VALUE_ANTIALIAS_ON);

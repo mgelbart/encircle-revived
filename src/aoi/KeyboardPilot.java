@@ -61,7 +61,8 @@ public class KeyboardPilot implements KeyListener {
     }
 
     e.consume();
-    lastAction = System.currentTimeMillis();
+    if (e.getKeyCode() != KeyEvent.VK_SPACE)
+      lastAction = System.currentTimeMillis();
   }
   
   @Override
@@ -99,7 +100,8 @@ public class KeyboardPilot implements KeyListener {
     }
 
     e.consume();
-    lastAction = System.currentTimeMillis();
+    if (e.getKeyCode() != KeyEvent.VK_SPACE)
+      lastAction = System.currentTimeMillis();
   }
   
   @Override

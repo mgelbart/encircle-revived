@@ -16,7 +16,7 @@ import aoi.Protocol.ClientState;
 public class Communicator implements UnreliableStream.Receiver {
   private Thread udpSenderThread;
   private Thread tcpNegotiatorThread;
-  
+
   private int playerNo;
   private Socket tcpSocket = null;
   private InputStream tcpIn = null;
@@ -26,10 +26,10 @@ public class Communicator implements UnreliableStream.Receiver {
   private final short udpId;
   private Simulation sim;
   private int previousTime = -1;
-  
+
   private final static int CTRLBUFFERSIZE = 200;
   private Vector<PlayerControlParameters> ctrls = new Vector<PlayerControlParameters>(CTRLBUFFERSIZE);
-  
+
   private ClientState clientState = null;
 
   private long lastParamsReceived;
@@ -44,7 +44,7 @@ public class Communicator implements UnreliableStream.Receiver {
 
     // Never let the buffer be empty.
     ctrls.add(new PlayerControlParameters(0, 0, sim.gameState().pStates[playerNo].ship.dir(), false, false));
-    
+
     assert(this.playerNo < SimulationUtils.NUMPLAYERS);
     assert(this.playerNo >= 0);
   }
@@ -72,26 +72,26 @@ public class Communicator implements UnreliableStream.Receiver {
       this.udpStream = out;
     }
   }
-  
+
   public void setIsAI(boolean isAI) { this.isAI = isAI; }
   public boolean isAI() { return isAI; }
-  
+
   /**
    * Returns true if the player still appears to be connected.
    */
   public boolean stopped() {
     return stop || System.currentTimeMillis() - lastParamsReceived
-                     > UnreliableStream.TIMEOUT;
+    > UnreliableStream.TIMEOUT;
   }
-  
-  
+
+
   /**
    * Returns true if the player still appears to be connected.
    */
   public boolean wasStarted() {
     return wasStarted;
   }
-  
+
   /**
    * This starts to send game data to the client.
    * This is non-blocking.
@@ -100,7 +100,7 @@ public class Communicator implements UnreliableStream.Receiver {
     assert(!stop);
     assert(!wasStarted);
     wasStarted = true;
-    
+
     // don't start if the player never connected at all.
     if (tcpOut == null) {
       stop = true;
@@ -109,22 +109,22 @@ public class Communicator implements UnreliableStream.Receiver {
 
     // initialize
     lastParamsReceived = System.currentTimeMillis();
-    
+
     udpSenderThread = new Thread(new Runnable() {
 
       @Override
       public void run() {
         sendGameStates();
       }
-      
+
     }, "udpsender-"+sim.matchId+"-"+playerNo);
-    
+
     tcpNegotiatorThread = new Thread(new Runnable() {
 
       @Override
       public void run() {
         Logger.println(Rep.FEW, "starting tcpnegotiator for player "+playerNo);
-        
+
         // First shake hands:
         try {
           final DataOutputStream dout = new DataOutputStream(tcpOut);
@@ -132,19 +132,19 @@ public class Communicator implements UnreliableStream.Receiver {
 
           // Send the (dynamically assigned) player number to the client.
           dout.writeBytes(Protocol.matchStarting(sim.matchId, playerNo, udpId));
-          
-//          msg=Protocol.readNextMsg(tcpIn);
-//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
+
+          //          msg=Protocol.readNextMsg(tcpIn);
+          //          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchStarting."); stop(); return; }
           clientState = ClientState.READYFORMATCH;
-          
+
           // Send the serialized arena as one line.
           final String arenastr = sim.arena().toString();
           dout.writeBytes(Protocol.sendingArena(arenastr));
 
           tcpOut.flush();
-          
-//          msg=Protocol.readNextMsg(tcpIn);
-//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to arena."); stop(); return; }
+
+          //          msg=Protocol.readNextMsg(tcpIn);
+          //          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to arena."); stop(); return; }
           clientState = ClientState.RECEIVEDARENA;
 
         } catch (IOException ioe) {
@@ -153,12 +153,12 @@ public class Communicator implements UnreliableStream.Receiver {
           stop();
           return;
         }
-        
+
         // Wait for the client to connect using UDP
         final long startedToWait = System.currentTimeMillis();
         lastParamsReceived = System.currentTimeMillis();
         while (udpStream == null){
-          
+
           if (System.currentTimeMillis() - startedToWait < UnreliableStream.TIMEOUT)
             try {
               Thread.sleep(300);
@@ -166,17 +166,17 @@ public class Communicator implements UnreliableStream.Receiver {
               Logger.println(Rep.FEW, "interrupted");
               continue;
             }
-          else {
-            Logger.println(Rep.FEW, "Client didn't form UDP connection.");
-            stop();
-            return;
-          }
-            
+            else {
+              Logger.println(Rep.FEW, "Client didn't form UDP connection.");
+              stop();
+              return;
+            }
+
         }
-        
+
         udpSenderThread.start();
         lastParamsReceived = System.currentTimeMillis();
-        
+
         // wait for the game to end
         while (sim.ended == null) {
           if (stop || udpStream.hasDied() || tcpSocket.isClosed()) {
@@ -185,14 +185,14 @@ public class Communicator implements UnreliableStream.Receiver {
             stop();
             return;
           }
-          
+
           try {
             Thread.sleep(50000);
           } catch (InterruptedException e) {
             Logger.println(Rep.FEW, "interrupted.");
           }
         }
-        
+
         final DataOutputStream dout = new DataOutputStream(tcpOut);
 
         try {
@@ -201,11 +201,11 @@ public class Communicator implements UnreliableStream.Receiver {
           dout.writeBytes(Protocol.matchEnded(sim.matchWinner));
 
           tcpOut.flush();
-          
-//          String msg=Protocol.readNextMsg(tcpIn);
-//          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
+
+          //          String msg=Protocol.readNextMsg(tcpIn);
+          //          if (!Protocol.isAck(msg)) { Logger.println(Rep.FEW, "no ack to matchEnded."); stop(); return; }
           clientState = ClientState.GAMEENDED;
-          
+
           Logger.println(Rep.FEW, "Game ended so stopping udpsender.");
           stopUdpSender();
 
@@ -215,7 +215,7 @@ public class Communicator implements UnreliableStream.Receiver {
           assert(false);
           return;
         }
-        
+
         // wait for the player to decide whether to rematch
         try {
           tcpSocket.setSoTimeout(1000); // don't wait forever
@@ -224,11 +224,11 @@ public class Communicator implements UnreliableStream.Receiver {
           e.printStackTrace();
           return;
         }
-        
+
         Boolean wantsToRematch = null;
         while (System.currentTimeMillis() - sim.ended < SimulationUtils.REMATCHCONSIDERATIONTIME
-               && wantsToRematch == null && sim.rematchPossible()) {
-          
+            && wantsToRematch == null && sim.rematchPossible()) {
+
           String msg;
           try {
             try {
@@ -237,30 +237,30 @@ public class Communicator implements UnreliableStream.Receiver {
               continue;
             }
           } catch (IOException ioe) {
-	    // the client disconnected without closing the stream with a FIN
+            // the client disconnected without closing the stream with a FIN
             Logger.println(Rep.FEW, "Client disconnected without sending rematchRequest.");
             stop();
             return;
           }
-          
+
           if (msg == null) {
             // this happens if the client disconnects gracefully (with a FIN).
             stop();
             return;
           }
-          
+
           wantsToRematch = Protocol.parseRequestRematch(msg);
-//          if (accepted != null)
-//            try {
-//              dout.writeBytes(Protocol.ack());
-//            } catch (IOException e) {
-//              Logger.println(Rep.FEW, "couldn't ack requestRematch");
-//              e.printStackTrace();
-//              return;
-//            }
+          //          if (accepted != null)
+          //            try {
+          //              dout.writeBytes(Protocol.ack());
+          //            } catch (IOException e) {
+          //              Logger.println(Rep.FEW, "couldn't ack requestRematch");
+          //              e.printStackTrace();
+          //              return;
+          //            }
         }
         sim.wantToRematch[playerNo] = wantsToRematch;
-        
+
         try {
           tcpSocket.setSoTimeout(0); // wait forever again (default)
         } catch (SocketException e) {
@@ -268,11 +268,11 @@ public class Communicator implements UnreliableStream.Receiver {
           e.printStackTrace();
           return;
         }
-        
+
         // wait for the decision
         while (sim.rematchAccepted() == null) {
           try { Thread.sleep(300); }
-	  catch (InterruptedException e) { continue; }
+          catch (InterruptedException e) { continue; }
         }
 
         try {
@@ -282,30 +282,30 @@ public class Communicator implements UnreliableStream.Receiver {
           e.printStackTrace();
           return;
         }
-        
+
         // nothing left to do.
         stopTcpNegotiator();
         stopUdpSender();
         Logger.println(Rep.FEW, "tcpnegotiator for player "+playerNo+" terminated normally.");
-        
+
       }
-      
+
     }, "tcpnegotiator-"+sim.matchId+"-"+playerNo);
 
     tcpNegotiatorThread.start();
   }
-  
+
   public void sendNewState() {
     if (udpStream != null && clientState == ClientState.RECEIVEDARENA)
       udpSenderThread.interrupt();
   }
-  
+
   public void sendGameEnded() {
     tcpNegotiatorThread.interrupt();
 
     stopUdpSender();
   }
-  
+
   public void stop() {
     stop = true; 
     stopUdpSender();
@@ -313,14 +313,14 @@ public class Communicator implements UnreliableStream.Receiver {
     if (sim != null)
       sim.wantToRematch[playerNo] = false;
   }
-  
+
   private void stopUdpSender() {
     if (udpStream != null) {
       udpStream.disconnect();
       udpSenderThread.interrupt();
     }
   }
-  
+
   private void stopTcpNegotiator() {
     if (tcpSocket != null && !tcpSocket.isClosed()) {
       try {
@@ -340,21 +340,25 @@ public class Communicator implements UnreliableStream.Receiver {
    */
   private void sendGameStates() {
     if (tcpSocket == null) return; // the client never showed up
-    
+
     GameState g;
 
     while (true) {
-      
+
       try {
         // Sleep until interruption (triggered by Simulation
         // when game state is updated);
         Thread.sleep(200);
       } catch (InterruptedException e) {
         if (stop || udpStream == null || udpStream.hasDied()) {
-	    Logger.println(Rep.FEW, "GameStateSender stopping.");
-	    if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
-	    return;
-	}
+          Logger.println(Rep.FEW, "GameStateSender stopping.");
+          if (sim.ended == null)
+            // this indicates that the UDP connection died before
+            // the game ended.
+            // therefore also stop tcpnegotiator.
+            stop();
+          return;
+        }
 
         assert(udpStream != null);
 
@@ -364,12 +368,12 @@ public class Communicator implements UnreliableStream.Receiver {
         g = sim.gameState();
 
         if (previousTime != g.time) {
-          
+
           // send using UDP if available. otherwise fall back to TCP.
           synchronized (sendingLock) {  
 
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            
+
             try {
               g.serialize(bout);
             } catch (IOException e1) {
@@ -379,21 +383,21 @@ public class Communicator implements UnreliableStream.Receiver {
               stop();
               return;
             }
-            
+
             previousTime = g.time;
-  
+
             try {
               udpStream.send(bout.toByteArray());
             } catch (IOException e1) {
               Logger.println(Rep.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time);
               Logger.println(Rep.FEW, "The socket must be invalid. Ending GameStateSender execution.");
               e1.printStackTrace();
-	      if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
+              if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
               return;
             }
 
           }
-          
+
         }
 
       }
@@ -401,8 +405,8 @@ public class Communicator implements UnreliableStream.Receiver {
     }
 
   }
-  
-  
+
+
   /**
    * This is called if command parameters were received through an unreliable stream (UDP).
    */
@@ -412,7 +416,7 @@ public class Communicator implements UnreliableStream.Receiver {
     final DataInputStream din = new DataInputStream(bin);
 
     while (bin.available() > 0) {
-//      Logger.println(RepetitionRate.FREQUENT, "trying to read (UDP):");
+      //      Logger.println(RepetitionRate.FREQUENT, "trying to read (UDP):");
       if(!readFromStream(din)) return false;
     }
 
@@ -420,10 +424,10 @@ public class Communicator implements UnreliableStream.Receiver {
   }
 
   private boolean readFromStream(DataInputStream din) {
-    
+
     PlayerControlParameters prev;
     synchronized (ctrls) { prev = ctrls.lastElement(); }
-    
+
     PlayerControlParameters ctrl;
     try {
       ctrl = PlayerControlParameters.parse(din, prev);
@@ -432,8 +436,8 @@ public class Communicator implements UnreliableStream.Receiver {
       e.printStackTrace();
       return false;
     }
-    
-    
+
+
     if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) {
       Logger.println(Rep.FEW, "too many controls buffered for player " + playerNo);
       return true;
@@ -460,10 +464,10 @@ public class Communicator implements UnreliableStream.Receiver {
     //Logger.println(Logger.RepetitionRate.FREQUENT, ctrls.size());
     //Logger.println(Logger.RepetitionRate.FREQUENT, ")");
     //Logger.println(Logger.RepetitionRate.FREQUENT, ctrl.toString());
-    
+
     return true;
   }
-  
+
   // Returns the control parameters for the simulation step time...time+1.
   public PlayerControlParameters getCtrlParams(int time) {
 
@@ -473,10 +477,10 @@ public class Communicator implements UnreliableStream.Receiver {
       while (ctrls.size() > 1 && ctrls.get(1).effectiveOn - time <= 0)
         ctrls.remove(0);
 
-//      if (ctrls.get(0).effectiveOn - time < -5) {
-//        Logger.println(Logger.RepetitionRate.INFREQUENT, "#" + playerNo + " Requested - retrieved time: " + (ctrls.get(0).effectiveOn - time));
-//        Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
-//      }
+      //      if (ctrls.get(0).effectiveOn - time < -5) {
+      //        Logger.println(Logger.RepetitionRate.INFREQUENT, "#" + playerNo + " Requested - retrieved time: " + (ctrls.get(0).effectiveOn - time));
+      //        Logger.println(Logger.RepetitionRate.INFREQUENT, "Player " + playerNo + " has " + ctrls.size() + " commands in queue.");
+      //      }
 
       return ctrls.get(0);
     }

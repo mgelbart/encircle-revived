@@ -93,8 +93,10 @@ public class DrawUtils {
    * In particular Paint can be just a Color object.
    */
   public static void setPaint(Paint p) {
+    Graphics2D sc = GameCanvas.offscreen();
+    if (sc==null) return;
     paint = p;
-    GameCanvas.offscreen().setPaint(p);
+    sc.setPaint(p);
   }
 
 
@@ -102,7 +104,9 @@ public class DrawUtils {
    * Set the Stroke object used to draw the outlines of Shapes.
    */
   public static void setStroke(Stroke s) {
-    GameCanvas.offscreen().setStroke(s);
+    Graphics2D sc = GameCanvas.offscreen();
+    if (sc==null) return;
+    sc.setStroke(s);
   }
 
 
@@ -120,9 +124,11 @@ public class DrawUtils {
    * @param c the Color to make the background
    */
   public static void clear(Color c) {
-    GameCanvas.offscreen().setColor(c);
-    GameCanvas.offscreen().fillRect(0, 0, canvasWidth(), canvasHeight());
-    GameCanvas.offscreen().setPaint(paint);
+    Graphics2D sc = GameCanvas.offscreen();
+    if (sc==null) return;
+    sc.setColor(c);
+    sc.fillRect(0, 0, canvasWidth(), canvasHeight());
+    sc.setPaint(paint);
   }
 
 
@@ -133,6 +139,8 @@ public class DrawUtils {
    * @param fill determines whether the shape is filled or only the outline drawn.
    */
   public static void shape(Shape s, boolean gameCoordinates, boolean fill) {
+    Graphics2D sc = GameCanvas.offscreen();
+    if (sc==null) return;
 
     Shape ss;
     if (gameCoordinates)
@@ -142,9 +150,9 @@ public class DrawUtils {
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Drawing at (" + ss.getBounds2D().getX() + ", " + ss.getBounds2D().getY() + "). gameCoordinates: " + gameCoordinates);
     if (fill)
-      GameCanvas.offscreen().fill(ss);
+      sc.fill(ss);
     else
-      GameCanvas.offscreen().draw(ss);
+      sc.draw(ss);
   }
 
 
@@ -168,6 +176,8 @@ public class DrawUtils {
    * @param gameCoordinates determines whether to draw the object in game or overlay coordinates.
    */
   public static void picture(Rectangle box, Image image, boolean gameCoordinates) {
+    Graphics2D sc = GameCanvas.offscreen();
+    if (sc==null) return;
 
     Rectangle2D b;
     if (gameCoordinates)
@@ -176,12 +186,12 @@ public class DrawUtils {
       b = fromOverlayCoords().createTransformedShape(box).getBounds2D();
 
     //Logger.println(Logger.RepetitionRate.FREQUENT, "Picture at (" + xs + ", " + ys + ")");
-    GameCanvas.offscreen().drawImage(image,
-                        (int) Math.round((b.getX())),
-                        (int) Math.round((b.getY())),
-                        (int) Math.round((b.getWidth())),
-                        (int) Math.round((b.getHeight())),
-                        null);
+    sc.drawImage(image,
+        (int) Math.round((b.getX())),
+        (int) Math.round((b.getY())),
+        (int) Math.round((b.getWidth())),
+        (int) Math.round((b.getHeight())),
+        null);
   }
 
 

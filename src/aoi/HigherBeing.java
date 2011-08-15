@@ -71,9 +71,11 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
       // if mouse is disabled
       c = keyboardPilot.getParams(gState);
 
+    if (c == null) return null;
+    
     // auto-shooter
     final boolean ENABLESHOOTER = false;
-    if (ENABLESHOOTER && c != null
+    if (ENABLESHOOTER
         && !keyboardPilot.dontShoot
         && Shooter.wouldHit(gState, ClientConfiguration.playerNo)) {
       //Logger.println(Rep.INFREQ, "could shoot");

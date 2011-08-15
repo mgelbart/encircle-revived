@@ -23,25 +23,25 @@ public class Client implements Runnable {
 
   // Path to the default configuration file.
   private static final String DEFAULTCONFIGPATH = "client.conf";
-  
+
   // The JLabel for the GUI.
   private static GameCanvas canvas;
 
   // The UDP stream used for receiving game states and sending control parameters.
   private static UnreliableStream uStream = null;
-  
+
   // The TCP socket used to communicate with the game server.
   private static Socket socket = null;
-  
+
   // Indicates that the client should exit.
   private static boolean stop = false;
-  
+
   // The intelligence that decides what control params to send.
   private static Intelligence intel = null;
-  
+
   // A timer that keeps sending new control parameters periodically.
   private static Timer sendTimer;
-  
+
   /**
    * Constructs a new Client using the given configuration
    * and with the GUI drawn in frame.
@@ -63,7 +63,7 @@ public class Client implements Runnable {
       Logger.println(Rep.FEW, "failed to read compile time.");
       e.printStackTrace();
     }
-    
+
     // Load the default config file if none has been loaded so far. Used in the Applet.
     if (!ClientConfiguration.isLoaded()) {
       InputStream stream = Client.class.getClassLoader().getResourceAsStream(DEFAULTCONFIGPATH);
@@ -76,12 +76,16 @@ public class Client implements Runnable {
       }
     }
   }
-  
+
   public void run() {
-    StdAudio.init();
+    // Initialize sound & GUI for human players
+    if (!ClientConfiguration.nonhuman) {
+      DrawUtils.initialize(canvas);
+      StdAudio.init();
+    }
     
     while (true) {
-    
+
       /*
        * Ask the matchmaker for the matchId.
        */
@@ -104,12 +108,12 @@ public class Client implements Runnable {
         stop();
         return;
       }
-  
+
       // The game server address and match id that we are going
       // to receive from the matchmaker.
       String gameServ = null;
       long matchId = 0;
-      
+
       // this file is created while the client is in queue
       // so that we can monitor the number of queueing clients
       // from a shell script.
@@ -118,33 +122,33 @@ public class Client implements Runnable {
         inQueue = new File("out/queueing_"
             + ManagementFactory.getRuntimeMXBean().getName() + "_"
             + (int) (Integer.MAX_VALUE*Math.random()));
-  
-      
+
+
       try {
         Logger.println(Rep.FEW, "Waiting in the matchmaker queue. server: "+mmSock.getInetAddress());
-        
+
         // keep sending keep alives until we get a response
         long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
         boolean sentAIRequest = false;
         while (mmIn.available() == 0) {
           if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
             mmOut.write(Protocol.keepAlive().getBytes());
-          
+
           if (GameCanvas.wantsAI && !sentAIRequest) {
             // optionally send a request for an AI opponent
             Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
             mmOut.write(Protocol.requestAI().getBytes());
             sentAIRequest = true;
           }
-          
+
           if (inQueue != null) inQueue.createNewFile();
-          
+
           try { Thread.sleep(500); }
           catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
         }
-  
+
         if (inQueue != null) inQueue.delete();
-  
+
         // parse the server name and match id.
         String msg = Protocol.readNextMsg(mmIn);
         String[] matchMade = Protocol.parseMatchMade(msg);
@@ -158,21 +162,24 @@ public class Client implements Runnable {
         }
         gameServ = matchMade[0];
         matchId = Long.parseLong(matchMade[1]);
-        
+
         // let the server know we received and parsed the matchMade.
         mmOut.write(Protocol.ack().getBytes());
-  
+
         // done with the matchmaker.
         mmSock.close();
-        
+
         Logger.println(Rep.FEW, "Parsed "+msg);
+        GameCanvas.setCurrentMsg(new String[]{
+            "Connecting...",
+            "[Received match information.]"});
       } catch (IOException e) {
         Logger.println(Rep.FEW, "Failed to read matchMade.");
         e.printStackTrace();
         stop();
         return;
       }
-      
+
       // connect to the game server
       if(!connectToGameServer(gameServ, matchId))
         // quit
@@ -224,15 +231,15 @@ public class Client implements Runnable {
         stop();
         return false;
       }
-      
+
       ClientConfiguration.matchId = matchParams[0];
       ClientConfiguration.setPlayerNo((int) matchParams[1]);
       ClientConfiguration.unreliableStreamId = (short) matchParams[2];
-      
+
       // ack the match params
-//      tcpOut.writeBytes(Protocol.ack());
-//      tcpOut.flush();
-      
+      //      tcpOut.writeBytes(Protocol.ack());
+      //      tcpOut.flush();
+
       // Parse the arena
       // First read all bytes into a buffer.
       msg = Protocol.readNextMsg(tcpIn);
@@ -240,9 +247,9 @@ public class Client implements Runnable {
       if (arenaBuf == null || arenaBuf.isEmpty()) { Logger.println(Rep.FEW, "couldn't parse arena."); stop(); return false; }
 
       // ack the arena
-//      tcpOut.writeBytes(Protocol.ack());
-//      tcpOut.flush();
-      
+      //      tcpOut.writeBytes(Protocol.ack());
+      //      tcpOut.flush();
+
       // Now parse from the buffer.
       Arena arena;
       try {
@@ -259,7 +266,7 @@ public class Client implements Runnable {
         return false;
       }
       Arena.setCurrent(arena);
-      
+
       Logger.println(Logger.Rep.FEW, ClientConfiguration.asString());
     } catch (IOException e1) {
       Logger.println(Rep.FEW, "handshake failed.");
@@ -270,24 +277,56 @@ public class Client implements Runnable {
     /* End of handshake. */
 
 
-    // Initialize the GUI for human players
-    if (!ClientConfiguration.nonhuman) {
-      // TEMP
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+    /* Set up the UDP connection */
+    Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
+    try {
+      uStream = new UnreliableStream(new DatagramSocket(),
+          socket.getInetAddress(),
+          Protocol.GAMESERVERUDPPORT,
+          ClientConfiguration.unreliableStreamId);
+      
+      // connect and wait until we start getting some replies.
+      uStream.connect();
+    } catch (SocketException e) {
+      Logger.println(Rep.FEW, "couldn't instantiate uStream.");
+      e.printStackTrace();
+      stop();
+      return false;
+    } catch (IOException e) {
+      Logger.println(Rep.FEW, "couldn't connect uStream.");
+      e.printStackTrace();
+      stop();
+      return false;
+    }
+
+
+    final long start = System.currentTimeMillis();
+    while (uStream.sendSuccessRate() < 0) {
+      Logger.println(Rep.FEW, "waiting for UDP reply... ");
+      if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
+        Logger.println(Rep.FEW, "Failed to get a UDP reply. ");
+        stop();
+        return false;
       }
-      // END TEMP
-      
-      
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        continue;
+      }
+    }
+
+    GameCanvas.setCurrentMsg(new String[] {
+        "Connected.",
+        "The game will start as soon",
+        "as everyone else is ready."});
+
+    // Setup the GUI for rendering game states
+    if (!ClientConfiguration.nonhuman) {
       GameCanvas.toGameMode();
-      DrawUtils.initialize(canvas);
     }
     
     /* Run the intelligence in a separate thread so that parsing/serializing
-       doesn't block thinking. */
+    doesn't block thinking. */
     if (ClientConfiguration.nonhuman)
       try {
         intel = new Nonhuman();
@@ -297,51 +336,11 @@ public class Client implements Runnable {
         stop();
         return false;
       }
-    else
-      intel = new HigherBeing();
-
-    /* Set up the UDP connection */
-    if (! ClientConfiguration.tcpOnly) {
-      Logger.println(Logger.Rep.FEW, "Attempting to connect using UDP (id: " + ClientConfiguration.unreliableStreamId + ").");
-      try {
-        uStream = new UnreliableStream(new DatagramSocket(),
-            socket.getInetAddress(),
-            Protocol.GAMESERVERUDPPORT,
-            ClientConfiguration.unreliableStreamId);
-
-        // This passes received game states to the intelligence.
-        uStream.registerReceiver(new GameStateReceiver(intel));
-        
-        // connect and wait until we start getting some replies.
-        uStream.connect();
-      } catch (SocketException e) {
-        Logger.println(Rep.FEW, "couldn't instantiate uStream.");
-        e.printStackTrace();
-        stop();
-        return false;
-      } catch (IOException e) {
-        Logger.println(Rep.FEW, "couldn't connect uStream.");
-        e.printStackTrace();
-        stop();
-        return false;
-      }
-
-      
-      final long start = System.currentTimeMillis();
-      while (uStream.sendSuccessRate() < 0) {
-        Logger.println(Rep.FEW, "waiting for UDP reply... ");
-        if (System.currentTimeMillis() - start > UnreliableStream.TIMEOUT) {
-          Logger.println(Rep.FEW, "Failed to get a UDP reply. ");
-          stop();
-          return false;
-        }
-        try {
-          Thread.sleep(500);
-        } catch (InterruptedException e) {
-          continue;
-        }
-      }
-    }
+      else
+        intel = new HigherBeing();
+    
+    // This passes received game states to the intelligence.
+    uStream.registerReceiver(new GameStateReceiver(intel));
 
     // This timer task keeps asking the intelligence for new parameters
     // and sends them to the server.
@@ -350,15 +349,15 @@ public class Client implements Runnable {
     sendTimer.schedule(sendTask, 0, SimulationUtils.TIMESTEP);
 
     Logger.println(Logger.Rep.FEW, "Ready...");
-
-
+    
+    
     // wait for the server to tell that the game is over
     Long winner;
     try {
       String msg = Protocol.readNextMsg(tcpIn);
       if (msg == null) {
         Logger.println(Rep.FEW, "readNextMsg() returned null. " +
-        		"This means that the TCP connection was closed gracefully with a FIN.");
+        "This means that the TCP connection was closed gracefully with a FIN.");
         stop();
         return false;
       }
@@ -390,9 +389,9 @@ public class Client implements Runnable {
       stop();
       return false;
     }
-    
+
     stopGracefully();
-    
+
     // quit if AI
     if (ClientConfiguration.nonhuman) return false;
 
@@ -407,7 +406,7 @@ public class Client implements Runnable {
     return true;
 
   }
-  
+
   /**
    * This functions tries to stop all the client threads ASAP.
    */
@@ -415,21 +414,21 @@ public class Client implements Runnable {
     if (GameCanvas.isInitialized()) GameCanvas.toError();
     stopCurrent();
   }
-  
+
   /**
    * This functions tries to stop all the client threads associated
    * with the  currently running game ASAP.
    */
   public static void stopCurrent() {
     stop = true;
-    
+
     stopUdp();
 
     stopTcp();
-    
+
     if (intel != null) intel.stop();
   }
-  
+
   public static void stopUdp() {
     if (uStream != null)
       uStream.disconnect();
@@ -447,14 +446,14 @@ public class Client implements Runnable {
       e.printStackTrace();
     }
   }
-  
+
   /**
    * This functions tries to stop all the client threads gracefully.
    */
   public static void stopGracefully() {
     stopCurrent();
   }
-  
+
 
   /**
    * main() for running the client directly outside an Applet.
@@ -473,35 +472,35 @@ public class Client implements Runnable {
 
     client.run(); // Can just run this from the main() thread.
   }
-  
+
   public static Integer lagEstimate() {
     assert(uStream != null);
     return uStream.averageLag();
   }
 
-  
+
   private static class SendParamsTask extends TimerTask {
 
     Intelligence intelligence;
     UnreliableStream udpOut;
-    
+
     PlayerControlParameters last;
     double lastUdpSendSuccessRate = Double.NEGATIVE_INFINITY;
     double lastUdpReicSuccessRate = Double.NEGATIVE_INFINITY;
-    
+
     public SendParamsTask(Intelligence intelligence, UnreliableStream udpOut) {
       this.intelligence = intelligence;
       this.udpOut = udpOut;
     }
-    
+
     public void run() {
-      
+
       // Send all queued control parameters.
       PlayerControlParameters[] pcp = intelligence.getNewControlParameters();
-      
+
       ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
       DataOutputStream dataOut = new DataOutputStream(byteOut);
-        
+
       if (udpOut.hasDied()) {
         Logger.println(Rep.FEW, "UnreliableStream has timed out. Giving up.");
         stopUdp();
@@ -514,9 +513,9 @@ public class Client implements Runnable {
         this.cancel();
         return;
       }
-      
+
       if (pcp.length == 0) {
- 
+
         if (last == null) return; // the game didn't start yet.
         try {
           last.serialize(dataOut); // keep sending the same command if there's nothing new
@@ -538,9 +537,9 @@ public class Client implements Runnable {
             e.printStackTrace();
           }
 
-        last = pcp[pcp.length-1];
+          last = pcp[pcp.length-1];
       }
-      
+
       // Flush UDP
 
       try {
@@ -549,21 +548,21 @@ public class Client implements Runnable {
         Logger.println(Rep.INFREQ, "Failed to send using UDP. Not giving up until timeout though.");
         e.printStackTrace();
       }
-      
+
       final double s = udpOut.sendSuccessRate();
       final double r = udpOut.receiveSuccessRate();
       if ((s < 0.999 || r < 0.999) && (s < lastUdpSendSuccessRate || r < lastUdpReicSuccessRate)) Logger.println(Rep.INFREQ, "UDP send/receive success rate: " + s + " / " +r);
       lastUdpSendSuccessRate = s;
       lastUdpReicSuccessRate = r;
-      
+
     }
 
   }
-  
+
   private static class GameStateReceiver implements UnreliableStream.Receiver {
     GameState prev = null;
     Intelligence intelligence;
-    
+
     GameStateReceiver(Intelligence intelligence) {
       this.intelligence = intelligence;
     }
@@ -571,9 +570,9 @@ public class Client implements Runnable {
     @Override
     public boolean received(byte[] data, UnreliableStream src) {
       if (data.length == 0) return false; // just a keep alive packet
-      
+
       ByteArrayInputStream bin = new ByteArrayInputStream(data);
-      
+
       GameState newState;
       try {
         newState = GameState.parse(new DataInputStream(bin), prev);
@@ -583,20 +582,20 @@ public class Client implements Runnable {
         return false;
       }
       prev = newState;
-      
+
       intelligence.processGameStateUpdate(newState);
-      
-//      if (newState.time%300 == 0) {
-//        final Integer avglag = src.averageLag();
-//        final Integer peslag = src.pessimisticLag();
-//        if (avglag != null && peslag != null)
-//          Logger.println(Rep.INFREQ, "lag estimate. average: " + avglag
-//                                    +" pessimistic: " + peslag + " ms");
-//      }
-      
+
+      //      if (newState.time%300 == 0) {
+      //        final Integer avglag = src.averageLag();
+      //        final Integer peslag = src.pessimisticLag();
+      //        if (avglag != null && peslag != null)
+      //          Logger.println(Rep.INFREQ, "lag estimate. average: " + avglag
+      //                                    +" pessimistic: " + peslag + " ms");
+      //      }
+
       return true;
     }
-    
+
   }
 }
 

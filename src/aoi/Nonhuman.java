@@ -74,9 +74,10 @@ public class Nonhuman extends DefaultIntelligence {
     
     
     
- // if Crashed, add repulsion center
-    if (pState.sinceCrashed - prevSinceCrashed < 0 ||
-        pState.sinceLooping - prevSinceLooping < 0) {
+    // if crashed or looped, add repulsion center
+    if (pState.sinceCrashed == 0 || pState.sinceLooping == 0
+        || pState.sinceCrashed - prevSinceCrashed < 0
+        || pState.sinceLooping - prevSinceLooping < 0) {
       repulsionCenters.add(r);
       repulsionCenterTimes.add(gState.time);
       Logger.println(Rep.INFREQ, "Repulsive center placed");
@@ -169,7 +170,10 @@ public class Nonhuman extends DefaultIntelligence {
         closestTemp = c;
       }
     }
-    if (closestTemp == null) return null;   // this shouldn't happen
+    if (closestTemp == null) {
+      Logger.println(Rep.FEW, "ERROR. No closest cluster?");
+      return null;
+    }
     closest = closestTemp;
     // If you have a new closest cluster, pick a new direction for it
     // Otherwise, keep the same one
@@ -253,7 +257,10 @@ public class Nonhuman extends DefaultIntelligence {
 
     
     // Set the direction based on the force direction
-    if (Fx == 0 && Fy == 0) return null;
+    if (Fx == 0 && Fy == 0) {
+      Logger.println(Rep.FEW, "WARN: Exactly in equilibrium?");
+      return null;
+    }
     
     Angle dir = new Angle(Fx, Fy);
 
