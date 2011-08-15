@@ -21,6 +21,7 @@ public class DrawableScoreboard implements Drawable {
   private Stroke[] strokes;
   private Shape[] shapes;
   private GlyphVector scoreboard;
+  int[] sequence;
 
   // Translates and scales the coordinates from the glyph vector to 'overlay coordinates' used in DrawUtils.
   private AffineTransform at;
@@ -29,6 +30,7 @@ public class DrawableScoreboard implements Drawable {
   private Shape numbers;
   
   public DrawableScoreboard(Color neutralColor, int[] sequence) {
+    this.sequence = sequence;
 
     fill = new boolean[1+SimulationUtils.NUMPLAYERS];
     fill[0] = true;
@@ -91,51 +93,54 @@ public class DrawableScoreboard implements Drawable {
 
   public Shape[] shapes(GameState game) {
     shapes[0] = toOverlayCoords().createTransformedShape(numbers);
+
+    // the number of players that already have the i'th score drawn.
+    int[] playersAlreadyAtScore = new int[sequence.length+1];
     
     for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) {
-      Rectangle2D box = scoreboard.getGlyphVisualBounds(2*game.pStates[j].score).getBounds2D();
-
-      double margin = box.getWidth() * 0.35;
+      final int score = game.pStates[j].score;
+      Rectangle2D box = scoreboard.getGlyphVisualBounds(2*score).getBounds2D();
       
-      double xL = box.getX()-margin;
-      double yT = box.getY()-margin;
-      double xR = box.getX()+box.getWidth()+margin;
-      double yB = box.getY()+box.getHeight()+margin;
-      Path2D scorePath = new Path2D.Double();
+      final double margin = box.getWidth() * 0.35;
       
-      switch (j) {
-      case 0:
-        if (SimulationUtils.NUMPLAYERS == 2) {
+      final double xL = box.getX()-margin;
+      final double yT = box.getY()-margin;
+      final double xR = box.getX()+box.getWidth()+margin;
+      final double yB = box.getY()+box.getHeight()+margin;
+      final Path2D scorePath = new Path2D.Double();
+      
+      if (SimulationUtils.NUMPLAYERS == 2) {
+        switch (j) {
+        case 0:        
           scorePath.moveTo(xR, yT);
           scorePath.lineTo(xL, yT);
           scorePath.moveTo(xR, yB);
           scorePath.lineTo(xL, yB);
-        } else {
-          scorePath.moveTo(xL, yB);
-          scorePath.lineTo(xL, yT);
-        }
-        break;
-      case 1:
-        if (SimulationUtils.NUMPLAYERS == 2) {
+          break;
+        case 1:
           scorePath.moveTo(xR, yT);
           scorePath.lineTo(xR, yB);
           scorePath.moveTo(xL, yT);
           scorePath.lineTo(xL, yB);
-        } else {
-          scorePath.moveTo(xR, yB);
+          break;
+        case 2:
+          scorePath.moveTo(xL, yB);
+          scorePath.lineTo(xR, yB);
+          break;
+        case 3:
+          scorePath.moveTo(xL, yT);
           scorePath.lineTo(xR, yT);
+          break;
         }
-        break;
-      case 2:
-        scorePath.moveTo(xL, yB);
-        scorePath.lineTo(xR, yB);
-        break;
-      case 3:
-        scorePath.moveTo(xL, yT);
-        scorePath.lineTo(xR, yT);
-        break;
+      } else {
+        final double vOffset = playersAlreadyAtScore[score]*2.;
+        scorePath.moveTo(xL, yB+vOffset);
+        scorePath.lineTo(xR, yB+vOffset);
       }
+
       shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);
+
+      ++playersAlreadyAtScore[score];
     }
 	
     return shapes;
