@@ -181,7 +181,7 @@ public class DefaultIntelligence implements Intelligence {
           // of the latest state received from the server
           final int targetSimulatedSteps = (int) Math.round(
               Math.max(ClientConfiguration.predictFuture, 
-                  100 + lagEstimate) / (double) SimulationUtils.TIMESTEP);
+                  50 + lagEstimate) / (double) SimulationUtils.TIMESTEP);
           
           // the next time to process
           clientTime = (latestState != null) ? clientTime + 1 : 0;

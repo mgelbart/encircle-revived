@@ -48,6 +48,11 @@ public class Nonhuman extends DefaultIntelligence {
   }
   
   public PlayerControlParameters think(GameState gState) {
+    
+    // Save CPU by not reconsidering what to do every turn.
+    // Incidentally, this also makes the AIs shoot less aggressively.
+    if (gState.time % 3 != 0) return null;
+    
     /* TABLE OF CONTENTS
      * (1) FIND THE CLUSTER TO CURRENTLY TARGET (IF NEEDED)
      * (2) TARGET CLUSTER CAUSES ATTRACTION AND ROTATION
