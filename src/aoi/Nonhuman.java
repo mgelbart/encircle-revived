@@ -91,15 +91,22 @@ public class Nonhuman extends DefaultIntelligence {
     prevSinceLooping = pState.sinceLooping;
     
     // get repelled by these repulsion centers
-    for (int i = 0; i < repulsionCenters.size(); i++) {
+    for (int i = repulsionCenters.size()-1; i >= 0; --i) {
       Point p = repulsionCenters.get(i);
       int t = repulsionCenterTimes.get(i);
-    
+      
+      // remove old centers
+      final int REPULSIONCTRLIFETIME = 4000 / SimulationUtils.TIMESTEP;
+      if (gState.time - t >= REPULSIONCTRLIFETIME) {
+        repulsionCenters.remove(i);
+        repulsionCenterTimes.remove(i);
+        continue;
+      }
+
       if (dist(p, r) > SimulationUtils.ARENASIZE / 5) continue;
-      if (gState.time - t > 100) continue;
       // (above) for speed, only consider nearby centers
       
-      prefactor = (100-(gState.time-t))*
+      prefactor = (REPULSIONCTRLIFETIME-(gState.time-t))*
       Math.exp(-dist(p, ship.location()) /
           (SimulationUtils.ARENASIZE/30)); // length scale of repulsion
       theta = new Angle(p, ship.location());
