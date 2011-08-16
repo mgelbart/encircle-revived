@@ -440,9 +440,9 @@ public class Simulation  implements Runnable {
             
           
             // (5) CALCULATE WHERE PLAYER MOVED AND UPDATE SHIP
-            Boolean crashed = new Boolean(false);
+            boolean[] crashed = new boolean[1];
             ship = SimulationUtils.nextPosition(ship, params[playerNo], arena, crashed);
-            if (crashed) sinceCrashed = 0;
+            if (crashed[0]) sinceCrashed = 0;
             
           }   // end if not respawning
           

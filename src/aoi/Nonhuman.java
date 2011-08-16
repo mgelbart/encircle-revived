@@ -85,7 +85,9 @@ public class Nonhuman extends DefaultIntelligence {
         || pState.sinceLooping - prevSinceLooping < 0) {
       repulsionCenters.add(r);
       repulsionCenterTimes.add(gState.time);
-      Logger.println(Rep.INFREQ, "Repulsive center placed");
+      Logger.println(Rep.INFREQ, "Repulsive center placed " +
+      		"(sinceCrashed="+pState.sinceCrashed + 
+      		", sinceLooping="+pState.sinceLooping+")");
     }
     prevSinceCrashed = pState.sinceCrashed;
     prevSinceLooping = pState.sinceLooping;
@@ -106,8 +108,11 @@ public class Nonhuman extends DefaultIntelligence {
       if (dist(p, r) > SimulationUtils.ARENASIZE / 5) continue;
       // (above) for speed, only consider nearby centers
       
-      prefactor = (REPULSIONCTRLIFETIME-(gState.time-t))*
-      Math.exp(-dist(p, ship.location()) /
+      final double REPULSIONCTRSTRENGTH = 100;
+      prefactor = REPULSIONCTRSTRENGTH
+      * (REPULSIONCTRLIFETIME-(gState.time-t))
+        / (double)REPULSIONCTRLIFETIME
+      * Math.exp(-dist(p, ship.location()) /
           (SimulationUtils.ARENASIZE/30)); // length scale of repulsion
       theta = new Angle(p, ship.location());
       FxRepulsive += prefactor * theta.cos();
@@ -289,6 +294,7 @@ public class Nonhuman extends DefaultIntelligence {
       Logger.println(Rep.INFREQ, "FRotational = " + FRotational);
       Logger.println(Rep.INFREQ, "Acc = " + acc);
       Logger.println(Rep.INFREQ, "Dir = " + dir);
+      Logger.println(Rep.INFREQ, "# of rep. ctrs = " + repulsionCenters.size());
     }
     
 

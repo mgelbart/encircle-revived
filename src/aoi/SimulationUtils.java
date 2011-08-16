@@ -72,13 +72,20 @@ public abstract class SimulationUtils {
   public static final int NUMPLAYERS = 3;
   
   
-  /* Returns an array of {x, y, vx, vy, direction} after
-     a single time step given an initial state and
-     control parameters.
-
-     Note that this does not tell you hit a bullet.
-  */
-  public static Ship nextPosition(Ship ship, PlayerControlParameters params, Arena arena, Boolean crashed) {
+  /**
+   * Returns an array of {x, y, vx, vy, direction} after
+   * a single time step given an initial state and
+   * control parameters.
+   *
+   * Note that this does not tell you hit a bullet.
+   * 
+   * @param crashed if a boolean[1], crashed[0] will
+   *                indicate whether the ship just crashed. 
+   */
+  public static Ship nextPosition(Ship ship,
+      PlayerControlParameters params,
+      Arena arena,
+      boolean[] crashed) {
     assert(ship != null);
     assert(params != null);
     
@@ -116,9 +123,11 @@ public abstract class SimulationUtils {
     int x = ship.x() + vx;
     int y = ship.y() + vy;
     
-    crashed = !isInArena(x, y, arena);
+    final boolean crash = !isInArena(x, y, arena);
+    if (crashed != null && crashed.length==1)
+      crashed[0]=crash;
     
-    if (crashed) {
+    if (crash) {
       x = ship.x();
       y = ship.y();
       vx = 0;
