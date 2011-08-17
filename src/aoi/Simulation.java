@@ -52,6 +52,9 @@ public class Simulation  implements Runnable {
   // References to the senders/listeners threads so we can interrupt them.
   // TODO: these should be private
   public final Communicator[] communicators = new Communicator[SimulationUtils.NUMPLAYERS];
+
+  // The timer that fires every TIMESTEP.
+  private Timer advanceSimTimer;
   
   // for debugging
   private static boolean VISUALIZE = false;
@@ -78,7 +81,7 @@ public class Simulation  implements Runnable {
       ClientConfiguration.setPlayerNo(1);  // sketch-ball
       Arena.setCurrent(arena);
       GameCanvas canvas  = DrawUtils.createDefaultCanvas();
-      canvas.toGameMode();
+      GameCanvas.toGameMode();
       DrawUtils.initialize(canvas);
       gui = new GUI();
       guiThread = new Thread(gui, "gui");
@@ -155,7 +158,7 @@ public class Simulation  implements Runnable {
     threads[0] = Thread.currentThread();
 
     TimerTask interruptTask = new InterruptThreadsTask(threads);
-    Timer advanceSimTimer = new Timer("advance-simulation-timer");
+    advanceSimTimer = new Timer("advance-simulation-timer-"+matchId);
     advanceSimTimer.scheduleAtFixedRate(interruptTask, 0, SimulationUtils.TIMESTEP);
 
 
@@ -492,6 +495,17 @@ public class Simulation  implements Runnable {
         GameState newGState = new GameState(
             game.time + 1, pStatesTemp, bulletsTemp);
         
+        // Cache the serialized version of the game state so that each
+        // Communicator thread doesn't need to do it separately.
+        try {
+          newGState.toBytes();
+        } catch (IOException e2) {
+          Logger.println(Rep.FEW, "Couldn't serialized the new game state. Should never happen. Quitting.");
+          e2.printStackTrace();
+          stop();
+          return;
+        }
+        
         if (VERIFYSERIALIZATION) {
           // for debugging
           ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -536,8 +550,7 @@ public class Simulation  implements Runnable {
         
         if (!livePlayers) {
           Logger.println(Rep.FEW, "Players disconnected. Stopping simulation.");
-          advanceSimTimer.cancel();
-          for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { communicators[j].stop(); }
+          stop();
           return;
         }
         
@@ -610,6 +623,12 @@ public class Simulation  implements Runnable {
     return rematchAccepted;
   }
 
+  // Stop all simulation threads ASAP.
+  private void stop() {
+    advanceSimTimer.cancel();
+    for (int j=0; j<SimulationUtils.NUMPLAYERS; ++j) { communicators[j].stop(); }
+  }
+  
   private class InterruptThreadsTask extends TimerTask {
 
     Thread[] threads;

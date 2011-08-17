@@ -1,6 +1,8 @@
 package aoi;
 
 import java.util.Vector;
+
+import unreliablestream.UnreliableStream;
 import aoi.Logger.Rep;
 
 public class DefaultIntelligence implements Intelligence {
@@ -94,7 +96,7 @@ public class DefaultIntelligence implements Intelligence {
       guiThread.interrupt();
     }
   }
-
+  
   /* Store the latest game state in a queue. */
   public void processGameStateUpdate(GameState game) {
     timemachine.processStateUpdate(game);
@@ -206,6 +208,11 @@ public class DefaultIntelligence implements Intelligence {
             Logger.println(Rep.INFREQ, "CSP time " + 
                 simulatedSteps*SimulationUtils.TIMESTEP + " ms.");
             warnCtr = SKIPWARNS;
+            if (simulatedSteps-targetSimulatedSteps
+                > UnreliableStream.TIMEOUT/SimulationUtils.TIMESTEP) {
+              stop();
+              GameCanvas.toError();
+            }
           }
   
           latestState = timemachine.getState(clientTime, mindreader);

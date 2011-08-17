@@ -171,6 +171,8 @@ public class GameCanvas extends JComponent {
   
   static void toError() {
     mode = Mode.ERROR;
+    if (theCanvas == null) return;
+    
     theCanvas.setIgnoreRepaint(false);
     
     // remove all existing listeners

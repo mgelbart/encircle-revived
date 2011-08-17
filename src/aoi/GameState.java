@@ -14,6 +14,10 @@ public class GameState implements Comparable<GameState> {
   public final PlayerState[] pStates;
   public final Vector<Bullet> bullets;
 
+  // This caches the serialized version of the object once
+  // it has been generated once.
+  private byte[] cachedSerialization = null;
+
   @SuppressWarnings("unchecked")
     public GameState(int time, PlayerState[] states, Vector<Bullet> bullets) {
     assert(states.length == SimulationUtils.NUMPLAYERS);
@@ -137,6 +141,15 @@ public class GameState implements Comparable<GameState> {
     for (int j=0; j<bullets.size(); ++j)
       bullets.get(j).serialize(b);
 
+  }
+  
+  public byte[] toBytes() throws IOException {
+    if (cachedSerialization == null) { 
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      serialize(bout);
+      cachedSerialization = bout.toByteArray();
+    }
+    return cachedSerialization;
   }
 
   // Construct the new GameState using the state data received from the server

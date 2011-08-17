@@ -372,25 +372,13 @@ public class Communicator implements UnreliableStream.Receiver {
           // send using UDP if available. otherwise fall back to TCP.
           synchronized (sendingLock) {  
 
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-
-            try {
-              g.serialize(bout);
-            } catch (IOException e1) {
-              Logger.println(Rep.FEW, "Failed to buffer the game state for player " + playerNo + " at t=" + g.time);
-              Logger.println(Rep.FEW, "This should never happen (serializing to memory should never fail). Ending GameStateSender execution.");
-              e1.printStackTrace();
-              stop();
-              return;
-            }
-
             previousTime = g.time;
 
             try {
-              udpStream.send(bout.toByteArray());
+              udpStream.send(g.toBytes());
             } catch (IOException e1) {
               Logger.println(Rep.FEW, "Failed to send the game state for player " + playerNo + " at t=" + g.time);
-              Logger.println(Rep.FEW, "The socket must be invalid. Ending GameStateSender execution.");
+              Logger.println(Rep.FEW, "uStream must be invalid. Ending GameStateSender execution.");
               e1.printStackTrace();
               if (clientState != ClientState.GAMEENDED) stop(); // also stop tcpnegotiator
               return;
@@ -440,6 +428,7 @@ public class Communicator implements UnreliableStream.Receiver {
 
     if (ctrl == null || ctrls.size() >= CTRLBUFFERSIZE) {
       Logger.println(Rep.FEW, "too many controls buffered for player " + playerNo);
+      stop();
       return true;
     }
 

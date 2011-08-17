@@ -376,6 +376,7 @@ public class Client implements Runnable {
 
     Logger.println(Logger.Rep.FEW, "Game ended.");
 
+    intel.stop();
     stopUdp();
     GameCanvas.toPostGame((int) (long) winner);
 
