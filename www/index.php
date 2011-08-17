@@ -1,25 +1,17 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>Encircle</title>
-    <meta name="Description" content="Encircle --- the game" /> 
-    <meta name="robots" content="all, index, follow" />
-    <link rel="stylesheet" href="style.css" type="text/css" />
-  </head>
-
-  <body>
-
 <?php
+include("includes/header.php");
 
 /*
  *  Check the access code and either server the applet
  *  or the front page.
  */
 
-$received_code = $_GET["ac"];
+if(array_key_exists("ac", $_GET)) {
+  $received_code = $_GET["ac"];
+} else {
+  $received_code = "";
+}
+
 $acceptable_codes = array("jg", "mg", "hetky", "internaltest");
 
 if (in_array($received_code, $acceptable_codes)) {
@@ -136,10 +128,9 @@ if(array_key_exists("email", $_GET)) {
 
   </div>
   </div>
-  <?php //phpinfo(); ?>
 
-  <div id="bkgcredits">
-    <p>Background image credits: NASA, ESA, and M. Livio and the Hubble Heritage Team (STSci/Aura)</p>
-  </body>
+<?php
+//phpinfo();
 
-</html>
+include("includes/footer.php");
+?>
