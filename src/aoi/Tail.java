@@ -17,7 +17,7 @@ public class Tail {
   
   // Roughly the minimum distance between adjacent points in the trajectory for
   // encircling clusters. See the addPoint() to see why this is only 'roughly' so.
-  public static final int MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
+  private static final double MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
   // ------------------------------------------------------------------------ //
 
   // A map from times to Points. Each key-value pair
@@ -363,7 +363,26 @@ public class Tail {
     Point that1 = that.beforeHeadPoint();
     Point that2 = that.headPoint();
     Integer intersectionTime = null;
+    
+    // OPTIMIZATION:
+    /*
+     * Skip points in the trajectory as long as we
+     * are far away from the last segment of "that".
+     */
+    final double MAXSEGMENTLEN = 2*SimulationUtils.MAXSPEED;
+    int minTimeStepsToThat = 0;
+    int prevTime = lastTime;
+    // END OPTIMIZATION:
+    
     for (int time : trajectory.headMap(lastTime).keySet()) {  // excludes lastTime
+      // OPTIMIZATION:
+      if (time == ++prevTime // this was a "normal" step (no uncoiling)
+          && --minTimeStepsToThat > 3) { // we must still be far from "that"
+        //Logger.println(Rep.FEW, minTimeStepsToThat);
+        continue;
+      }
+      // END OPTIMIZATION:
+
       Point this1 = trajectory.get(time);
       Point this2 = trajectory.get(trajectory.higherKey(time));
       if (Line2D.linesIntersect(
@@ -372,6 +391,13 @@ public class Tail {
         intersectionTime = time;
         break;
       }
+      
+      // OPTIMIZATION:
+      minTimeStepsToThat = (int) Math.floor(
+          Line2D.ptSegDist(that1.x, that1.y, that2.x, that2.y,
+              this2.x, this2.y) / MAXSEGMENTLEN);
+      prevTime = time;
+      // END OPTIMIZATION:
     }
     if (intersectionTime == null) return null; // no intersection
 
