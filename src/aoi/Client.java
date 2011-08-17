@@ -6,7 +6,6 @@ import java.net.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.imageio.ImageIO;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.xml.sax.SAXException;
@@ -34,7 +33,7 @@ public class Client implements Runnable {
   private static Socket socket = null;
 
   // Indicates that the client should exit.
-  private static boolean stop = false;
+  //private static boolean stop = false;
 
   // The intelligence that decides what control params to send.
   private static Intelligence intel = null;
@@ -49,8 +48,8 @@ public class Client implements Runnable {
    * If config is null, the default configuration file
    * is used.
    */
-  public Client(GameCanvas canvas) {
-    this.canvas = canvas;
+  public Client(GameCanvas canv) {
+    canvas = canv;
 
     // print out the compile time stored in the
     // compiletime file, which is recreated every time
@@ -421,7 +420,7 @@ public class Client implements Runnable {
    * with the  currently running game ASAP.
    */
   public static void stopCurrent() {
-    stop = true;
+    //stop = true;
 
     stopUdp();
 
