@@ -129,7 +129,7 @@ public class Arena {
       }
 
       if (qName == "cluster")
-        clusters.add(new DrawableCluster(NSPolygon.parse(attr), ImageMetaData.parse(attr)));
+        clusters.add(new Cluster(NSPolygon.parse(attr), ImageMetaData.parse(attr)));
 
     }
 
