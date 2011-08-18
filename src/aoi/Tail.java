@@ -399,7 +399,7 @@ public class Tail {
       if (Line2D.linesIntersect(
           this1.x, this1.y, this2.x, this2.y, 
           that1.x, that1.y, that2.x, that2.y)) {
-        intersectionTime = this2Entry.getKey();
+        intersectionTime = this1Entry.getKey();
         break;
       }
     }
