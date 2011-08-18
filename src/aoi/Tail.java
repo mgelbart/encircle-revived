@@ -300,11 +300,10 @@ public class Tail {
     // pwned on the same turn
     if ((sinceScoring - prev.sinceScoring < 0 ||
         sinceScoring == 0)) {
-      if (newTail.trajectory.containsKey(prev.tail.headTime())
+      if (newTail.trajectory.containsKey(prev.tail.headTime()))
 	    newTail.knots.add(prev.tail.headTime());
 	  else
         newTail.knots.add(newTail.headTime());
-	  
 	}
     // Don't want to use prev.tail.headTime()
     // because newTail might not contain this time anymore,
