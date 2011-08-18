@@ -409,7 +409,7 @@ public class UnreliableStream {
       
       for (int j=0; j<ACKBITS; ++j) {
         final int mask = 1<<j;
-        if ((relativeAck & mask) != 0) a.add(ack-j);
+        if ((relativeAck & mask) != 0) a.add(ack-1-j);
       }
       
       return a;
