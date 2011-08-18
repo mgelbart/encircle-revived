@@ -3,6 +3,8 @@ package aoi;
 import java.awt.Point;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -15,9 +17,10 @@ import aoi.Logger.Rep;
  */
 public class Tail {
   
-  // Roughly the minimum distance between adjacent points in the trajectory for
+  // Roughly the min/max distance between adjacent points in the trajectory for
   // encircling clusters. See the addPoint() to see why this is only 'roughly' so.
   private static final double MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
+  private static final double MAXSEGMENTLEN = 2*SimulationUtils.MAXSPEED;
   // ------------------------------------------------------------------------ //
 
   // A map from times to Points. Each key-value pair
@@ -364,40 +367,40 @@ public class Tail {
     Point that2 = that.headPoint();
     Integer intersectionTime = null;
     
-    // OPTIMIZATION:
-    /*
-     * Skip points in the trajectory as long as we
-     * are far away from the last segment of "that".
-     */
-    final double MAXSEGMENTLEN = 2*SimulationUtils.MAXSPEED;
-    int minTimeStepsToThat = 0;
-    int prevTime = lastTime;
-    // END OPTIMIZATION:
+    Iterator<Map.Entry<Integer, Point>> it = trajectory.headMap(lastTime).entrySet().iterator();  // excludes lastTime
+    if (!it.hasNext()) return null;
     
-    for (int time : trajectory.headMap(lastTime).keySet()) {  // excludes lastTime
+    Map.Entry<Integer, Point> this2Entry = it.next();
+    while (it.hasNext()) {
+      Map.Entry<Integer, Point> this1Entry = this2Entry;
+      this2Entry = it.next();
+      Point this2 = this2Entry.getValue();
+
       // OPTIMIZATION:
-      if (time == ++prevTime // this was a "normal" step (no uncoiling)
-          && --minTimeStepsToThat > 3) { // we must still be far from "that"
+      /*
+       * Skip points in the trajectory as long as we
+       * are far away from the last segment of "that".
+       */
+      int minTimeStepsToThat = (int) Math.floor(
+          Line2D.ptSegDist(that1.x, that1.y, that2.x, that2.y,
+              this2.x, this2.y) / MAXSEGMENTLEN);
+      
+      if (minTimeStepsToThat > 3) { // we must still be far from "that"
         //Logger.println(Rep.FEW, minTimeStepsToThat);
+        while (it.hasNext() && --minTimeStepsToThat > 3) it.next(); // skip points
+        if (!it.hasNext()) return null;
+        this2Entry = it.next();
         continue;
       }
       // END OPTIMIZATION:
 
-      Point this1 = trajectory.get(time);
-      Point this2 = trajectory.get(trajectory.higherKey(time));
+      Point this1 = this1Entry.getValue();
       if (Line2D.linesIntersect(
           this1.x, this1.y, this2.x, this2.y, 
           that1.x, that1.y, that2.x, that2.y)) {
-        intersectionTime = time;
+        intersectionTime = this2Entry.getKey();
         break;
       }
-      
-      // OPTIMIZATION:
-      minTimeStepsToThat = (int) Math.floor(
-          Line2D.ptSegDist(that1.x, that1.y, that2.x, that2.y,
-              this2.x, this2.y) / MAXSEGMENTLEN);
-      prevTime = time;
-      // END OPTIMIZATION:
     }
     if (intersectionTime == null) return null; // no intersection
 
