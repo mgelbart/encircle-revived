@@ -20,7 +20,8 @@ public class Tail {
   // Roughly the min/max distance between adjacent points in the trajectory for
   // encircling clusters. See the addPoint() to see why this is only 'roughly' so.
   private static final double MINTRAJECTORYSEGMENT = SimulationUtils.ARENASIZE / 200;
-  private static final double MAXSEGMENTLEN = 2*SimulationUtils.MAXSPEED;
+  // Note: MAXSEGMENTLEN may not hold if there is packet loss (i.e. it is only reliable on server side).
+  private static final double MAXSEGMENTLEN = Math.max(SimulationUtils.MAXSPEED, MINTRAJECTORYSEGMENT);
   // ------------------------------------------------------------------------ //
 
   // A map from times to Points. Each key-value pair

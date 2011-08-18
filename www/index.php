@@ -2,7 +2,7 @@
 include("includes/header.php");
 
 /*
- *  Check the access code and either server the applet
+ *  Check the access code and either serve the applet
  *  or the front page.
  */
 

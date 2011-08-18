@@ -63,7 +63,7 @@ public class Simulation  implements Runnable {
   private Thread guiThread = null;
   
   // for debugging
-  public static final boolean VERIFYSERIALIZATION = true;
+  public static final boolean VERIFYSERIALIZATION = false;
   
   /* ----------------------------------------------------------------- */
   
