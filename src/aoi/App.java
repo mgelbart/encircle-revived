@@ -42,4 +42,11 @@ public class App extends JApplet {
     clientThread.start();
   }
 
+  // support resizing in a browser window
+  public void setSize(int width, int height) {
+    Logger.println(Rep.FEW, "w: "+width+" h: "+height);
+    super.setSize(width,height);
+    validate();
+  }
+
 }

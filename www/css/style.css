@@ -1,6 +1,10 @@
+html,body {
+/*    height:98%; */
+}
+
 body {
     background-color:#000000;
-    background-image:url('img/324740main_tripletgalaxy_600.jpg');
+    background-image:url('../img/324740main_tripletgalaxy_600.jpg');
     background-repeat:no-repeat;
     background-position:center top;
     background-attachment:fixed
@@ -8,9 +12,24 @@ body {
 
 #container
 {
-    margin: 100px auto 10px;
+    margin: 50px auto 10px;
     width: 600px;
     background:#b0b0b0;
+
+}
+
+#game-container
+{
+    margin: 0px;
+    padding: 0px;
+/*    width: 98%;*/
+    background:#000000;
+    text-align: center;
+
+/*    height:auto !important; /* real browsers */
+/*    height:98%; /* IE6: treated as min-height*/
+
+/*    min-height:98%; /* real browsers */
 }
 
 #header
@@ -56,12 +75,6 @@ body {
 {
     clear: left;
     padding: 20px;
-    text-align: center;
-}
-
-#applet
-{
-    margin: 10px auto 10px;
     text-align: center;
 }
 

@@ -1,6 +1,4 @@
 <?php
-include("includes/header.php");
-
 /*
  *  Check the access code and either serve the applet
  *  or the front page.
@@ -14,7 +12,11 @@ if(array_key_exists("ac", $_GET)) {
 
 $acceptable_codes = array("jg", "mg", "hetky", "internaltest");
 
-if (in_array($received_code, $acceptable_codes)) {
+$servegame=in_array($received_code, $acceptable_codes);
+
+include("includes/header.php");
+
+if ($servegame) {
    //echo "code ok";
    // write info about the access to a file
    $t = time();
@@ -23,7 +25,8 @@ if (in_array($received_code, $acceptable_codes)) {
    if ($f) {
      fwrite($f, $t);
      fwrite($f, " ".$received_code);
-     fwrite($f, " ".$_SERVER["HTTP_REFERER"]);
+     if(array_key_exists("HTTP_REFERER", $_SERVER))
+       fwrite($f, " ".$_SERVER["HTTP_REFERER"]);
      fwrite($f, " ".$_SERVER["HTTP_USER_AGENT"]);
      fwrite($f, " ".$_SERVER["REMOTE_ADDR"]);
      fwrite($f, "\n");
@@ -31,21 +34,27 @@ if (in_array($received_code, $acceptable_codes)) {
    }
 ?>
 
-  <div id="applet">
-<!--
-    <h1>The applet</h1>
-    <script src="http://www.java.com/js/deployJava.js"></script>
-    <script> 
-      var attributes = { code:'aoi.App',  width:700, height:700} ; 
-      var parameters = {jnlp_href: 'aoi-applet.jnlp'} ; 
-      deployJava.runApplet(attributes, parameters, '1.6'); 
-    </script>
--->
+  <div id="game-container">
 
-     <applet code = 'aoi.App' 
+<?php
+$w=0;
+$h=0;
+if(array_key_exists("width", $_GET)
+    && array_key_exists("height", $_GET)) {
+  $w=$_GET["width"];
+  $h=$_GET["height"];
+}
+// use defaults if width/height not reasonably set
+if($w<300 || $h<300) {
+  $w=800;
+  $h=600;
+}
+?>
+     <applet id='app'
+     	     code = 'aoi.App' 
              archive = 'aoi8888.jar'
-	     width = '650'
-	     height = '650'>The Game</applet>
+	     width = '<?php echo $w; ?>'
+	     height = '<?php echo $h; ?>'>You need a Java plug-in to play the game.</applet>
   </div>
 
 <?php
@@ -74,7 +83,9 @@ if (in_array($received_code, $acceptable_codes)) {
 
     <form name="input" method="get">
       Access code: <input type="text" name="ac" /><br/>
-      <input type="submit" value="Play!" id="playbutton" />
+      <input type="submit" value="Play!" id="playbutton" onclick="setappsize()" />
+      <input type="hidden" value="800" name="width" id="dynwidth" />
+      <input type="hidden" value="600" name="height" id="dynheight" />
     </form>
     </div>
 
