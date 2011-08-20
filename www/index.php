@@ -66,7 +66,7 @@ if (in_array($received_code, $acceptable_codes)) {
     <h2>the game that will segment your world</h2>
 
     <div id="beta">
-    <p>Encricle is currently in private beta.</p>
+    <p>Encircle is currently in private beta.</p>
     </div>
 
     <div id="play">
