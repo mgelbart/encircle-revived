@@ -158,10 +158,6 @@ public class GUI implements Runnable {
   }
 
   private void drawGameState(GameState gState) {
-    // --- Clear screen ---
-    GameCanvas.setAntialiasing(false);
-    DrawUtils.clear(Color.BLACK);
-    GameCanvas.setAntialiasing(true);
 
     // --- Set the zoom level ---
     final double r = 
@@ -189,6 +185,7 @@ public class GUI implements Runnable {
     
     
     // --- Process drawables and audibles ---
+    GameCanvas.setAntialiasing(true);
     for (Drawable d : drawables) {
       Shape[] s = d.shapes(gState);
       Image img = d.img(gState);

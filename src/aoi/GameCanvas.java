@@ -34,9 +34,11 @@ public class GameCanvas extends JComponent {
   // Set to true if the canvas is resized.
   // Need to reallocate the buffer images when this happens.
   private static boolean canvasResized = false;  
-
-  private static String BKGIMGPATH = "guiimg/bkg.png";
-  private static Image bkgImg;
+  
+  private static String MENUBKGIMGPATH = "guiimg/bkg.png";
+  private static Image menuBkgImg;
+  private static String GAMEBKGIMGPATH = "guiimg/324740main_tripletgalaxy_600.jpg";
+  private static Image gameBkgImg;
   
   private static GameCanvas theCanvas;
 
@@ -52,9 +54,10 @@ public class GameCanvas extends JComponent {
     
     // load bkgImg from a file.
     try {
-      bkgImg = ImageIO.read(GameCanvas.class.getClassLoader().getResourceAsStream(BKGIMGPATH));
+      menuBkgImg = ImageIO.read(GameCanvas.class.getClassLoader().getResourceAsStream(MENUBKGIMGPATH));
+      gameBkgImg = ImageIO.read(GameCanvas.class.getClassLoader().getResourceAsStream(GAMEBKGIMGPATH));
     } catch (IOException e) {
-      Logger.println(Rep.FEW, "failed to load the bkg image.");
+      Logger.println(Rep.FEW, "failed to load the bkg images.");
       e.printStackTrace();
     }
 
@@ -221,6 +224,16 @@ public class GameCanvas extends JComponent {
         // disable anti-aliasing on the new offscreen image
         setAntialiasing(false);
         
+        // paint the bkg image on the new offscreen image
+        DrawUtils.clear(Color.BLACK);
+        final Dimension s = theCanvas.getSize();
+        final int h = s.height;
+        final int w = (int) (h * gameBkgImg.getWidth(null)
+            / (double) gameBkgImg.getHeight(null));
+        offscreen.drawImage(gameBkgImg,
+            (s.width-w)/2, 0,
+            w, h, null);
+        
         theCanvas.repaint();
       }
 
@@ -237,11 +250,9 @@ public class GameCanvas extends JComponent {
     }
     
     // paint the background image
-    final int h = getSize().height;
-    final int w = getSize().width;
-    final int maxhw = Math.max(h, w);
-    
-    g.drawImage(bkgImg, 0, 0, maxhw, maxhw, null);
+    final Dimension s = theCanvas.getSize();
+    final int maxhw = Math.max(s.height, s.width);
+    g.drawImage(menuBkgImg, 0, 0, maxhw, maxhw, null);
     
     // approximate average pixels per char.
     final double hOffsetPerChar = 5.;
@@ -252,7 +263,9 @@ public class GameCanvas extends JComponent {
     if (currentMsg != null) {
       int vOffset = -msg.length * vOffsetPerLine/2;
       for (String l : msg) {
-        g.drawString(l, (int) (w/2-l.length()*hOffsetPerChar), h/2+vOffset);
+        g.drawString(l,
+            (int) (s.width/2-l.length()*hOffsetPerChar),
+            s.height/2+vOffset);
         vOffset += vOffsetPerLine;
       }
     }
