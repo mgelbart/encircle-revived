@@ -48,6 +48,8 @@ public class MousePilot implements MouseInputListener {
 
   @Override
   public void mousePressed(MouseEvent e) {
+    GameCanvas.requestKeyboardFocus();
+    
     if (e.getButton() == MouseEvent.BUTTON1) {
       trajectory = new Vector<Point>();
       trajectory.add(DrawUtils.fromJavaUserSpaceToGameCoordinates(e.getPoint()));

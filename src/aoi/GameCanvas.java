@@ -66,6 +66,8 @@ public class GameCanvas extends JComponent {
   
   static boolean isInitialized() { return theCanvas != null; }
   
+  static void requestKeyboardFocus() { theCanvas.requestFocus(); }
+  
   static void toGameMode() {
     // remove all existing listeners
     for (MouseListener l : theCanvas.getMouseListeners())
@@ -81,8 +83,9 @@ public class GameCanvas extends JComponent {
 //    Logger.println(Rep.FEW, "page flipping: " + cab.isPageFlipping());
 //    Logger.println(Rep.FEW, "HW accelerated front/back buffer: " + cab.getFrontBufferCapabilities().isAccelerated()
 //                                + " / " + cab.getBackBufferCapabilities().isAccelerated());
-    
+
     mode = Mode.INGAME;
+    requestKeyboardFocus();
   }
   
   static void toPreGame() {

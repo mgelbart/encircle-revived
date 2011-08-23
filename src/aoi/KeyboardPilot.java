@@ -29,7 +29,7 @@ public class KeyboardPilot implements KeyListener {
   
   @Override
   public void keyPressed(KeyEvent e) {
-    //Logger.println(Logger.RepetitionRate.INFREQUENT, "pressed " + e.getKeyCode());
+    //Logger.println(Logger.Rep.INFREQ, "pressed " + e.getKeyCode());
     switch (e.getKeyCode()) {
     case (KeyEvent.VK_UP):
       acc = (int) (SimulationUtils.MAXACC * FRACTION_OF_MAXACC_THAT_YOU_ACTUALLY_GO);
