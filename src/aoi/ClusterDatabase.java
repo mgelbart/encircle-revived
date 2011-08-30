@@ -52,24 +52,21 @@ public class ClusterDatabase {
   // All the image filenames in the database.
   public final String[] imageFilenames;
 
-  // The Clusters that have already been returned, and thus should not be used again.
-  public final boolean[] alreadyUsed;
-
   public ClusterDatabase() throws FileNotFoundException {
     this.datasetName = CLUSTER_DATASET;
     Vector<String> vImageFilenames = new Vector<String>();
 
-    Scanner infoScanner = new Scanner(ClusterDatabase.class.getClassLoader().getResourceAsStream(
-                                                                                                 SEGMENTATION_BASEDIR + File.separator + IMAGE_NAME_LIST + 
-                                                                                                 File.separator + datasetName + TEXT_FORMAT));
+    Scanner infoScanner = new Scanner(
+      ClusterDatabase.class.getClassLoader().getResourceAsStream(
+      SEGMENTATION_BASEDIR + File.separator + IMAGE_NAME_LIST + 
+      File.separator + datasetName + TEXT_FORMAT));
     while (infoScanner.hasNext())
       vImageFilenames.add(infoScanner.nextLine());
 
     imageFilenames = new String[vImageFilenames.size()];
     vImageFilenames.toArray(imageFilenames);
-    alreadyUsed = new boolean[imageFilenames.length];
     // Shuffle the array of filenames, and then use in order from now on. 
-    // This fascilitates random sampling without replacement.
+    // This facilitates random sampling without replacement.
     Collections.shuffle(Arrays.asList(imageFilenames));
   }
 
@@ -261,16 +258,17 @@ public class ClusterDatabase {
         // Guarantees that this cluster has not already been returned by this function.
         // If no Clusters are available, throw an error (for now, just an assert)
        	css = null;
+       	Vector<ClusterServerSide> acceptableCss = new Vector<ClusterServerSide>();
+       	// Currently loops through all database entries for each cluster... might be a bit slow.
       	for (i = 0; i < imageFilenames.length; i++) {
-          //if (alreadyUsed[i]) continue; // TODO: had to disable this because we had too few clusters for two games!!
           css = parseCluster(i);
           if (css.acceptable(nSegments))
-            break;
-          else
-            css = null;
+            acceptableCss.add(css);
       	}
+        if (acceptableCss.isEmpty()) Logger.println(Logger.Rep.FEW, "Error: database does not have enough clusters with " + nSegments + " segments.");
         
-        if (css == null) Logger.println(Logger.Rep.FEW, "Error: database does not have enough clusters with " + nSegments + " segments.");
+        // Pick a random Cluster from those which conform to the desired nSegments
+        css = acceptableCss.get((int)(acceptableCss.size()*Math.random()));
         assert(css != null);
         
         // keep searching for a random location until finding one that does not
@@ -288,7 +286,6 @@ public class ClusterDatabase {
 
         arenaClusters.add(css);
         // Only if this cluster is actually added to the arena does alreadyUsed get edited
-        alreadyUsed[i] = true;
       }
 
     }
