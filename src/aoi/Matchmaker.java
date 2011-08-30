@@ -437,7 +437,7 @@ public class Matchmaker {
       
       try {
         s = new Socket(server, GameServer.MATCHMAKERCOMMPORT);          
-        success = acknowledgedMessage(s, Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS), 3000); 
+        success = acknowledgedMessage(s, Protocol.expectMatch(matchId, SimulationUtils.NUMPLAYERS), 8000); 
       } catch (Exception e) {
         Logger.println(Rep.INFREQ, "Socket exception for server " + server + " at " + ((s!=null)? s.getRemoteSocketAddress():null));
         e.printStackTrace();
