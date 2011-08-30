@@ -17,12 +17,13 @@ function cleanup() {
 
     if [[ "$(uname)" =~ Darwin ]]
     then
+	killall -m spawnais;
 	OPTS=;
     else
+	killall -r spawnais;
 	OPTS=-y"$LIFETIME"s;
     fi
 
-    killall spawnais;
     killall "$OPTS" java;
     killall "$OPTS" make;
     echo "Killed all java and make processes younger than $LIFETIME seconds. Remaining:";
