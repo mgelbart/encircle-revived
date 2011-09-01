@@ -84,6 +84,10 @@ public abstract class Protocol {
   /*
    * Matchmaking server to Client:
    */
+  private static final String QUEUEINFO = "queueInfo";
+  public static String queueInfo(long playersInQueue, long typicalWaitPeriod) { return QUEUEINFO+" "+playersInQueue+" "+typicalWaitPeriod+"\n"; }
+  public static long[] parseQueueInfo(String msg)  { return parseNLongs(QUEUEINFO, msg, 2); }
+
   private static final String MATCHMADE = "matchMade";
   public static String matchMade(String server, long gameId) { return MATCHMADE+" "+server+" "+gameId+"\n"; }
   public static String[] parseMatchMade(String msg)  {
@@ -164,7 +168,7 @@ public abstract class Protocol {
   // parse a request with one long argument.
   private static long[] parseNLongs(String cmd, String msg, int n) {
     String[] strParts = parseStrings(cmd, msg);
-    if (strParts == null || strParts.length < n+1);
+    if (strParts == null || strParts.length < n+1) return null;
     long[] parts = new long[n];
     for (int j=1; j<1+n; ++j) {
       try { parts[j-1] = Long.parseLong(strParts[j]); }

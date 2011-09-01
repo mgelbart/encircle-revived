@@ -125,50 +125,73 @@ public class Client implements Runnable {
 
       try {
         Logger.println(Rep.FEW, "Waiting in the matchmaker queue. server: "+mmSock.getInetAddress());
+        
+        while (gameServ == null) {
+        
+          // keep sending keep alives until we get a response
+          long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
+          boolean sentAIRequest = false;
+          while (mmIn.available() == 0) {
+            if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
+              mmOut.write(Protocol.keepAlive().getBytes());
+  
+            if (GameCanvas.wantsAI && !sentAIRequest) {
+              // optionally send a request for an AI opponent
+              Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
+              mmOut.write(Protocol.requestAI().getBytes());
+              sentAIRequest = true;
+            }
 
-        // keep sending keep alives until we get a response
-        long lastKeepAlive = System.currentTimeMillis()-2*Protocol.MATCHMAKERKEEPALIVETIMEOUT;
-        boolean sentAIRequest = false;
-        while (mmIn.available() == 0) {
-          if (System.currentTimeMillis() - lastKeepAlive > Protocol.MATCHMAKERKEEPALIVETIMEOUT/2)
-            mmOut.write(Protocol.keepAlive().getBytes());
+            // let 'spawnais' script know we're still in queue
+            if (inQueue != null) inQueue.createNewFile();
 
-          if (GameCanvas.wantsAI && !sentAIRequest) {
-            // optionally send a request for an AI opponent
-            Logger.println(Rep.FEW, "Requesting AI opponent from matchmaker.");
-            mmOut.write(Protocol.requestAI().getBytes());
-            sentAIRequest = true;
+            try { Thread.sleep(500); }
+            catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
           }
 
-          if (inQueue != null) inQueue.createNewFile();
+          // Received something from the server.
+          String msg = Protocol.readNextMsg(mmIn);
 
-          try { Thread.sleep(500); }
-          catch (InterruptedException e) { Logger.println(Rep.FEW, "interrupted"); }
-        }
-
-        if (inQueue != null) inQueue.delete();
-
-        // parse the server name and match id.
-        String msg = Protocol.readNextMsg(mmIn);
-        String[] matchMade = Protocol.parseMatchMade(msg);
-        if (matchMade == null
-            || matchMade[0] == null
-            || matchMade[1] == null
-            || matchMade[0].isEmpty()) {
-          Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
-          stop();
-          return;
-        }
-        gameServ = matchMade[0];
-        matchId = Long.parseLong(matchMade[1]);
-
+          // First check if it's a queueInfo.
+          long[] queueInfo = Protocol.parseQueueInfo(msg);
+          if (queueInfo != null) {
+            if (!GameCanvas.wantsAI) {
+              final long waitingFor = Math.max(0, SimulationUtils.NUMPLAYERS-queueInfo[0]);
+              final String waitTime = (queueInfo[1]<120)? queueInfo[1]+" seconds." : "several minutes.";
+              GameCanvas.setCurrentMsg(new String[] {
+                  "Waiting for "+waitingFor
+                  +" more player"+((waitingFor==1)?"":"s")+"...",
+                  "Typical wait time is currently "+waitTime,
+                  "",
+                  "Tired of waiting?",
+                  "Click here to play against the computer."});
+            }
+            continue; // keep waiting for matchMade
+          }
+          
+          // Otherwise it must be a matchMade:
+          if (inQueue != null) inQueue.delete();
+          // parse the server name and match id.
+          String[] matchMade = Protocol.parseMatchMade(msg);
+          if (matchMade == null
+              || matchMade[0] == null
+              || matchMade[1] == null
+              || matchMade[0].isEmpty()) {
+            Logger.println(Rep.FEW, "Failed to parse game server from: " + msg);
+            stop();
+            return;
+          }
+          gameServ = matchMade[0];
+          matchId = Long.parseLong(matchMade[1]);
+          Logger.println(Rep.FEW, "Succesfully parsed "+msg);
+        } // end while (gameServ==null)
+        
         // let the server know we received and parsed the matchMade.
         mmOut.write(Protocol.ack().getBytes());
 
         // done with the matchmaker.
         mmSock.close();
 
-        Logger.println(Rep.FEW, "Parsed "+msg);
         GameCanvas.setCurrentMsg(new String[]{
             "Connecting...",
             "[Received match information.]"});

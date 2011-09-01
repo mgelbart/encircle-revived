@@ -129,10 +129,7 @@ public class GameCanvas extends JComponent {
     
     theCanvas.addMouseListener(new PreGameMouseListener(System.currentTimeMillis()));
     
-    setCurrentMsg(new String[] {
-        "Waiting for other players...",
-        "Tired of waiting?",
-        "Click here to play against the computer."});
+    setCurrentMsg(new String[] {"Connecting..."});
   }
   
   static void toPostGame(int winner) {

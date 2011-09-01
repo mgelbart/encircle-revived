@@ -33,9 +33,12 @@ public class Matchmaker {
 	GameServerManager gsm;
 	Queue<GameClient> clients = new LinkedBlockingQueue<GameClient>();
 	Queue<GameClient> ais = new LinkedBlockingQueue<GameClient>();
-	
-	Random randomGenerator = new Random();
+	// time of last matchMade (in seconds).
+  private long lastMatchMadeTime = System.currentTimeMillis()/1000;
+  // typical time between matchMades (in seconds).
+  private long avgWaitPeriod = 150;
 
+	Random randomGenerator = new Random();
 
   public static void main(String argv[]) throws Exception {
     new Matchmaker();
@@ -97,7 +100,9 @@ public class Matchmaker {
           } catch (IOException e) {
             Logger.println(Rep.FEW, "Failed to process messages for client "+c);
             e.printStackTrace();
-            clients.remove(c);
+            closeSocket(c.socket);
+            i.remove();
+            continue;
           }
           
           // remove dead clients.
@@ -105,6 +110,23 @@ public class Matchmaker {
             Logger.println(Rep.INFREQ, "Removing dead client: " + c);
             closeSocket(c.socket);
             i.remove();
+            continue;
+          }
+          
+          // send the client current queue info
+          // TODO: It's not really necessary to send this so often.
+          if (!doingAIs && c.state == Protocol.ClientState.REQUESTEDMATCH) {
+            final long waitPeriod = Math.max(5, avgWaitPeriod/10*10); // round
+            try {
+              c.socket.getOutputStream().write(Protocol.queueInfo(
+                  clients.size(), waitPeriod).getBytes());
+            } catch (IOException e) {
+              Logger.println(Rep.INFREQ, "Failed to send queueInfo to " + c);
+              e.printStackTrace();
+              closeSocket(c.socket);
+              i.remove();
+              continue;
+            }
           }
         }
       } // end synchronized (clients)
@@ -219,6 +241,13 @@ public class Matchmaker {
 
       // close matched client connections
       for (GameClient c : matchedClients) closeSocket(c.socket);
+      
+      // update wait period estimate.
+      final long currentTime = System.currentTimeMillis()/1000;
+      final long MAXTYPICALWAITPERIOD = 300; // cap the weight of the really long wait periods.
+      final long waitPeriod = Math.min(MAXTYPICALWAITPERIOD, currentTime-lastMatchMadeTime);
+      avgWaitPeriod += (waitPeriod-avgWaitPeriod)/3; // low pass filter
+      lastMatchMadeTime = currentTime;
     }
 
   }
