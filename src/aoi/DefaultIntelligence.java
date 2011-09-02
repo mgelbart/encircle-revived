@@ -140,7 +140,7 @@ public class DefaultIntelligence implements Intelligence {
       SimulationUtils.MAXACC, 
       new Angle((Math.random()-0.5)*2*Math.PI),
       false, false);
-  } 
+  }
 
 
 

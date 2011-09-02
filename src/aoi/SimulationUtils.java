@@ -39,7 +39,7 @@ public abstract class SimulationUtils {
   public static final int ARENASIZE = 100000;
 
   // Maximum angular turning rate (i.e. domega/dt).
-  public static final double OMEGA = (Math.PI/1000) * TIMESTEP;
+  public static final double OMEGA = (Math.PI/650) * TIMESTEP;
 
   // Maximum thrust, i.e. max dx/dt^2.
   public static final int MAXACC = (int) (ARENASIZE / 1e7 * TIMESTEP * TIMESTEP * 7.) ;
@@ -133,18 +133,19 @@ public abstract class SimulationUtils {
       vx = 0;
       vy = 0;
     }
-
-    // Figure out whether to turn clockwise or counterclockwise.
-    final boolean turnCcw =   Math.abs(ship.dir().add(OMEGA).dtheta(params.targetDirection))
-      < Math.abs(ship.dir().add(-OMEGA).dtheta(params.targetDirection));
-    final double dtheta = ((turnCcw)? 1:-1)*OMEGA;
     
-    Angle dir = ship.dir().add(dtheta);;
-
-    // Don't go past the target direction.
-    final double oldDist = Math.abs(ship.dir().dtheta(params.targetDirection));
-    if (oldDist <= OMEGA && Math.abs(dir.dtheta(params.targetDirection)) >= oldDist)
+    Angle dir;
+    if (Math.abs(ship.dir().dtheta(params.targetDirection)) <= OMEGA)
+      // Don't go past the target direction.
       dir = params.targetDirection;
+    else {
+      // Otherwise, figure out whether to turn clockwise or counterclockwise.
+      final boolean turnCcw =   Math.abs(ship.dir().add(OMEGA).dtheta(params.targetDirection))
+        < Math.abs(ship.dir().add(-OMEGA).dtheta(params.targetDirection));
+      final double dtheta = ((turnCcw)? 1:-1)*OMEGA;
+      
+      dir = ship.dir().add(dtheta);
+    }
 
     return new Ship(new Point(x, y), vx, vy, dir);
   }

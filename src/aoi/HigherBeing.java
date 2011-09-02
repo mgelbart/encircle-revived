@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.Vector;
 
+import aoi.Logger.Rep;
+
 /**
  *  This class decides what to do based on (the
  *  history of) the game state.
@@ -70,7 +72,7 @@ public class HigherBeing extends DefaultIntelligenceWithGUI {
     } else
       // if mouse is disabled
       c = keyboardPilot.getParams(gState);
-
+    
     if (c == null) return null;
     
     // auto-shooter

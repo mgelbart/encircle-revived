@@ -138,13 +138,13 @@ public class TimeMachine {
     // Predict how the states will evolve during each remaining (time-cached.time) time step
     for (int j=0; j < time - cached.time; ++j) {
       
-      // the time on this iteration.
+      // the time at the end of this iteration.
       final int timej = cached.time+1+j;
       
       // Player states
       for (int k=0; k < SimulationUtils.NUMPLAYERS; ++k) {
         prevCtrl[k] = ctrl[k];
-        ctrl[k] = getParamsAt(k, cached.time+j, reader);
+        ctrl[k] = getParamsAt(k, timej-1, reader);
         boolean[] crashed = new boolean[1];
         ship[k] = (cached.pStates[k].untilRespawn == 0)?
             SimulationUtils.nextPosition(ship[k], ctrl[k], Arena.current(), crashed)
