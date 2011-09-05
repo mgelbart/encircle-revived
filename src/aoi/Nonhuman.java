@@ -113,7 +113,7 @@ public class Nonhuman extends DefaultIntelligence {
       * (REPULSIONCTRLIFETIME-(gState.time-t))
         / (double)REPULSIONCTRLIFETIME
       * Math.exp(-dist(p, ship.location()) /
-          (SimulationUtils.ARENASIZE/30)); // length scale of repulsion
+          (SimulationUtils.ARENASIZE/50)); // length scale of repulsion
       theta = new Angle(p, ship.location());
       FxRepulsive += prefactor * theta.cos();
       FyRepulsive += prefactor * theta.sin();
