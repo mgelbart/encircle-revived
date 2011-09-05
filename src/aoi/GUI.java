@@ -90,6 +90,8 @@ public class GUI implements Runnable {
     
     drawables.add(new DrawableFPS(DrawUtils.DEFAULTSTROKE));
 
+    drawables.add(new DrawableInstructions());
+    
     audibles.add(new AudibleShot());
     audibles.add(new AudibleCrash());
     
