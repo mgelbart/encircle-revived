@@ -20,6 +20,7 @@ public class DrawableInstructions extends DrawableMessage {
   public DrawableInstructions() {
     super();
     setMsg("Encircle a cluster with "+Arena.current().sequence()[0]+" cells.", 5000, 15, false);
+    minDuration = 4000;
   }
 
   public void prepare(GameState gState) {
@@ -53,7 +54,7 @@ public class DrawableInstructions extends DrawableMessage {
           msg = "Good! Now get a "+seq[p.score]+".";
           dur = 5000;
           minDuration = dur;
-          fsize = 20;
+          fsize = 15;
           ++scoringInfoCount;
         } else {
           msg = ""+seq[p.score];
