@@ -15,7 +15,8 @@ body {
     margin: 50px auto 10px;
     width: 600px;
     background:#b0b0b0;
-
+    border-radius: 15px;
+    -moz-border-radius: 15px;
 }
 
 #game-container
@@ -35,7 +36,10 @@ body {
 #header
 {
     background:#ccc;
-    padding: 20px;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    -moz-border-radius-topleft: 15px;
+    -moz-border-radius-topright: 15px;
 }
 
 #header h1 { margin: 0; }
@@ -78,7 +82,12 @@ body {
     text-align: center;
 }
 
-#content h1
+#content em
+{
+    color:#aa0000;
+}
+
+h1
 {
     text-align: left;
     color:#000;
@@ -86,12 +95,28 @@ body {
     margin: 0 0 0 0;
 }
 
-#content h2
+h2
 {
     text-align: left;
     color:#000;
     font-size: 100%;
-    margin: 0 0 .5em;
+    margin: 40px 0 5px;
+}
+
+#header {
+    padding: 10px 0px 0px;
+}
+
+#header h1 {
+    text-align: center;
+}
+
+#beta
+{
+    float: none;
+    text-align: center;
+    margin: 0px;
+    font-size: 80%;
 }
 
 #footer
@@ -102,29 +127,25 @@ body {
     height: 1%;
 }
 
-#beta
-{
-    text-align: left;
-    margin: 0px;
-    font-size: 80%;
-}
-
 #play
 {
-    margin: 50px;
+    margin: 30px;
 }
 
 #playbutton
 {
-    margin: 8px;
-    font-size: 2em;
-    padding: 0.3em 1em;
+    margin: 15px;
+}
+
+#ac
+{
+    width: 5em;
 }
 
 #register
 {
     //font-size: 95%;
-    margin: 70px 0px 0;
+    margin: 50px 0 0;
 }
 
 

@@ -61,29 +61,24 @@ if($w<300 || $h<300) {
 } else {
    //echo "code not ok";
 ?>
-<!--
-  <div id="header">
-    <h1>Encircle</h1>
-    <h2>the game that will segment your world</h2>
-  </div>
--->
 
   <div id="container">
+
+  <div id="header">
+    <h1><img src="img/logo-140.png" alt="Encircle"></h1>
+  </div>
+
   <div id="content">
-
-    <h1>Encircle</h1>
-    <h2>the game that will segment your world</h2>
-
-    <div id="beta">
-    <p>Encircle is currently in private beta.</p>
-    </div>
 
     <div id="play">
     <p>Please enter your access code to <em>play</em> the game:</p>
 
     <form name="input" method="get">
-      Access code: <input type="text" name="ac" /><br/>
+      Access code: <input type="text" name="ac" id="ac" /><br/>
+      <input type="image" src="img/play-btn.png" id="playbutton" onclick="setappsize()" />
+<!--
       <input type="submit" value="Play!" id="playbutton" onclick="setappsize()" />
+-->
       <input type="hidden" value="800" name="width" id="dynwidth" />
       <input type="hidden" value="600" name="height" id="dynheight" />
     </form>
