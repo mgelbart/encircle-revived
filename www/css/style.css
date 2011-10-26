@@ -1,8 +1,17 @@
-html,body {
+html,body
+{
 /*    height:98%; */
 }
 
-body {
+div.center
+{
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+}
+
+body
+{
     background-color:#000000;
     background-image:url('../img/324740main_tripletgalaxy_600.jpg');
     background-repeat:no-repeat;
@@ -79,12 +88,27 @@ body {
 {
     clear: left;
     padding: 20px;
-    text-align: center;
+    text-align: left;
 }
 
 #content em
 {
     color:#aa0000;
+}
+
+#play
+{
+    text-align: center;
+}
+
+#register
+{
+    text-align: center;
+}
+
+#registered
+{
+    text-align: center;
 }
 
 h1

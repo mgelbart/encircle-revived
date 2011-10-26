@@ -1,80 +1,14 @@
 <?php
-/*
- *  Check the access code and either serve the applet
- *  or the front page.
- */
-
-if(array_key_exists("ac", $_GET)) {
-  $received_code = $_GET["ac"];
-} else {
-  $received_code = "";
-}
-
-$acceptable_codes = array("jg", "mg", "hetky", "internaltest");
-
-$servegame=in_array($received_code, $acceptable_codes);
-
 include("includes/header.php");
-
-if ($servegame) {
-   //echo "code ok";
-   // write info about the access to a file
-   $t = time();
-   $fname = "accesses/".$t."_".$received_code."_".rand();
-   $f = fopen($fname, 'w');
-   if ($f) {
-     fwrite($f, $t);
-     fwrite($f, " ".$received_code);
-     if(array_key_exists("HTTP_REFERER", $_SERVER))
-       fwrite($f, " ".$_SERVER["HTTP_REFERER"]);
-     fwrite($f, " ".$_SERVER["HTTP_USER_AGENT"]);
-     fwrite($f, " ".$_SERVER["REMOTE_ADDR"]);
-     fwrite($f, "\n");
-     fclose($f);
-   }
+include("includes/contentstart.php");
 ?>
-
-  <div id="game-container">
-
-<?php
-$w=0;
-$h=0;
-if(array_key_exists("width", $_GET)
-    && array_key_exists("height", $_GET)) {
-  $w=$_GET["width"];
-  $h=$_GET["height"];
-}
-// use defaults if width/height not reasonably set
-if($w<300 || $h<300) {
-  $w=800;
-  $h=600;
-}
-?>
-     <applet id='app'
-     	     code = 'aoi.App' 
-             archive = 'aoi8888.jar'
-	     width = '<?php echo $w; ?>'
-	     height = '<?php echo $h; ?>'>You need a Java plug-in to play the game.</applet>
-  </div>
-
-<?php
-} else {
-   //echo "code not ok";
-?>
-
-  <div id="container">
-
-  <div id="header">
-    <h1><img src="img/logo-140.png" alt="Encircle"></h1>
-  </div>
-
-  <div id="content">
 
     <div id="play">
-    <p>Please enter your access code to <em>play</em> the game:</p>
 
-    <form name="input" method="get">
-      Access code: <input type="text" name="ac" id="ac" /><br/>
+    <p>Best your opponents, contribute to science.</p>
+    <p>Introducing Encircle, a game that’s fun to play, and lets you contribute to science at the same time. See the <a href="/research.php">research</a> page to see how.</p>
+
+    <form action="/play.php" name="input" method="get">
       <input type="image" src="img/play-btn.png" id="playbutton" onclick="setappsize()" />
 <!--
       <input type="submit" value="Play!" id="playbutton" onclick="setappsize()" />
@@ -84,15 +18,8 @@ if($w<300 || $h<300) {
     </form>
     </div>
 
-<?php if(array_key_exists("ac", $_GET)) { ?>
-    <div id="incorrectcode">
-      <p>Access code <em><?php echo $_GET["ac"]; ?></em> was not recognized.</p>
-      <p>You may <em>register</em> to receive an access code.</p>
-    </div>
-<?php } ?>
-
     <div id="register">
-    <p>Or <em>register</em> to receive an access code as soon as we can accomodate more beta testers:</p>
+    <p>Or <em>register</em> to stay posted on the project status.</p>
 
     <form>
       email: <input type="text" name="email" />
@@ -114,7 +41,7 @@ if(array_key_exists("email", $_GET)) {
      fclose($f);
 ?>
       <p>Thank you for registering <em><?php echo $_GET["email"]; ?></em>.</p>
-      <p>We will contact with an access code as soon as we can.</p>
+      <p>We will contact you when major updates to the game are released.</p>
 <?php 
    } else {
 ?>
@@ -128,15 +55,10 @@ if(array_key_exists("email", $_GET)) {
 }
 ?>
 
-<?php
-}
-?>
-
-  </div>
-  </div>
 
 <?php
 //phpinfo();
 
+include("includes/contentend.php");
 include("includes/footer.php");
 ?>
