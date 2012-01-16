@@ -109,34 +109,34 @@ public class DrawableScoreboard implements Drawable {
       final double yB = box.getY()+box.getHeight()+margin;
       final Path2D scorePath = new Path2D.Double();
       
-      if (SimulationUtils.NUMPLAYERS == 2) {
-        switch (j) {
-        case 0:        
-          scorePath.moveTo(xR, yT);
-          scorePath.lineTo(xL, yT);
-          scorePath.moveTo(xR, yB);
-          scorePath.lineTo(xL, yB);
-          break;
-        case 1:
-          scorePath.moveTo(xR, yT);
-          scorePath.lineTo(xR, yB);
-          scorePath.moveTo(xL, yT);
-          scorePath.lineTo(xL, yB);
-          break;
-        case 2:
-          scorePath.moveTo(xL, yB);
-          scorePath.lineTo(xR, yB);
-          break;
-        case 3:
-          scorePath.moveTo(xL, yT);
-          scorePath.lineTo(xR, yT);
-          break;
-        }
-      } else {
+//      if (SimulationUtils.NUMPLAYERS == 2) {
+//        switch (j) {
+//        case 0:        
+//          scorePath.moveTo(xR, yT);
+//          scorePath.lineTo(xL, yT);
+//          scorePath.moveTo(xR, yB);
+//          scorePath.lineTo(xL, yB);
+//          break;
+//        case 1:
+//          scorePath.moveTo(xR, yT);
+//          scorePath.lineTo(xR, yB);
+//          scorePath.moveTo(xL, yT);
+//          scorePath.lineTo(xL, yB);
+//          break;
+//        case 2:
+//          scorePath.moveTo(xL, yB);
+//          scorePath.lineTo(xR, yB);
+//          break;
+//        case 3:
+//          scorePath.moveTo(xL, yT);
+//          scorePath.lineTo(xR, yT);
+//          break;
+//        }
+//      } else {
         final double vOffset = playersAlreadyAtScore[score]*2.;
         scorePath.moveTo(xL, yB+vOffset);
         scorePath.lineTo(xR, yB+vOffset);
-      }
+//      }
 
       shapes[j+1] = toOverlayCoords().createTransformedShape(scorePath);
 
