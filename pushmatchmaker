@@ -1,5 +1,5 @@
 #!/bin/bash
 
-ssh -i ~/.ssh/encircle.pem ec2-user@www.example.com 'rm -rf matchmaker; mkdir matchmaker; cd matchmaker; mkdir -p out segmentation/game_output/fly'
-scp -i ~/.ssh/encircle.pem -r bin compiletime ec2-user@www.example.com:matchmaker/
-scp -i ~/.ssh/encircle.pem gameservers.lowvac.txt ec2-user@www.example.com:matchmaker/gameservers.txt
+ssh -i ~/.ssh/encircle.pem ubuntu@www.example.com 'rm -rf matchmaker; mkdir matchmaker; cd matchmaker; mkdir -p out segmentation/game_output/fly'
+scp -i ~/.ssh/encircle.pem -r bin compiletime ubuntu@www.example.com:matchmaker/
+scp -i ~/.ssh/encircle.pem gameservers.lowvac.txt ubuntu@www.example.com:matchmaker/gameservers.txt

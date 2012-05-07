@@ -1,4 +1,4 @@
 #!/bin/bash
 
-scp -i ~/.ssh/encircle.pem restart* follow* backup* ec2-user@www.example.com:~/
-scp -i ~/.ssh/encircle.pem restart* follow* backup* ec2-user@dev.example.com:~/
+scp -i ~/.ssh/encircle.pem restart* follow* backup* ubuntu@www.example.com:~/
+scp -i ~/.ssh/encircle.pem restart* follow* backup* ubuntu@dev.example.com:~/
