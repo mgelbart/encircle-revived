@@ -14,6 +14,7 @@ import {
   BYTE_MAX,
   DRAG,
   MAXACC,
+  MAXSPEED,
   NUMPLAYERS,
   OMEGA,
   RAMP_MS,
@@ -85,8 +86,34 @@ export function isInArena(arena, x, y) {
   return !inCluster(arena, x, y);
 }
 
-// Turn the held keys into thrust and a target heading (KeyboardPilot.java).
+// How far ahead the cursor must be for full thrust (Tracker.DAMPINGDIST).
+const DAMPINGDIST = MAXSPEED / DRAG;
+
+// Turn an input into thrust and a target heading. Three kinds of input:
+//   keys:   { thrust, left, right, shoot }          (KeyboardPilot.java)
+//   mouse:  { target: {x, y} | null, stop, shoot }  (MousePilot.java + Tracker.paramsToTarget)
+//   direct: { direct: {accel, targetDir}, shoot }   (the computer opponent)
 function controls(player, input) {
+  if (input.direct) return input.direct;
+  if ("target" in input) return mouseControls(player.ship, input.target, input.stop);
+  return keyControls(player, input);
+}
+
+// Steer toward the cursor. Thrust grows with the square of how far ahead of
+// the ship (along its heading) the cursor is; no thrust if it's behind.
+export function mouseControls(ship, target, stop) {
+  if (!target) return { accel: 0, targetDir: ship.dir };
+  const speed = Math.hypot(ship.vx, ship.vy);
+  const l = DAMPINGDIST * Math.max(0.5, speed / MAXSPEED);
+  const ahead = (target.x - ship.x) * Math.cos(ship.dir) + (target.y - ship.y) * Math.sin(ship.dir);
+  let accel = ahead > 0 ? Math.trunc(MAXACC * Math.min(1, (ahead / l) ** 2)) : 0;
+  if (stop) accel = 0;
+  const dx = target.x - ship.x, dy = target.y - ship.y;
+  const targetDir = dx === 0 && dy === 0 ? ship.dir : Math.atan2(dy, dx);
+  return { accel, targetDir };
+}
+
+function keyControls(player, input) {
   const accel = input.thrust
     ? Math.trunc(Math.min(MAXACC, MAXACC * (0.7 + (0.3 * player.thrustTicks * TIMESTEP) / RAMP_MS)))
     : 0;

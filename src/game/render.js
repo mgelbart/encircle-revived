@@ -25,6 +25,7 @@ export class Renderer {
     this.assets = assets; // { bg: Image, clusterImages: Map<name, Image> }
     this.effects = []; // { kind, player, loop?, startTick }
     this.messages = []; // { text, color, until (tick) }
+    this.names = PLAYERS.map((p) => p.name);
     this.resize();
   }
 
@@ -47,19 +48,23 @@ export class Renderer {
   // arena -> screen (CSS pixels); arena y points up.
   sx(x) { return this.ox + x * this.scale; }
   sy(y) { return this.oy - y * this.scale; }
+  // screen (CSS pixels) -> arena
+  toArena(X, Y) { return { x: (X - this.ox) / this.scale, y: (this.oy - Y) / this.scale }; }
 
   // Feed simulation events so effects and messages can be shown.
   onEvents(events, tick) {
+    const name = (i) => this.names[i];
+    const poss = (i) => (name(i) === "You" ? "your" : `${name(i)}'s`);
     for (const e of events) {
-      const who = PLAYERS[e.player];
-      if (e.type === "loop" && e.scored) this.effects.push({ kind: "score", player: e.player, loop: e.loop, startTick: tick });
-      else if (e.type === "loop") this.effects.push({ kind: "loop", player: e.player, loop: e.loop, startTick: tick });
+      const col = PLAYERS[e.player].color;
+      if (e.type === "loop") this.effects.push({ kind: e.scored ? "score" : "loop", player: e.player, loop: e.loop, startTick: tick });
       if (e.type === "pwned") {
         this.effects.push({ kind: "pwned", player: e.player, startTick: tick });
-        this.say(`${PLAYERS[e.by].name} encircled ${who.name}! ${who.name} starts over.`, PLAYERS[e.by].color, tick);
+        const victim = name(e.player) === "You" ? "you" : name(e.player);
+        this.say(`${name(e.by)} encircled ${victim}! ${name(e.player) === "You" ? "Back" : `${name(e.player)} goes back`} to the start.`, PLAYERS[e.by].color, tick);
       }
-      if (e.type === "hit") this.say(`${who.name} got shot: rewinding to last knot`, who.color, tick);
-      if (e.type === "cross") this.say(`${who.name} crossed ${PLAYERS[e.other].name}'s tail and lost some of it`, who.color, tick, 60);
+      if (e.type === "hit") this.say(`${name(e.player)} got shot: rewinding to last knot`, col, tick);
+      if (e.type === "cross") this.say(`${name(e.player)} crossed ${poss(e.other)} tail and lost some of ${name(e.player) === "You" ? "yours" : "it"}`, col, tick, 60);
     }
   }
 
@@ -284,7 +289,7 @@ export class Renderer {
       ctx.textAlign = i === 0 ? "left" : "right";
       const x = i === 0 ? 16 : this.w - 16;
       ctx.font = "bold 16px ui-monospace, Menlo, monospace";
-      ctx.fillText(`${PLAYERS[i].name}  ${p.score}/${seq.length}`, x, 20);
+      ctx.fillText(`${this.names[i]}  ${p.score}/${seq.length}`, x, 20);
       ctx.font = "14px ui-monospace, Menlo, monospace";
       ctx.fillText(next, x, 42);
     });

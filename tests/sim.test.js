@@ -1,6 +1,7 @@
 // Simulation tests. Open tests/index.html in the browser (served over http).
 import * as T from "../src/sim/tail.js";
-import { initialState, step } from "../src/sim/sim.js";
+import { initialState, step, mouseControls } from "../src/sim/sim.js";
+import { makeAi, aiThink } from "../src/sim/ai.js";
 import { generateArena } from "../src/sim/arena.js";
 import { makeRng } from "../src/sim/rng.js";
 import { BULLETCOST, ARENA_HALF, SEQUENCE_LENGTH, CLUSTERS_PER_VALUE } from "../src/sim/constants.js";
@@ -231,6 +232,28 @@ test("walls and clusters stop the ship", () => {
   assert(s.players[0].ship.x <= ARENA_HALF, "stayed inside the wall");
 });
 
+// ----------------------------------------------------------------- mouse --
+
+test("mouse: full thrust toward a far cursor ahead, none for a cursor behind, none while stopped", () => {
+  const ship = { x: 0, y: 0, vx: 0, vy: 0, dir: 0 };
+  const ahead = mouseControls(ship, { x: 40000, y: 0 }, false);
+  assert(ahead.accel === 112 && Math.abs(ahead.targetDir) < 1e-12, "full thrust ahead");
+  const near = mouseControls(ship, { x: 3000, y: 0 }, false);
+  assert(near.accel > 0 && near.accel < 112, "partial thrust when the cursor is close");
+  const behind = mouseControls(ship, { x: -20000, y: 1000 }, false);
+  assert(behind.accel === 0 && behind.targetDir > 3, "turn around, no thrust");
+  assert(mouseControls(ship, { x: 40000, y: 0 }, true).accel === 0, "stop key cuts thrust");
+  assert(mouseControls(ship, null, false).accel === 0, "no cursor yet");
+});
+
+test("mouse: the ship flies to the cursor through step()", () => {
+  const arena = arenaWith([]);
+  let s = place(initialState(arena), 0, -30000, -30000, 0);
+  for (let i = 0; i < 200; i++) s = step(arena, s, [{ target: { x: 20000, y: 25000 }, stop: false, shoot: false }, NOINPUT]).state;
+  const sh = s.players[0].ship;
+  assert(Math.hypot(sh.x - 20000, sh.y - 25000) < 15000, `ended near the cursor, at ${sh.x},${sh.y}`);
+});
+
 // ----------------------------------------------------- arena & determinism --
 
 export function arenaTests(database) {
@@ -248,6 +271,27 @@ export function arenaTests(database) {
       const b = generateArena(database, seed);
       assert(JSON.stringify(a) === JSON.stringify(b), "same seed, same arena");
     }
+  });
+
+  test("ai: two computer players score, shoot and finish matches", () => {
+    let scores = 0, shots = 0, wins = 0;
+    for (const seed of [2, 6]) {
+      const arena = generateArena(database, seed);
+      let s = initialState(arena);
+      const ais = [makeAi(0, seed), makeAi(1, seed + 1)];
+      for (let i = 0; i < 25 * 300 && s.winner < 0; i++) {
+        const r = step(arena, s, [aiThink(ais[0], arena, s), aiThink(ais[1], arena, s)]);
+        s = r.state;
+        for (const e of r.events) {
+          if (e.type === "score") scores++;
+          if (e.type === "shot") shots++;
+        }
+      }
+      if (s.winner >= 0) wins++;
+    }
+    assert(scores >= 6, `scored ${scores}`);
+    assert(shots >= 1, `shot ${shots}`);
+    assert(wins >= 1, `won ${wins} of 2 matches within 5 minutes`);
   });
 
   test("determinism: same seed and inputs give identical games", () => {
