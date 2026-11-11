@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Encircle tests</title>
+    <style>
+      body { background: #111; color: #ddd; font: 14px ui-monospace, Menlo, monospace; padding: 16px; }
+      .pass { color: #3c3; }
+      .fail { color: #f55; }
+      pre { white-space: pre-wrap; margin: 2px 0 10px 20px; color: #f99; }
+    </style>
+  </head>
+  <body>
+    <h2 id="summary">running…</h2>
+    <div id="out"></div>
+    <script type="module">
+      import { tests, arenaTests } from "./sim.test.js";
+      const db = await (await fetch("../assets/clusters.json")).json();
+      arenaTests(db);
+      const out = document.getElementById("out");
+      const results = [];
+      for (const t of tests) {
+        const t0 = performance.now();
+        try {
+          await t.fn();
+          results.push({ name: t.name, ok: true, ms: performance.now() - t0 });
+        } catch (e) {
+          results.push({ name: t.name, ok: false, error: String(e && e.stack || e) });
+        }
+      }
+      for (const r of results) {
+        const div = document.createElement("div");
+        div.className = r.ok ? "pass" : "fail";
+        div.textContent = `${r.ok ? "✓" : "✗"} ${r.name}${r.ok ? ` (${r.ms.toFixed(0)} ms)` : ""}`;
+        out.appendChild(div);
+        if (!r.ok) {
+          const pre = document.createElement("pre");
+          pre.textContent = r.error;
+          out.appendChild(pre);
+        }
+      }
+      const failed = results.filter((r) => !r.ok).length;
+      document.getElementById("summary").textContent = failed ? `${failed} of ${results.length} failed` : `all ${results.length} passed`;
+      document.getElementById("summary").className = failed ? "fail" : "pass";
+      window.testResults = results;
+    </script>
+  </body>
+</html>
