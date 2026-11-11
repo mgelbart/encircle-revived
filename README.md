@@ -50,6 +50,9 @@ The computer opponent is a port of the 2011 AI (`Nonhuman.java`).
 `Esc` pause (then `Q` quits to the title) · `M` mute · `N` new map · `R` replay the same map after a match.
 The URL carries `?seed=…` (and optionally `&mode=local2|aiMouse|aiKeys`), so a map can be shared or replayed.
 
+Online: <https://mgelbart.github.io/encircle-revived/>. Every push to `main` redeploys it
+(`.github/workflows/pages.yml`).
+
 ## Tests
 
 With the server running, open <http://localhost:8765/tests/>.
