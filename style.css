@@ -129,3 +129,56 @@ kbd {
   background: #262626;
   color: #fff;
 }
+
+.modes.tight {
+  margin-top: 6px;
+}
+.label {
+  margin: 18px 0 0;
+  color: #888;
+}
+.mode.join {
+  cursor: default;
+}
+.join span {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.join input {
+  font: inherit;
+  font-size: 18px;
+  width: 5.5ch;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-align: center;
+  background: #000;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 5px;
+  padding: 3px 6px;
+}
+.join button,
+.copy {
+  font: inherit;
+  background: #2a2a2a;
+  color: #eee;
+  border: 1px solid #777;
+  border-radius: 5px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.code {
+  font-size: clamp(48px, 12vw, 96px);
+  letter-spacing: 0.3em;
+  font-weight: bold;
+  margin: 0 0 16px 0.3em;
+}
+.invite {
+  color: #9cf;
+  word-break: break-all;
+}
+.error {
+  color: #f77;
+  max-width: 560px;
+}

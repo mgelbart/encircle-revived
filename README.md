@@ -30,7 +30,7 @@ because browsers block ES modules on `file://`.
 
 ### Modes
 
-Pick a mode on the title screen with `1` `2` `3`, or by clicking it.
+Pick a mode on the title screen with `1` `2` `3` `4`, or by clicking it.
 
 1. **Two players, one keyboard.** Keyboard only:
 
@@ -44,14 +44,32 @@ Pick a mode on the title screen with `1` `2` `3`, or by clicking it.
    thrusts harder the farther ahead of it the cursor is; it coasts if the cursor is behind it.
    Click or `Space` shoots; hold `A` to cut the engine.
 3. **Vs computer, keyboard.** `W`/`↑` thrust, `A` `D` / `←` `→` turn, `Space` shoots.
+4. **Online.** Play someone on another computer. One player clicks *Create a room* and sends the
+   4-letter code (or the invite link) to the other, who types it under *Join a room*. Each player picks
+   mouse or keyboard controls for themselves. The room's creator is red. Online matches can't pause;
+   `Esc` then `Q` leaves.
 
 The computer opponent is a port of the 2011 AI (`Nonhuman.java`).
 
 `Esc` pause (then `Q` quits to the title) · `M` mute · `N` new map · `R` replay the same map after a match.
-The URL carries `?seed=…` (and optionally `&mode=local2|aiMouse|aiKeys`), so a map can be shared or replayed.
+The URL carries `?seed=…` (and optionally `&mode=local2|aiMouse|aiKeys|online`), so a map can be shared or replayed.
+`?room=CODE` joins an online room.
 
 Online: <https://mgelbart.github.io/encircle-revived/>. Every push to `main` redeploys it
 (`.github/workflows/pages.yml`).
+
+### How online play works
+
+The two browsers connect directly over WebRTC using [PeerJS](https://peerjs.com/) 1.5.5 (loaded from
+jsDelivr with a pinned checksum). PeerJS's free public server only introduces them, using the room code.
+If a firewall blocks a direct connection, traffic goes through PeerJS's free relay. There's no server of our own.
+
+Each browser runs the whole simulation itself (`src/net/rollback.js`). Your own input takes effect
+2 ticks (80 ms) late and is sent to the other side straight away. When the other player's input hasn't arrived
+yet, the game assumes they're still doing what they were doing. If that guess was wrong, it rewinds to that
+tick and replays the ticks since, so a little lag shows up as the other ship occasionally jumping slightly
+rather than as stutter. Once a second the host sends a fingerprint of the game state. If the guest's copy ever
+differs (different browsers could round some math slightly differently), the guest takes the host's copy.
 
 ## Tests
 
@@ -85,12 +103,16 @@ src/sim/                  the game rules: pure, deterministic, no DOM
   arena.js                map generation: cluster placement and the sequence (ClusterDatabase.java)
   sim.js                  step(arena, state, inputs) -> { state, events } (Simulation.java)
   ai.js                   the computer opponent (Nonhuman.java)
+src/net/                  online play
+  rollback.js             rollback netcode: input delay, prediction, rewind and replay, state hashes
+  online.js               one online match series: protocol, timing, desync repair, rematches
+  peer.js                 room codes and the WebRTC connection (PeerJS)
 src/game/                 browser side: rendering, keyboard/mouse, sound, screens
 assets/                   cluster images + outlines, sounds, background (from encircle-old/)
 tools/build_assets.py     regenerates assets/ from encircle-old/
 tools/serve.py            local dev server (no caching)
 tools/run-old-game.sh     runs the original 2011 Java game
-tests/                    browser test page for the simulation
+tests/                    browser test page: the simulation, plus netcode over a fake laggy link
 ```
 
 The simulation runs at a fixed 25 Hz (40 ms ticks, as in 2011) and the renderer interpolates
@@ -100,7 +122,7 @@ online play.
 
 ## Differences from the 2011 version
 
-- Two players on one keyboard instead of client/server over the network.
+- Two players on one keyboard, or online peer to peer, instead of the 2011 game server.
 - The walls are at the edge of the visible arena. The original only had walls far off-screen.
 - Ships start in opposite corners facing the center, and clusters are never placed on top of a start point.
 - The computer opponent also steers away from the walls, which the 2011 AI never had to do.

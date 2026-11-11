@@ -15,8 +15,11 @@
     <div id="out"></div>
     <script type="module">
       import { tests, arenaTests } from "./sim.test.js";
+      import { netTests, netTestsWith } from "./net.test.js";
       const db = await (await fetch("../assets/clusters.json")).json();
       arenaTests(db);
+      netTestsWith(db);
+      tests.push(...netTests);
       const out = document.getElementById("out");
       const results = [];
       for (const t of tests) {
