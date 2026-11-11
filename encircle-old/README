@@ -1,0 +1,6 @@
+How to play:
+Everyone should have the files.
+
+The .conf files store where to look for the server. So, if Mike is running the server, Mike would use "localhost" and you would use "XXX.XXX.XXX.XXX". To find your IP, type "ifconfig" in the terminal or on windows type "ipconfig".
+
+Server cannot be running behind a NAT. That does address translation for the subnet for some privacy reasons (non-public IPs). Use port numbers to handle that.

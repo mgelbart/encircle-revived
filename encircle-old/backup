@@ -1,0 +1,43 @@
+#!/bin/bash
+
+CURRENTTIME=$(date +%s);
+
+SRCDIR='gameserv/out';
+if [ -d $SRCDIR ]; then
+    BACKUPDIR="bak/gameserv/$CURRENTTIME";
+    echo "Backing up gameserv output to $BACKUPDIR.";
+    mkdir -p $BACKUPDIR;
+    mv $SRCDIR/* $BACKUPDIR;
+fi
+
+SRCDIR='matchmaker/out';
+if [ -d $SRCDIR ]; then
+    BACKUPDIR="bak/matchmaker/$CURRENTTIME";
+    echo "Backing up matchmaker output to $BACKUPDIR.";
+    mkdir -p $BACKUPDIR;
+    mv $SRCDIR/* $BACKUPDIR;
+fi
+
+SRCDIR='aiserv/out';
+if [ -d $SRCDIR ]; then
+    BACKUPDIR="bak/aiserv/$CURRENTTIME";
+    echo "Backing up aiserv output to $BACKUPDIR.";
+    mkdir -p $BACKUPDIR;
+    mv $SRCDIR/* $BACKUPDIR;
+fi
+
+SRCDIR='/var/www/html/registered';
+if [ -d $SRCDIR ]; then
+    BACKUPDIR="www/registered/$CURRENTTIME";
+    echo "Backing up registered emails to $BACKUPDIR.";
+    mkdir -p $BACKUPDIR;
+    mv $SRCDIR/* $BACKUPDIR;
+fi
+
+SRCDIR='/var/www/html/accesses';
+if [ -d $SRCDIR ]; then
+    BACKUPDIR="www/accesses/$CURRENTTIME";
+    echo "Backing up accesses to $BACKUPDIR.";
+    mkdir -p $BACKUPDIR;
+    mv $SRCDIR/* $BACKUPDIR;
+fi

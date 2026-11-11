@@ -1,0 +1,195 @@
+html,body
+{
+/*    height:98%; */
+}
+
+div.center
+{
+    margin-left: auto;
+    margin-right: auto;
+    width: 60%;
+}
+
+body
+{
+    background-color:#000000;
+    background-image:url('../img/324740main_tripletgalaxy_600.jpg');
+    background-repeat:no-repeat;
+    background-position:center top;
+    background-attachment:fixed
+}
+
+#container
+{
+    margin: 50px auto 10px;
+    width: 600px;
+    background:#b0b0b0;
+    border-radius: 15px;
+    -moz-border-radius: 15px;
+}
+
+#game-container
+{
+    margin: 0px;
+    padding: 0px;
+/*    width: 98%;*/
+    background:#000000;
+    text-align: center;
+
+/*    height:auto !important; /* real browsers */
+/*    height:98%; /* IE6: treated as min-height*/
+
+/*    min-height:98%; /* real browsers */
+}
+
+#header
+{
+    background:#ccc;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+    -moz-border-radius-topleft: 15px;
+    -moz-border-radius-topright: 15px;
+}
+
+#header h1 { margin: 0; }
+
+#navigation
+{
+    float: left;
+    width: 600px;
+    background:#333;
+}
+
+#navigation ul
+{
+    margin: 0;
+    padding: 0;
+}
+
+#navigation ul li
+{
+    list-style-type: none;
+    display: inline;
+}
+
+#navigation li a
+{
+    display: block;
+    float: left;
+    padding: 5px 10px;
+    color:#fff;
+    text-decoration: none;
+    border-right: 1px solid#fff;
+}
+
+#navigation li a:hover { background:#383; }
+
+#content
+{
+    clear: left;
+    padding: 20px;
+    text-align: left;
+}
+
+#content em
+{
+    color:#aa0000;
+}
+
+#play
+{
+    text-align: center;
+}
+
+#register
+{
+    text-align: center;
+}
+
+#registered
+{
+    text-align: center;
+}
+
+h1
+{
+    text-align: left;
+    color:#000;
+    font-size: 200%;
+    margin: 0 0 0 0;
+}
+
+h2
+{
+    text-align: left;
+    color:#000;
+    font-size: 100%;
+    margin: 40px 0 5px;
+}
+
+#header {
+    padding: 10px 0px 0px;
+}
+
+#header h1 {
+    text-align: center;
+}
+
+#beta
+{
+    float: none;
+    text-align: center;
+    margin: 0px;
+    font-size: 80%;
+}
+
+#footer
+{
+    background:#ccc;
+    text-align: right;
+    padding: 20px;
+    height: 1%;
+}
+
+#play
+{
+    margin: 30px;
+}
+
+#playbutton
+{
+    margin: 15px;
+}
+
+#ac
+{
+    width: 5em;
+}
+
+#register
+{
+    //font-size: 95%;
+    margin: 50px 0 0;
+}
+
+
+#registered
+{
+    color: #ff0000;
+    //margin: 50px;
+}
+
+#incorrectcode
+{
+    color: #ff0000;
+    //margin: 50px;
+}
+
+#bkgcredits
+{
+    color: #333;
+    font-size: 10px;
+    text-align: center;
+
+    //position: relative;
+}

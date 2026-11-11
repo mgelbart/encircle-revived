@@ -1,0 +1,49 @@
+package aoi;
+
+import java.awt.*;
+import java.awt.geom.*;
+
+/**
+ *  A GUI element for a tail.
+ */
+public class DrawableTail extends DefaultDrawable {
+
+  private final static int KNOTSIZE = (int) (SimulationUtils.ARENASIZE * 0.01);
+
+  public DrawableTail(int playerNo, Stroke stroke) {
+    super(playerNo, stroke);
+  }
+
+
+  public void prepare(GameState gState) {
+      nShapes = 1+2*gState.pStates[playerNo].tail.getKnotTimes().size();
+  }
+  
+  // Return the path to be drawn.
+  public Shape[] shapes(GameState gState) {
+    if (nShapes == 0) return null;
+    Tail tail = gState.pStates[playerNo].tail;
+    Shape[] shapes = new Shape[nShapes];
+    int j = 0;
+    for (int time : tail.getKnotTimes()) {
+      Point2D knotPoint = tail.getPoint(time);
+      assert(knotPoint != null);
+      
+      AffineTransform at = AffineTransform.getTranslateInstance(knotPoint.getX(), knotPoint.getY());
+      
+      Angle a = tail.tangentAngle(time);
+      if (a == null) a = gState.pStates[playerNo].ship.dir();
+      
+      at.rotate(a.toDouble());
+      
+      shapes[j++] = at.createTransformedShape(
+          new Line2D.Double(KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2, KNOTSIZE/2));
+      shapes[j++] = at.createTransformedShape(
+          new Line2D.Double(KNOTSIZE/2, KNOTSIZE/2, -KNOTSIZE/2, -KNOTSIZE/2));
+
+    }
+    shapes[nShapes-1] = tail.toPath2D();
+    return shapes;
+  }
+
+}

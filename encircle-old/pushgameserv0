@@ -1,0 +1,6 @@
+#!/bin/bash
+
+tar cf gameserv.tar compiletime bin gameserver.conf segmentation
+ssh -i ~/.ssh/encircle.pem ubuntu@www.example.com 'rm -rf gameserv; mkdir gameserv; cd gameserv; mkdir -p out segmentation/game_output/fly'
+scp -i ~/.ssh/encircle.pem gameserv.tar ubuntu@www.example.com:gameserv/
+ssh -i ~/.ssh/encircle.pem ubuntu@www.example.com 'cd gameserv; tar xf gameserv.tar'

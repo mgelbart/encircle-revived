@@ -1,0 +1,2 @@
+Main-Class: aoi.Client
+Class-Path: . lib/commons-codec-1.5.jar
